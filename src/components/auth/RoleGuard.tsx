@@ -25,7 +25,10 @@ export function RoleGuard({
   const { user } = useAuth();
 
   // If both are provided, requireExactRoles takes precedence so exact-role checks are never silently bypassed.
-  if (requireExactRoles && requireExactRoles.length > 0) {
+  if (Array.isArray(requireExactRoles)) {
+    if (requireExactRoles.length === 0) {
+      return <>{fallback}</>;
+    }
     const hasAccess = hasAnyRole(user?.role, requireExactRoles);
     return hasAccess ? <>{children}</> : <>{fallback}</>;
   }

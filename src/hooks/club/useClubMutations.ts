@@ -23,6 +23,8 @@ export interface CreateClubInput {
   website?: string | null;
   bookingSystemUrl?: string | null;
   address: string;
+  /** [longitude, latitude] - required for club creation */
+  coordinates: [number, number];
   courts?: CourtInput[];
 }
 
@@ -31,6 +33,7 @@ export interface UpdateClubInput {
   website?: string | null;
   bookingSystemUrl?: string | null;
   address?: string;
+  coordinates?: [number, number];
   courts?: CourtInput[];
 }
 
@@ -52,6 +55,7 @@ interface ClubDetailResponse {
     address: string;
     website: string | null;
     bookingSystemUrl: string | null;
+    coordinates: [number, number] | null;
   };
   courts: Array<{
     id: string;
