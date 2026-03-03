@@ -26,16 +26,18 @@ function parseHashParams(hash: string): URLSearchParams {
 
 /**
  * Handles OAuth callback from backend. Backend redirects here with:
- * - Query params: success=true (logged in) or error=... (auth failed)
- * - Fragment (#): signup=true&pendingToken=... (token in fragment so it's never sent to server)
+ * - Query params: success=true (logged in), error=... (auth failed), or signup=true&pendingToken=... (complete signup)
  */
 export default function AuthCallback() {
   const [searchParams] = useSearchParams();
   const { hash } = useLocation();
 
+  // Read from query params (primary) and hash (legacy) - fragments can be lost in redirect chains
   const hashParams = useMemo(() => parseHashParams(hash), [hash]);
-  const signup = hashParams.get("signup");
-  const pendingToken = hashParams.get("pendingToken");
+  const signup =
+    searchParams.get("signup") ?? hashParams.get("signup");
+  const pendingToken =
+    searchParams.get("pendingToken") ?? hashParams.get("pendingToken");
 
   const success = searchParams.get("success");
   const error = sanitizeErrorCode(searchParams.get("error"));

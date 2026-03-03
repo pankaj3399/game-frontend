@@ -110,6 +110,7 @@
     "deleteAccountError": "Konto konnte nicht gelöscht werden. Bitte versuchen Sie es erneut."
   },
   "auth": {
+    "backToHome": "Zurück zur Startseite",
     "signInWithGoogle": "Mit Google anmelden",
     "signInWithApple": "Mit Apple anmelden",
     "whatDoesSignInMean": "Was bedeutet Anmelden mit Apple oder Google?",

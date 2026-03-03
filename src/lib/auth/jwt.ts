@@ -23,6 +23,7 @@ export const pendingSignupPayloadSchema = z.object({
   pendingSignup: z.literal(true),
   appleId: z.string().optional(),
   googleId: z.string().optional(),
+  requiresEmailInput: z.boolean().optional(),
 });
 
 export type PendingSignupPayload = z.infer<typeof pendingSignupPayloadSchema>;

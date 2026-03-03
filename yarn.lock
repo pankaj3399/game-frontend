@@ -3179,6 +3179,7 @@ __metadata:
     react-day-picker: "npm:^9.13.2"
     react-dom: "npm:^19.2.0"
     react-i18next: "npm:^16.5.4"
+    react-icons: "npm:^5.6.0"
     react-router-dom: "npm:^7.13.0"
     shadcn: "npm:^3.8.5"
     sonner: "npm:^2.0.7"
@@ -6206,6 +6207,15 @@ __metadata:
     typescript:
       optional: true
   checksum: 10c0/41d0b76873addfa3abe0c6b8a10a796e01f205f3636bc2d090d0078b42222f2949c4303f18d7a80cc26cf1298918cb6220d96e39ae2b8644abfdbec3bb504b37
+  languageName: node
+  linkType: hard
+
+"react-icons@npm:^5.6.0":
+  version: 5.6.0
+  resolution: "react-icons@npm:5.6.0"
+  peerDependencies:
+    react: "*"
+  checksum: 10c0/addba1ebfd45cdf7f69291d0c93df64fca1271cfdb66df657abd223e3451c73356b035f50e75858627dd182b02129596c79eaaaa45d32eb52658e443a992645c
   languageName: node
   linkType: hard
 

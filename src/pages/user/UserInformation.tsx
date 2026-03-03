@@ -52,11 +52,14 @@ export default function UserInformation() {
   });
 
   let displayEmail = user?.email ?? "";
-  if (!displayEmail && pendingToken) {
+  let requiresEmailInput = false;
+  if (pendingToken) {
     try {
-      displayEmail = decodeJwtPayload(pendingToken, pendingSignupPayloadSchema).pendingEmail ?? "";
+      const payload = decodeJwtPayload(pendingToken, pendingSignupPayloadSchema);
+      displayEmail = payload.pendingEmail ?? displayEmail;
+      requiresEmailInput = payload.requiresEmailInput === true;
     } catch {
-      // displayEmail stays ""
+      // displayEmail stays as is
     }
   }
 
@@ -64,11 +67,13 @@ export default function UserInformation() {
   const [inputs, setInputs] = useState<{
     alias: string;
     name: string;
+    email: string;
     dateOfBirth: Date | undefined;
     gender: "male" | "female" | "other" | "" | undefined;
   }>({
     alias: "",
     name: "",
+    email: "",
     dateOfBirth: undefined,
     gender: "",
   });
@@ -104,12 +109,18 @@ export default function UserInformation() {
     e.preventDefault();
     setFieldErrors({});
 
+    if (requiresEmailInput && !inputs.email?.trim()) {
+      setFieldErrors((prev) => ({ ...prev, email: "Please enter your email address. Apple did not share it with us." }));
+      return;
+    }
+
     const dateOfBirthStr = inputs.dateOfBirth
       ? format(inputs.dateOfBirth, "yyyy-MM-dd")
       : "";
     const result = await submit({
       ...inputs,
       dateOfBirth: dateOfBirthStr,
+      ...(requiresEmailInput ? { email: inputs.email?.trim() } : {}),
     });
 
     if (result.success) {
@@ -156,14 +167,15 @@ export default function UserInformation() {
                 </FieldLabel>
                 <Input
                   id="signup-email"
-                  disabled
+                  disabled={!requiresEmailInput}
                   type="email"
                   name="email"
                   autoComplete="email"
                   spellCheck={false}
                   className={inputClassName}
                   placeholder={t("signup.enterEmailAddress")}
-                  value={displayEmail}
+                  value={requiresEmailInput ? inputs.email : displayEmail}
+                  onChange={requiresEmailInput ? handleInputChange : undefined}
                   aria-invalid={!!fieldErrors.email}
                   aria-describedby={fieldErrors.email ? "signup-email-error" : undefined}
                 />

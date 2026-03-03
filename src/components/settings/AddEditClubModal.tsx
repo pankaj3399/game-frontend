@@ -263,7 +263,7 @@ export function AddEditClubModal({
 
         {isEdit && loadingClub ? (
           <div className="flex items-center justify-center py-8">
-            <span className="h-6 w-6 animate-spin rounded-full border-2 border-muted-foreground/30 border-t-foreground" />
+            <span  className="h-6 w-6 animate-spin rounded-full border-2 border-muted-foreground/30 border-t-foreground" />
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">

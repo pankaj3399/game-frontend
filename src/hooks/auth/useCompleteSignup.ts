@@ -78,6 +78,7 @@ export function useCompleteSignup({
         name: parsed.name,
         dateOfBirth,
         gender: parsed.gender || null,
+        ...(parsed.email ? { email: parsed.email } : {}),
       });
 
       if (
@@ -108,6 +109,9 @@ export function useCompleteSignup({
       if (isTokenError) {
         sessionStorage.removeItem(PENDING_SIGNUP_TOKEN_KEY);
         navigate("/login", { replace: true });
+      }
+      if (code === "EMAIL_ALREADY_EXISTS") {
+        return { success: false, message: msg, fieldErrors: { email: msg } };
       }
       return { success: false, message: msg };
     } finally {

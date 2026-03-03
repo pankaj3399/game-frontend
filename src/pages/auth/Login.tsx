@@ -1,6 +1,8 @@
 import { useTranslation } from "react-i18next";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { AppleIcon, GoogleIcon } from "@hugeicons/core-free-icons";
+import { ArrowLeft01Icon } from "@hugeicons/core-free-icons";
+import { FcGoogle } from "react-icons/fc";
+import { SiApple } from "react-icons/si";
 import { getBackendUrl } from "@/lib/api";
 
 const Login = () => {
@@ -11,66 +13,73 @@ const Login = () => {
 
   return (
     <section className="relative w-full min-h-screen flex flex-col items-center justify-center gap-6 py-8 px-4 sm:px-6">
-      <div className="w-full max-w-[580px] rounded-lg border border-tableBorder px-6 py-10 shadow-table md:px-6 md:py-6 lg:px-14 lg:py-8">
-        <h1 className="text-center font-primary text-[22px] font-bold capitalize text-brand-primary md:text-[26px]">
+      <div className="w-full max-w-[580px] rounded-lg border border-tableBorder px-6 py-10 shadow-table md:px-6 md:py-6 lg:px-14 lg:py-8 flex flex-col">
+        <h1 className="text-center font-primary text-[22px] font-bold capitalize text-[#388E3C] md:text-[26px]">
           {t("common.login")}
         </h1>
         {googleAuthUrl ? (
           <a
             href={googleAuthUrl}
-            className="font-semibold border rounded-lg border-[#C6C4D5] active:animate-jerk text-brand-primary w-full mt-6 md:h-[48px] h-[40px] font-primary md:text-base text-sm hover:bg-white flex justify-center items-center gap-2 no-underline"
+            className="font-semibold border rounded-lg border-[#C6C4D5] active:animate-jerk text-[#333333] bg-white w-full mt-6 md:h-[48px] h-[40px] font-primary md:text-base text-sm hover:bg-white flex justify-center items-center gap-2 no-underline"
           >
-            <HugeiconsIcon icon={GoogleIcon} size={22} className="mr-2" />
+            <FcGoogle size={22} className="mr-2 shrink-0" />
             {t("auth.signInWithGoogle")}
           </a>
         ) : (
           <button
             type="button"
             disabled
-            className="font-semibold border rounded-lg border-[#C6C4D5] text-brand-primary w-full mt-6 md:h-[48px] h-[40px] font-primary md:text-base text-sm flex justify-center items-center gap-2 opacity-50 cursor-not-allowed"
+            className="font-semibold border rounded-lg border-[#C6C4D5] text-[#333333] bg-white w-full mt-6 md:h-[48px] h-[40px] font-primary md:text-base text-sm flex justify-center items-center gap-2 opacity-50 cursor-not-allowed"
           >
-            <HugeiconsIcon icon={GoogleIcon} size={22} className="mr-2" />
+            <FcGoogle size={22} className="mr-2 shrink-0" />
             {t("auth.signInWithGoogle")}
           </button>
         )}
         {appleAuthUrl ? (
           <a
             href={appleAuthUrl}
-            className="font-semibold border rounded-lg border-[#C6C4D5] active:animate-jerk text-brand-primary w-full mt-4 md:h-[48px] h-[40px] font-primary md:text-base text-sm hover:bg-white flex justify-center items-center gap-2 no-underline"
+            className="font-semibold border rounded-lg border-[#C6C4D5] active:animate-jerk text-[#333333] bg-white w-full mt-4 md:h-[48px] h-[40px] font-primary md:text-base text-sm hover:bg-white flex justify-center items-center gap-2 no-underline"
           >
-            <HugeiconsIcon icon={AppleIcon} size={22} className="mr-2" />
+            <SiApple size={22} className="mr-2 shrink-0 text-[#000000]" />
             {t("auth.signInWithApple")}
           </a>
         ) : (
           <button
             type="button"
             disabled
-            className="font-semibold border rounded-lg border-[#C6C4D5] text-brand-primary w-full mt-4 md:h-[48px] h-[40px] font-primary md:text-base text-sm flex justify-center items-center gap-2 opacity-50 cursor-not-allowed"
+            className="font-semibold border rounded-lg border-[#C6C4D5] text-[#333333] bg-white w-full mt-4 md:h-[48px] h-[40px] font-primary md:text-base text-sm flex justify-center items-center gap-2 opacity-50 cursor-not-allowed"
           >
-            <HugeiconsIcon icon={AppleIcon} size={22} className="mr-2" />
+            <SiApple size={22} className="mr-2 shrink-0 text-[#000000]" />
             {t("auth.signInWithApple")}
           </button>
         )}
+        <button
+          type="button"
+          className="font-semibold rounded-lg bg-[#388E3C] text-white mt-8 md:h-[48px] h-[40px] font-primary md:text-base text-sm flex justify-center items-center gap-2 self-center px-8 hover:bg-[#2d7230] active:animate-jerk"
+        >
+          <HugeiconsIcon icon={ArrowLeft01Icon} size={22} className="mr-2" />
+          {t("auth.backToHome")}
+        </button>
       </div>
 
       <div className="w-full max-w-[580px] p-6 space-y-6 rounded-lg border border-tableBorder shadow-table">
         <div>
-          <h2 className="font-semibold text-base">
+          <h2 className="font-semibold text-base text-[#333333]">
             {t("auth.whatDoesSignInMean")}
           </h2>
-          <p className="mt-2 text-sm text-gray-600">
+          <p className="mt-2 text-sm text-[#333333]">
             {t("auth.signInExplanation")}
           </p>
-          <p className="mt-2 text-sm font-semibold">
+          <p className="mt-2 text-sm font-semibold text-[#333333]">
             {t("auth.forMoreInfo")}
           </p>
-          <ul className="list-disc list-inside text-sm text-brand-primary">
+          <ul className="list-disc list-inside text-sm">
             <li>
               <a
                 href="https://support.apple.com/en-us/102571"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:underline"
+                className="text-[#388E3C] underline hover:underline"
               >
                 https://support.apple.com/en-us/102571
               </a>
@@ -80,7 +89,7 @@ const Login = () => {
                 href="https://www.google.com/account/about/sign-in-with-google/"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:underline"
+                className="text-[#388E3C] underline hover:underline"
               >
                 https://www.google.com/account/about/sign-in-with-google/
               </a>
@@ -88,39 +97,39 @@ const Login = () => {
           </ul>
         </div>
 
-        <div className="border-l-4 border-brand-primary pl-4 space-y-4">
+        <div className="border-l-4 border-[#388E3C] pl-4 space-y-4">
           <div>
             <div className="flex items-center gap-2">
-              <HugeiconsIcon icon={AppleIcon} size={16} />
-              <h3 className="font-semibold">{t("auth.appleSupport")}</h3>
+              <SiApple size={16} className="shrink-0 text-[#000000]" />
+              <h3 className="font-semibold text-[#333333]">{t("auth.appleSupport")}</h3>
             </div>
             <a
               href="https://support.apple.com/en-us/102571"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-brand-primary text-sm hover:underline block mt-1"
+              className="text-[#388E3C] text-sm underline hover:underline block mt-1"
             >
               {t("auth.appleSupportLink")}
             </a>
-            <p className="text-sm text-gray-600 mt-1">
+            <p className="text-sm text-[#333333] mt-1">
               {t("auth.appleSupportDescription")}
             </p>
           </div>
 
           <div>
             <div className="flex items-center gap-2">
-              <HugeiconsIcon icon={GoogleIcon} size={16} />
-              <h3 className="font-semibold">{t("auth.signInWithGoogleTitle")}</h3>
+              <FcGoogle size={16} className="shrink-0" />
+              <h3 className="font-semibold text-[#333333]">{t("auth.signInWithGoogleTitle")}</h3>
             </div>
             <a
               href="https://www.google.com/account/about/sign-in-with-google/"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-brand-primary text-sm hover:underline block mt-1"
+              className="text-[#388E3C] text-sm underline hover:underline block mt-1"
             >
               {t("auth.googleAccountLink")}
             </a>
-            <p className="text-sm text-gray-600 mt-1">
+            <p className="text-sm text-[#333333] mt-1">
               {t("auth.googleAccountDescription")}
             </p>
           </div>

@@ -111,6 +111,7 @@
     "deleteAccountError": "Failed to delete account. Please try again."
   },
   "auth": {
+    "backToHome": "Back To Home",
     "signInWithGoogle": "Sign in with Google",
     "signInWithApple": "Sign in with Apple",
     "whatDoesSignInMean": "What does sign in with Apple or Google mean?",
