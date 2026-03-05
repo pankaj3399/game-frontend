@@ -14,7 +14,7 @@ const Login = () => {
   return (
     <section className="relative w-full min-h-screen flex flex-col items-center justify-center gap-6 py-8 px-4 sm:px-6">
       <div className="w-full max-w-[580px] rounded-lg border border-tableBorder px-6 py-10 shadow-table md:px-6 md:py-6 lg:px-14 lg:py-8 flex flex-col">
-        <h1 className="text-center font-primary text-[22px] font-bold capitalize text-[#388E3C] md:text-[26px]">
+        <h1 className="text-center font-primary text-[22px] font-bold capitalize text-[#067429] md:text-[26px]">
           {t("common.login")}
         </h1>
         {googleAuthUrl ? (
@@ -55,7 +55,7 @@ const Login = () => {
         )}
         <button
           type="button"
-          className="font-semibold rounded-lg bg-[#388E3C] text-white mt-8 md:h-[48px] h-[40px] font-primary md:text-base text-sm flex justify-center items-center gap-2 self-center px-8 hover:bg-[#2d7230] active:animate-jerk"
+          className="font-semibold rounded-lg bg-[#067429] text-white mt-8 md:h-[48px] h-[40px] font-primary md:text-base text-sm flex justify-center items-center gap-2 self-center px-8 hover:bg-[#056023] active:animate-jerk"
         >
           <HugeiconsIcon icon={ArrowLeft01Icon} size={22} className="mr-2" />
           {t("auth.backToHome")}
@@ -79,7 +79,7 @@ const Login = () => {
                 href="https://support.apple.com/en-us/102571"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-[#388E3C] underline hover:underline"
+                className="text-[#067429] underline hover:underline"
               >
                 https://support.apple.com/en-us/102571
               </a>
@@ -89,7 +89,7 @@ const Login = () => {
                 href="https://www.google.com/account/about/sign-in-with-google/"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-[#388E3C] underline hover:underline"
+                className="text-[#067429] underline hover:underline"
               >
                 https://www.google.com/account/about/sign-in-with-google/
               </a>
@@ -97,7 +97,7 @@ const Login = () => {
           </ul>
         </div>
 
-        <div className="border-l-4 border-[#388E3C] pl-4 space-y-4">
+        <div className="border-l-4 border-[#067429] pl-4 space-y-4">
           <div>
             <div className="flex items-center gap-2">
               <SiApple size={16} className="shrink-0 text-[#000000]" />
@@ -107,7 +107,7 @@ const Login = () => {
               href="https://support.apple.com/en-us/102571"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-[#388E3C] text-sm underline hover:underline block mt-1"
+              className="text-[#067429] text-sm underline hover:underline block mt-1"
             >
               {t("auth.appleSupportLink")}
             </a>
@@ -125,7 +125,7 @@ const Login = () => {
               href="https://www.google.com/account/about/sign-in-with-google/"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-[#388E3C] text-sm underline hover:underline block mt-1"
+              className="text-[#067429] text-sm underline hover:underline block mt-1"
             >
               {t("auth.googleAccountLink")}
             </a>
