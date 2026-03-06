@@ -130,7 +130,7 @@ export function AppNavbar() {
           <DropdownMenuTrigger asChild>
             <button
               type="button"
-              className="flex items-center gap-2 px-3 py-2 sm:px-4 rounded-md font-medium text-sm bg-[#facc15] text-[#1a1a1a] hover:bg-[#e6b800] transition-colors max-w-[140px] sm:max-w-none"
+              className="flex items-center gap-2 px-3 py-2 sm:px-4 rounded-md font-medium text-sm bg-brand-accent text-[#1a1a1a] hover:bg-brand-accent-hover transition-colors max-w-[140px] sm:max-w-none"
             >
               <span className="truncate">{user?.alias?.trim() || user?.name?.trim() || t("profile.title")}</span>
               <HugeiconsIcon icon={ArrowDown01Icon} size={16} className="shrink-0" />
@@ -161,7 +161,7 @@ export function AppNavbar() {
       ) : (
         <Link
           to="/login"
-          className="flex items-center gap-2 px-3 py-2 sm:px-4 rounded-md font-medium text-sm bg-[#facc15] text-[#1a1a1a] hover:bg-[#e6b800] transition-colors shrink-0"
+          className="flex items-center gap-2 px-3 py-2 sm:px-4 rounded-md font-medium text-sm bg-brand-accent text-[#1a1a1a] hover:bg-brand-accent-hover transition-colors shrink-0"
         >
           <HugeiconsIcon icon={LockIcon} size={18} />
           {t("common.login")}

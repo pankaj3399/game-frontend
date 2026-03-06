@@ -4,15 +4,11 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { PencilIcon, PlusSignIcon } from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
 import { useAdminClubs } from "@/hooks/club";
-import { useHasRoleOrAbove } from "@/hooks/auth/useRBAC";
-import { ROLES } from "@/constants/roles";
 import { AddEditClubModal } from "./AddEditClubModal";
-import { toast } from "sonner";
 
 export function AdminClubsSection() {
   const { t } = useTranslation();
-  const hasAccess = useHasRoleOrAbove(ROLES.CLUB_ADMIN);
-  const { data, isLoading, error } = useAdminClubs(hasAccess);
+  const { data, isLoading, error } = useAdminClubs(true);
 
   const [modalOpen, setModalOpen] = useState(false);
   const [editClubId, setEditClubId] = useState<string | null>(null);
@@ -20,19 +16,11 @@ export function AdminClubsSection() {
   const clubs = data?.clubs ?? [];
 
   const handleAddClub = () => {
-    if (!hasAccess) {
-      toast.error(t("settings.adminClubsUpgradeRoleToast"));
-      return;
-    }
     setEditClubId(null);
     setModalOpen(true);
   };
 
   const handleEditClub = (clubId: string) => {
-    if (!hasAccess) {
-      toast.error(t("settings.adminClubsUpgradeRoleToast"));
-      return;
-    }
     setEditClubId(clubId);
     setModalOpen(true);
   };
@@ -52,21 +40,17 @@ export function AdminClubsSection() {
           <Button
             type="button"
             onClick={handleAddClub}
-            className="h-10 shrink-0 rounded-lg bg-[#facc15] px-4 font-medium text-black hover:bg-[#e6b800]"
+            className="h-10 shrink-0 rounded-lg bg-brand-accent px-4 font-medium text-black hover:bg-brand-accent-hover"
           >
             <HugeiconsIcon icon={PlusSignIcon} size={16} className="mr-2" />
             {t("settings.adminClubsAddButton")}
           </Button>
         </div>
 
-        {hasAccess && isLoading ? (
+        {isLoading ? (
           <div className="flex items-center justify-center py-8">
             <span className="h-6 w-6 animate-spin rounded-full border-2 border-muted-foreground/30 border-t-foreground" />
           </div>
-        ) : !hasAccess ? (
-          <p className="text-sm text-muted-foreground">
-            {t("settings.adminClubsPlaceholder")}
-          </p>
         ) : error ? (
           <p className="text-sm text-destructive" role="alert">
             {t("settings.adminClubsLoadError")}

@@ -95,13 +95,13 @@ export default function AboutPage() {
               {/* TODO: replace /profile with actual route when Contact/Invite pages are added */}
               <Button
                 asChild
-                className="bg-[#facc15] text-[#1a1a1a] hover:bg-[#e6b800] rounded-md"
+                className="bg-brand-accent text-[#1a1a1a] hover:bg-brand-accent-hover rounded-md"
               >
                 <Link to="/profile">{t("about.contactUs")}</Link>
               </Button>
               <Button
                 asChild
-                className="bg-[#facc15] text-[#1a1a1a] hover:bg-[#e6b800] rounded-md"
+                className="bg-brand-accent text-[#1a1a1a] hover:bg-brand-accent-hover rounded-md"
               >
                 <Link to="/profile">{t("about.inviteFriends")}</Link>
               </Button>

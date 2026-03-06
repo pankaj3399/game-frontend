@@ -96,7 +96,7 @@ export function SettingsForm({ user }: { user: AuthUser }) {
           type="button"
           onClick={handleSave}
           disabled={isLoading}
-          className="h-10 px-5 rounded-lg font-medium shrink-0 bg-[#facc15] text-black hover:bg-[#e6b800]"
+          className="h-10 px-5 rounded-lg font-medium shrink-0 bg-brand-accent text-black hover:bg-brand-accent-hover"
         >
           {isLoading ? (
             <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />

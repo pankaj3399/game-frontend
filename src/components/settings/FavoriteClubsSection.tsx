@@ -165,7 +165,7 @@ export function FavoriteClubsSection() {
             type="button"
             disabled={!firstResult || addFavorite.isPending}
             onClick={() => firstResult && handleAddFavorite(firstResult.id)}
-            className="h-11 px-5 rounded-lg font-medium shrink-0 bg-[#facc15] text-black hover:bg-[#e6b800]"
+            className="h-11 px-5 rounded-lg font-medium shrink-0 bg-brand-accent text-black hover:bg-brand-accent-hover"
           >
             {addFavorite.isPending ? (
               <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />

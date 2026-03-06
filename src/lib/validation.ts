@@ -9,8 +9,6 @@ export const signupFormSchema = z.object({
   gender: z
     .union([z.enum(["male", "female", "other"]), z.literal("")])
     .optional(),
-  /** Required when Apple user has placeholder email (requiresEmailInput). */
-  email: z.email("Valid email is required").trim().optional(),
 });
 
 export type SignupFormValues = z.infer<typeof signupFormSchema>;

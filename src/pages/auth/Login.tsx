@@ -1,10 +1,13 @@
 import { useTranslation } from "react-i18next";
+import { useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { ArrowLeft01Icon } from "@hugeicons/core-free-icons";
 import { FcGoogle } from "react-icons/fc";
 import { SiApple } from "react-icons/si";
+import AppleFlowDetails from "@/components/auth/AppleFlowDetails";
 import { getBackendUrl } from "@/lib/api";
+import { decodeAppleFlowTrace, readStoredAppleFlowTrace } from "@/lib/auth";
 
 function decodeApplePayload(base64: string | null): Record<string, unknown> | null {
   if (!base64 || typeof base64 !== "string") return null;
@@ -24,6 +27,16 @@ const Login = () => {
   const [searchParams] = useSearchParams();
   const errorMessage = searchParams.get("errorMessage");
   const applePayload = decodeApplePayload(searchParams.get("applePayload"));
+  const shouldShowStoredTrace =
+    !!searchParams.get("error") ||
+    !!searchParams.get("applePayload") ||
+    !!searchParams.get("appleFlow");
+  const appleFlowTrace = useMemo(
+    () =>
+      decodeAppleFlowTrace(searchParams.get("appleFlow")) ??
+      (shouldShowStoredTrace ? readStoredAppleFlowTrace() : null),
+    [searchParams, shouldShowStoredTrace]
+  );
   const backendUrl = getBackendUrl();
   const googleAuthUrl = backendUrl ? new URL("/api/auth/google", backendUrl).toString() : null;
   const appleAuthUrl = backendUrl ? new URL("/api/auth/apple", backendUrl).toString() : null;
@@ -34,19 +47,13 @@ const Login = () => {
         <h1 className="text-center font-primary text-[22px] font-bold capitalize text-brand-primary md:text-[26px]">
           {t("common.login")}
         </h1>
-        {(errorMessage || applePayload) && (
-          <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-4 text-sm text-destructive">
-            {errorMessage && <p className="font-medium">{errorMessage}</p>}
-            {applePayload && Object.keys(applePayload).length > 0 && (
-              <details className="mt-2">
-                <summary className="cursor-pointer font-medium">Apple payload (debug)</summary>
-                <pre className="mt-2 overflow-auto rounded bg-muted/50 p-2 text-xs">
-                  {JSON.stringify(applePayload, null, 2)}
-                </pre>
-              </details>
-            )}
-          </div>
-        )}
+        <AppleFlowDetails
+          trace={appleFlowTrace}
+          errorMessage={errorMessage}
+          applePayload={applePayload}
+          title="Apple sign-in diagnostics"
+          description="If Apple sign-in failed, the most recent callback trace is shown here."
+        />
         {googleAuthUrl ? (
           <a
             href={googleAuthUrl}

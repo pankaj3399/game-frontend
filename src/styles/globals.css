@@ -52,6 +52,8 @@
   --color-brand-primary-light: var(--brand-primary-light);
   --color-brand-secondary: var(--brand-secondary);
   --color-brand-black: var(--brand-black);
+  --color-brand-accent: var(--brand-accent);
+  --color-brand-accent-hover: var(--brand-accent-hover);
 }
 
 :root {
@@ -90,6 +92,8 @@
   --brand-primary: #067429;
   --brand-primary-hover: #056023;
   --brand-primary-light: #0d9e3d;
+  --brand-accent: #F4C95D;
+  --brand-accent-hover: #e0b94d;
   --brand-secondary: oklch(0.97 0 0);
   --brand-black: oklch(0.145 0 0);
 }
@@ -129,6 +133,8 @@
   --brand-primary: #0d9e3d;
   --brand-primary-hover: #067429;
   --brand-primary-light: #10b34a;
+  --brand-accent: #F4C95D;
+  --brand-accent-hover: #e0b94d;
   --brand-secondary: oklch(0.269 0 0);
   --brand-black: oklch(0.985 0 0);
 }

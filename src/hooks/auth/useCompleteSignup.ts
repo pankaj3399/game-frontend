@@ -78,7 +78,6 @@ export function useCompleteSignup({
         name: parsed.name,
         dateOfBirth,
         gender: parsed.gender || null,
-        ...(parsed.email ? { email: parsed.email } : {}),
       });
 
       if (
