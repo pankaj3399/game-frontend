@@ -50,7 +50,7 @@ export function StaffRow({
         </div>
         <div className="flex items-center gap-2">
           {isDefault && (
-            <span className="rounded-full bg-[#067429] px-2.5 py-0.5 text-xs font-medium text-white">
+            <span className="rounded-full bg-brand-primary px-2.5 py-0.5 text-xs font-medium text-white">
               {t("manageClub.default")}
             </span>
           )}

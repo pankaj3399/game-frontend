@@ -343,7 +343,7 @@ export function AddEditClubModal({
                       <HugeiconsIcon
                         icon={longitude && latitude ? CheckmarkCircle01Icon : Location01Icon}
                         size={18}
-                        className={longitude && latitude ? "text-emerald-600" : undefined}
+                        className={longitude && latitude ? "text-brand-primary" : undefined}
                       />
                     )}
                     {isLookingUpCoords
@@ -495,7 +495,7 @@ export function AddEditClubModal({
               <Button
                 type="submit"
                 disabled={isPending}
-                className="bg-[#22c55e] text-white hover:bg-[#16a34a]"
+                className="bg-brand-primary text-white hover:bg-brand-primary-hover"
               >
                 {isPending ? (
                   <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />

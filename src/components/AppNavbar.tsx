@@ -173,7 +173,7 @@ export function AppNavbar() {
   return (
     <header
       className="sticky top-0 z-50 flex w-full min-w-0 items-center gap-4 px-4 py-3 sm:gap-6 sm:px-6 sm:py-4 lg:px-8"
-      style={{ backgroundColor: "#067429" }}
+      style={{ backgroundColor: "var(--brand-primary)" }}
     >
       {/* Mobile: page title on left */}
       <div className="flex min-w-0 flex-1 items-center lg:flex-none lg:flex-1">
@@ -202,7 +202,7 @@ export function AppNavbar() {
           </SheetTrigger>
           <SheetContent
             side="right"
-            className="w-[min(85vw,20rem)] border-0 bg-[#067429] p-0"
+            className="w-[min(85vw,20rem)] border-0 bg-brand-primary p-0"
             showCloseButton={true}
           >
             <SheetHeader className="border-b border-white/20 px-4 py-4">

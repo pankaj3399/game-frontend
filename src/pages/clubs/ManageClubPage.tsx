@@ -102,14 +102,14 @@ export default function ManageClubPage() {
                   className={cn(
                     "flex w-full items-center gap-3 rounded-lg border px-3 py-3 text-left transition-colors",
                     isSelected
-                      ? "border-[#067429] bg-[#067429]/5 ring-1 ring-[#067429]"
+                      ? "border-brand-primary bg-brand-primary/5 ring-1 ring-brand-primary"
                       : "border-border bg-card hover:bg-muted/50"
                   )}
                 >
                   <div
                     className={cn(
                       "h-3 w-3 shrink-0 rounded-full",
-                      isSelected ? "bg-[#067429]" : "bg-muted-foreground/40"
+                      isSelected ? "bg-brand-primary" : "bg-muted-foreground/40"
                     )}
                   />
                   <div className="min-w-0 flex-1">
@@ -166,14 +166,14 @@ export default function ManageClubPage() {
               <div>
                 <h1 className="flex items-center gap-2 text-xl font-semibold text-foreground">
                   {selectedClub?.name}
-                  <HugeiconsIcon icon={CrownIcon} size={20} className="text-[#067429]" aria-hidden />
+                  <HugeiconsIcon icon={CrownIcon} size={20} className="text-brand-primary" aria-hidden />
                 </h1>
                 <p className="text-sm text-muted-foreground">
                   {t("manageClub.manageAdminsSubtitle")}
                 </p>
               </div>
               <Button
-                className="shrink-0 bg-[#067429] hover:bg-[#056023]"
+                className="shrink-0 bg-brand-primary hover:bg-brand-primary-hover"
                 onClick={() => setAddModalOpen(true)}
                 disabled={!canAddStaff}
                 title={!canAddStaff ? t("manageClub.addMemberDisabledHint") : undefined}
@@ -236,16 +236,16 @@ export default function ManageClubPage() {
             )}
 
             {showUpgradeBanner && (
-              <div className="mt-6 flex items-center justify-between gap-4 rounded-lg border border-[#067429]/30 bg-[#067429]/5 px-4 py-3 dark:border-[#067429]/40 dark:bg-[#067429]/10">
+              <div className="mt-6 flex items-center justify-between gap-4 rounded-lg border border-brand-primary/30 bg-brand-primary/5 px-4 py-3 dark:border-brand-primary/40 dark:bg-brand-primary/10">
                 <div className="flex min-w-0 flex-1 items-center gap-3">
-                  <HugeiconsIcon icon={SparklesIcon} size={20} className="shrink-0 text-[#067429] dark:text-[#0d9e3d]" />
+                  <HugeiconsIcon icon={SparklesIcon} size={20} className="shrink-0 text-brand-primary" />
                   <p className="text-sm text-muted-foreground">
                     {t("manageClub.upgradeBannerBenefits")}
                   </p>
                 </div>
                 <Button
                   size="sm"
-                  className="shrink-0 bg-[#067429] hover:bg-[#056023]"
+                  className="shrink-0 bg-brand-primary hover:bg-brand-primary-hover"
                   onClick={() => {
                     // TODO: Navigate to upgrade / contact flow
                   }}

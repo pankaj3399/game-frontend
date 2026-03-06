@@ -51,7 +51,7 @@ export function RequestSubscriptionRenewalModal({
             {t("manageClub.renewModalCancel")}
           </Button>
           <Button
-            className="flex-1 bg-[#067429] hover:bg-[#056023] sm:flex-initial"
+            className="flex-1 bg-brand-primary hover:bg-brand-primary-hover sm:flex-initial"
             onClick={handleConfirm}
           >
             {t("manageClub.renewModalConfirm")}

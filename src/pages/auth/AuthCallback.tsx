@@ -3,7 +3,17 @@ import { useMemo } from "react";
 import { PENDING_SIGNUP_TOKEN_KEY } from "@/lib/auth";
 
 /** Whitelist of safe error codes from backend/auth flow (prevents XSS/open redirect). */
-const ALLOWED_ERROR_CODES = new Set(["true", "denied", "token", "invalid_callback"]);
+const ALLOWED_ERROR_CODES = new Set([
+  "true",
+  "denied",
+  "token",
+  "invalid_callback",
+  "auth",
+  "no_user",
+  "no_user_auth",
+  "passport",
+  "unknown",
+]);
 
 function sanitizeErrorCode(raw: string | null): string | null {
   if (!raw || typeof raw !== "string") return null;
@@ -56,7 +66,14 @@ export default function AuthCallback() {
     return <Navigate to="/login?error=invalid_callback" replace />;
   }
 
-  if (error) return <Navigate to={"/login?error=" + encodeURIComponent(error)} replace />;
+  if (error) {
+    const loginParams = new URLSearchParams({ error });
+    const errorMessage = searchParams.get("errorMessage");
+    const applePayload = searchParams.get("applePayload");
+    if (errorMessage) loginParams.set("errorMessage", errorMessage);
+    if (applePayload) loginParams.set("applePayload", applePayload);
+    return <Navigate to={"/login?" + loginParams.toString()} replace />;
+  }
 
   return <Navigate to="/login" replace />;
 }
