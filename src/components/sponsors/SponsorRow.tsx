@@ -68,7 +68,7 @@ export function SponsorRow({ sponsor, canManage, onEdit, onRemove }: SponsorRowP
           <Button
             variant="ghost"
             size="sm"
-            className="text-[#067429] hover:bg-[#067429]/10 hover:text-[#056023]"
+            className="text-brand-primary hover:bg-brand-primary/10 hover:text-brand-primary-hover"
             onClick={() => onEdit(sponsor)}
             disabled={!canManage}
           >

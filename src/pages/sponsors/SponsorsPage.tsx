@@ -138,14 +138,14 @@ export default function SponsorsPage() {
                     className={cn(
                       "flex w-full items-center gap-3 rounded-lg border px-3 py-3 text-left transition-colors",
                       isSelected
-                        ? "border-[#067429] bg-[#067429]/5 ring-1 ring-[#067429]"
+                        ? "border-brand-primary bg-brand-primary/5 ring-1 ring-brand-primary"
                         : "border-border bg-card hover:bg-muted/50"
                     )}
                   >
                     <div
                       className={cn(
                         "h-3 w-3 shrink-0 rounded-full",
-                        isSelected ? "bg-[#067429]" : "bg-muted-foreground/40"
+                        isSelected ? "bg-brand-primary" : "bg-muted-foreground/40"
                       )}
                     />
                     <div className="min-w-0 flex-1">
@@ -192,7 +192,7 @@ export default function SponsorsPage() {
                     {t("sponsors.title")}
                   </h1>
                   <Button
-                    className="shrink-0 bg-[#067429] hover:bg-[#056023]"
+                    className="shrink-0 bg-brand-primary hover:bg-brand-primary-hover"
                     onClick={handleAddSponsor}
                     disabled={sponsorsLoading || canManageSponsors !== true}
                   >
@@ -202,18 +202,18 @@ export default function SponsorsPage() {
                 </div>
 
                 {showPremiumBanner && (
-                  <div className="mx-6 mb-4 flex items-center gap-3 rounded-lg border border-[#067429]/30 bg-[#067429]/5 px-4 py-3 dark:border-[#067429]/40 dark:bg-[#067429]/10">
+                  <div className="mx-6 mb-4 flex items-center gap-3 rounded-lg border border-brand-primary/30 bg-brand-primary/5 px-4 py-3 dark:border-brand-primary/40 dark:bg-brand-primary/10">
                     <HugeiconsIcon
                       icon={SparklesIcon}
                       size={20}
-                      className="shrink-0 text-[#067429] dark:text-[#0d9e3d]"
+                      className="shrink-0 text-brand-primary"
                     />
                     <p className="text-sm text-muted-foreground">
                       {t("sponsors.premiumRequired")}
                     </p>
                     <Button
                       size="sm"
-                      className="shrink-0 bg-[#067429] hover:bg-[#056023]"
+                      className="shrink-0 bg-brand-primary hover:bg-brand-primary-hover"
                       onClick={() => navigate("/upgrade")}
                     >
                       {t("manageClub.upgradeToPremium")}

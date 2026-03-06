@@ -194,7 +194,7 @@ export function FavoriteClubsSection() {
                 }}
                 className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-colors cursor-pointer ${
                   isHome
-                    ? "bg-[#067429]/10 text-[#067429] border border-[#067429]/30"
+                    ? "bg-brand-primary/10 text-brand-primary border border-brand-primary/30"
                     : "bg-white text-foreground border border-[#e5e7eb] hover:border-[#9ca3af]"
                 }`}
               >
@@ -214,7 +214,7 @@ export function FavoriteClubsSection() {
                   <HugeiconsIcon
                     icon={Home01Icon}
                     size={16}
-                    className="text-[#067429]"
+                    className="text-brand-primary"
                     aria-label={t("settings.favoriteClubsHomeAria")}
                   />
                 )}

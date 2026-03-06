@@ -188,7 +188,7 @@ export function AddAdminOrganiserModal({
           </div>
 
           <Button
-            className="w-full bg-[#067429] hover:bg-[#056023]"
+            className="w-full bg-brand-primary hover:bg-brand-primary-hover"
             onClick={handleAdd}
             disabled={
               !selectedUserId ||
