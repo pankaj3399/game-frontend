@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import type { ChangeEvent } from "react";
 import { useNavigate, Navigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -22,11 +22,9 @@ import {
 import { useAuth, useCompleteSignup } from "@/hooks/auth";
 import {
   PENDING_SIGNUP_TOKEN_KEY,
-  readStoredAppleFlowTrace,
   decodeJwtPayload,
   pendingSignupPayloadSchema,
 } from "@/lib/auth";
-import AppleFlowDetails from "@/components/auth/AppleFlowDetails";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   Mail01Icon,
@@ -44,17 +42,17 @@ export default function UserInformation() {
   const navigate = useNavigate();
   const { user, isAuthenticated, isProfileComplete, loading: authLoading, checkAuth } = useAuth();
   const pendingToken = sessionStorage.getItem(PENDING_SIGNUP_TOKEN_KEY);
-  const appleFlowTrace = readStoredAppleFlowTrace();
+  const pendingSignup = useMemo(() => {
+    if (!pendingToken) return null;
 
-  let displayEmail = user?.email ?? "";
-  if (pendingToken) {
     try {
-      const payload = decodeJwtPayload(pendingToken, pendingSignupPayloadSchema);
-      displayEmail = payload.pendingEmail ?? displayEmail;
+      return decodeJwtPayload(pendingToken, pendingSignupPayloadSchema);
     } catch {
-      // displayEmail stays as is
+      return null;
     }
-  }
+  }, [pendingToken]);
+  const requiresEmailInput = pendingSignup?.requiresEmailInput === true;
+  const displayEmail = pendingSignup?.pendingEmail ?? user?.email ?? "";
 
   const { submit, isLoading } = useCompleteSignup({
     getPendingToken: () => sessionStorage.getItem(PENDING_SIGNUP_TOKEN_KEY),
@@ -66,11 +64,13 @@ export default function UserInformation() {
 
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [inputs, setInputs] = useState<{
+    email: string;
     alias: string;
     name: string;
     dateOfBirth: Date | undefined;
     gender: "male" | "female" | "other" | "" | undefined;
   }>({
+    email: requiresEmailInput ? "" : displayEmail,
     alias: "",
     name: "",
     dateOfBirth: undefined,
@@ -148,16 +148,6 @@ export default function UserInformation() {
             </div>
           </div>
 
-          {appleFlowTrace ? (
-            <div className="border-b border-[#e5e7eb] px-4 py-4 sm:px-6">
-              <AppleFlowDetails
-                trace={appleFlowTrace}
-                title="Apple sign-in status"
-                description="Apple authentication already succeeded. The trace below explains how you arrived at the profile-completion step."
-              />
-            </div>
-          ) : null}
-
           <form onSubmit={onSubmit} className="space-y-0">
             <div className="space-y-6 px-4 py-5 sm:px-6 sm:py-6">
               <Field className="gap-2">
@@ -171,12 +161,27 @@ export default function UserInformation() {
                 <Input
                   id="signup-email"
                   type="email"
-                  disabled={true}
-                  readOnly
+                  required={requiresEmailInput}
+                  name="email"
                   className={inputClassName}
-                  value={displayEmail}
-                  aria-readonly="true"
+                  value={requiresEmailInput ? inputs.email : displayEmail}
+                  onChange={requiresEmailInput ? handleInputChange : undefined}
+                  readOnly={!requiresEmailInput}
+                  disabled={!requiresEmailInput}
+                  aria-readonly={!requiresEmailInput}
+                  aria-invalid={!!fieldErrors.email}
+                  aria-describedby={fieldErrors.email ? "signup-email-error" : undefined}
                 />
+                {requiresEmailInput ? (
+                  <p className="text-sm text-muted-foreground">
+                    Apple did not provide a usable email address. Enter the email you want to use for this account.
+                  </p>
+                ) : null}
+                {fieldErrors.email ? (
+                  <p id="signup-email-error" className="text-sm text-destructive" aria-live="polite">
+                    {fieldErrors.email}
+                  </p>
+                ) : null}
               </Field>
 
               <div className="grid gap-6 sm:grid-cols-2">

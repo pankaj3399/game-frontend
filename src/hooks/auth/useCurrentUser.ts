@@ -2,16 +2,21 @@ import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api/client";
 import { queryKeys } from "@/lib/api/queryKeys";
 import { type AuthUser } from "@/contexts/auth/AuthContext";
+import { useAuth } from "./useAuth";
+
 async function fetchCurrentUser() {
   const res = await api.get<{ user: AuthUser }>("/api/auth/me");
   return res.data.user;
 }
 
 export function useCurrentUser() {
+  const { user: authUser } = useAuth();
   const query = useQuery({
     queryKey: queryKeys.auth.me(),
     queryFn: fetchCurrentUser,
     retry: false,
+    // Hydrate from AuthContext to avoid loading flicker - we already have user from auth flow
+    initialData: authUser ?? undefined,
   });
 
   const user = query.data ?? null;

@@ -43,6 +43,11 @@ const navItems = [
   { path: "/about", labelKey: "settings.nav.about", icon: InformationCircleIcon },
 ];
 
+const LANGUAGES = [
+  { code: "en", label: "ENG" },
+  { code: "de", label: "DEU" },
+] as const;
+
 const pathToTitleKey: Record<string, string> = {
   "/profile": "settings.title",
   "/settings-preview": "settings.title",
@@ -115,15 +120,32 @@ export function AppNavbar() {
 
   const authSection = (
     <>
-      <button
-        type="button"
-        onClick={() => i18n.changeLanguage(i18n.language === "en" ? "de" : "en")}
-        className="hidden sm:flex items-center gap-1.5 text-white text-sm font-medium px-2 py-1.5 rounded hover:bg-white/10 transition-colors"
-        aria-label={t("common.language")}
-      >
-        {(i18n.language === "en" ? "ENG" : "DEU")}
-     
-      </button>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <button
+            type="button"
+            className="hidden sm:flex items-center gap-2 text-white text-sm font-medium px-3 py-2 rounded-md hover:bg-white/10 transition-colors"
+            aria-label={t("common.language")}
+          >
+            {LANGUAGES.find((l) => l.code === i18n.language)?.label ?? "ENG"}
+            <HugeiconsIcon icon={ArrowDown01Icon} size={16} className="shrink-0" />
+          </button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="min-w-[11rem] p-2 flex flex-col gap-1">
+          {LANGUAGES.map(({ code, label }) => (
+            <DropdownMenuItem
+              key={code}
+              onClick={() => i18n.changeLanguage(code)}
+              className={cn(
+                "cursor-pointer px-4 py-2.5 text-sm rounded-md",
+                code === i18n.language && "bg-accent"
+              )}
+            >
+              {label}
+            </DropdownMenuItem>
+          ))}
+        </DropdownMenuContent>
+      </DropdownMenu>
 
       {isAuthenticated ? (
         <DropdownMenu>
@@ -217,16 +239,29 @@ export function AppNavbar() {
                 onNavigate={() => setMobileMenuOpen(false)}
               />
               <div className="mt-4 pt-4 border-t border-white/20">
-                <button
-                  type="button"
-                  onClick={() => {
-                    i18n.changeLanguage(i18n.language === "en" ? "de" : "en");
-                    setMobileMenuOpen(false);
-                  }}
-                  className="flex items-center gap-3 px-4 py-3 rounded-md text-sm font-medium text-white/90 hover:text-white hover:bg-white/10 transition-colors w-full"
-                >
-                  {t("common.language")}: {(i18n.language === "en" ? "ENG" : "DEU")}
-                </button>
+                <p className="px-4 mb-2 text-xs font-medium text-white/80 uppercase tracking-wider">
+                  {t("common.language")}
+                </p>
+                <div className="flex gap-2">
+                  {LANGUAGES.map(({ code, label }) => (
+                    <button
+                      key={code}
+                      type="button"
+                      onClick={() => {
+                        i18n.changeLanguage(code);
+                        setMobileMenuOpen(false);
+                      }}
+                      className={cn(
+                        "flex-1 flex items-center justify-center px-4 py-3 rounded-md text-sm font-medium transition-colors",
+                        code === i18n.language
+                          ? "bg-white/20 text-white"
+                          : "text-white/90 hover:text-white hover:bg-white/10"
+                      )}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
               </div>
             </nav>
           </SheetContent>

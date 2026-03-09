@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+
 import { useAuth } from "./useAuth";
 import {
   type Role,
@@ -21,7 +21,7 @@ export function useHasRoleOrAbove(required: Role): boolean {
  */
 export function useHasAnyRole(allowed: Role[]): boolean {
   const { user } = useAuth();
-  return useMemo(() => hasAnyRole(user?.role, allowed), [user?.role, allowed]);
+  return hasAnyRole(user?.role, allowed);
 }
 
 /** Convenience: is Super Admin */

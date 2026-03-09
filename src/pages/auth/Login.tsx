@@ -1,42 +1,16 @@
 import { useTranslation } from "react-i18next";
-import { useMemo } from "react";
-import { useSearchParams } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { ArrowLeft01Icon } from "@hugeicons/core-free-icons";
 import { FcGoogle } from "react-icons/fc";
 import { SiApple } from "react-icons/si";
-import AppleFlowDetails from "@/components/auth/AppleFlowDetails";
 import { getBackendUrl } from "@/lib/api";
-import { decodeAppleFlowTrace, readStoredAppleFlowTrace } from "@/lib/auth";
-
-function decodeApplePayload(base64: string | null): Record<string, unknown> | null {
-  if (!base64 || typeof base64 !== "string") return null;
-  try {
-    let b64 = base64.replace(/-/g, "+").replace(/_/g, "/");
-    const pad = b64.length % 4;
-    if (pad) b64 += "=".repeat(4 - pad);
-    const json = atob(b64);
-    return JSON.parse(json) as Record<string, unknown>;
-  } catch {
-    return null;
-  }
-}
 
 const Login = () => {
   const { t } = useTranslation();
   const [searchParams] = useSearchParams();
+  const error = searchParams.get("error");
   const errorMessage = searchParams.get("errorMessage");
-  const applePayload = decodeApplePayload(searchParams.get("applePayload"));
-  const shouldShowStoredTrace =
-    !!searchParams.get("error") ||
-    !!searchParams.get("applePayload") ||
-    !!searchParams.get("appleFlow");
-  const appleFlowTrace = useMemo(
-    () =>
-      decodeAppleFlowTrace(searchParams.get("appleFlow")) ??
-      (shouldShowStoredTrace ? readStoredAppleFlowTrace() : null),
-    [searchParams, shouldShowStoredTrace]
-  );
   const backendUrl = getBackendUrl();
   const googleAuthUrl = backendUrl ? new URL("/api/auth/google", backendUrl).toString() : null;
   const appleAuthUrl = backendUrl ? new URL("/api/auth/apple", backendUrl).toString() : null;
@@ -47,13 +21,11 @@ const Login = () => {
         <h1 className="text-center font-primary text-[22px] font-bold capitalize text-brand-primary md:text-[26px]">
           {t("common.login")}
         </h1>
-        <AppleFlowDetails
-          trace={appleFlowTrace}
-          errorMessage={errorMessage}
-          applePayload={applePayload}
-          title="Apple sign-in diagnostics"
-          description="If Apple sign-in failed, the most recent callback trace is shown here."
-        />
+        {error || errorMessage ? (
+          <div className="mt-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-900">
+            {errorMessage ?? "Sign-in could not be completed. Please try again."}
+          </div>
+        ) : null}
         {googleAuthUrl ? (
           <a
             href={googleAuthUrl}
@@ -90,13 +62,13 @@ const Login = () => {
             {t("auth.signInWithApple")}
           </button>
         )}
-        <button
-          type="button"
+        <Link
+          to="/"
           className="font-semibold rounded-lg bg-brand-primary text-white mt-8 md:h-[48px] h-[40px] font-primary md:text-base text-sm flex justify-center items-center gap-2 self-center px-8 hover:bg-brand-primary-hover active:animate-jerk"
         >
           <HugeiconsIcon icon={ArrowLeft01Icon} size={22} className="mr-2" />
           {t("auth.backToHome")}
-        </button>
+        </Link>
       </div>
 
       <div className="w-full max-w-[580px] p-6 space-y-6 rounded-lg border border-tableBorder shadow-table">

@@ -5,6 +5,7 @@ export const signupFormSchema = z.object({
   pendingToken: z.string().min(1, "Signup token is required"),
   alias: z.string().trim().min(1, "Alias is required"),
   name: z.string().trim().min(1, "Name is required"),
+  email: z.string().trim().email("Valid email is required").optional(),
   dateOfBirth: z.string().optional(),
   gender: z
     .union([z.enum(["male", "female", "other"]), z.literal("")])

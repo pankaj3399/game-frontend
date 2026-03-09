@@ -76,6 +76,7 @@ export function useCompleteSignup({
         pendingToken: parsed.pendingToken,
         alias: parsed.alias,
         name: parsed.name,
+        email: parsed.email?.trim() || undefined,
         dateOfBirth,
         gender: parsed.gender || null,
       });
@@ -110,6 +111,9 @@ export function useCompleteSignup({
         navigate("/login", { replace: true });
       }
       if (code === "EMAIL_ALREADY_EXISTS") {
+        return { success: false, message: msg, fieldErrors: { email: msg } };
+      }
+      if (code === "EMAIL_REQUIRED") {
         return { success: false, message: msg, fieldErrors: { email: msg } };
       }
       return { success: false, message: msg };
