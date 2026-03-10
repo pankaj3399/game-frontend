@@ -99,11 +99,10 @@ export function SettingsForm({ user }: { user: AuthUser }) {
           disabled={isLoading}
           className="h-10 px-5 rounded-lg font-medium shrink-0 bg-brand-accent text-black hover:bg-brand-accent-hover"
         >
-          {isLoading ? (
-            <InlineLoader size="sm" />
-          ) : (
-            t("settings.saveChanges")
-          )}
+       <span className="inline-flex items-center gap-2">
+            {isLoading && <InlineLoader size="sm" className="shrink-0" />}
+            <span>{t("settings.saveChanges")}</span>
+          </span>
         </Button>
       </div>
       <form onSubmit={handleSave} className="space-y-6">

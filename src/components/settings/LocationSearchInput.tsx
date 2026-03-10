@@ -28,6 +28,7 @@ export function LocationSearchInput({
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
   const containerRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
   const baseId = useId();
   const listboxId = `${baseId}-location-suggestions`;
 
@@ -46,6 +47,7 @@ export function LocationSearchInput({
     onSelect(feature);
     setIsFocused(false);
     setHighlightedIndex(-1);
+    inputRef.current?.blur();
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -81,12 +83,16 @@ export function LocationSearchInput({
 
 
   const handleBlur = () => {
-    setTimeout(() => setIsFocused(false), 150);
+    setTimeout(() => {
+      setIsFocused(false);
+      setHighlightedIndex(-1);
+    }, 150);
   };
 
   return (
     <div ref={containerRef} className="relative">
       <Input
+        ref={inputRef}
         id={id}
         type="text"
         autoComplete="off"
@@ -98,10 +104,12 @@ export function LocationSearchInput({
         onKeyDown={handleKeyDown}
         disabled={disabled}
         className={cn("h-10", className)}
+        role="combobox"
         aria-autocomplete="list"
+        aria-expanded={Boolean(showDropdown)}
         aria-controls={showDropdown ? listboxId : undefined}
         aria-activedescendant={
-          highlightedIndex >= 0
+          showDropdown && highlightedIndex >= 0
             ? `${baseId}-location-suggestion-${highlightedIndex}`
             : undefined
         }

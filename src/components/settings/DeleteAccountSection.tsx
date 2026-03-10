@@ -58,7 +58,9 @@ export function DeleteAccountSection() {
           className="shrink-0"
         >
           {isLoading ? (
-            <InlineLoader size="sm" />
+            <>
+              <InlineLoader size="sm" /> {t("settings.deleteAccountConfirm")}
+            </>
           ) : (
             t("settings.deleteAccountConfirm")
           )}
@@ -83,7 +85,9 @@ export function DeleteAccountSection() {
               onClick={handleDeleteClick}
             >
               {isLoading ? (
-                <InlineLoader size="sm" />
+                <>
+                  <InlineLoader size="sm" /> {t("settings.deleteAccountConfirm")}
+                </>
               ) : (
                 t("settings.deleteAccountConfirm")
               )}

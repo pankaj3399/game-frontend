@@ -168,11 +168,10 @@ export function FavoriteClubsSection() {
             onClick={() => firstResult && handleAddFavorite(firstResult.id)}
             className="h-11 px-5 rounded-lg font-medium shrink-0 bg-brand-accent text-black hover:bg-brand-accent-hover"
           >
-            {addFavorite.isPending ? (
-              <InlineLoader size="sm" />
-            ) : (
-              t("settings.favoriteClubsAddButton")
-            )}
+            <span className="inline-flex items-center gap-2">
+              {t("settings.favoriteClubsAddButton")}
+              {addFavorite.isPending && <InlineLoader size="sm" />}
+            </span>
           </Button>
        
         </div>
