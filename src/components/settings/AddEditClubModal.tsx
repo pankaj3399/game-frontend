@@ -54,11 +54,28 @@ const firstCourt = (): CourtInput => ({
   placement: "outdoor",
 });
 
-/** New court with last court's type/placement, name = next index (1, 2, 3, ...) */
+/** New court with last court's type/placement, name = next unused numeric index (1, 2, 3, ...) */
 const courtWithDefaultsFrom = (existingCourts: CourtInput[]): CourtInput => {
+  if (existingCourts.length === 0) {
+    return firstCourt();
+  }
+
+  const usedNumericNames = new Set(
+    existingCourts
+      .map((court) => court.name.trim())
+      .filter((name) => /^\d+$/.test(name))
+      .map((name) => Number(name))
+      .filter((value) => Number.isInteger(value) && value > 0)
+  );
+
+  let nextName = 1;
+  while (usedNumericNames.has(nextName)) {
+    nextName += 1;
+  }
+
   const last = existingCourts[existingCourts.length - 1];
   return {
-    name: String(existingCourts.length + 1),
+    name: String(nextName),
     type: last?.type ?? "concrete",
     placement: last?.placement ?? "outdoor",
   };
@@ -101,7 +118,7 @@ export function AddEditClubModal({
               type: c.type as CourtType,
               placement: c.placement as CourtPlacement,
             }))
-          : [firstCourt()]
+          : []
       );
     } else if (open && !isEdit) {
       setName("");
@@ -118,10 +135,7 @@ export function AddEditClubModal({
   };
 
   const handleRemoveCourt = (index: number) => {
-    setCourts((prev) => {
-      const next = prev.filter((_, i) => i !== index);
-      return next.length === 0 ? [firstCourt()] : next;
-    });
+    setCourts((prev) => prev.filter((_, i) => i !== index));
   };
 
   const handleCourtChange = (

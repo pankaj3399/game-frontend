@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useId } from "react";
 import { Input } from "@/components/ui/input";
 import { useMapboxSearch, type MapboxFeature } from "@/hooks/useMapboxSearch";
 import { cn } from "@/lib/utils";
@@ -28,6 +28,8 @@ export function LocationSearchInput({
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
   const containerRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
+  const baseId = useId();
+  const listboxId = `${baseId}-location-suggestions`;
 
   const { results, isLoading, error, hasToken } = useMapboxSearch(value);
 
@@ -97,16 +99,16 @@ export function LocationSearchInput({
         disabled={disabled}
         className={cn("h-10", className)}
         aria-autocomplete="list"
-        aria-controls={showDropdown ? "location-suggestions" : undefined}
+        aria-controls={showDropdown ? listboxId : undefined}
         aria-activedescendant={
           highlightedIndex >= 0
-            ? `location-suggestion-${highlightedIndex}`
+            ? `${baseId}-location-suggestion-${highlightedIndex}`
             : undefined
         }
       />
       {showDropdown && (
         <ul
-          id="location-suggestions"
+          id={listboxId}
           ref={listRef}
           role="listbox"
           className="absolute top-full left-0 right-0 z-50 mt-1 max-h-60 overflow-auto rounded-md border border-border bg-popover py-1 shadow-lg"
@@ -131,7 +133,7 @@ export function LocationSearchInput({
             results.map((feature, index) => (
               <li
                 key={feature.id}
-                id={`location-suggestion-${index}`}
+                id={`${baseId}-location-suggestion-${index}`}
                 role="option"
                 aria-selected={index === highlightedIndex}
                 className={cn(
