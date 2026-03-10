@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import { Input } from "@/components/ui/input";
 import { useMapboxSearch, type MapboxFeature } from "@/hooks/useMapboxSearch";
 import { cn } from "@/lib/utils";
