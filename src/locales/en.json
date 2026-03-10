@@ -68,8 +68,11 @@
     "adminClubsBookingUrlPlaceholder": "Enter booking system URL.",
     "adminClubsAddress": "Address",
     "adminClubsAddressPlaceholder": "Enter club's address.",
+    "adminClubsLocationSearchPlaceholder": "Search for a location...",
+    "adminClubsLocationSearching": "Searching...",
     "adminClubsCoordinates": "Coordinates",
     "adminClubsCoordinatesHint": "Enter the club's address above, then look up coordinates. Or enter longitude and latitude manually.",
+    "adminClubsCoordinatesHintMapbox": "Search for a location above and select from the suggestions. Or enter longitude and latitude manually.",
     "adminClubsLookupFromAddress": "Look up from address",
     "adminClubsLookupFromAddressLoading": "Looking up...",
 

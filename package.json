@@ -11,6 +11,7 @@
     "shadcn": "shadcn"
   },
   "dependencies": {
+    "@base-ui/react": "^1.2.0",
     "@fontsource-variable/outfit": "^5.2.8",
     "@fontsource-variable/syne": "^5.2.7",
     "@hugeicons/core-free-icons": "^3.1.1",

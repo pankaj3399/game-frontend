@@ -82,28 +82,7 @@ const Login = () => {
           <p className="mt-2 text-sm font-semibold text-[#333333]">
             {t("auth.forMoreInfo")}
           </p>
-          <ul className="list-disc list-inside text-sm">
-            <li>
-              <a
-                href="https://support.apple.com/en-us/102571"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-brand-primary underline hover:underline"
-              >
-                https://support.apple.com/en-us/102571
-              </a>
-            </li>
-            <li>
-              <a
-                href="https://www.google.com/account/about/sign-in-with-google/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-brand-primary underline hover:underline"
-              >
-                https://www.google.com/account/about/sign-in-with-google/
-              </a>
-            </li>
-          </ul>
+      
         </div>
 
         <div className="border-l-4 border-brand-primary pl-4 space-y-4">
