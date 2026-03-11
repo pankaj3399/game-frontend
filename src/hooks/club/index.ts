@@ -1,4 +1,6 @@
 export { useSearchClubs } from "./useSearchClubs";
+export { useAllClubs, type ClubListItem } from "./useAllClubs";
+export { useClubPublic, type ClubPublic } from "./useClubPublic";
 export {
   useFavoriteClubs,
   useAddFavoriteClub,

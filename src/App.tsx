@@ -15,8 +15,11 @@ const SettingsPage = lazy(() => import('./pages/profile/SettingsPage'))
 const PlaceholderPage = lazy(() => import('./pages/PlaceholderPage'))
 const TournamentListPage = lazy(() => import('./pages/tournaments/TournamentListPage'))
 const TournamentDetailsPage = lazy(() => import('./pages/tournaments/TournamentDetailsPage'))
+const ClubsListPage = lazy(() => import('./pages/clubs/ClubsListPage'))
+const ClubDetailPage = lazy(() => import('./pages/clubs/ClubDetailPage'))
 const ManageClubPage = lazy(() => import('./pages/clubs/ManageClubPage'))
-const SponsorsPage = lazy(() => import('./pages/sponsors/SponsorsPage'))
+const AllSponsorsPage = lazy(() => import('./pages/sponsors/AllSponsorsPage'))
+const ManageSponsorsPage = lazy(() => import('./pages/sponsors/SponsorsPage'))
 const AboutPage = lazy(() => import('./pages/about/AboutPage'))
 const AdminPage = lazy(() => import('./pages/admin/AdminPage'))
 
@@ -54,8 +57,11 @@ function App() {
             <Route path="/tournaments/:id" element={<TournamentDetailsPage />} />
             <Route path="/my-score" element={<PlaceholderPage />} />
             <Route path="/record-score" element={<PlaceholderPage />} />
-            <Route path="/clubs" element={<ManageClubPage />} />
-            <Route path="/sponsors" element={<SponsorsPage />} />
+            <Route path="/clubs/manage" element={<ManageClubPage />} />
+            <Route path="/clubs/:id" element={<ClubDetailPage />} />
+            <Route path="/clubs" element={<ClubsListPage />} />
+            <Route path="/sponsors" element={<AllSponsorsPage />} />
+            <Route path="/sponsors/manage" element={<ManageSponsorsPage />} />
             <Route path="/about" element={<AboutPage />} />
             <Route path="/admin" element={ <ProtectedRoute requireRoleOrAbove={ROLES.SUPER_ADMIN}> <AdminPage /> </ProtectedRoute>} />
           </Route>

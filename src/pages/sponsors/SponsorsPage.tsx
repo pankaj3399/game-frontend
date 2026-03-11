@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Navigate, useNavigate } from "react-router-dom";
+import { Link, Navigate, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
@@ -109,6 +109,13 @@ export default function SponsorsPage() {
             mobileView === "sponsors" && "hidden lg:block"
           )}
         >
+          <Link
+            to="/sponsors"
+            className="mb-4 inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground"
+          >
+            <HugeiconsIcon icon={ArrowLeft01Icon} size={16} />
+            {t("sponsors.backToAllSponsors")}
+          </Link>
           <h2 className="text-lg font-semibold text-foreground">
             {t("sponsors.allClubs")}
           </h2>
