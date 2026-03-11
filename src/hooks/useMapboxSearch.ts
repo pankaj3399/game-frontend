@@ -67,7 +67,7 @@ export function useMapboxSearch(searchQuery: string) {
   const lastQueryRef = useRef<string>("");
   const requestIdRef = useRef(0);
 
-  const accessToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN as string | undefined;
+  const accessToken = import.meta.env.REACT_APP_MAPBOX_API_KEY as string | undefined;
 
   const performSearch = useCallback(
     async (query: string, requestId: number) => {
