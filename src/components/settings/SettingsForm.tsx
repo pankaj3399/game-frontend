@@ -22,6 +22,7 @@ import { useAuth } from "@/hooks/auth";
 import { type AuthUser } from "@/contexts/auth/AuthContext";
 import { useUpdateProfile } from "@/hooks/user";
 import { queryKeys } from "@/lib/api/queryKeys";
+import InlineLoader from "@/components/shared/InlineLoader";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Calendar03Icon } from "@hugeicons/core-free-icons";
 import { toast } from "sonner";
@@ -98,11 +99,10 @@ export function SettingsForm({ user }: { user: AuthUser }) {
           disabled={isLoading}
           className="h-10 px-5 rounded-lg font-medium shrink-0 bg-brand-accent text-black hover:bg-brand-accent-hover"
         >
-          {isLoading ? (
-            <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-          ) : (
-            t("settings.saveChanges")
-          )}
+       <span className="inline-flex items-center gap-2">
+            {isLoading && <InlineLoader size="sm" className="shrink-0" />}
+            <span>{t("settings.saveChanges")}</span>
+          </span>
         </Button>
       </div>
       <form onSubmit={handleSave} className="space-y-6">

@@ -108,6 +108,8 @@ export function AppNavbar() {
   const { isAuthenticated, user, logout } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
+  const baseLanguage = (i18n.resolvedLanguage || i18n.language || "en").split("-")[0];
+
   const handleLogout = async () => {
     try {
       await logout();
@@ -124,21 +126,21 @@ export function AppNavbar() {
         <DropdownMenuTrigger asChild>
           <button
             type="button"
-            className="hidden sm:flex items-center gap-2 text-white text-sm font-medium px-3 py-2 rounded-md hover:bg-white/10 transition-colors"
+            className="hidden sm:flex items-center gap-2 text-white text-sm font-medium px-3 py-2 rounded-lg hover:bg-white/10 transition-colors border border-transparent hover:border-white/10"
             aria-label={t("common.language")}
           >
-            {LANGUAGES.find((l) => l.code === i18n.language)?.label ?? "ENG"}
+            {LANGUAGES.find((l) => l.code === baseLanguage)?.label ?? "ENG"}
             <HugeiconsIcon icon={ArrowDown01Icon} size={16} className="shrink-0" />
           </button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="min-w-[11rem] p-2 flex flex-col gap-1">
+        <DropdownMenuContent align="end" className="min-w-[11rem] p-1.5 rounded-lg shadow-lg">
           {LANGUAGES.map(({ code, label }) => (
             <DropdownMenuItem
               key={code}
               onClick={() => i18n.changeLanguage(code)}
               className={cn(
-                "cursor-pointer px-4 py-2.5 text-sm rounded-md",
-                code === i18n.language && "bg-accent"
+                "cursor-pointer px-3 py-2.5 text-sm rounded-md transition-colors",
+                  code === baseLanguage && "bg-accent font-medium"
               )}
             >
               {label}
@@ -224,7 +226,7 @@ export function AppNavbar() {
           </SheetTrigger>
           <SheetContent
             side="right"
-            className="w-[min(85vw,20rem)] border-0 bg-brand-primary p-0"
+            className="w-[min(90vw,22rem)] min-w-[18rem] border-0 bg-brand-primary p-0"
             showCloseButton={true}
           >
             <SheetHeader className="border-b border-white/20 px-4 py-4">
@@ -238,30 +240,44 @@ export function AppNavbar() {
                 t={t}
                 onNavigate={() => setMobileMenuOpen(false)}
               />
-              <div className="mt-4 pt-4 border-t border-white/20">
-                <p className="px-4 mb-2 text-xs font-medium text-white/80 uppercase tracking-wider">
+              <div className="mt-4 pt-4 border-t border-white/20 px-4">
+                <p className="mb-2 text-xs font-medium text-white/80 uppercase tracking-wider">
                   {t("common.language")}
                 </p>
-                <div className="flex gap-2">
-                  {LANGUAGES.map(({ code, label }) => (
+                <DropdownMenu modal={false}>
+                  <DropdownMenuTrigger asChild>
                     <button
-                      key={code}
                       type="button"
-                      onClick={() => {
-                        i18n.changeLanguage(code);
-                        setMobileMenuOpen(false);
-                      }}
-                      className={cn(
-                        "flex-1 flex items-center justify-center px-4 py-3 rounded-md text-sm font-medium transition-colors",
-                        code === i18n.language
-                          ? "bg-white/20 text-white"
-                          : "text-white/90 hover:text-white hover:bg-white/10"
-                      )}
+                      className="w-full flex items-center justify-between gap-2 text-white text-sm font-medium px-4 py-3 rounded-lg bg-white/10 hover:bg-white/15 transition-colors border border-white/10"
+                      aria-label={t("common.language")}
                     >
-                      {label}
+                      {LANGUAGES.find((l) => l.code === baseLanguage)?.label ?? "ENG"}
+                      <HugeiconsIcon icon={ArrowDown01Icon} size={16} className="shrink-0" />
                     </button>
-                  ))}
-                </div>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent
+                    align="start"
+                    side="bottom"
+                    sideOffset={8}
+                    className="w-[var(--radix-dropdown-menu-trigger-width)] min-w-[var(--radix-dropdown-menu-trigger-width)] p-1.5 rounded-lg border border-white/20 bg-white/95 backdrop-blur-md text-[#1a1a1a] shadow-xl z-[100]"
+                  >
+                    {LANGUAGES.map(({ code, label }) => (
+                      <DropdownMenuItem
+                        key={code}
+                        onClick={() => {
+                          i18n.changeLanguage(code);
+                          setMobileMenuOpen(false);
+                        }}
+                        className={cn(
+                          "cursor-pointer px-3 py-2.5 text-sm rounded-md transition-colors",
+                          code === baseLanguage && "bg-accent font-medium"
+                        )}
+                      >
+                        {label}
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             </nav>
           </SheetContent>

@@ -16,6 +16,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { SponsorRow } from "@/components/sponsors/SponsorRow";
 import { AddEditSponsorModal } from "@/components/sponsors/AddEditSponsorModal";
+import InlineLoader from "@/components/shared/InlineLoader";
 import type { ClubSponsor } from "@/hooks/sponsor";
 import {
   AlertDialog,
@@ -90,7 +91,7 @@ export default function SponsorsPage() {
   if (loading) {
     return (
       <div className="flex min-h-[50vh] items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-muted-foreground/30 border-t-foreground" />
+        <InlineLoader />
       </div>
     );
   }
@@ -117,7 +118,7 @@ export default function SponsorsPage() {
 
           {clubsLoading ? (
             <div className="flex justify-center py-8">
-              <div className="h-6 w-6 animate-spin rounded-full border-2 border-muted-foreground/30 border-t-foreground" />
+              <InlineLoader />
             </div>
           ) : clubs.length === 0 ? (
             <p className="text-sm text-muted-foreground">
@@ -223,7 +224,7 @@ export default function SponsorsPage() {
 
                 {sponsorsLoading ? (
                   <div className="flex justify-center py-12">
-                    <div className="h-8 w-8 animate-spin rounded-full border-2 border-muted-foreground/30 border-t-foreground" />
+                    <InlineLoader />
                   </div>
                 ) : sponsors.length === 0 ? (
                   <div className="rounded-b-lg border-t-0 border-border bg-muted/20 px-6 py-12 text-center">

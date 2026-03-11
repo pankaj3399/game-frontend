@@ -1,18 +1,31 @@
-import { Navigate } from "react-router-dom";
+import { Navigate, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useCurrentUser } from "@/hooks/auth";
 import { SettingsForm, DeleteAccountSection, FavoriteClubsSection, AdminClubsSection } from "@/components/settings";
+import InlineLoader from "@/components/shared/InlineLoader";
+
+const VALID_TABS = ["settings", "favorite-clubs", "admin-clubs", "delete-account"] as const;
 
 export default function SettingsPage() {
   const { t } = useTranslation();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { user, isLoading: userLoading, isAuthenticated, isProfileComplete, dataUpdatedAt } =
     useCurrentUser();
+
+  const tabParam = searchParams.get("tab");
+  const activeTab = tabParam && VALID_TABS.includes(tabParam as (typeof VALID_TABS)[number])
+    ? (tabParam as (typeof VALID_TABS)[number])
+    : "settings";
+
+  const handleTabChange = (value: string) => {
+    setSearchParams({ tab: value }, { replace: true });
+  };
 
   if (userLoading) {
     return (
       <div className="flex flex-1 items-center justify-center py-8">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-muted-foreground/30 border-t-foreground" />
+        <InlineLoader />
       </div>
     );
   }
@@ -24,7 +37,7 @@ export default function SettingsPage() {
     <div className="py-6 sm:py-8 px-4 sm:px-6 bg-gray-50 h-max">
       <div className="mx-auto w-full max-w-3xl min-w-0">
         <div className="overflow-hidden rounded-xl border border-[#e5e7eb] bg-white shadow-sm">
-          <Tabs defaultValue="settings" className="w-full">
+          <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
             <div className="border-b border-[#e5e7eb] px-4 sm:px-6 pt-4 pb-4">
               <TabsList className="h-auto w-full grid grid-cols-2 sm:flex sm:flex-wrap justify-start gap-2 rounded-md bg-transparent p-0">
                 <TabsTrigger

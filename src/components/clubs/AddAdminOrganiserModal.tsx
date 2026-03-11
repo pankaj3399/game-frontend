@@ -21,6 +21,7 @@ import { useSearchUsers, isUserSearchQueryValid } from "@/hooks/user";
 import { useAddClubStaff, type AddStaffRole } from "@/hooks/club";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import InlineLoader from "@/components/shared/InlineLoader";
 
 interface AddAdminOrganiserModalProps {
   open: boolean;
@@ -125,7 +126,7 @@ export function AddAdminOrganiserModal({
               <div className="mt-2 max-h-40 overflow-y-auto rounded-md border border-border bg-muted/30">
                 {searchLoading ? (
                   <div className="flex items-center justify-center py-4">
-                    <div className="h-5 w-5 animate-spin rounded-full border-2 border-muted-foreground/30 border-t-foreground" />
+                    <InlineLoader className="h-5 w-5" size="sm" />
                   </div>
                 ) : filteredUsers.length === 0 ? (
                   <p className="px-3 py-4 text-center text-sm text-muted-foreground">

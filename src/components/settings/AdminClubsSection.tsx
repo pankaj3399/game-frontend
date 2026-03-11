@@ -5,6 +5,7 @@ import { PencilIcon, PlusSignIcon } from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
 import { useAdminClubs } from "@/hooks/club";
 import { AddEditClubModal } from "./AddEditClubModal";
+import InlineLoader from "@/components/shared/InlineLoader";
 
 export function AdminClubsSection() {
   const { t } = useTranslation();
@@ -49,7 +50,7 @@ export function AdminClubsSection() {
 
         {isLoading ? (
           <div className="flex items-center justify-center py-8">
-            <span className="h-6 w-6 animate-spin rounded-full border-2 border-muted-foreground/30 border-t-foreground" />
+            <InlineLoader />
           </div>
         ) : error ? (
           <p className="text-sm text-destructive" role="alert">

@@ -2,6 +2,7 @@ import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/auth";
 import type { Role } from "@/constants/roles";
 import { hasRoleOrAbove, hasAnyRole } from "@/constants/roles";
+import Loader from "@/components/shared/Loader";
 
 export interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -28,11 +29,7 @@ export function ProtectedRoute({
   const location = useLocation();
 
   if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <p className="text-muted-foreground">Loading...</p>
-      </div>
-    );
+    return <Loader />;
   }
 
   if (!isAuthenticated) {

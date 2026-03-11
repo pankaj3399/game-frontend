@@ -33,6 +33,7 @@ import {
   ArrowRight01Icon,
 } from "@hugeicons/core-free-icons";
 import { toast } from "sonner";
+import InlineLoader from "@/components/shared/InlineLoader";
 
 const inputClassName =
   "h-11 w-full rounded-xl border border-input bg-background px-4 text-sm text-foreground placeholder:text-muted-foreground transition-colors focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30 focus-visible:outline-none disabled:opacity-60 md:text-base";
@@ -86,7 +87,7 @@ export default function UserInformation() {
         }}
       >
         <div className="flex flex-col items-center gap-4">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-muted-foreground/30 border-t-foreground" />
+          <InlineLoader />
           <p className="text-sm text-muted-foreground">Loading...</p>
         </div>
       </div>
@@ -343,7 +344,7 @@ export default function UserInformation() {
               >
                 {isLoading ? (
                   <>
-                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                    <InlineLoader size="sm" />
                     {t("signup.signingUp")}
                   </>
                 ) : (

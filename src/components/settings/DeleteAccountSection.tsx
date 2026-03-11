@@ -14,6 +14,7 @@ import {
 import { useAuth } from "@/hooks/auth";
 import { useDeleteAccount } from "@/hooks/user";
 import { toast } from "sonner";
+import InlineLoader from "@/components/shared/InlineLoader";
 
 export function DeleteAccountSection() {
   const { t } = useTranslation();
@@ -57,7 +58,9 @@ export function DeleteAccountSection() {
           className="shrink-0"
         >
           {isLoading ? (
-            <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+            <>
+              <InlineLoader size="sm" /> {t("settings.deleteAccountConfirm")}
+            </>
           ) : (
             t("settings.deleteAccountConfirm")
           )}
@@ -82,7 +85,9 @@ export function DeleteAccountSection() {
               onClick={handleDeleteClick}
             >
               {isLoading ? (
-                <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                <>
+                  <InlineLoader size="sm" /> {t("settings.deleteAccountConfirm")}
+                </>
               ) : (
                 t("settings.deleteAccountConfirm")
               )}

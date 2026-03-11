@@ -11,6 +11,7 @@ import {
   Logout01Icon,
 } from "@hugeicons/core-free-icons";
 import { ProfileRow } from "@/components/profile";
+import InlineLoader from "@/components/shared/InlineLoader";
 
 export default function ProfilePage() {
   const { t } = useTranslation();
@@ -34,7 +35,7 @@ export default function ProfilePage() {
         }}
       >
         <div className="flex flex-col items-center gap-4">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-muted-foreground/30 border-t-foreground" />
+          <InlineLoader />
           <p className="text-sm text-muted-foreground">{t("profile.loading")}</p>
         </div>
       </div>

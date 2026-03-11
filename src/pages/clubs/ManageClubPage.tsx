@@ -18,6 +18,7 @@ import { toast } from "sonner";
 import { StaffRow } from "@/components/clubs/StaffRow";
 import { AddAdminOrganiserModal } from "@/components/clubs/AddAdminOrganiserModal";
 import { RequestSubscriptionRenewalModal } from "@/components/clubs/RequestSubscriptionRenewalModal";
+import InlineLoader from "@/components/shared/InlineLoader";
 
 /** Show banner when status is renewal_needed or when expires within 7 days */
 function shouldShowSubscriptionBanner(
@@ -60,7 +61,7 @@ export default function ManageClubPage() {
   if (loading) {
     return (
       <div className="flex min-h-[50vh] items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-muted-foreground/30 border-t-foreground" />
+        <InlineLoader />
       </div>
     );
   }
@@ -83,7 +84,7 @@ export default function ManageClubPage() {
 
         {clubsLoading ? (
           <div className="flex justify-center py-8">
-            <div className="h-6 w-6 animate-spin rounded-full border-2 border-muted-foreground/30 border-t-foreground" />
+            <InlineLoader />
           </div>
         ) : clubs.length === 0 ? (
           <p className="text-sm text-muted-foreground">{t("manageClub.noClubs")}</p>
@@ -185,7 +186,7 @@ export default function ManageClubPage() {
 
             {staffLoading ? (
               <div className="flex justify-center py-12">
-                <div className="h-8 w-8 animate-spin rounded-full border-2 border-muted-foreground/30 border-t-foreground" />
+                <InlineLoader />
               </div>
             ) : staff.length === 0 ? (
               <div className="rounded-lg border border-dashed border-border bg-muted/20 py-12 text-center">

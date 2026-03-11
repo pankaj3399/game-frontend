@@ -5,6 +5,7 @@ import { useAuth } from './hooks/auth'
 import { Toaster } from '@/components/ui/sonner'
 import { MainLayout } from '@/layouts/MainLayout'
 import { ProtectedRoute } from '@/components/auth'
+import Loader from "@/components/shared/Loader"
 import { ROLES } from './constants/roles'
 
 const Login = lazy(() => import('./pages/auth/Login'))
@@ -22,11 +23,7 @@ function Home() {
   const { isAuthenticated, isProfileComplete, loading } = useAuth()
 
   if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <p className="text-muted-foreground">Loading...</p>
-      </div>
-    )
+    return <Loader />
   }
 
   if (!isAuthenticated) return <Navigate to="/login" replace />
@@ -39,7 +36,7 @@ function App() {
     <div className='w-screen h-screen bg-gray-50 overflow-x-hidden'>
 
     <AuthProvider>
-      <Suspense fallback={<div>Loading...</div>}>
+      <Suspense fallback={<Loader />}>
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />

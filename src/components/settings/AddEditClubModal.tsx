@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Delete01Icon, Location01Icon, CheckmarkCircle01Icon } from "@hugeicons/core-free-icons";
+import { Delete01Icon } from "@hugeicons/core-free-icons";
 import {
   Dialog,
   DialogContent,
@@ -12,6 +12,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { LocationSearchInput } from "@/components/settings/LocationSearchInput";
 import {
   Select,
   SelectContent,
@@ -28,6 +29,8 @@ import {
   type CourtPlacement,
 } from "@/hooks/club";
 import { toast } from "sonner";
+import {type  MapboxFeature } from "@/hooks/useMapboxSearch";
+import InlineLoader from "@/components/shared/InlineLoader";
 
 const COURT_TYPES: CourtType[] = [
   "concrete",
@@ -45,11 +48,39 @@ interface AddEditClubModalProps {
   editClubId: string | null;
 }
 
-const emptyCourt = (): CourtInput => ({
-  name: "",
+/** First court defaults: name "1", concrete, outdoor */
+const firstCourt = (): CourtInput => ({
+  name: "1",
   type: "concrete",
   placement: "outdoor",
 });
+
+/** New court with last court's type/placement, name = next unused numeric index (1, 2, 3, ...) */
+const courtWithDefaultsFrom = (existingCourts: CourtInput[]): CourtInput => {
+  if (existingCourts.length === 0) {
+    return firstCourt();
+  }
+
+  const usedNumericNames = new Set(
+    existingCourts
+      .map((court) => court.name.trim())
+      .filter((name) => /^\d+$/.test(name))
+      .map((name) => Number(name))
+      .filter((value) => Number.isInteger(value) && value > 0)
+  );
+
+  let nextName = 1;
+  while (usedNumericNames.has(nextName)) {
+    nextName += 1;
+  }
+
+  const last = existingCourts[existingCourts.length - 1];
+  return {
+    name: String(nextName),
+    type: last?.type ?? "concrete",
+    placement: last?.placement ?? "outdoor",
+  };
+};
 
 export function AddEditClubModal({
   open,
@@ -63,10 +94,8 @@ export function AddEditClubModal({
   const [website, setWebsite] = useState("");
   const [bookingSystemUrl, setBookingSystemUrl] = useState("");
   const [address, setAddress] = useState("");
-  const [longitude, setLongitude] = useState("");
-  const [latitude, setLatitude] = useState("");
-  const [isLookingUpCoords, setIsLookingUpCoords] = useState(false);
-  const [courts, setCourts] = useState<CourtInput[]>([emptyCourt()]);
+  const [coordinates, setCoordinates] = useState<[number, number] | null>(null);
+  const [courts, setCourts] = useState<CourtInput[]>([firstCourt()]);
 
   const { data: clubData, isLoading: loadingClub } = useClubById(editClubId);
   const createClub = useCreateClub();
@@ -81,8 +110,7 @@ export function AddEditClubModal({
       setBookingSystemUrl(clubData.club.bookingSystemUrl ?? "");
       setAddress(clubData.club.address);
       const coords = clubData.club.coordinates;
-      setLongitude(coords ? String(coords[0]) : "");
-      setLatitude(coords ? String(coords[1]) : "");
+      setCoordinates(coords ? [coords[0], coords[1]] : null);
       setCourts(
         clubData.courts.length > 0
           ? clubData.courts.map((c: { id: string; name: string; type: string; placement: string }) => ({
@@ -91,29 +119,24 @@ export function AddEditClubModal({
               type: c.type as CourtType,
               placement: c.placement as CourtPlacement,
             }))
-          : [emptyCourt()]
+          : []
       );
     } else if (open && !isEdit) {
       setName("");
       setWebsite("");
       setBookingSystemUrl("");
       setAddress("");
-      setLongitude("");
-      setLatitude("");
-      setIsLookingUpCoords(false);
-      setCourts([emptyCourt()]);
+      setCoordinates(null);
+      setCourts([firstCourt()]);
     }
   }, [open, isEdit, clubData]);
 
   const handleAddCourt = () => {
-    setCourts((prev) => [...prev, emptyCourt()]);
+    setCourts((prev) => [...prev, courtWithDefaultsFrom(prev)]);
   };
 
   const handleRemoveCourt = (index: number) => {
-    setCourts((prev) => {
-      const next = prev.filter((_, i) => i !== index);
-      return next.length === 0 ? [emptyCourt()] : next;
-    });
+    setCourts((prev) => prev.filter((_, i) => i !== index));
   };
 
   const handleCourtChange = (
@@ -128,60 +151,16 @@ export function AddEditClubModal({
     );
   };
 
-  const handleLookupFromAddress = async () => {
-    const addr = address.trim();
-    if (!addr) {
-      toast.error(t("settings.adminClubsLookupAddressRequired"));
-      return;
-    }
-    setIsLookingUpCoords(true);
-    try {
-      const params = new URLSearchParams({
-        q: addr,
-        format: "json",
-        limit: "1",
-      });
-      const res = await fetch(
-        `https://nominatim.openstreetmap.org/search?${params}`,
-        {
-          headers: {
-            "User-Agent": "TB10-Game-App/1.0 (club-location)",
-          },
-        }
-      );
-      const data = await res.json();
-      if (!Array.isArray(data) || data.length === 0) {
-        toast.error(t("settings.adminClubsLookupError"));
-        return;
-      }
-      const { lat, lon } = data[0];
-      if (lat != null && lon != null) {
-        setLatitude(String(lat));
-        setLongitude(String(lon));
-      } else {
-        toast.error(t("settings.adminClubsLookupError"));
-      }
-    } catch {
-      toast.error(t("settings.adminClubsLookupError"));
-    } finally {
-      setIsLookingUpCoords(false);
-    }
+  const handleLocationSelect = (feature: MapboxFeature) => {
+    setAddress(feature.fullAddress || feature.placeName);
+    setCoordinates(feature.coordinates);
   };
 
-  const parseCoordinates = (): [number, number] | null => {
-    const lon = parseFloat(longitude);
-    const lat = parseFloat(latitude);
-    if (
-      Number.isNaN(lon) ||
-      Number.isNaN(lat) ||
-      lon < -180 ||
-      lon > 180 ||
-      lat < -90 ||
-      lat > 90
-    ) {
-      return null;
-    }
-    return [lon, lat];
+  const handleAddressChange = (value: string) => {
+    setAddress(value);
+    // Clear coordinates when the user manually edits the address;
+    // they must select a Mapbox suggestion again to set valid coordinates.
+    setCoordinates(null);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -194,11 +173,13 @@ export function AddEditClubModal({
       toast.error(t("settings.adminClubsAddressPlaceholder"));
       return;
     }
-    const coords = parseCoordinates();
-    if (!coords) {
-      toast.error(t("settings.adminClubsCoordinatesRequired"));
+    if (!coordinates) {
+      // Require that the user selects an address from the Mapbox suggestions
+      // so we always have valid coordinates from Mapbox.
+      toast.error(t("settings.adminClubsLookupError"));
       return;
     }
+    const coords = coordinates;
 
     const courtsPayload = courts
       .filter((c) => c.name.trim())
@@ -208,6 +189,20 @@ export function AddEditClubModal({
         type: c.type,
         placement: c.placement,
       }));
+
+    const courtKey = (c: { name: string; type: string; placement: string }) =>
+      `${c.name}|${c.type}|${c.placement}`;
+    const seen = new Set<string>();
+    const hasDuplicate = courtsPayload.some((c) => {
+      const key = courtKey(c);
+      if (seen.has(key)) return true;
+      seen.add(key);
+      return false;
+    });
+    if (hasDuplicate) {
+      toast.error(t("settings.adminClubsDuplicateCourtError"));
+      return;
+    }
 
     try {
       if (isEdit && editClubId) {
@@ -263,7 +258,7 @@ export function AddEditClubModal({
 
         {isEdit && loadingClub ? (
           <div className="flex items-center justify-center py-8">
-            <span  className="h-6 w-6 animate-spin rounded-full border-2 border-muted-foreground/30 border-t-foreground" />
+            <InlineLoader />
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
@@ -310,91 +305,15 @@ export function AddEditClubModal({
               <Label htmlFor="club-address" className="text-xs font-medium uppercase text-muted-foreground">
                 {t("settings.adminClubsAddress")} <span className="text-destructive">*</span>
               </Label>
-              <Input
+              <LocationSearchInput
                 id="club-address"
-                placeholder={t("settings.adminClubsAddressPlaceholder")}
                 value={address}
-                onChange={(e) => setAddress(e.target.value)}
-                className="h-10"
+                onChange={handleAddressChange}
+                onSelect={handleLocationSelect}
+                placeholder={t("settings.adminClubsLocationSearchPlaceholder")}
+                searchingLabel={t("settings.adminClubsLocationSearching")}
               />
             </div>
-
-            <div className="rounded-lg border border-border bg-muted/30 p-4 space-y-4">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="space-y-1">
-                    <Label className="text-xs font-medium uppercase text-muted-foreground">
-                      {t("settings.adminClubsCoordinates")} <span className="text-destructive">*</span>
-                    </Label>
-                    <p className="text-xs text-muted-foreground">
-                      {t("settings.adminClubsCoordinatesHint")}
-                    </p>
-                  </div>
-                  <Button
-                    type="button"
-                    variant={longitude && latitude ? "outline" : "secondary"}
-                    size="sm"
-                    onClick={handleLookupFromAddress}
-                    disabled={!address.trim() || isLookingUpCoords}
-                    className="shrink-0 gap-2 font-medium"
-                  >
-                    {isLookingUpCoords ? (
-                      <span className="h-4 w-4 shrink-0 animate-spin rounded-full border-2 border-current border-t-transparent" />
-                    ) : (
-                      <HugeiconsIcon
-                        icon={longitude && latitude ? CheckmarkCircle01Icon : Location01Icon}
-                        size={18}
-                        className={longitude && latitude ? "text-brand-primary" : undefined}
-                      />
-                    )}
-                    {isLookingUpCoords
-                      ? t("settings.adminClubsLookupFromAddressLoading")
-                      : longitude && latitude
-                        ? t("settings.adminClubsLookupAgain")
-                        : t("settings.adminClubsLookupFromAddress")}
-                  </Button>
-                </div>
-       
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="grid gap-1.5">
-                    <Label
-                      htmlFor="club-longitude"
-                      className="text-xs text-muted-foreground"
-                    >
-                      {t("settings.adminClubsLongitude")}
-                    </Label>
-                    <Input
-                      id="club-longitude"
-                      type="number"
-                      step="any"
-                      min={-180}
-                      max={180}
-                      placeholder={t("settings.adminClubsLongitudePlaceholder")}
-                      value={longitude}
-                      onChange={(e) => setLongitude(e.target.value)}
-                      className="h-10"
-                    />
-                  </div>
-                  <div className="grid gap-1.5">
-                    <Label
-                      htmlFor="club-latitude"
-                      className="text-xs text-muted-foreground"
-                    >
-                      {t("settings.adminClubsLatitude")}
-                    </Label>
-                    <Input
-                      id="club-latitude"
-                      type="number"
-                      step="any"
-                      min={-90}
-                      max={90}
-                      placeholder={t("settings.adminClubsLatitudePlaceholder")}
-                      value={latitude}
-                      onChange={(e) => setLatitude(e.target.value)}
-                      className="h-10"
-                    />
-                  </div>
-                </div>
-              </div>
 
             <div className="space-y-3">
               <Label className="text-xs font-medium uppercase text-muted-foreground">
@@ -498,7 +417,7 @@ export function AddEditClubModal({
                 className="bg-brand-primary text-white hover:bg-brand-primary-hover"
               >
                 {isPending ? (
-                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                  <InlineLoader size="sm" />
                 ) : (
                   t("settings.adminClubsSave")
                 )}
