@@ -87,6 +87,8 @@
     "adminClubsCourtType": "Typ",
     "adminClubsCourtPlacement": "Platzierung",
     "adminClubsAddCourt": "Platz hinzufügen",
+    "adminClubsAddIndoor": "Indoor hinzufügen",
+    "adminClubsAddOutdoor": "Outdoor hinzufügen",
     "adminClubsCourtTypeConcrete": "Beton",
     "adminClubsCourtTypeClay": "Sand",
     "adminClubsCourtTypeHard": "Hart",
