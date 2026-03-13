@@ -8,18 +8,39 @@ export interface ClubListItem {
   website: string | null;
 }
 
-interface AllClubsResponse {
+export interface ClubsPagination {
+  page: number;
+  limit: number;
+  totalCount: number;
+  totalPages: number;
+}
+
+export interface AllClubsResponse {
   clubs: ClubListItem[];
+  pagination: ClubsPagination;
 }
 
-async function fetchAllClubs(): Promise<ClubListItem[]> {
-  const res = await api.get<AllClubsResponse>("/api/clubs/list");
-  return res.data.clubs;
+interface UseAllClubsOptions {
+  page?: number;
+  limit?: number;
 }
 
-export function useAllClubs() {
-  return useQuery({
-    queryKey: ["clubs", "all"],
-    queryFn: fetchAllClubs,
+const DEFAULT_PAGE = 1;
+const DEFAULT_LIMIT = 12;
+
+async function fetchAllClubs(page: number, limit: number): Promise<AllClubsResponse> {
+  const res = await api.get<AllClubsResponse>("/api/clubs/list", {
+    params: { page, limit },
+  });
+  return res.data;
+}
+
+export function useAllClubs(options: UseAllClubsOptions = {}) {
+  const page = options.page ?? DEFAULT_PAGE;
+  const limit = options.limit ?? DEFAULT_LIMIT;
+
+  return useQuery<AllClubsResponse>({
+    queryKey: ["clubs", "all", page, limit],
+    queryFn: () => fetchAllClubs(page, limit),
   });
 }
