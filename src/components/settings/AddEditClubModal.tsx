@@ -55,14 +55,14 @@ const firstCourt = (): CourtInput => ({
   placement: "outdoor",
 });
 
-/** New court with last court's type/placement, name = next unused numeric index (1, 2, 3, ...) */
-const courtWithDefaultsFrom = (existingCourts: CourtInput[]): CourtInput => {
-  if (existingCourts.length === 0) {
-    return firstCourt();
-  }
-
+/** New court for given placement: name = next number in that series, type from last court of same placement or concrete */
+const courtWithPlacement = (
+  existingCourts: CourtInput[],
+  placement: CourtPlacement
+): CourtInput => {
+  const ofPlacement = existingCourts.filter((c) => c.placement === placement);
   const usedNumericNames = new Set(
-    existingCourts
+    ofPlacement
       .map((court) => court.name.trim())
       .filter((name) => /^\d+$/.test(name))
       .map((name) => Number(name))
@@ -74,11 +74,11 @@ const courtWithDefaultsFrom = (existingCourts: CourtInput[]): CourtInput => {
     nextName += 1;
   }
 
-  const last = existingCourts[existingCourts.length - 1];
+  const lastOfPlacement = ofPlacement[ofPlacement.length - 1];
   return {
     name: String(nextName),
-    type: last?.type ?? "concrete",
-    placement: last?.placement ?? "outdoor",
+    type: lastOfPlacement?.type ?? "concrete",
+    placement,
   };
 };
 
@@ -113,12 +113,17 @@ export function AddEditClubModal({
       setCoordinates(coords ? [coords[0], coords[1]] : null);
       setCourts(
         clubData.courts.length > 0
-          ? clubData.courts.map((c: { id: string; name: string; type: string; placement: string }) => ({
-              id: c.id,
-              name: c.name,
-              type: c.type as CourtType,
-              placement: c.placement as CourtPlacement,
-            }))
+          ? clubData.courts.map(
+              (c: { id: string; name: string; type: string; placement: string }) => {
+                const placement = (c.placement === "indoor" ? "indoor" : "outdoor") as CourtPlacement;
+                return {
+                  id: c.id,
+                  name: c.name ?? "",
+                  type: c.type as CourtType,
+                  placement,
+                };
+              }
+            )
           : []
       );
     } else if (open && !isEdit) {
@@ -127,12 +132,16 @@ export function AddEditClubModal({
       setBookingSystemUrl("");
       setAddress("");
       setCoordinates(null);
-      setCourts([firstCourt()]);
+      setCourts([firstCourt()]); // first court is outdoor 1
     }
   }, [open, isEdit, clubData]);
 
-  const handleAddCourt = () => {
-    setCourts((prev) => [...prev, courtWithDefaultsFrom(prev)]);
+  const handleAddIndoorCourt = () => {
+    setCourts((prev) => [...prev, courtWithPlacement(prev, "indoor")]);
+  };
+
+  const handleAddOutdoorCourt = () => {
+    setCourts((prev) => [...prev, courtWithPlacement(prev, "outdoor")]);
   };
 
   const handleRemoveCourt = (index: number) => {
@@ -183,12 +192,15 @@ export function AddEditClubModal({
 
     const courtsPayload = courts
       .filter((c) => c.name.trim())
-      .map((c) => ({
-        id: c.id,
-        name: c.name.trim(),
-        type: c.type,
-        placement: c.placement,
-      }));
+      .map((c) => {
+        const placement = c.placement;
+        return {
+          id: c.id,
+          name: c.name.trim(),
+          type: c.type,
+          placement,
+        };
+      });
 
     const courtKey = (c: { name: string; type: string; placement: string }) =>
       `${c.name}|${c.type}|${c.placement}`;
@@ -392,15 +404,26 @@ export function AddEditClubModal({
                   </div>
                 ))}
               </div>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={handleAddCourt}
-                className="w-full"
-              >
-                {t("settings.adminClubsAddCourt")}
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleAddIndoorCourt}
+                  className="flex-1"
+                >
+                  {t("settings.adminClubsAddIndoor")}
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleAddOutdoorCourt}
+                  className="flex-1"
+                >
+                  {t("settings.adminClubsAddOutdoor")}
+                </Button>
+              </div>
             </div>
 
             <DialogFooter className="gap-2 sm:gap-0">

@@ -89,6 +89,8 @@
     "adminClubsCourtType": "Type",
     "adminClubsCourtPlacement": "Placement",
     "adminClubsAddCourt": "Add Court",
+    "adminClubsAddIndoor": "Add Indoor",
+    "adminClubsAddOutdoor": "Add Outdoor",
     "adminClubsCourtTypeConcrete": "Concrete",
     "adminClubsCourtTypeClay": "Clay",
     "adminClubsCourtTypeHard": "Hard",
