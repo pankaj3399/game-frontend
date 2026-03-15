@@ -23,12 +23,20 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { format, parseISO, isValid } from "date-fns";
+import { getDateFnsLocale } from "@/lib/dateFnsLocale";
 import { getErrorMessage } from "@/lib/errors";
 import { toast } from "sonner";
 
 export default function TournamentListPage() {
-  const { t } = useTranslation();
   const { isAuthenticated, isProfileComplete } = useAuth();
+  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  if (!isProfileComplete) return <Navigate to="/information" replace />;
+
+  return <TournamentListContent />;
+}
+
+function TournamentListContent() {
+  const { t, i18n } = useTranslation();
   const isOrganiserOrAbove = useIsOrganiserOrAbove();
   const statusFilterLabelId = useId();
   const clubFilterLabelId = useId();
@@ -69,7 +77,8 @@ export default function TournamentListPage() {
     if (!d) return t("tournaments.unscheduled");
     try {
       const parsed = parseISO(d);
-      return isValid(parsed) ? format(parsed, "d MMM, yyyy") : t("tournaments.unscheduled");
+      const locale = getDateFnsLocale(i18n.language);
+      return isValid(parsed) ? format(parsed, "d MMM, yyyy", { locale }) : t("tournaments.unscheduled");
     } catch {
       return t("tournaments.unscheduled");
     }
@@ -84,11 +93,6 @@ export default function TournamentListPage() {
       toast.error(getErrorMessage(err) ?? t("tournaments.publishError"));
     }
   };
-
-
-
-  if (!isAuthenticated) return <Navigate to="/login" replace />;
-  if (!isProfileComplete) return <Navigate to="/information" replace />;
 
   return (
     <div className="flex min-h-[calc(100vh-4rem)] flex-col bg-gray-50">
@@ -107,7 +111,7 @@ export default function TournamentListPage() {
                   value={activeTab}
                   onValueChange={(v) => {
                     setActiveTab(v as "published" | "drafts");
-                    setFilters((prev) => ({ ...prev, page: 1 }));
+                    setFilters((prev) => ({ ...prev, page: 1, ...(v === "drafts" ? { status: undefined } : {}) }));
                   }}
                 >
                   <TabsList variant="line" className="h-9">

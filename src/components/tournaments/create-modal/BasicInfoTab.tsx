@@ -67,7 +67,11 @@ export function BasicInfoTab({ form, clubs, update }: BasicInfoTabProps) {
           </Label>
           <Select
             value={form.tournamentMode}
-            onValueChange={(v) => update({ tournamentMode: v as "singleDay" | "period" })}
+            onValueChange={(v) => {
+              const mode = v;
+              update(mode === "period" ? { tournamentMode: mode, date: null, startTime: null, endTime: null } : { tournamentMode: mode });
+
+            }}
           >
             <SelectTrigger className="mt-1 h-10 w-full rounded-lg border-[#e5e7eb] text-[14px] font-normal">
               <SelectValue />

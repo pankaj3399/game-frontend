@@ -30,6 +30,9 @@ export interface CreateTournamentInput extends TournamentInputBase {
 
 export type UpdateTournamentInput = Partial<TournamentInputBase & { club: string; name: string }>;
 
+/** Minimal payload for publish endpoint; no body fields required. */
+export type PublishTournamentPayload = Record<string, never>;
+
 interface CreateTournamentResponse {
   message: string;
   tournament: { id: string; name: string; club: string; status: string; date?: string; createdAt?: string };
@@ -60,8 +63,8 @@ async function updateTournament(id: string, data: UpdateTournamentInput): Promis
   return res.data;
 }
 
-async function publishTournament(id: string, data: UpdateTournamentInput): Promise<PublishTournamentResponse> {
-  const res = await api.post<PublishTournamentResponse>(`/api/tournaments/${id}/publish`, data);
+async function publishTournament(id: string, _data?: PublishTournamentPayload) {
+  const res = await api.post<PublishTournamentResponse>(`/api/tournaments/${id}/publish`, {});
   return res.data;
 }
 
@@ -94,7 +97,7 @@ export function useUpdateTournament() {
 export function usePublishTournament() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: UpdateTournamentInput }) => publishTournament(id, data),
+    mutationFn: ({ id, data }: { id: string; data?: PublishTournamentPayload }) => publishTournament(id, data ?? {}),
     onSuccess: (_, { id }) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.tournament.all });
       queryClient.invalidateQueries({ queryKey: queryKeys.tournament.detail(id) });

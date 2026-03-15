@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { format, parseISO } from "date-fns";
+import { format, parseISO, isValid } from "date-fns";
+import type { Locale } from "date-fns";
 import {
   Calendar,
   Clock3,
@@ -15,6 +16,7 @@ import {
 import type { TournamentDetail } from "@/hooks/tournament";
 import { TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
+import { getDateFnsLocale } from "@/lib/dateFnsLocale";
 import { EditTournamentInfoModal } from "./EditTournamentInfoModal";
 
 interface InfoTabProps {
@@ -23,10 +25,11 @@ interface InfoTabProps {
   isJoinPending: boolean;
 }
 
-function formatDate(value: string | null, fallback: string) {
+function formatDate(value: string | null, fallback: string, locale?: Locale) {
   if (!value) return fallback;
   try {
-    return format(parseISO(value), "d MMM, yyyy");
+    const parsed = parseISO(value);
+    return isValid(parsed) ? format(parsed, "d MMM, yyyy", { locale }) : fallback;
   } catch {
     return fallback;
   }
@@ -44,7 +47,7 @@ function formatTimeRange(
 }
 
 export function InfoTab({ tournament, onJoin, isJoinPending }: InfoTabProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const spotPercentage = Math.max(0, Math.min(100, tournament.progress.percentage));
   const hasParticipants = tournament.participants.length > 0;
@@ -90,7 +93,7 @@ export function InfoTab({ tournament, onJoin, isJoinPending }: InfoTabProps) {
                 <Calendar className="mt-0.5 size-4 shrink-0 text-[#6b7280]" />
                 <div>
                   <p className="text-sm font-semibold text-[#111827]">
-                    {formatDate(tournament.date, t("tournaments.unscheduled"))}
+                    {formatDate(tournament.date, t("tournaments.unscheduled"), getDateFnsLocale(i18n.language))}
                   </p>
                   <p className="mt-0.5 text-xs text-[#6b7280]">{t("tournaments.date")}</p>
                 </div>

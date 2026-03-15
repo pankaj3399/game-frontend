@@ -170,7 +170,7 @@ export default function ClubDetailPage() {
                           <a
                             href={sponsor.link}
                             target="_blank"
-                            rel="noreferrer"
+                            rel="noreferrer noopener"
                             className="h-full w-full"
                           >
                             <img
@@ -205,7 +205,7 @@ export default function ClubDetailPage() {
                   <a
                     href={club.bookingSystemUrl}
                     target="_blank"
-                    rel="noreferrer"
+                    rel="noreferrer noopener"
                     className="flex items-center justify-center rounded-lg bg-[#1a1a1a] px-4 py-3 font-medium text-white transition-colors hover:bg-[#2d2d2d]"
                   >
                     {t("clubs.bookCourt")}

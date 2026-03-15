@@ -357,6 +357,9 @@
     "share": "Teilen",
     "sponsoredBy": "Gesponsert von",
     "info": "Info",
+    "matches": "Spiele",
+    "results": "Ergebnisse",
+    "sponsorsTab": "Sponsoren",
     "noDescription": "Noch keine Beschreibung.",
     "noFoodInfo": "Noch keine Infos zu Essen & Getränken.",
     "unknownClub": "Unbekannter Verein",
@@ -432,5 +435,16 @@
     "otherInformation": "Weitere Informationen",
     "contactUs": "Kontaktieren Sie uns",
     "inviteFriends": "Freunde einladen"
+  },
+  "timepicker": {
+    "placeholder": "Zeit wählen",
+    "title": "Zeit wählen",
+    "hour": "Stunde",
+    "minute": "Minute",
+    "am": "AM",
+    "pm": "PM",
+    "clear": "Löschen",
+    "now": "Jetzt",
+    "confirm": "Fertig"
   }
 }

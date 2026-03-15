@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -12,6 +13,24 @@ interface TimePickerProps {
   placeholder?: string;
   disabled?: boolean;
   popoverAlign?: "start" | "center" | "end";
+  /** Override placeholder (default: timepicker.placeholder) */
+  placeholderLabel?: string;
+  /** Override popover title (default: timepicker.title) */
+  titleLabel?: string;
+  /** Override hour field label (default: timepicker.hour) */
+  hourLabel?: string;
+  /** Override minute field label (default: timepicker.minute) */
+  minuteLabel?: string;
+  /** Override AM label (default: timepicker.am) */
+  amLabel?: string;
+  /** Override PM label (default: timepicker.pm) */
+  pmLabel?: string;
+  /** Override clear button (default: timepicker.clear) */
+  clearLabel?: string;
+  /** Override now button (default: timepicker.now) */
+  nowLabel?: string;
+  /** Override confirm/done button (default: timepicker.confirm) */
+  confirmLabel?: string;
 }
 
 type Meridian = "AM" | "PM";
@@ -20,10 +39,30 @@ export function TimePicker({
   value,
   onChange,
   stepMinutes = 5,
-  placeholder = "Select time",
+  placeholder,
   disabled,
   popoverAlign = "start",
+  placeholderLabel,
+  titleLabel,
+  hourLabel,
+  minuteLabel,
+  amLabel,
+  pmLabel,
+  clearLabel,
+  nowLabel,
+  confirmLabel,
 }: TimePickerProps) {
+  const { t } = useTranslation();
+  const effectivePlaceholder = placeholder ?? placeholderLabel ?? t("timepicker.placeholder");
+  const effectiveTitle = titleLabel ?? t("timepicker.title");
+  const effectiveHourLabel = hourLabel ?? t("timepicker.hour");
+  const effectiveMinuteLabel = minuteLabel ?? t("timepicker.minute");
+  const effectiveAmLabel = amLabel ?? t("timepicker.am");
+  const effectivePmLabel = pmLabel ?? t("timepicker.pm");
+  const effectiveClearLabel = clearLabel ?? t("timepicker.clear");
+  const effectiveNowLabel = nowLabel ?? t("timepicker.now");
+  const effectiveConfirmLabel = confirmLabel ?? t("timepicker.confirm");
+
   const [open, setOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
   const hourInputRef = useRef<HTMLInputElement | null>(null);
@@ -154,7 +193,7 @@ export function TimePicker({
             !formatted && "text-[#9ca3af]"
           )}
         >
-          <span>{formatted || placeholder}</span>
+          <span>{formatted || effectivePlaceholder}</span>
           <Clock className="h-4 w-4 shrink-0 text-[#9ca3af]" />
         </Button>
       </PopoverTrigger>
@@ -165,7 +204,7 @@ export function TimePicker({
       >
         <div className="border-b border-[#e5e7eb] p-4">
           <div className="mb-3 flex items-center justify-between gap-3">
-            <p className="text-[11px] font-medium uppercase tracking-wide text-[#6b7280]">Select time</p>
+            <p className="text-[11px] font-medium uppercase tracking-wide text-[#6b7280]">{effectiveTitle}</p>
             <div className="inline-flex h-8 rounded-lg border border-[#d1d5db] bg-[#f3f4f6] p-0.5">
               {(["AM", "PM"] as const).map((meridian) => {
                 const isActive = meridian === selectedMeridian;
@@ -182,7 +221,7 @@ export function TimePicker({
                         : "text-[#6b7280] hover:text-[#374151]"
                     )}
                   >
-                    {meridian}
+                    {meridian === "AM" ? effectiveAmLabel : effectivePmLabel}
                   </button>
                 );
               })}
@@ -194,7 +233,7 @@ export function TimePicker({
               ref={hourInputRef}
               type="text"
               inputMode="numeric"
-              aria-label="Hour"
+              aria-label={effectiveHourLabel}
               maxLength={2}
               value={hourInput}
               onChange={(event) => {
@@ -232,7 +271,7 @@ export function TimePicker({
               ref={minuteInputRef}
               type="text"
               inputMode="numeric"
-              aria-label="Minute"
+              aria-label={effectiveMinuteLabel}
               maxLength={2}
               value={minuteInput}
               onChange={(event) => {
@@ -271,7 +310,7 @@ export function TimePicker({
             className="h-8 flex-1 rounded-md text-[12px]"
             onClick={() => onChange(null)}
           >
-            Clear
+            {effectiveClearLabel}
           </Button>
           <Button
             type="button"
@@ -279,14 +318,14 @@ export function TimePicker({
             className="h-8 flex-1 rounded-md text-[12px]"
             onClick={setNow}
           >
-            Now
+            {effectiveNowLabel}
           </Button>
           <Button
             type="button"
             className="h-8 flex-1 rounded-md bg-[#0a9f43] text-[12px] text-white hover:bg-[#088a3a]"
             onClick={() => setOpen(false)}
           >
-            Done
+            {effectiveConfirmLabel}
           </Button>
         </div>
       </PopoverContent>

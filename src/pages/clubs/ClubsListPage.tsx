@@ -70,7 +70,7 @@ export default function ClubsListPage() {
                     <div className="flex aspect-[16/10] w-full items-center justify-center overflow-hidden rounded-t-xl bg-[#f3f4f6]">
                       <div className="flex h-full w-full items-center justify-center rounded-t-xl bg-[#e5e7eb]">
                         <span className="text-2xl font-semibold text-[#9ca3af]">
-                          {club.name.charAt(0)}
+                          {club.name.charAt(0) || "?"}
                         </span>
                       </div>
                     </div>

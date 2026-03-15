@@ -242,7 +242,7 @@ export function CreateTournamentModal({
     try {
       const payload = buildPayload("active");
       if (isEditMode && tournamentId) {
-        await publishTournament.mutateAsync({ id: tournamentId, data: payload });
+        await publishTournament.mutateAsync({ id: tournamentId });
       } else {
         await createTournament.mutateAsync(payload);
       }

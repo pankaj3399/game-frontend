@@ -436,5 +436,16 @@
     "otherInformation": "Other Information",
     "contactUs": "Contact Us",
     "inviteFriends": "Invite Friends"
+  },
+  "timepicker": {
+    "placeholder": "Select time",
+    "title": "Select time",
+    "hour": "Hour",
+    "minute": "Minute",
+    "am": "AM",
+    "pm": "PM",
+    "clear": "Clear",
+    "now": "Now",
+    "confirm": "Done"
   }
 }

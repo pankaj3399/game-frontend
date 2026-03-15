@@ -36,8 +36,8 @@ function SponsorCard({
   onClick: () => void;
 }) {
   return (
-    <button
-      type="button"
+    <Button
+      variant="ghost"
       onClick={onClick}
       className={`flex w-full items-center justify-between rounded-xl border p-3 text-left transition-colors ${selected
           ? "border-[#27a457] bg-[#f7fbf8] ring-1 ring-[#27a457]"
@@ -57,7 +57,7 @@ function SponsorCard({
         className={`h-4 w-4 shrink-0 rounded-full border ${selected ? "border-[#27a457] ring-4 ring-[#27a457] ring-offset-2" : "border-[#d1d5db]"
           }`}
       />
-    </button>
+    </Button>
   );
 }
 

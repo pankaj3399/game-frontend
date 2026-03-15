@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
+import { queryKeys } from "@/lib/api/queryKeys";
 
 export interface SponsorPublic {
   id: string;
@@ -20,7 +21,7 @@ async function fetchAllSponsors(): Promise<AllSponsorsResponse> {
 
 export function useAllSponsors() {
   return useQuery({
-    queryKey: ["sponsors", "all"],
+    queryKey: queryKeys.sponsors.all,
     queryFn: fetchAllSponsors,
   });
 }

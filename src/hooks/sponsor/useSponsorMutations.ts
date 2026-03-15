@@ -17,10 +17,6 @@ export interface UpdateSponsorInput {
   status?: "active" | "paused";
 }
 
-
-
-const allSponsorQueryKey = ["sponsors", "all"];
-
 async function createSponsor(clubId: string, input: CreateSponsorInput) {
   const res = await api.post(`/api/clubs/${clubId}/sponsors`, input);
   return res.data;
@@ -50,7 +46,7 @@ export function useCreateSponsor(clubId: string | null) {
     onSuccess: () => {
       if (clubId) {
         queryClient.invalidateQueries({ queryKey: queryKeys.club.sponsors(clubId) });
-        queryClient.invalidateQueries({ queryKey: allSponsorQueryKey });
+        queryClient.invalidateQueries({ queryKey: queryKeys.sponsors.all });
       }
     },
   });
@@ -69,7 +65,7 @@ export function useUpdateSponsor(clubId: string | null) {
     onSuccess: () => {
       if (clubId) {
         queryClient.invalidateQueries({ queryKey: queryKeys.club.sponsors(clubId) });
-        queryClient.invalidateQueries({ queryKey: allSponsorQueryKey });
+        queryClient.invalidateQueries({ queryKey: queryKeys.sponsors.all });
       }
     },
   });
@@ -82,7 +78,7 @@ export function useDeleteSponsor(clubId: string | null) {
     onSuccess: () => {
       if (clubId) {
         queryClient.invalidateQueries({ queryKey: queryKeys.club.sponsors(clubId) });
-        queryClient.invalidateQueries({ queryKey: allSponsorQueryKey });
+        queryClient.invalidateQueries({ queryKey: queryKeys.sponsors.all });
       }
     },
   });

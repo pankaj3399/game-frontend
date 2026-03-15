@@ -59,7 +59,7 @@ export default function AllSponsorsPage() {
                     ) : (
                       <div className="flex h-full w-full items-center justify-center rounded-t-xl bg-[#e5e7eb]">
                         <span className="text-sm font-medium text-[#9ca3af]">
-                          {sponsor.name.charAt(0) ?? "?"}
+                          {sponsor.name.charAt(0) || "?"}
                         </span>
                       </div>
                     )}
@@ -75,7 +75,7 @@ export default function AllSponsorsPage() {
                       <a
                         href={sponsor.link}
                         target="_blank"
-                        rel="noreferrer"
+                        rel="noreferrer noopener"
                         className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-[#0a9f43] hover:underline"
                       >
                         {t("sponsors.visitWebsite")}
