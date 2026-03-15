@@ -1,0 +1,46 @@
+import { useQuery } from "@tanstack/react-query";
+import { api } from "@/lib/api";
+
+export interface ClubListItem {
+  id: string;
+  name: string;
+  address: string;
+  website: string | null;
+}
+
+export interface ClubsPagination {
+  page: number;
+  limit: number;
+  totalCount: number;
+  totalPages: number;
+}
+
+export interface AllClubsResponse {
+  clubs: ClubListItem[];
+  pagination: ClubsPagination;
+}
+
+interface UseAllClubsOptions {
+  page?: number;
+  limit?: number;
+}
+
+const DEFAULT_PAGE = 1;
+const DEFAULT_LIMIT = 12;
+
+async function fetchAllClubs(page: number, limit: number): Promise<AllClubsResponse> {
+  const res = await api.get<AllClubsResponse>("/api/clubs/list", {
+    params: { page, limit },
+  });
+  return res.data;
+}
+
+export function useAllClubs(options: UseAllClubsOptions = {}) {
+  const page = options.page ?? DEFAULT_PAGE;
+  const limit = options.limit ?? DEFAULT_LIMIT;
+
+  return useQuery<AllClubsResponse>({
+    queryKey: ["clubs", "all", page, limit],
+    queryFn: () => fetchAllClubs(page, limit),
+  });
+}

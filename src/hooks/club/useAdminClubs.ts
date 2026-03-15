@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { queryKeys } from "@/lib/api/queryKeys";
 
@@ -22,5 +22,12 @@ export function useAdminClubs(enabled = true) {
     queryKey: queryKeys.user.adminClubs(),
     queryFn: fetchAdminClubs,
     enabled,
+  });
+}
+
+export function useAdminClubsSuspense() {
+  return useSuspenseQuery({
+    queryKey: queryKeys.user.adminClubs(),
+    queryFn: fetchAdminClubs,
   });
 }

@@ -4,12 +4,14 @@ import { queryKeys } from "@/lib/api/queryKeys";
 import { requireClubId } from "./helpers";
 export interface CreateSponsorInput {
   name: string;
+  description?: string | null;
   logoUrl?: string | null;
   link?: string | null;
 }
 
 export interface UpdateSponsorInput {
   name?: string;
+  description?: string | null;
   logoUrl?: string;
   link?: string;
   status?: "active" | "paused";
@@ -44,6 +46,7 @@ export function useCreateSponsor(clubId: string | null) {
     onSuccess: () => {
       if (clubId) {
         queryClient.invalidateQueries({ queryKey: queryKeys.club.sponsors(clubId) });
+        queryClient.invalidateQueries({ queryKey: queryKeys.sponsors.all });
       }
     },
   });
@@ -62,6 +65,7 @@ export function useUpdateSponsor(clubId: string | null) {
     onSuccess: () => {
       if (clubId) {
         queryClient.invalidateQueries({ queryKey: queryKeys.club.sponsors(clubId) });
+        queryClient.invalidateQueries({ queryKey: queryKeys.sponsors.all });
       }
     },
   });
@@ -74,6 +78,7 @@ export function useDeleteSponsor(clubId: string | null) {
     onSuccess: () => {
       if (clubId) {
         queryClient.invalidateQueries({ queryKey: queryKeys.club.sponsors(clubId) });
+        queryClient.invalidateQueries({ queryKey: queryKeys.sponsors.all });
       }
     },
   });

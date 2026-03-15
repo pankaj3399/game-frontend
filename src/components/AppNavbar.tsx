@@ -54,8 +54,11 @@ const pathToTitleKey: Record<string, string> = {
   "/tournaments": "settings.nav.tournaments",
   "/my-score": "settings.nav.myScore",
   "/record-score": "settings.nav.recordScore",
-  "/clubs": "manageClub.title",
-  "/sponsors": "sponsors.title",
+  "/clubs/manage": "manageClub.title",
+  "/clubs/": "clubs.clubDetails",
+  "/clubs": "clubs.allClubs",
+  "/sponsors/manage": "sponsors.title",
+  "/sponsors": "sponsors.allSponsors",
   "/about": "settings.nav.about",
   "/information": "signup.title",
 };

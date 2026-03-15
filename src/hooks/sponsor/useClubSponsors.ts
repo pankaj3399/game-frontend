@@ -5,6 +5,7 @@ import { queryKeys } from "@/lib/api/queryKeys";
 export interface ClubSponsor {
   id: string;
   name: string;
+  description: string | null;
   logoUrl: string | null;
   link: string | null;
   status: "active" | "paused";

@@ -29,6 +29,7 @@ export function AddEditSponsorModal({
 }: AddEditSponsorModalProps) {
   const { t } = useTranslation();
   const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
   const [logoUrl, setLogoUrl] = useState("");
   const [link, setLink] = useState("");
 
@@ -41,10 +42,12 @@ export function AddEditSponsorModal({
     if (open) {
       if (editSponsor) {
         setName(editSponsor.name);
+        setDescription(editSponsor.description ?? "");
         setLogoUrl(editSponsor.logoUrl ?? "");
         setLink(editSponsor.link ?? "");
       } else {
         setName("");
+        setDescription("");
         setLogoUrl("");
         setLink("");
       }
@@ -63,6 +66,7 @@ export function AddEditSponsorModal({
 
     const payload = {
       name: trimmedName,
+      description: description.trim() || undefined,
       logoUrl: logoUrl.trim(),
       link: link.trim(),
     };
@@ -111,6 +115,18 @@ export function AddEditSponsorModal({
               onChange={(e) => setName(e.target.value)}
               placeholder={t("sponsors.namePlaceholder")}
               className="mt-1.5"
+              disabled={!canManage}
+            />
+          </div>
+          <div>
+            <Label htmlFor="sponsor-description">{t("sponsors.description")}</Label>
+            <textarea
+              id="sponsor-description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder={t("sponsors.descriptionPlaceholder")}
+              rows={3}
+              className="mt-1.5 flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
               disabled={!canManage}
             />
           </div>

@@ -6,3 +6,6 @@
  */
 export * from "./auth";
 export * from "./user";
+export * from "./club";
+export * from "./sponsor";
+export * from "./tournament";

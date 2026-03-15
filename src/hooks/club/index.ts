@@ -1,11 +1,13 @@
 export { useSearchClubs } from "./useSearchClubs";
+export { useAllClubs, type ClubListItem } from "./useAllClubs";
+export { useClubPublic, type ClubPublic } from "./useClubPublic";
 export {
   useFavoriteClubs,
   useAddFavoriteClub,
   useRemoveFavoriteClub,
   useSetHomeClub,
 } from "./useFavoriteClubs";
-export { useAdminClubs } from "./useAdminClubs";
+export { useAdminClubs, useAdminClubsSuspense } from "./useAdminClubs";
 export {
   useClubStaff,
   type ClubStaffMember,
