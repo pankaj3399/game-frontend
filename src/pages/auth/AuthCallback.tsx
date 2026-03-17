@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
-import { useAuth } from "@/hooks/auth";
+import { useAuth } from "@/pages/auth/hooks";
 import { PENDING_SIGNUP_TOKEN_KEY } from "@/lib/auth";
 
 /** Whitelist of safe error codes from backend/auth flow (prevents XSS/open redirect). */

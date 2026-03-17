@@ -15,7 +15,7 @@ import {
   LockIcon,
   Logout01Icon,
 } from "@hugeicons/core-free-icons";
-import { useAuth } from "@/hooks/auth";
+import { useAuth } from "@/pages/auth/hooks";
 import { RoleGuard } from "@/components/auth";
 import { ROLES } from "@/constants/roles";
 import { cn } from "@/lib/utils";

@@ -67,7 +67,7 @@ export default defineConfig({
           if (id.includes('axios')) return 'axios'
           if (id.includes('zod')) return 'zod'
 
-          // Catch-all: merge with framework to avoid vendor↔react circular chunk
+          // Catch-all bucket
           return 'framework'
         },
       },

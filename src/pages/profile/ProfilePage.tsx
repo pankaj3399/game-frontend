@@ -1,7 +1,7 @@
 import { useNavigate, Navigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { format, parseISO, isValid } from "date-fns";
-import { useAuth } from "@/hooks/auth";
+import { format } from "date-fns";
+import { useAuth } from "@/pages/auth/hooks";
 import { Button } from "@/components/ui/button";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
@@ -10,8 +10,9 @@ import {
   Calendar03Icon,
   Logout01Icon,
 } from "@hugeicons/core-free-icons";
-import { ProfileRow } from "@/components/profile";
+import { ProfileRow } from "@/pages/profile/components/ProfileRow";
 import InlineLoader from "@/components/shared/InlineLoader";
+import { parseIsoDateSafely } from "@/utils/date";
 
 export default function ProfilePage() {
   const { t } = useTranslation();
@@ -47,8 +48,8 @@ export default function ProfilePage() {
 
   const displayDate = (() => {
     if (!user?.dateOfBirth) return "—";
-    const parsed = parseISO(String(user.dateOfBirth));
-    return isValid(parsed) ? format(parsed, "PPP") : "—";
+    const parsed = parseIsoDateSafely(String(user.dateOfBirth));
+    return parsed ? format(parsed, "PPP") : "—";
   })();
 
   const genderKeyMap: Record<string, string> = {

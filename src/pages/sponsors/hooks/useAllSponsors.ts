@@ -1,0 +1,28 @@
+import { useQuery } from "@tanstack/react-query";
+import { api } from "@/lib/api";
+import { queryKeys } from "@/lib/api/queryKeys";
+
+export interface SponsorPublic {
+  id: string;
+  name: string;
+  description: string | null;
+  logoUrl: string | null;
+  link: string | null;
+}
+
+interface AllSponsorsResponse {
+  sponsors: SponsorPublic[];
+}
+
+async function fetchAllSponsors(): Promise<AllSponsorsResponse> {
+  const res = await api.get<AllSponsorsResponse>("/api/sponsors");
+  const payload = res.data;
+  return payload;
+}
+
+export function useAllSponsors() {
+  return useQuery({
+    queryKey: queryKeys.sponsors.all,
+    queryFn: fetchAllSponsors,
+  });
+}

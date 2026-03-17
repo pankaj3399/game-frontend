@@ -1,11 +1,20 @@
 import { Navigate, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { useCurrentUser } from "@/hooks/auth";
-import { SettingsForm, DeleteAccountSection, FavoriteClubsSection, AdminClubsSection } from "@/components/settings";
+import { useCurrentUser } from "@/pages/auth/hooks";
+import {
+  SettingsForm,
+  DeleteAccountSection,
+  FavoriteClubsSection,
+  AdminClubsSection,
+} from "@/pages/profile/components/settings";
 import InlineLoader from "@/components/shared/InlineLoader";
 
-const VALID_TABS = ["settings", "favorite-clubs", "admin-clubs", "delete-account"] as const;
+const VALID_TABS = ["settings", "favorite-clubs", "admin-clubs", "delete-account"];
+
+function isSettingsTab(value: string | null) {
+  return value !== null && VALID_TABS.includes(value);
+}
 
 export default function SettingsPage() {
   const { t } = useTranslation();
@@ -14,9 +23,7 @@ export default function SettingsPage() {
     useCurrentUser();
 
   const tabParam = searchParams.get("tab");
-  const activeTab = tabParam && VALID_TABS.includes(tabParam as (typeof VALID_TABS)[number])
-    ? (tabParam as (typeof VALID_TABS)[number])
-    : "settings";
+  const activeTab = isSettingsTab(tabParam) ? tabParam : "settings";
 
   const handleTabChange = (value: string) => {
     setSearchParams({ tab: value }, { replace: true });
@@ -32,12 +39,13 @@ export default function SettingsPage() {
 
   if (!isAuthenticated) return <Navigate to="/login" replace />;
   if (!isProfileComplete) return <Navigate to="/information" replace />;
+  if (!user) return <Navigate to="/login" replace />;
 
   return (
     <div className="py-6 sm:py-8 px-4 sm:px-6 bg-gray-50 h-max">
       <div className="mx-auto w-full max-w-3xl min-w-0">
         <div className="overflow-hidden rounded-xl border border-[#e5e7eb] bg-white shadow-sm">
-          <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
+          <Tabs value={activeTab ?? undefined} onValueChange={handleTabChange} className="w-full">
             <div className="border-b border-[#e5e7eb] px-4 sm:px-6 pt-4 pb-4">
               <TabsList className="h-auto w-full grid grid-cols-2 sm:flex sm:flex-wrap justify-start gap-2 rounded-md bg-transparent p-0">
                 <TabsTrigger
@@ -69,8 +77,8 @@ export default function SettingsPage() {
 
             <TabsContent value="settings" className="mt-0 p-4 sm:p-6">
               <SettingsForm
-                key={`${user!.id}-${dataUpdatedAt ?? 0}`}
-                user={user!}
+                key={`${user.id}-${dataUpdatedAt ?? 0}`}
+                user={user}
               />
             </TabsContent>
 

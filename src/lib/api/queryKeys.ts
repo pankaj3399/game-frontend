@@ -31,7 +31,6 @@ export const queryKeys = {
     all: ["tournament"] as const,
     list: (filters?: {
       status?: string;
-      clubId?: string;
       page?: number;
       limit?: number;
       q?: string;
@@ -40,7 +39,6 @@ export const queryKeys = {
       const f = filters ?? {};
       const normalizedFilters: Record<string, string | number> = {};
       if (f.status) normalizedFilters.status = f.status;
-      if (f.clubId) normalizedFilters.clubId = f.clubId;
       if (f.view) normalizedFilters.view = f.view;
       if (f.page != null) normalizedFilters.page = f.page;
       if (f.limit != null) normalizedFilters.limit = f.limit;

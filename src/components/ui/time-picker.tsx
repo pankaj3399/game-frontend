@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -64,20 +64,22 @@ export function TimePicker({
   const effectiveConfirmLabel = confirmLabel ?? t("timepicker.confirm");
 
   const [open, setOpen] = useState(false);
+  const [portalContainer, setPortalContainer] = useState<HTMLElement | null>(null);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
   const hourInputRef = useRef<HTMLInputElement | null>(null);
   const minuteInputRef = useRef<HTMLInputElement | null>(null);
-  const [portalContainer, setPortalContainer] = useState<HTMLElement | null>(null);
 
-  const parsedValue = useMemo(() => {
-    if (!value) return null;
+  let parsedValue: { hour: number; minute: number } | null = null;
+  if (value) {
     const match = value.match(/^(\d{1,2}):(\d{2})$/);
-    if (!match) return null;
-    const hour = Number(match[1]);
-    const minute = Number(match[2]);
-    if (Number.isNaN(hour) || Number.isNaN(minute) || hour > 23 || minute > 59) return null;
-    return { hour, minute };
-  }, [value]);
+    if (match) {
+      const hour = Number(match[1]);
+      const minute = Number(match[2]);
+      if (!Number.isNaN(hour) && !Number.isNaN(minute) && hour <= 23 && minute <= 59) {
+        parsedValue = { hour, minute };
+      }
+    }
+  }
 
   const selectedHour24 = parsedValue?.hour ?? 0;
   const selectedHour = selectedHour24 % 12 || 12;
@@ -108,12 +110,6 @@ export function TimePicker({
 
   useEffect(() => {
     if (!open) return;
-    const dialogContent = triggerRef.current?.closest("[data-slot='dialog-content']");
-    setPortalContainer(dialogContent instanceof HTMLElement ? dialogContent : null);
-  }, [open]);
-
-  useEffect(() => {
-    if (!open) return;
     // Defer focus until after popover content has mounted
     const id = window.setTimeout(() => {
       if (hourInputRef.current) {
@@ -129,10 +125,17 @@ export function TimePicker({
   const [hourInput, setHourInput] = useState(hourDisplay);
   const [minuteInput, setMinuteInput] = useState(minuteDisplay);
 
-  useEffect(() => {
-    setHourInput(hourDisplay);
-    setMinuteInput(minuteDisplay);
-  }, [hourDisplay, minuteDisplay]);
+  const handleOpenChange = (nextOpen: boolean) => {
+    if (nextOpen) {
+      setHourInput(hourDisplay);
+      setMinuteInput(minuteDisplay);
+      const dialogContent = triggerRef.current?.closest("[data-slot='dialog-content']");
+      setPortalContainer(dialogContent instanceof HTMLElement ? dialogContent : null);
+    } else {
+      setPortalContainer(null);
+    }
+    setOpen(nextOpen);
+  };
 
   const commitHourInput = (raw: string) => {
     if (!raw) {
@@ -181,7 +184,7 @@ export function TimePicker({
   };
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={open} onOpenChange={handleOpenChange}>
       <PopoverTrigger asChild>
         <Button
           ref={triggerRef}
@@ -323,7 +326,7 @@ export function TimePicker({
           <Button
             type="button"
             className="h-8 flex-1 rounded-md bg-[#0a9f43] text-[12px] text-white hover:bg-[#088a3a]"
-            onClick={() => setOpen(false)}
+            onClick={() => handleOpenChange(false)}
           >
             {effectiveConfirmLabel}
           </Button>

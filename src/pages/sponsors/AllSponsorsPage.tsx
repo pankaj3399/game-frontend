@@ -1,8 +1,8 @@
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { ExternalLink } from "lucide-react";
-import { useAllSponsors } from "@/hooks/sponsor";
-import { useHasRoleOrAbove } from "@/hooks/auth";
+import { useAllSponsors } from "@/pages/sponsors/hooks";
+import { useHasRoleOrAbove } from "@/pages/auth/hooks";
 import { ROLES } from "@/constants/roles";
 import { Button } from "@/components/ui/button";
 import { HugeiconsIcon } from "@hugeicons/react";

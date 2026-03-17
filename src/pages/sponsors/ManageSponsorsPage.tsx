@@ -7,17 +7,17 @@ import {
   ArrowLeft01Icon,
   SparklesIcon,
 } from "@hugeicons/core-free-icons";
-import { useAdminClubs } from "@/hooks/club";
-import { useClubSponsors, useDeleteSponsor } from "@/hooks/sponsor";
-import { useAuth, useHasRoleOrAbove } from "@/hooks/auth";
+import { useAdminClubs } from "@/pages/clubs/hooks";
+import { useClubSponsors, useDeleteSponsor } from "@/pages/sponsors/hooks";
+import { useAuth, useHasRoleOrAbove } from "@/pages/auth/hooks";
 import { ROLES } from "@/constants/roles";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-import { SponsorRow } from "@/components/sponsors/SponsorRow";
-import { AddEditSponsorModal } from "@/components/sponsors/AddEditSponsorModal";
+import { SponsorRow } from "@/pages/sponsors/components/SponsorRow";
+import { AddEditSponsorModal } from "@/pages/sponsors/components/AddEditSponsorModal";
 import InlineLoader from "@/components/shared/InlineLoader";
-import type { ClubSponsor } from "@/hooks/sponsor";
+import type { ClubSponsor } from "@/pages/sponsors/hooks";
 import {
   AlertDialog,
   AlertDialogAction,

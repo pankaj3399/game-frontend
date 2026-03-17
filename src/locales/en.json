@@ -5,7 +5,8 @@
     "logout": "Log out",
     "signUp": "Sign up",
     "language": "Language",
-    "loading": "Loading..."
+    "loading": "Loading...",
+    "comingSoon": "Coming soon!"
   },
   "profile": {
     "title": "Profile",
@@ -341,6 +342,7 @@
     "selectSponsorHint": "Choose one sponsor from your club's sponsors to display on the tournament page. You can also choose to not display any sponsor.",
     "selectClubFirst": "Select a club first to see sponsors.",
     "noSponsor": "No Sponsor - Don't display any sponsor",
+    "noSponsors": "No active sponsors found for this club.",
     "officialSponsor": "Official Sponsor",
     "cancel": "Cancel",
     "saveDraft": "Save DRAFT",
@@ -391,6 +393,7 @@
     "playerBFallback": "Player B",
     "scheduledTbd": "TBD",
     "court": "Court",
+    "courtFallback": "Court {{number}}",
     "roundNumber": "Round {{round}}",
     "allMatches": "All Matches",
     "matchesCompletedCount": "{{completed}} of {{total}} matches completed",

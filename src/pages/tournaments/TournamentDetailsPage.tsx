@@ -5,9 +5,13 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { Upload01Icon } from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
 import InlineLoader from "@/components/shared/InlineLoader";
-import { useTournamentById, useJoinTournament, usePublishTournament } from "@/hooks/tournament";
-import { useAuth } from "@/hooks/auth";
-import { TournamentDetailsTabs } from "@/components/tournaments/details-tabs/TournamentDetailsTabs";
+import { useAuth } from "@/pages/auth/hooks";
+import { TournamentDetailsTabs } from "@/pages/tournaments/components/details-tabs/TournamentDetailsTabs";
+import {
+  useTournamentById,
+  useJoinTournament,
+  usePublishTournament,
+} from "@/pages/tournaments/hooks/tournament";
 import { getErrorMessage } from "@/lib/errors";
 import { toast } from "sonner";
 

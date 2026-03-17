@@ -1,7 +1,7 @@
 import { Suspense, lazy } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from './contexts/auth'
-import { useAuth } from './hooks/auth'
+import { useAuth } from './pages/auth/hooks'
 import { Toaster } from '@/components/ui/sonner'
 import { MainLayout } from '@/layouts/MainLayout'
 import { ProtectedRoute } from '@/components/auth'

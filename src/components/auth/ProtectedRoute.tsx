@@ -1,5 +1,5 @@
 import { Navigate, useLocation } from "react-router-dom";
-import { useAuth } from "@/hooks/auth";
+import { useAuth } from "@/pages/auth/hooks";
 import type { Role } from "@/constants/roles";
 import { hasRoleOrAbove, hasAnyRole } from "@/constants/roles";
 import Loader from "@/components/shared/Loader";

@@ -1,29 +1,6 @@
-import { createContext, useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { api } from "@/lib/api";
-import type { Role } from "@/constants/roles";
-
-export interface AuthUser {
-  id: string;
-  email: string;
-  name?: string | null;
-  alias?: string | null;
-  dateOfBirth?: string | null;
-  gender?: string | null;
-  userType?: string;
-  /** RBAC role: player, organiser, club_admin, super_admin */
-  role?: Role;
-}
-
-interface AuthContextValue {
-  user: AuthUser | null;
-  loading: boolean;
-  isAuthenticated: boolean;
-  isProfileComplete: boolean;
-  checkAuth: () => Promise<AuthUser | null>;
-  logout: () => Promise<void>;
-}
-
-export const AuthContext = createContext<AuthContextValue | null>(null);
+import { AuthContext, type AuthContextValue, type AuthUser } from "./context";
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
