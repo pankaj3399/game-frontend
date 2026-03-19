@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
+import { useDebouncedValue } from "@/lib/hooks/useDebouncedValue";
 
 const MAPBOX_GEOCODE_URL = "https://api.mapbox.com/search/geocode/v6/forward";
 const DEBOUNCE_MS = 200;
@@ -65,6 +66,7 @@ export function useMapboxSearch(searchQuery: string) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const requestIdRef = useRef(0);
+  const debouncedSearchQuery = useDebouncedValue(searchQuery, DEBOUNCE_MS);
 
   const accessToken = import.meta.env.REACT_APP_MAPBOX_API_KEY as string | undefined;
 
@@ -109,8 +111,11 @@ export function useMapboxSearch(searchQuery: string) {
   );
 
   useEffect(() => {
-    const trimmed = searchQuery.trim();
     requestIdRef.current += 1;
+  }, [searchQuery]);
+
+  useEffect(() => {
+    const trimmed = debouncedSearchQuery.trim();
     const currentRequestId = requestIdRef.current;
 
     if (!trimmed) {
@@ -120,12 +125,8 @@ export function useMapboxSearch(searchQuery: string) {
       return;
     }
 
-    const timer = setTimeout(() => {
-      performSearch(searchQuery, currentRequestId);
-    }, DEBOUNCE_MS);
-
-    return () => clearTimeout(timer);
-  }, [searchQuery, performSearch]);
+    performSearch(debouncedSearchQuery, currentRequestId);
+  }, [debouncedSearchQuery, performSearch]);
 
   return { results, isLoading, error, hasToken: !!accessToken };
 }

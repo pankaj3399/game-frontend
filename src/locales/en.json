@@ -8,6 +8,38 @@
     "loading": "Loading...",
     "comingSoon": "Coming soon!"
   },
+  "userSearch": {
+    "placeholder": "Search users",
+    "searching": "Searching users...",
+    "noResults": "No users found.",
+    "keepTyping": "Keep typing to search users."
+  },
+  "admin": {
+    "title": "Admin",
+    "dashboardDescription": "Super Admin dashboard. Coming soon.",
+    "promoteToSuperAdminCta": "Promote User to Super Admin",
+    "nav": {
+      "admin": "Admin",
+      "setup": "Admin Setup"
+    },
+    "promoteSuperAdmin": {
+      "pageTitle": "Promote User to Super Admin",
+      "pageDescription": "Type a username (alias) and provide the promotion password to upgrade that user to super_admin.",
+      "backToAdmin": "Back to admin",
+      "usernameLabel": "Username",
+      "usernamePlaceholder": "Enter username (alias)",
+      "keepTypingUsernames": "Keep typing to search usernames.",
+      "noMatchingUsernames": "No matching usernames found.",
+      "passwordLabel": "Promotion Password",
+      "passwordPlaceholder": "Enter promotion password",
+      "submit": "Upgrade to super_admin",
+      "submitting": "Upgrading...",
+      "toastUsernameRequired": "Username is required",
+      "toastPasswordRequired": "Promotion password is required",
+      "toastSuccess": "{{name}} is now a super_admin",
+      "toastError": "Failed to promote user"
+    }
+  },
   "profile": {
     "title": "Profile",
     "id": "User ID",

@@ -1,7 +1,5 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { HugeiconsIcon } from "@hugeicons/react";
-import { Search01Icon } from "@hugeicons/core-free-icons";
 import {
   Dialog,
   DialogContent,
@@ -9,7 +7,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -18,14 +15,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  useSearchUsers,
-  isUserSearchQueryValid,
   useAddClubStaff,
   type AddStaffRole,
 } from "@/pages/clubs/hooks";
-import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-import InlineLoader from "@/components/shared/InlineLoader";
+import { UserSearchSelect } from "@/components/shared/UserSearchSelect";
 
 interface AddAdminOrganiserModalProps {
   open: boolean;
@@ -45,14 +39,7 @@ export function AddAdminOrganiserModal({
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [role, setRole] = useState<AddStaffRole>("admin");
 
-  const { data: searchData, isLoading: searchLoading } = useSearchUsers(
-    searchQuery,
-    open && isUserSearchQueryValid(searchQuery)
-  );
   const addStaff = useAddClubStaff();
-
-  const users = searchData?.users ?? [];
-  const filteredUsers = users.filter((user) => !existingStaffIds.includes(user.id));
 
   const resetForm = () => {
     setSearchQuery("");
@@ -72,8 +59,7 @@ export function AddAdminOrganiserModal({
     }
 
     if (
-      existingStaffIds.includes(selectedUserId) ||
-      !filteredUsers.some((user) => user.id === selectedUserId)
+      existingStaffIds.includes(selectedUserId)
     ) {
       toast.error(t("manageClub.userNoLongerEligible"));
       return;
@@ -111,61 +97,23 @@ export function AddAdminOrganiserModal({
             >
               {t("manageClub.searchUser")}
             </label>
-            <div className="relative">
-              <HugeiconsIcon
-                icon={Search01Icon}
-                size={16}
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
-              />
-              <Input
-                id="search-user"
-                type="text"
-                placeholder={t("manageClub.searchUserPlaceholder")}
-                value={searchQuery}
-                onChange={(event) => {
-                  setSearchQuery(event.target.value);
-                  setSelectedUserId(null);
-                }}
-                className="pl-9"
-                autoComplete="off"
-              />
-            </div>
-            {isUserSearchQueryValid(searchQuery) && (
-              <div className="mt-2 max-h-40 overflow-y-auto rounded-md border border-border bg-muted/30">
-                {searchLoading ? (
-                  <div className="flex items-center justify-center py-4">
-                    <InlineLoader className="h-5 w-5" size="sm" />
-                  </div>
-                ) : filteredUsers.length === 0 ? (
-                  <p className="px-3 py-4 text-center text-sm text-muted-foreground">
-                    {t("manageClub.noUsersFound")}
-                  </p>
-                ) : (
-                  <ul className="py-1">
-                    {filteredUsers.map((user) => {
-                      const isSelected = selectedUserId === user.id;
-                      const display = user.name?.trim() || user.alias?.trim() || user.email;
-
-                      return (
-                        <li key={user.id}>
-                          <button
-                            type="button"
-                            onClick={() => setSelectedUserId(user.id)}
-                            className={cn(
-                              "w-full px-3 py-2 text-left text-sm transition-colors hover:bg-muted/50",
-                              isSelected && "bg-muted"
-                            )}
-                          >
-                            <span className="font-medium">{display}</span>
-                            <span className="ml-2 text-muted-foreground">{user.email}</span>
-                          </button>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                )}
-              </div>
-            )}
+            <UserSearchSelect
+              inputId="search-user"
+              value={searchQuery}
+              onValueChange={(value) => {
+                setSearchQuery(value);
+                setSelectedUserId(null);
+              }}
+              onSelectUser={(user) => {
+                setSelectedUserId(user.id);
+                setSearchQuery(user.name?.trim() || user.alias?.trim() || user.email);
+              }}
+              placeholder={t("manageClub.searchUserPlaceholder")}
+              keepTypingText={t("manageClub.searchUserPlaceholder")}
+              noResultsText={t("manageClub.noUsersFound")}
+              userFilter={(user) => !existingStaffIds.includes(user.id)}
+              primaryText={(user) => user.name?.trim() || user.alias?.trim() || user.email}
+            />
           </div>
 
           <div>
@@ -193,8 +141,7 @@ export function AddAdminOrganiserModal({
             disabled={
               !selectedUserId ||
               addStaff.isPending ||
-              existingStaffIds.includes(selectedUserId) ||
-              !filteredUsers.some((user) => user.id === selectedUserId)
+              existingStaffIds.includes(selectedUserId)
             }
           >
             {addStaff.isPending ? t("common.loading") : t("manageClub.addMember")}

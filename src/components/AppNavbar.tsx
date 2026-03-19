@@ -61,6 +61,8 @@ const pathToTitleKey: Record<string, string> = {
   "/sponsors": "sponsors.allSponsors",
   "/about": "settings.nav.about",
   "/information": "signup.title",
+  "/admin/promote-super-admin": "admin.promoteSuperAdmin.pageTitle",
+  "/admin": "admin.title",
 };
 
 function getPageTitle(pathname: string, t: (key: string) => string): string {
@@ -170,11 +172,18 @@ export function AppNavbar() {
                 {t("settings.nav.settings")}
               </Link>
             </DropdownMenuItem>
-            <RoleGuard requireRoleOrAbove={ROLES.SUPER_ADMIN}>
+            {/* TODO: Setup-only shortcut. Replace with final admin IA/navigation flow. */}
+            <RoleGuard requireRoleOrAbove={ROLES.PLAYER}>
               <DropdownMenuItem asChild>
                 <Link to="/admin" className="flex items-center gap-2 cursor-pointer">
                   <HugeiconsIcon icon={Award01Icon} size={18} />
-                  Admin
+                  {t("admin.nav.admin")}
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link to="/admin/promote-super-admin" className="flex items-center gap-2 cursor-pointer">
+                  <HugeiconsIcon icon={Award01Icon} size={18} />
+                  {t("admin.nav.setup")}
                 </Link>
               </DropdownMenuItem>
             </RoleGuard>
