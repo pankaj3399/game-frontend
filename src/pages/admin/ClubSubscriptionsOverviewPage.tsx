@@ -4,7 +4,6 @@ import { differenceInCalendarDays, format } from "date-fns";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   CrownIcon,
-  PencilIcon,
   Search01Icon,
 } from "@hugeicons/core-free-icons";
 import { useAuth, useHasRoleOrAbove } from "@/pages/auth/hooks";
@@ -102,9 +101,9 @@ export default function ClubSubscriptionsOverviewPage() {
     <div className="flex min-h-[calc(100vh-4rem)] justify-center bg-brand-primary/[0.03]">
       <div className="mx-auto w-full max-w-[430px] p-3 md:max-w-6xl md:p-6">
         <div className="overflow-hidden rounded-xl border border-tableBorder bg-card shadow-table">
-          <div className="flex flex-col gap-3 border-b border-border bg-card px-4 py-4 md:px-6">
+          <div className="flex flex-col gap-3 border-b border-border bg-card px-4 py-4 md:flex-row md:items-center md:justify-between md:px-6">
             <h1 className="text-lg font-semibold text-foreground md:text-3xl">Subscription Management</h1>
-            <div className="flex items-center gap-2 md:w-auto md:gap-3">
+            <div className="flex w-full items-center gap-2 md:w-auto md:gap-3">
               <div className="relative min-w-0 flex-1 md:w-[280px] md:flex-none">
                 <HugeiconsIcon
                   icon={Search01Icon}
@@ -217,10 +216,7 @@ export default function ClubSubscriptionsOverviewPage() {
                             asChild
                             className="mt-4 h-8 w-full gap-2 border-foreground bg-transparent text-[14px] font-medium text-foreground hover:bg-transparent"
                           >
-                            <Link to={`/clubs/${row.id}`}>
-                              <HugeiconsIcon icon={PencilIcon} size={16} />
-                              Edit
-                            </Link>
+                            <Link to={`/admin/clubs-subscriptions/${row.id}`}>View</Link>
                           </Button>
                         </article>
                       );
@@ -294,10 +290,7 @@ export default function ClubSubscriptionsOverviewPage() {
                             </TableCell>
                             <TableCell className="px-4 py-3">
                               <Button variant="ghost" size="sm" asChild className="h-8 gap-1 px-2">
-                                <Link to={`/clubs/${row.id}`}>
-                                  <HugeiconsIcon icon={PencilIcon} size={16} />
-                                  Edit
-                                </Link>
+                                <Link to={`/admin/clubs-subscriptions/${row.id}`}>View</Link>
                               </Button>
                             </TableCell>
                           </TableRow>

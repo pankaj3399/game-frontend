@@ -87,6 +87,7 @@ export function useUpdateClubSubscription(clubId: string | null) {
       queryClient.invalidateQueries({ queryKey: queryKeys.club.detail(clubId) });
       queryClient.invalidateQueries({ queryKey: queryKeys.club.sponsors(clubId) });
       queryClient.invalidateQueries({ queryKey: queryKeys.user.adminClubs() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.admin.clubSubscriptions() });
     },
   });
 }

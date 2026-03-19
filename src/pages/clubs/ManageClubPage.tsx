@@ -21,6 +21,7 @@ import {
   shouldShowSubscriptionBanner,
   useManageClubState,
 } from "@/pages/clubs/hooks/useManageClubState";
+import { isSubscriptionExpiredByLocalDay } from "@/utils/date";
 
 export default function ManageClubPage() {
   const { t } = useTranslation();
@@ -52,9 +53,7 @@ export default function ManageClubPage() {
     staffData != null && staffData.subscription?.plan !== "free";
     const subscriptionExpiryDate = staffData?.subscription?.expiresAt ?? null;
 
-    const isExpired =
-      subscriptionExpiryDate != null &&
-      subscriptionExpiryDate.getTime() < Date.now();
+    const isExpired = isSubscriptionExpiredByLocalDay(subscriptionExpiryDate);
   const handleUpdateClubSubscription = async (selectedExpiryDate: Date) => {
     try {
       await updateClubSubscription.mutateAsync({
