@@ -7,7 +7,6 @@ export {
   type ClubStaffRole,
   type ClubSubscription,
   type ClubPlan,
-  type ClubSubscriptionStatus,
 } from "./useClubStaff";
 export { useAddClubStaff, type AddStaffRole } from "./useAddClubStaff";
 export {
@@ -26,3 +25,7 @@ export {
   type CourtType,
   type CourtPlacement,
 } from "./useClubMutations";
+export {
+  useUpdateClubSubscription,
+  type UpdateClubSubscriptionInput,
+} from "./useUpdateClubSubscription";

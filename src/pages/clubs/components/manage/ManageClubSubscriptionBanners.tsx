@@ -1,11 +1,14 @@
 import { useTranslation } from "react-i18next";
+import { format } from "date-fns";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { InformationCircleIcon, SparklesIcon } from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
+import { getDateFnsLocale } from "@/lib/dateFnsLocale";
 
 interface ManageClubSubscriptionBannersProps {
   showSubscriptionBanner: boolean;
   showUpgradeBanner: boolean;
+  subscriptionExpiryDate: Date | null | undefined;
   onRenew: () => void;
   onUpgrade: () => void;
 }
@@ -13,10 +16,26 @@ interface ManageClubSubscriptionBannersProps {
 export function ManageClubSubscriptionBanners({
   showSubscriptionBanner,
   showUpgradeBanner,
+  subscriptionExpiryDate,
   onRenew,
   onUpgrade,
 }: ManageClubSubscriptionBannersProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+
+  const hasExpiryDate = subscriptionExpiryDate != null;
+  const isExpired =
+    hasExpiryDate && subscriptionExpiryDate.getTime() < Date.now();
+  const expiryDateLabel = hasExpiryDate
+    ? format(subscriptionExpiryDate, "P", {
+        locale: getDateFnsLocale(i18n.language),
+      })
+    : null;
+
+  const subscriptionBannerText = !hasExpiryDate
+    ? t("manageClub.subscriptionBannerUnknownExpiry")
+    : isExpired
+      ? t("manageClub.subscriptionBannerExpiredOn", { date: expiryDateLabel })
+      : t("manageClub.subscriptionBannerExpiresOn", { date: expiryDateLabel });
 
   return (
     <>
@@ -28,7 +47,7 @@ export function ManageClubSubscriptionBanners({
               size={20}
               className="shrink-0 text-amber-600 dark:text-amber-400"
             />
-            <p className="text-sm text-foreground">{t("manageClub.subscriptionBannerText")}</p>
+            <p className="text-sm text-foreground">{subscriptionBannerText}</p>
           </div>
           <Button
             variant="secondary"

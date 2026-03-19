@@ -1,10 +1,15 @@
 import { Navigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { useAdminClubs, useClubStaff } from "@/pages/clubs/hooks";
+import {
+  useAdminClubs,
+  useClubStaff,
+  useUpdateClubSubscription,
+} from "@/pages/clubs/hooks";
 import { useAuth, useHasRoleOrAbove } from "@/pages/auth/hooks";
 import { ROLES } from "@/constants/roles";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { getErrorMessage } from "@/lib/errors";
 import InlineLoader from "@/components/shared/InlineLoader";
 import { AddAdminOrganiserModal } from "@/pages/clubs/components/manage/AddAdminOrganiserModal";
 import { ManageClubHeader } from "@/pages/clubs/components/manage/ManageClubHeader";
@@ -32,11 +37,12 @@ export default function ManageClubPage() {
     setSelectedClubId,
     addModalOpen,
     setAddModalOpen,
-    renewModalOpen,
-    setRenewModalOpen,
+    premiumExpiryModalOpen,
+    setPremiumExpiryModalOpen,
   } = useManageClubState(clubs);
 
   const { data: staffData, isLoading: staffLoading } = useClubStaff(effectiveClubId);
+  const updateClubSubscription = useUpdateClubSubscription(effectiveClubId);
   const staff = staffData?.staff ?? [];
   const existingStaffIds = staff.map((s) => s.id);
   const showSubscriptionBanner = shouldShowSubscriptionBanner(staffData?.subscription);
@@ -44,6 +50,21 @@ export default function ManageClubPage() {
     staffData?.subscription?.plan === "free" && !showSubscriptionBanner;
   const canAddStaff =
     staffData != null && staffData.subscription?.plan !== "free";
+
+  const handleUpdateClubSubscription = async (selectedExpiryDate: Date) => {
+    try {
+      await updateClubSubscription.mutateAsync({
+        expiresAt: selectedExpiryDate,
+      });
+      toast.success(t("manageClub.premiumExpiryUpdated"));
+    } catch (error) {
+      toast.error(getErrorMessage(error));
+    }
+  };  
+
+  const openPremiumExpiryModal = () => {
+    setPremiumExpiryModalOpen(true);
+  };
 
   if (loading) {
     return (
@@ -99,10 +120,9 @@ export default function ManageClubPage() {
               <ManageClubSubscriptionBanners
                 showSubscriptionBanner={showSubscriptionBanner}
                 showUpgradeBanner={showUpgradeBanner}
-                onRenew={() => setRenewModalOpen(true)}
-                onUpgrade={() => {
-                  // TODO: Navigate to upgrade / contact flow
-                }}
+                subscriptionExpiryDate={staffData?.subscription?.expiresAt}
+                onRenew={openPremiumExpiryModal}
+                onUpgrade={openPremiumExpiryModal}
               />
             </>
           )}
@@ -117,12 +137,11 @@ export default function ManageClubPage() {
       />
 
       <RequestSubscriptionRenewalModal
-        open={renewModalOpen}
-        onOpenChange={setRenewModalOpen}
-        onConfirm={() => {
-          // TODO: Call API to submit renewal request
-          toast.success(t("manageClub.renewRequestSent"));
-        }}
+        open={premiumExpiryModalOpen}
+        onOpenChange={setPremiumExpiryModalOpen}
+        currentExpiryDate={staffData?.subscription.expiresAt}
+        isSubmitting={updateClubSubscription.isPending}
+        onConfirm={(selectedExpiryDate) => handleUpdateClubSubscription(selectedExpiryDate)}
       />
     </div>
   );
