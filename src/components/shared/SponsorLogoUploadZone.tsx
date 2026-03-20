@@ -1,5 +1,6 @@
 import { CloudUpload } from 'lucide-react';
 import { useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { useUploadThing } from '@/lib/uploadthing';
 
@@ -11,33 +12,44 @@ interface SponsorLogoUploadZoneProps {
 	hint?: string;
 }
 
+const MAX_FILE_SIZE_MB = 8;
+
 export function SponsorLogoUploadZone({
 	logoUrl,
 	onLogoUrlChange,
 	disabled = false,
-	label = 'UPLOAD LOGO',
-	hint = 'Logo can be auto-fetched from URL or uploaded',
+	label,
+	hint,
 }: SponsorLogoUploadZoneProps) {
+	const { t } = useTranslation();
 	const fileInputRef = useRef<HTMLInputElement | null>(null);
 	const [isUploadingFile, setIsUploadingFile] = useState(false);
+
+	const labelText = label ?? t('sponsors.logoUpload.label');
+	const hintText = hint ?? t('sponsors.logoUpload.hint');
 
 	const { startUpload } = useUploadThing('sponsorLogoUploader', {
 		onClientUploadComplete: (files) => {
 			const uploaded = files?.[0];
 			if (!uploaded?.ufsUrl) {
-				toast.error('Upload finished but no file URL was returned.');
+				toast.error(t('sponsors.logoUpload.toastNoUrl'));
 				return;
 			}
 			onLogoUrlChange(uploaded.ufsUrl);
-			toast.success('Logo uploaded successfully');
+			toast.success(t('sponsors.logoUpload.toastSuccess'));
 		},
 		onUploadError: (error: Error) => {
-			toast.error(error.message || 'Failed to upload logo');
+			toast.error(error.message || t('sponsors.logoUpload.toastUploadFailed'));
 		},
 	});
 
 	const handleFileSelection = async (file: File | null) => {
 		if (!file || disabled || isUploadingFile) return;
+
+		if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
+			toast.error(t('sponsors.logoUpload.fileTooLarge', { maxMb: MAX_FILE_SIZE_MB }));
+			return;
+		}
 
 		setIsUploadingFile(true);
 		try {
@@ -63,12 +75,12 @@ export function SponsorLogoUploadZone({
 
 	return (
 		<div className="space-y-[10px]">
-			<p className="text-xs font-medium uppercase tracking-normal text-[#010a04]/70">{label}</p>
+			<p className="text-xs font-medium uppercase tracking-normal text-[#010a04]/70">{labelText}</p>
 
 			<input
 				ref={fileInputRef}
 				type="file"
-				accept="image/png,image/jpeg,image/jpg,application/pdf"
+				accept="image/png,image/jpeg,image/jpg"
 				className="hidden"
 				onChange={(event) => void handleFileSelection(event.target.files?.[0] ?? null)}
 				disabled={disabled || isUploadingFile}
@@ -83,37 +95,39 @@ export function SponsorLogoUploadZone({
 				<div className="flex flex-col items-center justify-center gap-[14px] text-[#010a04]">
 					<p className="text-sm leading-normal">
 						{isUploadingFile ? (
-							<span>Uploading file...</span>
+							<span>{t('sponsors.logoUpload.uploading')}</span>
 						) : (
 							<>
-								<span>Drag &amp; Drop or </span>
+								<span>{t('sponsors.logoUpload.dragDropOr')} </span>
 								<button
 									type="button"
 									onClick={handleBrowseClick}
 									disabled={disabled || isUploadingFile}
 									className="font-medium text-[#067429] underline underline-offset-2 disabled:cursor-not-allowed disabled:opacity-70"
 								>
-									Browse File
+									{t('sponsors.logoUpload.browseFile')}
 								</button>
 							</>
 						)}
 					</p>
-					<p className="text-xs leading-normal text-[#010a04]/60">Supports: PNG, JPEG, JPG, PDF. Max 10 MB</p>
+					<p className="text-xs leading-normal text-[#010a04]/60">
+						{t('sponsors.logoUpload.supports', { maxMb: MAX_FILE_SIZE_MB })}
+					</p>
 				</div>
 			</div>
 
-			<p className="text-[11px] leading-normal text-[#010a04]/60">{hint}</p>
+			<p className="text-[11px] leading-normal text-[#010a04]/60">{hintText}</p>
 
 			{logoUrl ? (
 				<p className="text-[11px] leading-normal text-[#010a04]/60">
-					Uploaded:{' '}
+					{t('sponsors.logoUpload.uploadedLabel')}{' '}
 					<a
 						href={logoUrl}
 						target="_blank"
 						rel="noopener noreferrer"
 						className="font-medium text-[#067429] underline underline-offset-2"
 					>
-						Open uploaded file
+						{t('sponsors.logoUpload.uploadedOpenLink')}
 					</a>
 				</p>
 			) : null}

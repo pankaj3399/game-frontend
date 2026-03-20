@@ -51,6 +51,39 @@
       "dateUnknown": "Unbekannt",
       "goBack": "Zurück",
       "clubNotFound": "Club nicht gefunden."
+    },
+    "platformSponsors": {
+      "pageTitle": "TB10-Sponsoren",
+      "navTitle": "Plattform-Sponsoren",
+      "dashboardCta": "Plattform-Sponsoren",
+      "newSponsor": "Neuer Sponsor",
+      "columnLogo": "Logo",
+      "columnName": "Name",
+      "columnUrl": "URL",
+      "columnActions": "Aktionen",
+      "empty": "Noch keine Sponsoren.",
+      "edit": "Bearbeiten",
+      "remove": "Entfernen",
+      "toastUpdated": "Sponsor aktualisiert",
+      "toastAdded": "Sponsor hinzugefügt",
+      "toastRemoved": "Sponsor entfernt",
+      "toastErrorGeneric": "Etwas ist schiefgelaufen",
+      "formTitleAdd": "Neuen Sponsor hinzufügen",
+      "formTitleEdit": "Sponsor bearbeiten",
+      "formSave": "Sponsor speichern",
+      "formCreate": "Sponsor anlegen",
+      "formSaving": "Speichern...",
+      "formNameLabel": "Sponsorname",
+      "formNamePlaceholder": "Sponsornamen eingeben",
+      "formUrlLabel": "Sponsor-URL",
+      "formUrlPlaceholder": "www.beispiel.de",
+      "formNameRequired": "Name ist erforderlich",
+      "closeAria": "Schließen",
+      "removeTitle": "Sponsor entfernen",
+      "removeDescription": "{{name}} aus den Plattform-Sponsoren entfernen?",
+      "removeNameFallback": "diesen Sponsor",
+      "removeConfirm": "Entfernen",
+      "removing": "Wird entfernt..."
     }
   },
   "profile": {
@@ -322,7 +355,21 @@
     "noSponsors": "Noch keine Sponsoren. Fügen Sie Ihren ersten Sponsor hinzu.",
     "paused": "Pausiert",
     "premiumRequired": "Sponsoren erfordern einen Premium-Plan. Upgraden Sie Ihren Verein, um Sponsoren hinzuzufügen und zu verwalten.",
-    "nameRequired": "Name ist erforderlich"
+    "nameRequired": "Name ist erforderlich",
+    "logoUpload": {
+      "label": "Logo hochladen",
+      "hint": "Logo kann per URL übernommen oder hochgeladen werden",
+      "uploading": "Datei wird hochgeladen...",
+      "dragDropOr": "Ziehen & ablegen oder",
+      "browseFile": "Datei auswählen",
+      "supports": "Unterstützt: PNG, JPEG, JPG. Max. {{maxMb}} MB",
+      "uploadedLabel": "Hochgeladen:",
+      "uploadedOpenLink": "Hochgeladene Datei öffnen",
+      "toastNoUrl": "Upload abgeschlossen, aber es wurde keine Datei-URL zurückgegeben.",
+      "toastSuccess": "Logo erfolgreich hochgeladen",
+      "toastUploadFailed": "Logo konnte nicht hochgeladen werden",
+      "fileTooLarge": "Die Datei muss kleiner als {{maxMb}} MB sein"
+    }
   },
   "tournaments": {
     "allTournaments": "Alle Turniere",

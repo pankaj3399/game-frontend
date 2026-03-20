@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 interface ManageClubSubscriptionBannersProps {
   showSubscriptionBanner: boolean;
   showUpgradeBanner: boolean;
-  isExpired?: boolean;
   onRenew: () => void;
   onUpgrade: () => void;
 }

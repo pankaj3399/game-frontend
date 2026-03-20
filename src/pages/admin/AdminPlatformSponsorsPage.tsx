@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Navigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { CirclePlus, PenLine, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth, useHasRoleOrAbove } from "@/pages/auth/hooks";
@@ -18,8 +19,9 @@ import {
   type PlatformSponsor,
   type UpsertPlatformSponsorInput,
 } from "@/pages/admin/hooks";
-
+import { RenderLogo } from "@/components/shared/RenderLogo";
 export default function AdminPlatformSponsorsPage() {
+  const { t } = useTranslation();
   const hasAccess = useHasRoleOrAbove(ROLES.SUPER_ADMIN);
   const { isAuthenticated, isProfileComplete, loading } = useAuth();
 
@@ -35,11 +37,7 @@ export default function AdminPlatformSponsorsPage() {
   const isSaving = createSponsor.isPending || updateSponsor.isPending;
   const sponsors = data?.sponsors ?? [];
 
-  const renderLogo = (logoUrl: string | null | undefined, sizeClassName: string) => (
-    <div className={`flex ${sizeClassName} items-center justify-center overflow-hidden rounded-full bg-[#d9d9d9]`}>
-      {logoUrl ? <img src={logoUrl} alt="" className="size-full object-cover" /> : null}
-    </div>
-  );
+  
 
   if (loading) {
     return (
@@ -67,16 +65,16 @@ export default function AdminPlatformSponsorsPage() {
     try {
       if (editingSponsor) {
         await updateSponsor.mutateAsync({ sponsorId: editingSponsor.id, input: payload });
-        toast.success("Sponsor updated");
+        toast.success(t("admin.platformSponsors.toastUpdated"));
       } else {
         await createSponsor.mutateAsync(payload);
-        toast.success("Sponsor added");
+        toast.success(t("admin.platformSponsors.toastAdded"));
       }
 
       setIsDialogOpen(false);
       setEditingSponsor(null);
     } catch (error) {
-      toast.error(getErrorMessage(error) ?? "Something went wrong");
+      toast.error(getErrorMessage(error) ?? t("admin.platformSponsors.toastErrorGeneric"));
     }
   };
 
@@ -85,10 +83,10 @@ export default function AdminPlatformSponsorsPage() {
 
     try {
       await deleteSponsor.mutateAsync(removingSponsor.id);
-      toast.success("Sponsor removed");
+      toast.success(t("admin.platformSponsors.toastRemoved"));
       setRemovingSponsor(null);
     } catch (error) {
-      toast.error(getErrorMessage(error) ?? "Something went wrong");
+      toast.error(getErrorMessage(error) ?? t("admin.platformSponsors.toastErrorGeneric"));
     }
   };
 
@@ -97,7 +95,7 @@ export default function AdminPlatformSponsorsPage() {
       <div className="mx-auto w-full max-w-[992px] rounded-xl border border-black/10 bg-white shadow-[0px_3px_15px_0px_rgba(0,0,0,0.06)]">
         <div className="flex items-center justify-between px-4 pt-5 pb-3 sm:px-5 md:pt-4 md:pb-2">
           <h1 className="text-xl font-semibold leading-tight text-[#010a04]">
-            <span className="">TB10 Sponsors</span>
+            <span className="">{t("admin.platformSponsors.pageTitle")}</span>
           </h1>
 
           <Button
@@ -107,17 +105,17 @@ export default function AdminPlatformSponsorsPage() {
             className="h-8 rounded-lg border border-black/[0.12] bg-brand-primary px-3 text-xs font-medium text-white hover:bg-brand-primary-hover sm:px-4 md:border-0 md:text-sm"
           >
             <CirclePlus className="mr-1.5 size-3.5" />
-            New Sponsor
+            {t("admin.platformSponsors.newSponsor")}
           </Button>
         </div>
 
         <div className="hidden md:block">
           <div className="h-9 border-y border-black/10 bg-black/[0.04]">
             <div className="grid h-full grid-cols-[92px_1fr_1fr_188px] items-center px-4 text-xs text-[#010a04]/80 md:px-5">
-              <span>Logo</span>
-              <span>Name</span>
-              <span>URL</span>
-              <span>Actions</span>
+              <span>{t("admin.platformSponsors.columnLogo")}</span>
+              <span>{t("admin.platformSponsors.columnName")}</span>
+              <span>{t("admin.platformSponsors.columnUrl")}</span>
+              <span>{t("admin.platformSponsors.columnActions")}</span>
             </div>
           </div>
 
@@ -126,7 +124,9 @@ export default function AdminPlatformSponsorsPage() {
               <InlineLoader />
             </div>
           ) : sponsors.length === 0 ? (
-            <div className="flex justify-center px-5 py-10 text-sm text-[#010a04]/70">No sponsors yet.</div>
+            <div className="flex justify-center px-5 py-10 text-sm text-[#010a04]/70">
+              {t("admin.platformSponsors.empty")}
+            </div>
           ) : (
             <div>
               {sponsors.map((sponsor) => {
@@ -137,7 +137,7 @@ export default function AdminPlatformSponsorsPage() {
                     key={sponsor.id}
                     className="grid h-11 grid-cols-[92px_1fr_1fr_188px] items-center border-b border-black/10 px-4 text-sm text-[#010a04] md:px-5"
                   >
-                    <div className="flex items-center">{renderLogo(sponsor.logoUrl, "size-6")}</div>
+                    <div className="flex items-center">{RenderLogo(sponsor.logoUrl, "size-6")}</div>
 
                     <span className="truncate pr-3">{sponsor.name}</span>
 
@@ -161,7 +161,7 @@ export default function AdminPlatformSponsorsPage() {
                         onClick={() => openEditDialog(sponsor)}
                       >
                         <PenLine className="size-4" />
-                        Edit
+                        {t("admin.platformSponsors.edit")}
                       </button>
 
                       <button
@@ -171,7 +171,7 @@ export default function AdminPlatformSponsorsPage() {
                         disabled={deleteSponsor.isPending}
                       >
                         <Trash2 className="size-4" />
-                        Remove
+                        {t("admin.platformSponsors.remove")}
                       </button>
                     </div>
                   </div>
@@ -187,7 +187,7 @@ export default function AdminPlatformSponsorsPage() {
               <InlineLoader />
             </div>
           ) : sponsors.length === 0 ? (
-            <div className="flex justify-center py-8 text-sm text-[#010a04]/70">No sponsors yet.</div>
+            <div className="flex justify-center py-8 text-sm text-[#010a04]/70">{t("admin.platformSponsors.empty")}</div>
           ) : (
             <div className="flex flex-col gap-3">
               {sponsors.map((sponsor) => {
@@ -199,7 +199,7 @@ export default function AdminPlatformSponsorsPage() {
                     className="rounded-lg bg-black/[0.04] px-4 py-4"
                   >
                     <div className="flex items-center gap-3">
-                      {renderLogo(sponsor.logoUrl, "size-10")}
+                      {RenderLogo(sponsor.logoUrl, "size-10")}
 
                       <div className="min-w-0 flex-1">
                         <p className="truncate text-base font-medium text-[#010a04]">{sponsor.name}</p>
@@ -220,24 +220,23 @@ export default function AdminPlatformSponsorsPage() {
 
                     <div className="mt-4 border-t border-black/10 pt-4">
                       <div className="flex items-center justify-between text-xs">
-                        <button
-                          type="button"
+                        <Button
                           className="inline-flex items-center gap-[5px] text-[#d92100]"
                           onClick={() => setRemovingSponsor(sponsor)}
                           disabled={deleteSponsor.isPending}
                         >
                           <Trash2 className="size-4" />
-                          Remove
-                        </button>
+                          {t("admin.platformSponsors.remove")}
+                        </Button>
 
-                        <button
-                          type="button"
+                        <Button
+                          disabled={deleteSponsor.isPending}
                           className="inline-flex items-center gap-[5px] text-brand-primary"
                           onClick={() => openEditDialog(sponsor)}
                         >
                           <PenLine className="size-4" />
-                          Edit
-                        </button>
+                          {t("admin.platformSponsors.edit")}
+                        </Button>
                       </div>
                     </div>
                   </div>

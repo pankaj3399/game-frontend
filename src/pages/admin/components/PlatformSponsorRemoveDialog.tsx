@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -24,20 +25,28 @@ export function PlatformSponsorRemoveDialog({
   onOpenChange,
   onConfirm,
 }: PlatformSponsorRemoveDialogProps) {
+  const { t } = useTranslation();
+  const descriptionName = sponsorName ?? t("admin.platformSponsors.removeNameFallback");
+
+  function handleOpenChange(nextOpen: boolean) {
+    if (isRemoving) return;
+    onOpenChange(nextOpen);
+  }
+
   return (
-    <AlertDialog open={open} onOpenChange={onOpenChange}>
+    <AlertDialog open={open} onOpenChange={handleOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Remove sponsor</AlertDialogTitle>
+          <AlertDialogTitle>{t("admin.platformSponsors.removeTitle")}</AlertDialogTitle>
           <AlertDialogDescription>
-            Remove {sponsorName ?? "this sponsor"} from platform sponsors?
+            {t("admin.platformSponsors.removeDescription", { name: descriptionName })}
           </AlertDialogDescription>
         </AlertDialogHeader>
 
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={isRemoving}>Cancel</AlertDialogCancel>
+          <AlertDialogCancel disabled={isRemoving}>{t("sponsors.cancel")}</AlertDialogCancel>
           <AlertDialogAction variant="destructive" onClick={onConfirm} disabled={isRemoving}>
-            {isRemoving ? "Removing..." : "Remove"}
+            {isRemoving ? t("admin.platformSponsors.removing") : t("admin.platformSponsors.removeConfirm")}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
