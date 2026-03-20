@@ -66,6 +66,18 @@ function daysLeftLabel(expiresAt: Date | null): string {
   return `${days}d`;
 }
 
+function getDaysLeftDisplay(expiresAt: Date | null) {
+  const daysLabel = daysLeftLabel(expiresAt);
+
+  const daysClass =
+    daysLabel.startsWith("Expired")
+      ? "text-red-600"
+      : daysLabel === "-"
+        ? "text-muted-foreground"
+        : "text-emerald-700";
+  return { daysLabel, daysClass };
+}
+
 export default function ClubSubscriptionsOverviewPage() {
   const hasAccess = useHasRoleOrAbove(ROLES.SUPER_ADMIN);
   const { isAuthenticated, isProfileComplete, loading } = useAuth();
@@ -150,13 +162,7 @@ export default function ClubSubscriptionsOverviewPage() {
                   <div className="space-y-3 p-4 md:hidden">
                     {filteredRows.map((row) => {
                       const isPremium = row.subscription.plan === "premium";
-                      const daysLabel = daysLeftLabel(row.subscription.expiresAt);
-                      const daysClass =
-                        daysLabel.startsWith("Expired")
-                          ? "text-red-600"
-                          : daysLabel === "-"
-                            ? "text-muted-foreground"
-                            : "text-emerald-700";
+                      const { daysLabel, daysClass } = getDaysLeftDisplay(row.subscription.expiresAt);
 
                       return (
                         <article key={row.id} className="rounded-[10px] bg-foreground/[0.04] px-3.5 py-3.5">
@@ -238,13 +244,7 @@ export default function ClubSubscriptionsOverviewPage() {
                     <TableBody>
                       {filteredRows.map((row) => {
                         const isPremium = row.subscription.plan === "premium";
-                        const daysLabel = daysLeftLabel(row.subscription.expiresAt);
-                        const daysClass =
-                          daysLabel.startsWith("Expired")
-                            ? "text-red-600"
-                            : daysLabel === "-"
-                              ? "text-muted-foreground"
-                              : "text-emerald-700";
+                        const { daysLabel, daysClass } = getDaysLeftDisplay(row.subscription.expiresAt);
 
                         return (
                           <TableRow key={row.id} className="bg-card hover:bg-muted/20">

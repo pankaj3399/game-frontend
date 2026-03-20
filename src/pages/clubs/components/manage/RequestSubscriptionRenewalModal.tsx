@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { format } from "date-fns";
+import { format, addDays, addMonths, addYears } from "date-fns";
 import { useState } from "react";
 import {
   Dialog,
@@ -30,38 +30,32 @@ const QUICK_EXTEND_OPTIONS: QuickExtendOption[] = [
   {
     key: "30d",
     labelKey: "manageClub.quickExtend30Days",
-    applyToDate: (date) =>
-      new Date(date.getFullYear(), date.getMonth(), date.getDate() + 30),
+    applyToDate: (date) => addDays(date, 30),
   },
   {
     key: "3m",
     labelKey: "manageClub.quickExtend3Months",
-    applyToDate: (date) =>
-      new Date(date.getFullYear(), date.getMonth() + 3, date.getDate()),
+    applyToDate: (date) => addMonths(date, 3),
   },
   {
     key: "6m",
     labelKey: "manageClub.quickExtend6Months",
-    applyToDate: (date) =>
-      new Date(date.getFullYear(), date.getMonth() + 6, date.getDate()),
+    applyToDate: (date) => addMonths(date, 6),
   },
   {
     key: "1y",
     labelKey: "manageClub.quickExtend1Year",
-    applyToDate: (date) =>
-      new Date(date.getFullYear() + 1, date.getMonth(), date.getDate()),
+    applyToDate: (date) => addYears(date, 1),
   },
   {
     key: "2y",
     labelKey: "manageClub.quickExtend2Years",
-    applyToDate: (date) =>
-      new Date(date.getFullYear() + 2, date.getMonth(), date.getDate()),
+    applyToDate: (date) => addYears(date, 2),
   },
   {
     key: "3y",
     labelKey: "manageClub.quickExtend3Years",
-    applyToDate: (date) =>
-      new Date(date.getFullYear() + 3, date.getMonth(), date.getDate()),
+    applyToDate: (date) => addYears(date, 3),
   },
 ];
 
@@ -239,9 +233,7 @@ export function RequestSubscriptionRenewalModal({
             <div className="flex w-full items-center border-l-[2.5px] border-[#067429] bg-[rgba(6,116,41,0.10)] py-[12px] pr-[12px] pl-[15px]">
               <p className="text-[13px] leading-[1.4] font-normal text-[#010a04]">
                 <span className="font-semibold">💡 Tip:</span>
-                <span>
-                  {` ${t("manageClub.expiryTip")}`.replace(/^Tip:\s*/i, "")}
-                </span>
+                <span>{" "}{t("manageClub.expiryTipBody")}</span>
               </p>
             </div>
 

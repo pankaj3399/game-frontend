@@ -64,7 +64,7 @@ function App() {
             <Route path="/sponsors/manage" element={ <ProtectedRoute requireRoleOrAbove={ROLES.CLUB_ADMIN}> <ManageSponsorsPage /> </ProtectedRoute>} />
             <Route path="/about" element={<AboutPage />} />
             <Route path="/admin" element={ <ProtectedRoute requireRoleOrAbove={ROLES.SUPER_ADMIN}> <AdminPage /> </ProtectedRoute>} />
-            <Route path="/admin/clubs-subscriptions" element={ <ProtectedRoute requireRoleOrAbove={ROLES.SUPER_ADMIN}> <ClubSubscriptionsOverviewPage /> </ProtectedRoute>} />
+          <Route path="/admin/clubs-subscriptions" element={ <ProtectedRoute requireRoleOrAbove={ROLES.SUPER_ADMIN}> <ClubSubscriptionsOverviewPage /> </ProtectedRoute>} />
             <Route path="/admin/clubs-subscriptions/:clubId" element={ <ProtectedRoute requireRoleOrAbove={ROLES.SUPER_ADMIN}> <ClubSubscriptionDetailPage /> </ProtectedRoute>} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />

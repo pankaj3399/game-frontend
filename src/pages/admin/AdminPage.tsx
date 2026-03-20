@@ -14,10 +14,9 @@ export default function AdminPage() {
       <div className="mt-6">
         <div className="flex flex-wrap gap-3">
           <Button asChild className="bg-brand-primary hover:bg-brand-primary-hover">
-            <Link to="/admin/clubs-subscriptions">Subscription Management</Link>
-          </Button>
-          <Button asChild variant="outline">
-            <Link to="/admin/promote-super-admin">{t("admin.promoteToSuperAdminCta")}</Link>
+            <Link to="/admin/clubs-subscriptions">
+              {t("admin.subscriptionManagementCta")}
+            </Link>
           </Button>
         </div>
       </div>
