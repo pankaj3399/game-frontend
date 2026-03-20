@@ -61,6 +61,7 @@ const pathToTitleKey: Record<string, string> = {
   "/sponsors": "sponsors.allSponsors",
   "/about": "settings.nav.about",
   "/information": "signup.title",
+  "/admin/clubs-subscriptions": "admin.title",
   "/admin": "admin.title",
 };
 

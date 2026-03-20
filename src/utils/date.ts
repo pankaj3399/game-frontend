@@ -1,5 +1,52 @@
-import { format, isValid, parseISO } from "date-fns";
+import { differenceInCalendarDays, format, isValid, parseISO } from "date-fns";
 import type { Locale } from "date-fns";
+
+/**
+ * Local calendar day at 00:00:00.000 — aligns comparisons with `formatDateForApi` /
+ * date-only ISO strings parsed via `parseIsoDateSafely`.
+ */
+export function startOfLocalCalendarDay(date: Date): Date {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+}
+
+/** True if `a` falls on an earlier local calendar day than `b`. */
+export function isLocalCalendarDayBefore(a: Date, b: Date): boolean {
+  return (
+    startOfLocalCalendarDay(a).getTime() < startOfLocalCalendarDay(b).getTime()
+  );
+}
+
+/** True if `a`'s local calendar day is the same as or before `b`'s. */
+export function isOnOrBeforeLocalCalendarDay(a: Date, b: Date): boolean {
+  return (
+    startOfLocalCalendarDay(a).getTime() <= startOfLocalCalendarDay(b).getTime()
+  );
+}
+
+/**
+ * True if `targetDate`'s local calendar day is between today and today + `days` (inclusive).
+ * Uses calendar days, not rolling 24-hour windows.
+ */
+export function isWithinCalendarDaysFromNow(
+  targetDate: Date,
+  days: number,
+  now: Date = new Date()
+): boolean {
+  const offset = differenceInCalendarDays(
+    startOfLocalCalendarDay(targetDate),
+    startOfLocalCalendarDay(now)
+  );
+  return offset >= 0 && offset <= days;
+}
+
+/** Expired only after the subscription's local expiry calendar day has ended. */
+export function isSubscriptionExpiredByLocalDay(
+  expiresAt: Date | null | undefined,
+  now: Date = new Date()
+): boolean {
+  if (expiresAt == null) return false;
+  return isLocalCalendarDayBefore(expiresAt, now);
+}
 
 export function parseIsoDateSafely(value: string | null | undefined): Date | null {
   if (!value) return null;

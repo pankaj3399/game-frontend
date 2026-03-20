@@ -1,23 +1,28 @@
 import { useMemo, useState } from "react";
 import type { AdminClub } from "@/pages/clubs/hooks";
+import {
+  isSubscriptionExpiredByLocalDay,
+  isWithinCalendarDaysFromNow,
+} from "@/utils/date";
 
 export function shouldShowSubscriptionBanner(
-  subscription: { plan: string; expiresAt: string | null; subscriptionStatus: string } | undefined
+  subscription: { plan: string; expiresAt: Date | null } | undefined
 ): boolean {
   if (!subscription) return false;
-  if (subscription.subscriptionStatus === "renewal_needed") return true;
-  if (!subscription.expiresAt) return false;
+  if (subscription.plan !== "premium") return false;
 
-  const expiresAt = new Date(subscription.expiresAt);
-  const sevenDaysFromNow = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
-  return expiresAt <= sevenDaysFromNow;
+  if (!subscription.expiresAt) return true;
+
+  if (isSubscriptionExpiredByLocalDay(subscription.expiresAt)) return true;
+
+  return isWithinCalendarDaysFromNow(subscription.expiresAt, 7);
 }
 
 export function useManageClubState(clubs: AdminClub[]) {
   const [selectedClubId, setSelectedClubId] = useState<string | null>(null);
   const [mobileView, setMobileView] = useState<"clubs" | "staff">("clubs");
   const [addModalOpen, setAddModalOpen] = useState(false);
-  const [renewModalOpen, setRenewModalOpen] = useState(false);
+  const [premiumExpiryModalOpen, setPremiumExpiryModalOpen] = useState(false);
 
   const selectedClub = useMemo(
     () => clubs.find((club) => club.id === selectedClubId) ?? null,
@@ -35,7 +40,7 @@ export function useManageClubState(clubs: AdminClub[]) {
     setMobileView,
     addModalOpen,
     setAddModalOpen,
-    renewModalOpen,
-    setRenewModalOpen,
+    premiumExpiryModalOpen,
+    setPremiumExpiryModalOpen,
   };
 }
