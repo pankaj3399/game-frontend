@@ -155,24 +155,23 @@ export default function AdminPlatformSponsorsPage() {
                     )}
 
                     <div className="flex items-center gap-5 text-[12px]">
-                      <button
-                        type="button"
+                      <Button
                         className="inline-flex items-center gap-[5px] text-brand-primary"
                         onClick={() => openEditDialog(sponsor)}
+                        disabled={deleteSponsor.isPending}
                       >
                         <PenLine className="size-4" />
                         {t("admin.platformSponsors.edit")}
-                      </button>
+                      </Button>
 
-                      <button
-                        type="button"
+                      <Button
                         className="inline-flex items-center gap-[5px] text-[#d92100]"
                         onClick={() => setRemovingSponsor(sponsor)}
                         disabled={deleteSponsor.isPending}
                       >
                         <Trash2 className="size-4" />
                         {t("admin.platformSponsors.remove")}
-                      </button>
+                      </Button>
                     </div>
                   </div>
                 );
