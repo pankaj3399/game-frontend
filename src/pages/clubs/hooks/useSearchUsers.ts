@@ -1,9 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { queryKeys } from "@/lib/api/queryKeys";
+import { useDebouncedValue } from "@/lib/hooks/useDebouncedValue";
 
 /** Minimum character length for user search to run. */
 export const USER_SEARCH_MIN_LENGTH = 2;
+const USER_SEARCH_DEBOUNCE_MS = 300;
 
 export function isUserSearchQueryValid(query: string): boolean {
   return query.trim().length >= USER_SEARCH_MIN_LENGTH;
@@ -22,15 +24,19 @@ interface SearchUsersResponse {
 
 async function searchUsers(q: string): Promise<SearchUsersResponse> {
   const res = await api.get<SearchUsersResponse>("/api/user/search", {
-    params: { q },
+    params: { q: q.trim() },
   });
   return res.data;
 }
 
 export function useSearchUsers(query: string, enabled: boolean) {
+  const debouncedQuery = useDebouncedValue(query, USER_SEARCH_DEBOUNCE_MS);
+  const trimmedQuery = debouncedQuery.trim();
+
   return useQuery({
-    queryKey: queryKeys.user.search(query),
-    queryFn: () => searchUsers(query),
-    enabled: enabled && isUserSearchQueryValid(query),
+    queryKey: queryKeys.user.search(trimmedQuery),
+    queryFn: () => searchUsers(trimmedQuery),
+    enabled: enabled && isUserSearchQueryValid(trimmedQuery),
+    placeholderData: (prev) => prev,
   });
 }

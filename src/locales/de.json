@@ -8,6 +8,19 @@
     "loading": "Laden...",
     "comingSoon": "Demnächst verfügbar!"
   },
+  "userSearch": {
+    "placeholder": "Benutzer suchen",
+    "searching": "Benutzer werden gesucht...",
+    "noResults": "Keine Benutzer gefunden.",
+    "keepTyping": "Tippen Sie weiter, um Benutzer zu suchen."
+  },
+  "admin": {
+    "title": "Administration",
+    "dashboardDescription": "Super-Admin-Dashboard. Demnächst verfügbar.",
+    "nav": {
+      "admin": "Administration"
+    }
+  },
   "profile": {
     "title": "Profil",
     "id": "Benutzer-ID",

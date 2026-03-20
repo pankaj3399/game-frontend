@@ -61,6 +61,7 @@ const pathToTitleKey: Record<string, string> = {
   "/sponsors": "sponsors.allSponsors",
   "/about": "settings.nav.about",
   "/information": "signup.title",
+  "/admin": "admin.title",
 };
 
 function getPageTitle(pathname: string, t: (key: string) => string): string {
@@ -170,11 +171,12 @@ export function AppNavbar() {
                 {t("settings.nav.settings")}
               </Link>
             </DropdownMenuItem>
+            {/* TODO: Setup-only shortcut. Replace with final admin IA/navigation flow. */}
             <RoleGuard requireRoleOrAbove={ROLES.SUPER_ADMIN}>
               <DropdownMenuItem asChild>
                 <Link to="/admin" className="flex items-center gap-2 cursor-pointer">
                   <HugeiconsIcon icon={Award01Icon} size={18} />
-                  Admin
+                  {t("admin.nav.admin")}
                 </Link>
               </DropdownMenuItem>
             </RoleGuard>
