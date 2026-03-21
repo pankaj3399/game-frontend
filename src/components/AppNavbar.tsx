@@ -192,7 +192,7 @@ export function AppNavbar() {
       ) : (
         <Link
           to="/login"
-          className="flex h-[34px] w-[100px] shrink-0 items-center justify-center gap-1.5 rounded-[8px] bg-brand-accent px-5 text-[14px] font-medium text-[#010a04] transition-colors hover:bg-brand-accent-hover"
+          className="flex h-[32px] shrink-0 items-center justify-center gap-1.5 rounded-[8px] bg-brand-accent px-[15px] text-[14px] font-medium text-[#010a04] transition-colors hover:bg-brand-accent-hover sm:h-[34px] sm:w-[100px] sm:px-5"
         >
           <HugeiconsIcon icon={UserIcon} size={17} />
           {t("common.login")}
@@ -203,13 +203,13 @@ export function AppNavbar() {
 
   return (
     <header
-      className="sticky top-0 z-50 h-[57px] w-full sm:h-[60px]"
+      className="sticky top-0 z-50 h-[56px] w-full sm:h-[60px]"
       style={{ backgroundColor: "var(--brand-primary)" }}
     >
-      <div className="mx-auto flex h-full w-full max-w-[1440px] min-w-0 items-center justify-between px-4 sm:px-6 lg:px-[96px]">
-        <div className="flex h-[39px] w-[200px] items-center">
+      <div className="mx-auto flex h-full w-full max-w-[1440px] min-w-0 items-center justify-between px-5 sm:px-6 lg:px-[96px]">
+        <div className="flex h-[33px] w-[169px] items-center sm:h-[39px] sm:w-[200px]">
           <Link to="/" className="inline-flex items-center" aria-label="TB10 Home">
-            <img src={tb10LogoImage} alt="TB10 v1.6" className="block h-[39px] w-auto" />
+            <img src={tb10LogoImage} alt="TB10 v1.6" className="block h-[33px] w-auto sm:h-[39px]" />
           </Link>
         </div>
 
@@ -224,10 +224,10 @@ export function AppNavbar() {
             <SheetTrigger asChild>
               <button
                 type="button"
-                className="flex items-center justify-center rounded-md p-2 text-white transition-colors hover:bg-white/10 lg:hidden"
+                className="flex items-center justify-center p-0 text-white lg:hidden"
                 aria-label="Open menu"
               >
-                <HugeiconsIcon icon={Menu01Icon} size={24} aria-hidden />
+                <HugeiconsIcon icon={Menu01Icon} size={30} aria-hidden />
               </button>
             </SheetTrigger>
             <SheetContent
