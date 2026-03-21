@@ -22,6 +22,7 @@ const AboutPage = lazy(() => import('./pages/about/AboutPage'))
 const AdminPage = lazy(() => import('./pages/admin/AdminPage'))
 const ClubSubscriptionsOverviewPage = lazy(() => import('@/pages/admin/ClubSubscriptionsOverviewPage'))
 const ClubSubscriptionDetailPage = lazy(() => import('@/pages/admin/ClubSubscriptionDetailPage'))
+const AdminPlatformSponsorsPage = lazy(() => import('@/pages/admin/AdminPlatformSponsorsPage'))
 
 
 function Home() {
@@ -64,8 +65,9 @@ function App() {
             <Route path="/sponsors/manage" element={ <ProtectedRoute requireRoleOrAbove={ROLES.CLUB_ADMIN}> <ManageSponsorsPage /> </ProtectedRoute>} />
             <Route path="/about" element={<AboutPage />} />
             <Route path="/admin" element={ <ProtectedRoute requireRoleOrAbove={ROLES.SUPER_ADMIN}> <AdminPage /> </ProtectedRoute>} />
-          <Route path="/admin/clubs-subscriptions" element={ <ProtectedRoute requireRoleOrAbove={ROLES.SUPER_ADMIN}> <ClubSubscriptionsOverviewPage /> </ProtectedRoute>} />
+            <Route path="/admin/clubs-subscriptions" element={ <ProtectedRoute requireRoleOrAbove={ROLES.SUPER_ADMIN}> <ClubSubscriptionsOverviewPage /> </ProtectedRoute>} />
             <Route path="/admin/clubs-subscriptions/:clubId" element={ <ProtectedRoute requireRoleOrAbove={ROLES.SUPER_ADMIN}> <ClubSubscriptionDetailPage /> </ProtectedRoute>} />
+            <Route path="/admin/sponsors" element={ <ProtectedRoute requireRoleOrAbove={ROLES.SUPER_ADMIN}> <AdminPlatformSponsorsPage /> </ProtectedRoute>} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

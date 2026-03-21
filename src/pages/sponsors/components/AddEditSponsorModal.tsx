@@ -9,6 +9,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { SponsorLogoUploadZone } from "@/components/shared/SponsorLogoUploadZone";
 import { useCreateSponsor, useUpdateSponsor, type ClubSponsor } from "@/pages/sponsors/hooks";
 import { toast } from "sonner";
 
@@ -135,20 +136,13 @@ export function AddEditSponsorModal({
               disabled={!canManage}
             />
           </div>
-          <div>
-            <Label htmlFor="sponsor-logo">{t("sponsors.logoUrl")}</Label>
-            <Input
-              id="sponsor-logo"
-              type="url"
-              value={currentForm.logoUrl}
-              onChange={(e) =>
-                setForm((prev) => ({ ...(prev ?? initialForm), logoUrl: e.target.value }))
-              }
-              placeholder={t("sponsors.logoUrlPlaceholder")}
-              className="mt-1.5"
-              disabled={!canManage}
-            />
-          </div>
+          <SponsorLogoUploadZone
+            logoUrl={currentForm.logoUrl}
+            onLogoUrlChange={(nextUrl) =>
+              setForm((prev) => ({ ...(prev ?? initialForm), logoUrl: nextUrl }))
+            }
+            disabled={!canManage || isPending}
+          />
           <div>
             <Label htmlFor="sponsor-link">{t("sponsors.link")}</Label>
             <Input

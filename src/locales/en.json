@@ -51,6 +51,39 @@
       "dateUnknown": "Unknown",
       "goBack": "Go back",
       "clubNotFound": "Club not found."
+    },
+    "platformSponsors": {
+      "pageTitle": "TB10 Sponsors",
+      "navTitle": "Platform sponsors",
+      "dashboardCta": "Platform sponsors",
+      "newSponsor": "New Sponsor",
+      "columnLogo": "Logo",
+      "columnName": "Name",
+      "columnUrl": "URL",
+      "columnActions": "Actions",
+      "empty": "No sponsors yet.",
+      "edit": "Edit",
+      "remove": "Remove",
+      "toastUpdated": "Sponsor updated",
+      "toastAdded": "Sponsor added",
+      "toastRemoved": "Sponsor removed",
+      "toastErrorGeneric": "Something went wrong",
+      "formTitleAdd": "Add New Sponsor",
+      "formTitleEdit": "Edit Sponsor",
+      "formSave": "Save Sponsor",
+      "formCreate": "Create Sponsor",
+      "formSaving": "Saving...",
+      "formNameLabel": "Sponsor name",
+      "formNamePlaceholder": "Enter sponsor name",
+      "formUrlLabel": "Sponsor URL",
+      "formUrlPlaceholder": "https://www.example.com",
+      "formNameRequired": "Name is required",
+      "closeAria": "Close",
+      "removeTitle": "Remove sponsor",
+      "removeDescription": "Remove {{name}} from platform sponsors?",
+      "removeNameFallback": "this sponsor",
+      "removeConfirm": "Remove",
+      "removing": "Removing..."
     }
   },
   "profile": {
@@ -323,7 +356,22 @@
     "noSponsors": "No sponsors yet. Add your first sponsor to get started.",
     "paused": "Paused",
     "premiumRequired": "Sponsors require a premium plan. Upgrade your club to add and manage sponsors.",
-    "nameRequired": "Name is required"
+    "nameRequired": "Name is required",
+    "logoUpload": {
+      "label": "Upload logo",
+      "hint": "Logo can be auto-fetched from URL or uploaded",
+      "uploading": "Uploading file...",
+      "dragDropOr": "Drag & drop or",
+      "browseFile": "Browse file",
+      "supports": "Supports: PNG, JPEG, JPG. Max {{maxMb}} MB",
+      "uploadedLabel": "Uploaded:",
+      "uploadedOpenLink": "Open uploaded file",
+      "toastNoUrl": "Upload finished but no file URL was returned.",
+      "toastSuccess": "Logo uploaded successfully",
+      "toastUploadFailed": "Failed to upload logo",
+      "fileTooLarge": "File size must be less than {{maxMb}} MB",
+      "invalidFileType": "Only PNG, JPEG, or WebP images are allowed"
+    }
   },
   "tournaments": {
     "allTournaments": "All Tournaments",
