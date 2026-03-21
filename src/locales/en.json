@@ -184,7 +184,7 @@
     "adminClubsUpdateSuccess": "Club updated successfully.",
     "adminClubsUpdateError": "Failed to update club.",
     "adminClubsDeleteCourtAria": "Delete court",
-    "adminClubsDuplicateCourtError": "Duplicate courts are not allowed. Two courts cannot have the same name, type, and placement.",
+    "adminClubsDuplicateCourtError": "Duplicate courts are not allowed. Two courts cannot have the same name.",
     "adminClubsUpgradeRoleToast": "Please upgrade your role to add or manage clubs.",
     "deleteAccountPlaceholder": "To delete your account click the delete button. Please remember this action cannot be reversed.",
     "deleteAccountConfirmTitle": "Delete Account?",

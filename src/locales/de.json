@@ -182,7 +182,7 @@
     "adminClubsUpdateSuccess": "Verein erfolgreich aktualisiert.",
     "adminClubsUpdateError": "Verein konnte nicht aktualisiert werden.",
     "adminClubsDeleteCourtAria": "Platz löschen",
-    "adminClubsDuplicateCourtError": "Doppelte Plätze sind nicht erlaubt. Zwei Plätze dürfen nicht denselben Namen, Typ und dieselbe Platzierung haben.",
+    "adminClubsDuplicateCourtError": "Doppelte Plätze sind nicht erlaubt. Zwei Plätze dürfen nicht denselben Namen haben.",
     "adminClubsPlaceholder": "Vereine, die Sie verwalten, werden hier angezeigt.",
     "adminClubsLoadError": "Vereine konnten nicht geladen werden. Bitte versuchen Sie es später erneut.",
     "deleteAccountPlaceholder": "Zum Löschen Ihres Kontos klicken Sie auf die Löschen-Schaltfläche. Bitte beachten Sie, dass diese Aktion nicht rückgängig gemacht werden kann.",
