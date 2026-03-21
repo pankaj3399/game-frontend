@@ -2,7 +2,6 @@ import { CloudUpload } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
-import { useUploadThing } from '@/lib/uploadthing';
 
 interface SponsorLogoUploadZoneProps {
 	logoUrl: string;
@@ -12,7 +11,7 @@ interface SponsorLogoUploadZoneProps {
 	hint?: string;
 }
 
-const MAX_FILE_SIZE_MB = 8;
+const MAX_FILE_SIZE_MB = 2;
 
 export function SponsorLogoUploadZone({
 	logoUrl,
@@ -23,39 +22,36 @@ export function SponsorLogoUploadZone({
 }: SponsorLogoUploadZoneProps) {
 	const { t } = useTranslation();
 	const fileInputRef = useRef<HTMLInputElement | null>(null);
-	const [isUploadingFile, setIsUploadingFile] = useState(false);
+	const [isProcessingFile, setIsProcessingFile] = useState(false);
+	void logoUrl;
 
 	const labelText = label ?? t('sponsors.logoUpload.label');
 	const hintText = hint ?? t('sponsors.logoUpload.hint');
 
-	const { startUpload } = useUploadThing('sponsorLogoUploader', {
-		onClientUploadComplete: (files) => {
-			const uploaded = files?.[0];
-			if (!uploaded?.ufsUrl) {
-				toast.error(t('sponsors.logoUpload.toastNoUrl'));
-				return;
-			}
-			onLogoUrlChange(uploaded.ufsUrl);
-			toast.success(t('sponsors.logoUpload.toastSuccess'));
-		},
-		onUploadError: (error: Error) => {
-			toast.error(error.message || t('sponsors.logoUpload.toastUploadFailed'));
-		},
-	});
-
 	const handleFileSelection = async (file: File | null) => {
-		if (!file || disabled || isUploadingFile) return;
+		if (!file || disabled || isProcessingFile) return;
 
 		if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
 			toast.error(t('sponsors.logoUpload.fileTooLarge', { maxMb: MAX_FILE_SIZE_MB }));
 			return;
 		}
 
-		setIsUploadingFile(true);
+		setIsProcessingFile(true);
 		try {
-			await startUpload([file]);
+			const base64 = await new Promise<string>((resolve, reject) => {
+				const reader = new FileReader();
+				reader.onload = () => resolve(String(reader.result));
+				reader.onerror = () => reject(new Error('Failed to read image file'));
+				reader.readAsDataURL(file);
+			});
+
+			onLogoUrlChange(base64);
+			toast.success(t('sponsors.logoUpload.toastSuccess'));
+		} catch (error) {
+			const message = error instanceof Error ? error.message : t('sponsors.logoUpload.toastUploadFailed');
+			toast.error(message);
 		} finally {
-			setIsUploadingFile(false);
+			setIsProcessingFile(false);
 			if (fileInputRef.current) {
 				fileInputRef.current.value = '';
 			}
@@ -63,13 +59,13 @@ export function SponsorLogoUploadZone({
 	};
 
 	const handleBrowseClick = () => {
-		if (disabled || isUploadingFile) return;
+		if (disabled || isProcessingFile) return;
 		fileInputRef.current?.click();
 	};
 
 	const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
 		event.preventDefault();
-		if (disabled || isUploadingFile) return;
+		if (disabled || isProcessingFile) return;
 		void handleFileSelection(event.dataTransfer.files?.[0] ?? null);
 	};
 
@@ -80,10 +76,10 @@ export function SponsorLogoUploadZone({
 			<input
 				ref={fileInputRef}
 				type="file"
-				accept="image/png,image/jpeg,image/jpg"
+				accept="image/png,image/jpeg,image/jpg,image/webp"
 				className="hidden"
 				onChange={(event) => void handleFileSelection(event.target.files?.[0] ?? null)}
-				disabled={disabled || isUploadingFile}
+				disabled={disabled || isProcessingFile}
 			/>
 
 			<div
@@ -94,7 +90,7 @@ export function SponsorLogoUploadZone({
 				<CloudUpload className="size-5 text-[#067429]" />
 				<div className="flex flex-col items-center justify-center gap-[14px] text-[#010a04]">
 					<p className="text-sm leading-normal">
-						{isUploadingFile ? (
+						{isProcessingFile ? (
 							<span>{t('sponsors.logoUpload.uploading')}</span>
 						) : (
 							<>
@@ -102,7 +98,7 @@ export function SponsorLogoUploadZone({
 								<button
 									type="button"
 									onClick={handleBrowseClick}
-									disabled={disabled || isUploadingFile}
+									disabled={disabled || isProcessingFile}
 									className="font-medium text-[#067429] underline underline-offset-2 disabled:cursor-not-allowed disabled:opacity-70"
 								>
 									{t('sponsors.logoUpload.browseFile')}
@@ -117,20 +113,6 @@ export function SponsorLogoUploadZone({
 			</div>
 
 			<p className="text-[11px] leading-normal text-[#010a04]/60">{hintText}</p>
-
-			{logoUrl ? (
-				<p className="text-[11px] leading-normal text-[#010a04]/60">
-					{t('sponsors.logoUpload.uploadedLabel')}{' '}
-					<a
-						href={logoUrl}
-						target="_blank"
-						rel="noopener noreferrer"
-						className="font-medium text-[#067429] underline underline-offset-2"
-					>
-						{t('sponsors.logoUpload.uploadedOpenLink')}
-					</a>
-				</p>
-			) : null}
 		</div>
 	);
 }
