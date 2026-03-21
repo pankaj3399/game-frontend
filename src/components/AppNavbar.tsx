@@ -80,11 +80,16 @@ function NavLinks({
   return (
     <>
       {navItems.map(({ path, labelKey, icon }) => {
-        const isActive = path === "/profile"
-          ? location.pathname.startsWith("/profile")
-          : path === "/clubs"
-            ? location.pathname.startsWith("/clubs")
-          : location.pathname.startsWith(path);
+        const isActive =
+          path === "/profile"
+            ? location.pathname.startsWith("/profile")
+            : path === "/sponsors"
+              ? location.pathname.startsWith("/sponsors") ||
+                location.pathname.startsWith("/clubs/manage/sponsors")
+              : path === "/clubs"
+                ? location.pathname.startsWith("/clubs") &&
+                  !location.pathname.startsWith("/clubs/manage/sponsors")
+                : location.pathname.startsWith(path);
         return (
           <Link
             key={path}
@@ -134,7 +139,9 @@ export function AppNavbar() {
 
   const pageTitle = getPageTitle(location.pathname, t);
 
-  const authSection = (
+  const closeMobileMenu = () => setMobileMenuOpen(false);
+
+  const renderAuthSection = (onAfterNavigate?: () => void) => (
     <>
       {isAuthenticated ? (
         <DropdownMenu>
@@ -152,14 +159,25 @@ export function AppNavbar() {
             {/* TODO: Setup-only shortcut. Replace with final admin IA/navigation flow. */}
             <RoleGuard requireRoleOrAbove={ROLES.SUPER_ADMIN}>
               <DropdownMenuItem asChild>
-                <Link to="/admin" className="flex items-center gap-2 cursor-pointer">
+                <Link
+                  to="/admin"
+                  className="flex cursor-pointer items-center gap-2"
+                  onClick={onAfterNavigate}
+                >
                   <HugeiconsIcon icon={Award01Icon} size={18} />
                   {t("admin.nav.admin")}
                 </Link>
               </DropdownMenuItem>
             </RoleGuard>
             <DropdownMenuSeparator />
-            <DropdownMenuItem variant="destructive" onClick={handleLogout} className="cursor-pointer">
+            <DropdownMenuItem
+              variant="destructive"
+              className="cursor-pointer"
+              onClick={async () => {
+                onAfterNavigate?.();
+                await handleLogout();
+              }}
+            >
               <HugeiconsIcon icon={Logout01Icon} size={18} />
               {t("common.logout")}
             </DropdownMenuItem>
@@ -169,6 +187,7 @@ export function AppNavbar() {
         <Link
           to="/login"
           className="flex h-[34px] shrink-0 items-center justify-center gap-[7px] rounded-[8px] bg-brand-accent px-[20px] text-[14px] font-medium text-[#010a04] transition-colors hover:bg-brand-accent-hover"
+          onClick={onAfterNavigate}
         >
           <HugeiconsIcon icon={UserIcon} size={17} />
           {t("common.login")}
@@ -193,36 +212,37 @@ export function AppNavbar() {
           <NavLinks location={location} t={t} />
         </nav>
 
-        <div className="flex flex-shrink-0 items-center justify-end gap-3 lg:gap-[14px]">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button
-                type="button"
-                className="flex h-[34px] w-[90px] items-center justify-between rounded-[8px] border-[1.2px] border-white/20 pl-[12px] pr-[8px] text-[14px] font-medium text-white transition-colors hover:bg-white/10"
-                aria-label={t("common.language")}
-              >
-                {languageLabel}
-                <HugeiconsIcon icon={ArrowDown01Icon} size={14} className="shrink-0" />
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-[90px] min-w-[90px]">
-              <DropdownMenuItem
-                className="cursor-pointer"
-                onClick={() => handleLanguageChange("en")}
-              >
-                ENG
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                className="cursor-pointer"
-                onClick={() => handleLanguageChange("de")}
-              >
-                DEU
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+        <div className="flex min-w-0 flex-shrink-0 items-center justify-end gap-3 lg:gap-[14px]">
+          <div className="hidden min-w-0 items-center gap-3 lg:flex lg:gap-[14px]">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  type="button"
+                  className="flex h-[34px] w-[90px] items-center justify-between rounded-[8px] border-[1.2px] border-white/20 pl-[12px] pr-[8px] text-[14px] font-medium text-white transition-colors hover:bg-white/10"
+                  aria-label={t("common.language")}
+                >
+                  {languageLabel}
+                  <HugeiconsIcon icon={ArrowDown01Icon} size={14} className="shrink-0" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-[90px] min-w-[90px]">
+                <DropdownMenuItem
+                  className="cursor-pointer"
+                  onClick={() => handleLanguageChange("en")}
+                >
+                  ENG
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  className="cursor-pointer"
+                  onClick={() => handleLanguageChange("de")}
+                >
+                  DEU
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
 
-    
-          {authSection}
+            {renderAuthSection()}
+          </div>
 
           <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
             <SheetTrigger asChild>
@@ -248,9 +268,49 @@ export function AppNavbar() {
                 <NavLinks
                   location={location}
                   t={t}
-                  onNavigate={() => setMobileMenuOpen(false)}
+                  onNavigate={closeMobileMenu}
                 />
               </nav>
+              <div className="border-t border-white/20 px-4 py-4">
+                <p className="mb-2 text-xs font-medium uppercase tracking-wide text-white/60">
+                  {t("common.language")}
+                </p>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    className={cn(
+                      "flex-1 rounded-[8px] border px-3 py-2 text-[14px] font-medium transition-colors",
+                      normalizedLanguage === "en"
+                        ? "border-white bg-white/20 text-white"
+                        : "border-white/20 text-white/90 hover:bg-white/10"
+                    )}
+                    onClick={() => {
+                      handleLanguageChange("en");
+                      closeMobileMenu();
+                    }}
+                  >
+                    ENG
+                  </button>
+                  <button
+                    type="button"
+                    className={cn(
+                      "flex-1 rounded-[8px] border px-3 py-2 text-[14px] font-medium transition-colors",
+                      normalizedLanguage === "de"
+                        ? "border-white bg-white/20 text-white"
+                        : "border-white/20 text-white/90 hover:bg-white/10"
+                    )}
+                    onClick={() => {
+                      handleLanguageChange("de");
+                      closeMobileMenu();
+                    }}
+                  >
+                    DEU
+                  </button>
+                </div>
+                <div className="mt-4 flex w-full min-w-0 flex-col gap-2 [&_button]:w-full [&_a]:flex [&_a]:w-full [&_a]:justify-center">
+                  {renderAuthSection(closeMobileMenu)}
+                </div>
+              </div>
             </SheetContent>
           </Sheet>
         </div>

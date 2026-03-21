@@ -245,6 +245,7 @@
     "noStaff": "Noch keine Admins oder Organisatoren.",
     "selectClubToManage": "Wählen Sie einen Verein aus der Liste, um dessen Admins und Organisatoren zu verwalten.",
     "dragUser": "Zum Sortieren ziehen",
+    "staffActionsMenu": "Weitere Aktionen für {{name}}",
     "default": "STANDARD",
     "mainAdmin": "Haupt-Admin",
     "editRole": "Rolle bearbeiten",
@@ -558,7 +559,7 @@
     "contactUs": "Kontaktieren Sie uns",
     "inviteFriends": "Freunde einladen",
     "inviteShareTitle": "TB10",
-    "inviteShareText": "Mach mit bei TB10: {{url}}",
+    "inviteShareText": "Mach mit bei TB10",
     "linkCopied": "Link kopiert",
     "unableToCopyLink": "Link konnte nicht kopiert werden"
   },

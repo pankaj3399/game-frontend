@@ -36,6 +36,7 @@ export function StaffRow({ member, onMenuAction }: StaffRowProps) {
   const { t } = useTranslation();
   const isDefault = member.role === "default_admin";
   const roleLabel = isDefault ? t("manageClub.mainAdmin") : member.roleLabel;
+  const memberDisplayName = member.name?.trim() || member.alias?.trim() || member.email;
 
   return (
     <div
@@ -57,9 +58,7 @@ export function StaffRow({ member, onMenuAction }: StaffRowProps) {
         <StaffAvatar name={member.name} alias={member.alias} />
         <div className="min-w-0">
           <div className="flex items-center gap-[7px]">
-            <p className="truncate text-[16px] font-medium text-[#010a04]">
-              {member.name?.trim() || member.alias?.trim() || member.email}
-            </p>
+            <p className="truncate text-[16px] font-medium text-[#010a04]">{memberDisplayName}</p>
             {isDefault && (
               <span className="inline-flex h-[18px] items-center gap-1 rounded-[5px] bg-[rgba(10,105,37,0.12)] px-[6px] pr-[8px] text-[10px] font-medium text-brand-primary">
                 <HugeiconsIcon icon={CrownIcon} size={10} />
@@ -74,7 +73,11 @@ export function StaffRow({ member, onMenuAction }: StaffRowProps) {
 
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <button type="button" className="ml-2 flex h-6 w-6 shrink-0 items-center justify-center text-[#010a04]/45">
+          <button
+            type="button"
+            className="ml-2 flex h-6 w-6 shrink-0 items-center justify-center text-[#010a04]/45"
+            aria-label={t("manageClub.staffActionsMenu", { name: memberDisplayName })}
+          >
             <HugeiconsIcon icon={MoreVerticalIcon} size={18} aria-hidden />
           </button>
         </DropdownMenuTrigger>

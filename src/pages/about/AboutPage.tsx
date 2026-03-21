@@ -15,7 +15,7 @@ export default function AboutPage() {
       try {
         await navigator.share({
           title: t("about.inviteShareTitle"),
-          text: t("about.inviteShareText", { url: TB10_URL }),
+          text: t("about.inviteShareText"),
           url: TB10_URL,
         });
         return;

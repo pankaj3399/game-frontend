@@ -44,6 +44,8 @@ export function ManageClubSidebar({
                 <button
                   key={club.id}
                   type="button"
+                  aria-pressed={isSelected}
+                  aria-current={isSelected ? "true" : undefined}
                   onClick={() => onClubSelect(club.id)}
                   className={cn(
                     "flex w-full items-center justify-between border-b border-black/10 px-[12px] py-[15px] text-left last:border-b-0",
@@ -55,8 +57,8 @@ export function ManageClubSidebar({
                     <div className="min-w-0">
                       <p className="truncate text-[16px] font-medium text-[#010a04]">{club.name}</p>
                       <p className="text-[12px] text-[#010a04]/60">
-                        {t("manageClub.membersCount", { count: club.membersCount })} •{" "}
-                        {t("manageClub.eventsCount", { count: club.eventsCount })}
+                        {t("manageClub.membersCount", { count: club.membersCount ?? 0 })} •{" "}
+                        {t("manageClub.eventsCount", { count: club.eventsCount ?? 0 })}
                       </p>
                     </div>
                   </div>
