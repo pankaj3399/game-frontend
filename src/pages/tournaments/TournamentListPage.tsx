@@ -62,7 +62,7 @@ function TournamentListContent() {
   return (
     <div className="flex min-h-[calc(100vh-4rem)] flex-col bg-brand-primary/[0.03]">
       <div className="mx-auto w-full max-w-[1060px] flex-1 px-4 py-8 sm:px-6">
-        <div className="overflow-hidden rounded-[12px] border border-black/10 bg-white shadow-sm">
+        <div className="overflow-y-hidden overflow-x-auto rounded-[12px] border border-black/10 bg-white shadow-sm">
           <div className="px-4 py-3 sm:px-5 sm:py-3.5">
             <div className="flex items-center justify-between">
               <h1 className="text-xl font-semibold leading-tight text-foreground">

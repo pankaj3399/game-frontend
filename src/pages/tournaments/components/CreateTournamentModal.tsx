@@ -1,4 +1,4 @@
-import { useLayoutEffect, useState } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useAdminClubs } from "@/pages/clubs/hooks";
 import { useClubSponsors } from "@/pages/sponsors/hooks";
@@ -51,7 +51,6 @@ export function CreateTournamentModal({
   const isEditMode = mode === "edit";
 
   const [formUpdates, setFormUpdates] = useState<Partial<CreateTournamentInput> | null>(null);
-  const [activeTab, setActiveTab] = useState("basic");
 
   const createTournament = useCreateTournament();
   const updateTournament = useUpdateTournament();
@@ -79,14 +78,15 @@ export function CreateTournamentModal({
     setFormUpdates(null);
   };
 
-  /** Tab resets when opening so we don't change the tab during close (avoids flicker on exit animation). */
-  useLayoutEffect(() => {
-    if (open) {
-      setActiveTab("basic");
-    }
-  }, [open]);
+  const closeModal = () => {
+    resetForm();
+    onOpenChange(false);
+  };
 
   const handleClose = (nextOpen: boolean) => {
+    if (!nextOpen && isMutating) {
+      return;
+    }
     if (!nextOpen) {
       resetForm();
     }
@@ -107,7 +107,7 @@ export function CreateTournamentModal({
         await createTournament.mutateAsync(payload);
       }
       toast.success(t("tournaments.draftSaved"));
-      handleClose(false);
+      closeModal();
     } catch (err: unknown) {
       toast.error(getErrorMessage(err) ?? t("tournaments.saveError"));
     }
@@ -129,7 +129,7 @@ export function CreateTournamentModal({
         await createTournament.mutateAsync(payload);
       }
       toast.success(t("tournaments.published"));
-      handleClose(false);
+      closeModal();
     } catch (err: unknown) {
       toast.error(getErrorMessage(err) ?? t("tournaments.publishError"));
     }
@@ -138,7 +138,7 @@ export function CreateTournamentModal({
   return (
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent
-          className="max-h-none max-w-[390px] overflow-visible gap-0 rounded-[12px] border border-black/10 px-3 py-3 shadow-[0px_3px_15px_0px_rgba(0,0,0,0.06)] sm:max-h-[calc(100dvh-24px)] sm:max-w-[515px] sm:overflow-y-auto sm:px-[15px] sm:py-5 [&_[aria-label='Close']]:right-0 [&_[aria-label='Close']]:top-0 [&_[aria-label='Close']]:h-5 [&_[aria-label='Close']]:w-5 sm:[&_[aria-label='Close']]:h-6 sm:[&_[aria-label='Close']]:w-6 [&_[aria-label='Close']]:text-[#010a04] [&_[aria-label='Close']]:hover:bg-transparent [&_[aria-label='Close']]:hover:text-[#010a04]"
+          className="max-h-[calc(100dvh-24px)] max-w-[390px] overflow-y-auto gap-0 rounded-[12px] border border-black/10 px-3 py-3 shadow-[0px_3px_15px_0px_rgba(0,0,0,0.06)] sm:max-w-[515px] sm:px-[15px] sm:py-5 [&_[aria-label='Close']]:right-0 [&_[aria-label='Close']]:top-0 [&_[aria-label='Close']]:h-5 [&_[aria-label='Close']]:w-5 sm:[&_[aria-label='Close']]:h-6 sm:[&_[aria-label='Close']]:w-6 [&_[aria-label='Close']]:text-[#010a04] [&_[aria-label='Close']]:hover:bg-transparent [&_[aria-label='Close']]:hover:text-[#010a04]"
         showCloseButton={true}
       >
         <DialogHeader className="pb-0">
@@ -152,7 +152,11 @@ export function CreateTournamentModal({
             <InlineLoader />
           </div>
         ) : (
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <Tabs
+            key={`${mode}-${tournamentId ?? "create"}-${open ? "open" : "closed"}`}
+            defaultValue="basic"
+            className="w-full"
+          >
           <TabsList className="mt-[18px] h-auto w-full rounded-[10px] bg-black/5 p-1 sm:w-fit">
             <TabsTrigger
               value="basic"

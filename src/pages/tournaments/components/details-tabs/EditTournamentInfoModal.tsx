@@ -42,6 +42,7 @@ function SponsorOption({
   onClick,
   logoUrl,
   compact = false,
+  disabled = false,
 }: {
   title: string;
   subtitle?: string;
@@ -49,23 +50,26 @@ function SponsorOption({
   onClick: () => void;
   logoUrl?: string | null;
   compact?: boolean;
+  disabled?: boolean;
 }) {
   return (
     <button
       type="button"
+      disabled={disabled}
       aria-pressed={selected}
+      aria-disabled={disabled}
       onClick={onClick}
       className={`w-full rounded-[12px] border text-left transition ${
         selected
           ? "border-[1.5px] border-[#067429] bg-[rgba(10,105,37,0.05)]"
           : "border border-[#e1e3e8] bg-[#f9fafc]"
-      } ${compact ? "h-[50px] px-[13px] py-3" : "px-[13px] py-3"}`}
+      } ${disabled ? "cursor-not-allowed opacity-[0.92]" : ""} ${compact ? "h-[50px] px-[13px] py-3" : "px-[13px] py-3"}`}
     >
       <div className="flex items-center justify-between gap-3">
         <div className="flex min-w-0 items-center gap-3">
           {!compact ? (
             <div className="h-[45px] w-[45px] shrink-0 overflow-hidden rounded-[8px] bg-[#d9d9d9]">
-              {logoUrl ? <img src={logoUrl} alt={title} className="h-full w-full object-cover" /> : null}
+              {logoUrl ? <img src={logoUrl} alt="" className="h-full w-full object-cover" /> : null}
             </div>
           ) : null}
           <div className="min-w-0">
@@ -107,16 +111,54 @@ export function EditTournamentInfoModal({ open, onOpenChange, tournament }: Edit
   const { data: sponsorsData, isLoading: isSponsorsLoading } = useClubSponsors(selectedClubId || null);
   const sponsors = sponsorsData?.sponsors ?? [];
   const activeSponsors = sponsors.filter((sponsor) => sponsor.status === "active");
+  const selectedInActiveSponsors =
+    Boolean(selectedSponsorId) && activeSponsors.some((s) => s.id === selectedSponsorId);
+  const sponsorFromList = sponsors.find((s) => s.id === selectedSponsorId);
+  const sponsorFromTournament =
+    tournament.sponsor?.id === selectedSponsorId ? tournament.sponsor : null;
+  const fallbackSponsor =
+    !isSponsorsLoading &&
+    selectedClubId &&
+    selectedSponsorId &&
+    !selectedInActiveSponsors &&
+    (sponsorFromList || sponsorFromTournament)
+      ? {
+          id: selectedSponsorId,
+          name: sponsorFromList?.name ?? sponsorFromTournament?.name ?? t("tournaments.unknownSponsor"),
+          logoUrl: sponsorFromList?.logoUrl ?? sponsorFromTournament?.logoUrl ?? null,
+        }
+      : null;
 
   const hasChanges =
     selectedClubId !== initialSelection.clubId || selectedSponsorId !== initialSelection.sponsorId;
+
+  const isMutating = updateTournament.isPending;
+
+  const resetSelection = () => {
+    setSelection(null);
+  };
+
+  const closeModal = () => {
+    resetSelection();
+    onOpenChange(false);
+  };
+
+  const handleOpenChange = (nextOpen: boolean) => {
+    if (!nextOpen && isMutating) {
+      return;
+    }
+    if (!nextOpen) {
+      resetSelection();
+    }
+    onOpenChange(nextOpen);
+  };
 
   const handleClubChange = (clubId: string) => {
     setSelection({ clubId, sponsorId: "" });
   };
 
   const handleSave = async () => {
-    if (updateTournament.isPending) return;
+    if (isMutating) return;
 
     if (!hasChanges) {
       return;
@@ -130,22 +172,14 @@ export function EditTournamentInfoModal({ open, onOpenChange, tournament }: Edit
     try {
       await updateTournament.mutateAsync({ id: tournament.id, data: payload });
       toast.success(t("settings.saveSuccess"));
-      onOpenChange(false);
+      closeModal();
     } catch (error: unknown) {
       toast.error(getErrorMessage(error) ?? t("tournaments.saveError"));
     }
   };
 
   return (
-    <Dialog
-      open={open}
-      onOpenChange={(nextOpen) => {
-        if (!nextOpen) {
-          setSelection(null);
-        }
-        onOpenChange(nextOpen);
-      }}
-    >
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent
         className="max-w-[513px] gap-0 overflow-hidden rounded-[12px] border border-[rgba(1,10,4,0.08)] bg-white p-0 shadow-[0px_3px_15px_0px_rgba(0,0,0,0.06)] [&_[aria-label='Close']]:right-4 [&_[aria-label='Close']]:top-[18px] [&_[aria-label='Close']]:text-[#010a04]/70"
         showCloseButton={true}
@@ -204,23 +238,42 @@ export function EditTournamentInfoModal({ open, onOpenChange, tournament }: Edit
                 <div className="rounded-[12px] border border-[#e1e3e8] bg-[#f9fafc] px-[13px] py-5 text-[14px] text-[#010a04]/70">
                   {t("tournaments.selectClubFirst")}
                 </div>
-              ) : activeSponsors.length === 0 ? (
-                <div className="rounded-[12px] border border-[#e1e3e8] bg-[#f9fafc] px-[13px] py-5 text-[14px] text-[#010a04]/70">
-                  {t("tournaments.noSponsors")}
-                </div>
               ) : (
-                activeSponsors.map((sponsor) => (
-                  <SponsorOption
-                    key={sponsor.id}
-                    title={sponsor.name}
-                    subtitle={selectedSponsorId === sponsor.id ? t("tournaments.officialSponsor") : t("tournaments.statusActive")}
-                    selected={selectedSponsorId === sponsor.id}
-                    onClick={() =>
-                      setSelection((prev) => ({ ...(prev ?? initialSelection), sponsorId: sponsor.id }))
-                    }
-                    logoUrl={sponsor.logoUrl}
-                  />
-                ))
+                <>
+                  {fallbackSponsor ? (
+                    <SponsorOption
+                      key={`fallback-${fallbackSponsor.id}`}
+                      title={fallbackSponsor.name}
+                      subtitle={t("tournaments.officialSponsor")}
+                      selected
+                      disabled
+                      onClick={() => {}}
+                      logoUrl={fallbackSponsor.logoUrl}
+                    />
+                  ) : null}
+                  {activeSponsors.length === 0 && !fallbackSponsor ? (
+                    <div className="rounded-[12px] border border-[#e1e3e8] bg-[#f9fafc] px-[13px] py-5 text-[14px] text-[#010a04]/70">
+                      {t("tournaments.noSponsors")}
+                    </div>
+                  ) : (
+                    activeSponsors.map((sponsor) => (
+                      <SponsorOption
+                        key={sponsor.id}
+                        title={sponsor.name}
+                        subtitle={
+                          selectedSponsorId === sponsor.id
+                            ? t("tournaments.officialSponsor")
+                            : t("tournaments.statusActive")
+                        }
+                        selected={selectedSponsorId === sponsor.id}
+                        onClick={() =>
+                          setSelection((prev) => ({ ...(prev ?? initialSelection), sponsorId: sponsor.id }))
+                        }
+                        logoUrl={sponsor.logoUrl}
+                      />
+                    ))
+                  )}
+                </>
               )}
             </div>
           </div>
@@ -229,17 +282,17 @@ export function EditTournamentInfoModal({ open, onOpenChange, tournament }: Edit
             <Button
               variant="outline"
               className="h-[38px] flex-1 rounded-[8px] border border-[rgba(0,0,0,0.15)] bg-transparent px-4 text-[16px] font-medium leading-[20px] text-[#010a04] hover:bg-[#f8f8f8]"
-              onClick={() => onOpenChange(false)}
-              disabled={updateTournament.isPending}
+              onClick={() => handleOpenChange(false)}
+              disabled={isMutating}
             >
               {t("tournaments.cancel")}
             </Button>
             <Button
               className="h-[38px] flex-1 rounded-[8px] bg-gradient-to-r from-[#0a6925] via-[#0c7b2c] to-[#0f8d33] px-4 text-[16px] font-medium leading-[20px] text-white hover:brightness-95"
               onClick={handleSave}
-              disabled={!hasChanges || updateTournament.isPending}
+              disabled={!hasChanges || isMutating}
             >
-              {updateTournament.isPending ? t("common.loading") : t("settings.saveChanges")}
+              {isMutating ? t("common.loading") : t("settings.saveChanges")}
             </Button>
           </div>
         </div>

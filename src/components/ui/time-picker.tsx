@@ -31,6 +31,10 @@ interface TimePickerProps {
   nowLabel?: string;
   /** Override confirm/done button (default: timepicker.confirm) */
   confirmLabel?: string;
+  /** Passed to the trigger button for a11y (e.g. link to an external Label via aria-labelledby) */
+  id?: string;
+  "aria-labelledby"?: string;
+  "aria-describedby"?: string;
 }
 
 type Meridian = "AM" | "PM";
@@ -51,6 +55,9 @@ export function TimePicker({
   clearLabel,
   nowLabel,
   confirmLabel,
+  id,
+  "aria-labelledby": ariaLabelledBy,
+  "aria-describedby": ariaDescribedBy,
 }: TimePickerProps) {
   const { t } = useTranslation();
   const effectivePlaceholder = placeholder ?? placeholderLabel ?? t("timepicker.placeholder");
@@ -188,9 +195,12 @@ export function TimePicker({
       <PopoverTrigger asChild>
         <Button
           ref={triggerRef}
+          id={id}
           type="button"
           variant="outline"
           disabled={disabled}
+          aria-labelledby={ariaLabelledBy}
+          aria-describedby={ariaDescribedBy}
           className={cn(
             "h-[38px] w-full justify-between rounded-[10px] border-[#e1e3e8] bg-[#f9fafc] px-3 text-left text-[13px] font-normal text-[#010a04] sm:h-[46px] sm:rounded-[12px] sm:px-[15px] sm:text-[14px]",
             !formatted && "text-[#010a04]/50"

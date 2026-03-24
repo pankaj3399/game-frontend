@@ -68,6 +68,18 @@ export function TournamentTable({
         <TableBody>
           {tournaments.map((tournament, idx) => {
             const { canEditDraft, canPublishDraft } = getRowPermissions(tournament.status);
+            const statusLabel =
+              tournament.status === "active"
+                ? t("tournaments.statusActive")
+                : tournament.status === "draft"
+                  ? t("tournaments.statusDraft")
+                  : t("tournaments.statusInactive");
+            const statusDotClass =
+              tournament.status === "active"
+                ? "bg-emerald-500"
+                : tournament.status === "draft"
+                  ? "bg-amber-400"
+                  : "bg-muted-foreground/50";
 
             return (
               <TableRow
@@ -79,9 +91,16 @@ export function TournamentTable({
                 </TableCell>
                 <TableCell className="px-3 py-0">
                   <div className="flex items-center gap-2">
-                    <span className="h-[22px] w-[22px] shrink-0 rounded-[5px] bg-black/15" />
+                    <span
+                      className="h-[22px] w-[22px] shrink-0 rounded-[5px] bg-black/15"
+                      aria-hidden="true"
+                    />
                     <span className="truncate text-sm text-foreground">{tournament.name}</span>
-                    <span className="h-2 w-2 shrink-0 rounded-full bg-brand-primary/50" />
+                    <span
+                      className={`h-2 w-2 shrink-0 rounded-full ${statusDotClass}`}
+                      aria-label={statusLabel}
+                      title={statusLabel}
+                    />
                   </div>
                 </TableCell>
                 <TableCell className="px-3 py-0">
