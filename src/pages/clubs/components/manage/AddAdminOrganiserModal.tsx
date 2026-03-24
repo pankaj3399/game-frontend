@@ -20,6 +20,7 @@ import {
 } from "@/pages/clubs/hooks";
 import { toast } from "sonner";
 import { UserSearchSelect } from "@/components/shared/UserSearchSelect";
+import { isAxiosError } from "axios";
 
 // Adjust this type if you already have a shared User type
 type User = {
@@ -34,6 +35,23 @@ interface AddAdminOrganiserModalProps {
   onOpenChange: (open: boolean) => void;
   clubId: string;
   existingStaffIds: string[];
+}
+
+function parseAddStaffRole(value: string): AddStaffRole | null {
+  if (value === "admin" || value === "organiser") {
+    return value;
+  }
+
+  return null;
+}
+
+function extractApiErrorMessage(err: unknown): string | null {
+  if (!isAxiosError(err)) {
+    return null;
+  }
+
+  const message = err.response?.data?.message;
+  return typeof message === "string" ? message : null;
 }
 
 export function AddAdminOrganiserModal({
@@ -93,11 +111,7 @@ export function AddAdminOrganiserModal({
 
       handleOpenChange(false);
     } catch (err: unknown) {
-      const message =
-        err && typeof err === "object" && "response" in err
-          ? (err as { response?: { data?: { message?: string } } })
-              .response?.data?.message
-          : null;
+      const message = extractApiErrorMessage(err);
 
       toast.error(message ?? t("manageClub.addStaffError"));
     }
@@ -164,9 +178,11 @@ export function AddAdminOrganiserModal({
 
             <Select
               value={role}
-              onValueChange={(value) =>
-                setRole(value as AddStaffRole)
-              }
+              onValueChange={(value) => {
+                const parsed = parseAddStaffRole(value);
+                if (!parsed) return;
+                setRole(parsed);
+              }}
             >
               <SelectTrigger
                 id="role-select"

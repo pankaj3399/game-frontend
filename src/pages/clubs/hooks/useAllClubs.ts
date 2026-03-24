@@ -23,14 +23,23 @@ export interface AllClubsResponse {
 interface UseAllClubsOptions {
   page?: number;
   limit?: number;
+  q?: string;
 }
 
 const DEFAULT_PAGE = 1;
 const DEFAULT_LIMIT = 12;
 
-async function fetchAllClubs(page: number, limit: number): Promise<AllClubsResponse> {
+async function fetchAllClubs(
+  page: number,
+  limit: number,
+  q?: string
+): Promise<AllClubsResponse> {
   const res = await api.get<AllClubsResponse>("/api/clubs/list", {
-    params: { page, limit },
+    params: {
+      page,
+      limit,
+      ...(q?.trim() ? { q: q.trim() } : {}),
+    },
   });
   return res.data;
 }
@@ -38,9 +47,10 @@ async function fetchAllClubs(page: number, limit: number): Promise<AllClubsRespo
 export function useAllClubs(options: UseAllClubsOptions = {}) {
   const page = options.page ?? DEFAULT_PAGE;
   const limit = options.limit ?? DEFAULT_LIMIT;
+  const q = options.q;
 
   return useQuery<AllClubsResponse>({
-    queryKey: ["clubs", "all", page, limit],
-    queryFn: () => fetchAllClubs(page, limit),
+    queryKey: ["clubs", "all", page, limit, q?.trim() ?? ""],
+    queryFn: () => fetchAllClubs(page, limit, q),
   });
 }
