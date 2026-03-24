@@ -30,6 +30,7 @@ function TournamentListContent() {
     setFiltersOpen,
     setTab,
     setStatusFromValue,
+    setQuery,
     setPage,
   } = useTournamentFilters({ isOrganiserOrAbove });
   const {
@@ -71,8 +72,10 @@ function TournamentListContent() {
               <TournamentActions
                 filtersOpen={filtersOpen}
                 onFiltersOpenChange={setFiltersOpen}
+                query={filters.q ?? ""}
                 status={filters.status}
                 canShowStatusFilter={canShowStatusFilter}
+                onQueryChange={setQuery}
                 onStatusChange={setStatusFromValue}
                 onCreate={openCreateModal}
               />

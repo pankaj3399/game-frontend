@@ -28,6 +28,14 @@ export function useTournamentFilters({ isOrganiserOrAbove }: UseTournamentFilter
     });
   };
 
+  const setQuery = (value: string) => {
+    const normalized = value.trim();
+    dispatch({
+      type: "SET_QUERY",
+      payload: normalized.length ? normalized : undefined,
+    });
+  };
+
   const setPage = (page: number) => {
     dispatch({ type: "SET_PAGE", payload: page });
   };
@@ -40,6 +48,7 @@ export function useTournamentFilters({ isOrganiserOrAbove }: UseTournamentFilter
     setFiltersOpen,
     setTab,
     setStatusFromValue,
+    setQuery,
     setPage,
   };
 }

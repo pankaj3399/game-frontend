@@ -3,10 +3,11 @@ import { useAllClubs } from "@/pages/clubs/hooks";
 interface UseClubsListDataOptions {
   page: number;
   limit: number;
+  q?: string;
 }
 
-export function useClubsListData({ page, limit }: UseClubsListDataOptions) {
-  const query = useAllClubs({ page, limit });
+export function useClubsListData({ page, limit, q }: UseClubsListDataOptions) {
+  const query = useAllClubs({ page, limit, q });
 
   const clubs = query.data?.clubs ?? [];
   const pagination = query.data?.pagination ?? {
