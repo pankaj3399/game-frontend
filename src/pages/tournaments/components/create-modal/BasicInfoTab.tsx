@@ -36,21 +36,21 @@ export function BasicInfoTab({ form, clubs, update }: BasicInfoTabProps) {
 
   return (
     <TabsContent value="basic" className="mt-0">
-      <div className="space-y-4">
-        <div>
-          <Label className="text-[14px] font-medium text-[#111827]">
+      <div className="space-y-5">
+        <div className="space-y-[10px]">
+          <Label className="text-[15px] font-medium text-[#010a04]">
             {t("tournaments.tournamentName")} *
           </Label>
           <Input
             placeholder={t("tournaments.enterName")}
             value={form.name}
             onChange={(e) => update({ name: e.target.value })}
-            className="mt-1 h-10 rounded-lg border-[#e5e7eb] text-[14px] placeholder:text-[#9ca3af]"
+            className="h-[42px] rounded-[12px] border-[#e1e3e8] bg-[#f9fafc] px-[15px] text-[14px] text-[#010a04] placeholder:text-[#010a04]/50 sm:h-[46px]"
           />
         </div>
 
-        <div>
-          <Label className="text-[14px] font-medium text-[#111827]">
+        <div className="space-y-3">
+          <Label className="text-[15px] font-medium text-[#010a04]">
             {t("tournaments.tournamentType")} *
           </Label>
           <Select
@@ -61,7 +61,7 @@ export function BasicInfoTab({ form, clubs, update }: BasicInfoTabProps) {
 
             }}
           >
-            <SelectTrigger className="mt-1 h-10 w-full rounded-lg border-[#e5e7eb] text-[14px] font-normal">
+            <SelectTrigger className="h-[42px] w-full rounded-[12px] border-[#e1e3e8] bg-[#f9fafc] px-[15px] text-[16px] font-medium text-[#010a04] sm:h-[46px]">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -74,15 +74,15 @@ export function BasicInfoTab({ form, clubs, update }: BasicInfoTabProps) {
           </Select>
         </div>
 
-        <div>
-          <Label className="text-[14px] font-medium text-[#111827]">
-            {t("tournaments.selectClub")} *
+        <div className="space-y-3">
+          <Label className="text-[15px] font-medium text-[#010a04]">
+            {t("tournaments.selectClub")}
           </Label>
-          <p className="mt-0.5 text-xs leading-4 text-[#6b7280]">
+          <p className="text-[14px] leading-[1.4] text-[#010a04]/60">
             {t("tournaments.selectClubHint")}
           </p>
           <Select value={form.club} onValueChange={(v) => update({ club: v, sponsor: null })}>
-            <SelectTrigger className="mt-1 h-10 w-full rounded-lg border-[#e5e7eb] text-[14px] font-normal">
+            <SelectTrigger className="h-[42px] w-full rounded-[12px] border-[#e1e3e8] bg-[#f9fafc] px-[15px] text-[16px] font-medium text-[#010a04] sm:h-[46px]">
               <SelectValue placeholder={t("tournaments.chooseClub")} />
             </SelectTrigger>
             <SelectContent>
@@ -97,9 +97,9 @@ export function BasicInfoTab({ form, clubs, update }: BasicInfoTabProps) {
 
         {form.tournamentMode === "singleDay" && (
           <>
-            <div className="grid grid-cols-1 gap-3">
+            <div className="grid grid-cols-1 gap-[14px] sm:grid-cols-2">
               <div>
-                <Label className="text-[14px] font-medium text-[#111827]">
+                <Label className="text-[15px] font-medium text-[#010a04]">
                   {t("tournaments.date")} *
                 </Label>
                 <Popover>
@@ -107,8 +107,8 @@ export function BasicInfoTab({ form, clubs, update }: BasicInfoTabProps) {
                     <Button
                       variant="outline"
                       className={cn(
-                        "mt-1 h-10 w-full justify-between rounded-lg border-[#e5e7eb] px-3 text-left text-[14px] font-normal",
-                        !selectedDate && "text-[#9ca3af]"
+                        "mt-[10px] h-[42px] w-full justify-between rounded-[12px] border-[#e1e3e8] bg-[#f9fafc] px-[15px] text-left text-[14px] font-normal text-[#010a04] sm:h-[46px]",
+                        !selectedDate && "text-[#010a04]/50"
                       )}
                     >
                       <span>
@@ -116,7 +116,7 @@ export function BasicInfoTab({ form, clubs, update }: BasicInfoTabProps) {
                           ? format(selectedDate, "dd/MM/yyyy")
                           : t("tournaments.datePlaceholder")}
                       </span>
-                      <CalendarIcon className="h-4 w-4 shrink-0 text-[#9ca3af]" />
+                      <CalendarIcon className="h-5 w-5 shrink-0 text-[#010a04]/65" />
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="start">
@@ -130,49 +130,49 @@ export function BasicInfoTab({ form, clubs, update }: BasicInfoTabProps) {
                 </Popover>
               </div>
 
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label className="text-[14px] font-medium text-[#111827]">
+                <Label className="text-[15px] font-medium text-[#010a04]">
                   {t("tournaments.startTime")} *
                 </Label>
-                <div className="mt-1">
+                <div className="mt-[10px]">
                   <TimePicker
                     value={form.startTime ?? null}
                     onChange={(time) => update({ startTime: time })}
-                    placeholder={t("tournaments.timePlaceholder")}
+                    placeholder="00:00 AM"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 gap-[14px] sm:grid-cols-2">
+              <div>
+                <Label className="text-[15px] font-medium text-[#010a04]">
+                  {t("tournaments.endTime")} *
+                </Label>
+                <div className="mt-[10px]">
+                  <TimePicker
+                    value={form.endTime ?? null}
+                    onChange={(time) => update({ endTime: time })}
+                    placeholder="00:00 AM"
                   />
                 </div>
               </div>
 
-              <div>
-                <Label className="text-[14px] font-medium text-[#111827]">
-                  {t("tournaments.endTime")} *
-                </Label>
-                <div className="mt-1">
-                  <TimePicker
-                    value={form.endTime ?? null}
-                    onChange={(time) => update({ endTime: time })}
-                    placeholder={t("tournaments.timePlaceholder")}
-                    popoverAlign="end"
-                  />
-                </div>
-              </div>
+              <div aria-hidden="true" className="hidden sm:block" />
             </div>
 
           </>
         )}
 
-        <div>
-          <Label className="text-[14px] font-medium text-[#111827]">
+        <div className="space-y-[10px]">
+          <Label className="text-[15px] font-medium text-[#010a04]">
             {t("tournaments.description")}
           </Label>
           <textarea
             placeholder={t("tournaments.descriptionPlaceholder")}
             value={form.descriptionInfo ?? ""}
             onChange={(e) => update({ descriptionInfo: e.target.value })}
-            className="mt-1 min-h-[92px] w-full rounded-lg border border-[#e5e7eb] bg-transparent px-3 py-2 text-[14px] placeholder:text-[#9ca3af]"
+            className="h-[90px] w-full rounded-[12px] border border-[#e1e3e8] bg-[#f9fafc] px-[15px] py-[15px] text-[14px] text-[#010a04] placeholder:text-[#010a04]/50 sm:h-[110px]"
           />
         </div>
       </div>

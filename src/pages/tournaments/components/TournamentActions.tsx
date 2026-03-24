@@ -35,8 +35,12 @@ export function TournamentActions({
         onStatusChange={onStatusChange}
       />
       <RoleGuard requireRoleOrAbove={ROLES.ORGANISER}>
-        <Button className="bg-brand-primary hover:bg-brand-primary-hover" onClick={onCreate}>
-          <HugeiconsIcon icon={PlusSignIcon} size={16} className="mr-2" />
+        <Button
+          size="sm"
+          className="h-[30px] rounded-[8px] bg-brand-primary px-[15px] has-[>svg]:px-[15px] text-[14px] font-medium leading-none hover:bg-brand-primary-hover"
+          onClick={onCreate}
+        >
+          <HugeiconsIcon icon={PlusSignIcon} size={14} />
           {t("tournaments.create")}
         </Button>
       </RoleGuard>

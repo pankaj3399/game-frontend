@@ -37,8 +37,12 @@ export function TournamentFilters({
   return (
     <Popover open={open} onOpenChange={onOpenChange}>
       <PopoverTrigger asChild>
-        <Button variant="outline" size="sm">
-          <HugeiconsIcon icon={Settings01Icon} size={16} className="mr-2" />
+        <Button
+          variant="outline"
+          size="sm"
+          className="h-[30px] rounded-[8px] border-black/10 bg-background px-[15px] text-[12px] font-medium"
+        >
+          <HugeiconsIcon icon={Settings01Icon} size={14} className="mr-0.5" />
           {t("tournaments.filters")}
         </Button>
       </PopoverTrigger>
