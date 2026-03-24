@@ -312,6 +312,10 @@
   "clubs": {
     "allClubs": "All Clubs",
     "searchPlaceholder": "Search clubs by name...",
+    "searching": "Searching clubs...",
+    "noClubsForQuery": "No clubs found for \"{{query}}\".",
+    "tryAnotherSearch": "Try a different search.",
+    "clearSearch": "Clear search",
     "manageClubs": "Manage Clubs",
     "noClubsYet": "No clubs yet.",
     "viewDetails": "View Details",
