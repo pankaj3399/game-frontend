@@ -17,24 +17,19 @@ import { ManageClubInfoCard } from "./ManageClubInfoCard";
 
 export type SidebarStatusFilter =
   | "all"
-  | "subscription"
-  | "no_subscription";
+  | ClubSubscriptionStatus;
 
 function parseSidebarStatusFilter(value: string): SidebarStatusFilter | null {
   switch (value) {
     case "all":
-    case "subscription":
-    case "no_subscription":
+    case "renewal_needed":
+    case "subscribed":
+    case "requested":
+    case "nothing":
       return value;
     default:
       return null;
   }
-}
-
-function toSidebarStatusCategory(
-  status?: ClubSubscriptionStatus
-): "subscription" | "no_subscription" {
-  return status === "subscribed" ? "subscription" : "no_subscription";
 }
 
 export interface ManageClubSidebarClub extends AdminClub {
@@ -54,20 +49,61 @@ interface ManageClubSidebarProps {
 }
 
 function statusChipClassName(status?: ClubSubscriptionStatus): string {
-  const category = toSidebarStatusCategory(status);
+  if (status === "renewal_needed") {
+    return "bg-destructive/12 text-destructive";
+  }
 
-  if (category === "subscription") {
+  if (status === "subscribed") {
     return "bg-[rgba(10,105,37,0.12)] text-[#067429]";
   }
 
-  return "bg-black/6 text-[#010a04]/70";
+  if (status === "requested") {
+    return "bg-blue-500/12 text-blue-600";
+  }
+
+  return "bg-muted text-muted-foreground";
 }
 
 function statusLabel(t: (key: string) => string, status?: ClubSubscriptionStatus): string {
-  const category = toSidebarStatusCategory(status);
-  return category === "subscription"
-    ? t("manageClub.statusSubscription")
-    : t("manageClub.statusNothing");
+  if (status === "renewal_needed") {
+    return t("manageClub.statusRenewalNeeded");
+  }
+  if (status === "subscribed") {
+    return t("manageClub.statusSubscribed");
+  }
+  if (status === "requested") {
+    return t("manageClub.statusRequested");
+  }
+  return t("manageClub.statusNothing");
+}
+
+interface StatusFilterSelectProps {
+  value: SidebarStatusFilter;
+  onChange: (value: string) => void;
+  t: (key: string) => string;
+  className?: string;
+}
+
+function StatusFilterSelect({ value, onChange, t, className }: StatusFilterSelectProps) {
+  return (
+    <Select value={value} onValueChange={onChange}>
+      <SelectTrigger
+        className={cn(
+          "h-[34px] rounded-[8px] border-black/10 text-[13px] text-[#010a04]",
+          className,
+        )}
+      >
+        <SelectValue placeholder={t("manageClub.allStatus")} />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectItem value="all">{t("manageClub.allStatus")}</SelectItem>
+           <SelectItem value="subscribed">{t("manageClub.statusSubscribed")}</SelectItem>
+           <SelectItem value="renewal_needed">{t("manageClub.statusRenewalNeeded")}</SelectItem>
+           <SelectItem value="requested">{t("manageClub.statusRequested")}</SelectItem>
+           <SelectItem value="nothing">{t("manageClub.statusNothing")}</SelectItem>
+      </SelectContent>
+    </Select>
+  );
 }
 
 export function ManageClubSidebar({
@@ -98,37 +134,23 @@ export function ManageClubSidebar({
             </div>
             {isSuperAdminView && (
               <div className="hidden sm:block">
-                <Select
+                <StatusFilterSelect
                   value={statusFilter}
-                  onValueChange={handleStatusFilterChange}
-                >
-                  <SelectTrigger className="h-[34px] w-[132px] rounded-[8px] border-black/10 text-[13px] text-[#010a04]">
-                    <SelectValue placeholder={t("manageClub.allStatus")} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">{t("manageClub.allStatus")}</SelectItem>
-                    <SelectItem value="subscription">{t("manageClub.statusSubscription")}</SelectItem>
-                    <SelectItem value="no_subscription">{t("manageClub.statusNothing")}</SelectItem>
-                  </SelectContent>
-                </Select>
+                  onChange={handleStatusFilterChange}
+                  t={t}
+                  className="w-[132px]"
+                />
               </div>
             )}
           </div>
           {isSuperAdminView && (
             <div className="sm:hidden">
-              <Select
+              <StatusFilterSelect
                 value={statusFilter}
-                onValueChange={handleStatusFilterChange}
-              >
-                <SelectTrigger className="h-[34px] w-full rounded-[8px] border-black/10 text-[13px] text-[#010a04]">
-                  <SelectValue placeholder={t("manageClub.allStatus")} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">{t("manageClub.allStatus")}</SelectItem>
-                  <SelectItem value="subscription">{t("manageClub.statusSubscription")}</SelectItem>
-                  <SelectItem value="no_subscription">{t("manageClub.statusNothing")}</SelectItem>
-                </SelectContent>
-              </Select>
+                onChange={handleStatusFilterChange}
+                t={t}
+                className="w-full"
+              />
             </div>
           )}
         </div>

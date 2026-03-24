@@ -20,6 +20,7 @@ import {
 } from "@/pages/clubs/hooks";
 import { toast } from "sonner";
 import { UserSearchSelect } from "@/components/shared/UserSearchSelect";
+import { isAxiosError } from "axios";
 
 // Adjust this type if you already have a shared User type
 type User = {
@@ -45,33 +46,12 @@ function parseAddStaffRole(value: string): AddStaffRole | null {
 }
 
 function extractApiErrorMessage(err: unknown): string | null {
-  if (!err || typeof err !== "object") {
+  if (!isAxiosError(err)) {
     return null;
   }
 
-  if (!("response" in err)) {
-    return null;
-  }
-
-  const response = err.response;
-  if (!response || typeof response !== "object") {
-    return null;
-  }
-
-  if (!("data" in response)) {
-    return null;
-  }
-
-  const data = response.data;
-  if (!data || typeof data !== "object") {
-    return null;
-  }
-
-  if (!("message" in data)) {
-    return null;
-  }
-
-  return typeof data.message === "string" ? data.message : null;
+  const message = err.response?.data?.message;
+  return typeof message === "string" ? message : null;
 }
 
 export function AddAdminOrganiserModal({

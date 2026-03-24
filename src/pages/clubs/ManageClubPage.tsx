@@ -24,6 +24,8 @@ import { ManageClubSubscriptionBanners } from "@/pages/clubs/components/manage/M
 import { RequestSubscriptionRenewalModal } from "@/pages/clubs/components/manage/RequestSubscriptionRenewalModal";
 import { UpdatePremiumExpiryModal } from "@/pages/clubs/components/manage/UpdatePremiumExpiryModal";
 import { ManageClubInfoCard } from "@/pages/clubs/components/manage/ManageClubInfoCard";
+import { MainContentSkeleton } from "@/pages/clubs/components/manage/MainContentSkeleton";
+import { SidebarSkeleton } from "@/pages/clubs/components/manage/SidebarSkeleton";
 import type {
   ManageClubSidebarClub,
   SidebarStatusFilter,
@@ -49,12 +51,6 @@ function deriveSubscriptionStatus(
   return "subscribed";
 }
 
-function toSidebarStatusCategory(
-  status?: ClubSubscriptionStatus
-): Exclude<SidebarStatusFilter, "all"> {
-  return status === "subscribed" ? "subscription" : "no_subscription";
-}
-
 export default function ManageClubPage() {
   const { t } = useTranslation();
   const hasAccess = useHasRoleOrAbove(ROLES.ORGANISER);
@@ -68,26 +64,21 @@ export default function ManageClubPage() {
   const [statusFilter, setStatusFilter] = useState<SidebarStatusFilter>("all");
 
   const clubs = adminClubsData?.clubs ?? [];
-  const subscriptionsByClubId = useMemo(
-    () =>
-      new Map(
-        (clubSubscriptionsData?.clubs ?? []).map((club) => [
-          club.id,
-          {
-            status: club.subscription.status,
-            expiresAt: club.subscription.expiresAt,
-          },
-        ])
-      ),
-    [clubSubscriptionsData]
+  const subscriptionsByClubId = new Map(
+    (clubSubscriptionsData?.clubs ?? []).map((club) => [
+      club.id,
+      {
+        status: club.subscription.status,
+        expiresAt: club.subscription.expiresAt,
+      },
+    ])
   );
 
-  const clubsWithSubscriptionStatus = useMemo<ManageClubSidebarClub[]>(() => {
-    if (!hasSuperAdminAccess) {
-      return clubs;
-    }
-
-    return clubs.map((club) => {
+  let clubsWithSubscriptionStatus: ManageClubSidebarClub[];
+  if (!hasSuperAdminAccess) {
+    clubsWithSubscriptionStatus = clubs;
+  } else {
+    clubsWithSubscriptionStatus = clubs.map((club) => {
       const subscription = subscriptionsByClubId.get(club.id);
 
       return {
@@ -100,7 +91,7 @@ export default function ManageClubPage() {
         subscriptionExpiresAt: subscription?.expiresAt ?? null,
       };
     });
-  }, [clubs, hasSuperAdminAccess, subscriptionsByClubId]);
+  }
 
   const {
     selectedClub,
@@ -161,7 +152,7 @@ export default function ManageClubPage() {
     }
 
     return clubsWithResolvedSubscription.filter(
-      (club) => toSidebarStatusCategory(club.subscriptionStatus) === statusFilter
+      (club) => (club.subscriptionStatus ?? "nothing") === statusFilter
     );
   }, [clubsWithResolvedSubscription, hasSuperAdminAccess, statusFilter]);
   const staff = staffData?.staff ?? [];
@@ -216,63 +207,9 @@ export default function ManageClubPage() {
       <div className="flex w-full max-w-[1088px] flex-col gap-[25px] lg:flex-row lg:gap-[34px]">
         {isSidebarDataLoading ? (
           <>
-            <aside className="w-full lg:w-[312px]">
-              <div className="rounded-[12px] border border-black/8 bg-white px-[15px] py-6 shadow-[0px_3px_15px_0px_rgba(0,0,0,0.06)]">
-                <div className="animate-pulse space-y-4">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="space-y-2">
-                      <div className="h-6 w-32 rounded-md bg-[#edf2ed]" />
-                      <div className="h-3 w-36 rounded-md bg-[#edf2ed]" />
-                    </div>
-                    <div className="h-8 w-28 rounded-md bg-[#edf2ed]" />
-                  </div>
-
-                  <div className="space-y-2 rounded-[8px] border border-black/8 p-2">
-                    <div className="flex items-center gap-3 rounded-[8px] px-2 py-2">
-                      <div className="h-10 w-10 rounded-full bg-[#edf2ed]" />
-                      <div className="min-w-0 flex-1 space-y-2">
-                        <div className="h-4 w-32 rounded-md bg-[#edf2ed]" />
-                        <div className="h-3 w-24 rounded-md bg-[#edf2ed]" />
-                        <div className="h-3 w-20 rounded-md bg-[#edf2ed]" />
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3 rounded-[8px] px-2 py-2">
-                      <div className="h-10 w-10 rounded-full bg-[#edf2ed]" />
-                      <div className="min-w-0 flex-1 space-y-2">
-                        <div className="h-4 w-36 rounded-md bg-[#edf2ed]" />
-                        <div className="h-3 w-28 rounded-md bg-[#edf2ed]" />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="mt-4 hidden lg:block">
-                <ManageClubInfoCard />
-              </div>
-            </aside>
+            <SidebarSkeleton />
             <main className="flex-1">
-              <div className="rounded-[12px] border border-black/8 bg-white px-[15px] py-6 shadow-[0px_3px_15px_0px_rgba(0,0,0,0.06)] lg:px-3 lg:py-6">
-                <div className="animate-pulse space-y-4">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="space-y-2">
-                      <div className="h-6 w-52 rounded-md bg-[#edf2ed]" />
-                      <div className="h-3 w-44 rounded-md bg-[#edf2ed]" />
-                    </div>
-                    <div className="flex gap-2">
-                      <div className="h-8 w-28 rounded-md bg-[#edf2ed]" />
-                      <div className="h-8 w-36 rounded-md bg-[#edf2ed]" />
-                    </div>
-                  </div>
-
-                  <div className="space-y-3">
-                    <div className="h-16 rounded-[10px] bg-[#edf2ed]" />
-                    <div className="h-16 rounded-[10px] bg-[#edf2ed]" />
-                    <div className="h-16 rounded-[10px] bg-[#edf2ed]" />
-                  </div>
-
-                  <div className="h-14 rounded-[10px] bg-[#edf2ed]" />
-                </div>
-              </div>
+              <MainContentSkeleton />
             </main>
           </>
         ) : (
@@ -302,28 +239,7 @@ export default function ManageClubPage() {
                   <p className="text-muted-foreground">{t("manageClub.selectClubToManage")}</p>
                 </div>
               ) : isInitialClubDetailLoading ? (
-                <div className="rounded-[12px] border border-black/8 bg-white px-[15px] py-6 shadow-[0px_3px_15px_0px_rgba(0,0,0,0.06)] lg:px-3 lg:py-6">
-                  <div className="animate-pulse space-y-4">
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="space-y-2">
-                        <div className="h-6 w-52 rounded-md bg-[#edf2ed]" />
-                        <div className="h-3 w-44 rounded-md bg-[#edf2ed]" />
-                      </div>
-                      <div className="flex gap-2">
-                        <div className="h-8 w-28 rounded-md bg-[#edf2ed]" />
-                        <div className="h-8 w-36 rounded-md bg-[#edf2ed]" />
-                      </div>
-                    </div>
-
-                    <div className="space-y-3">
-                      <div className="h-16 rounded-[10px] bg-[#edf2ed]" />
-                      <div className="h-16 rounded-[10px] bg-[#edf2ed]" />
-                      <div className="h-16 rounded-[10px] bg-[#edf2ed]" />
-                    </div>
-
-                    <div className="h-14 rounded-[10px] bg-[#edf2ed]" />
-                  </div>
-                </div>
+                <MainContentSkeleton />
               ) : (
                 <>
                   <div className="rounded-[12px] border border-black/8 bg-white px-[15px] py-5 shadow-[0px_3px_15px_0px_rgba(0,0,0,0.06)] lg:px-3 lg:py-5">

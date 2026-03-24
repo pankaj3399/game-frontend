@@ -311,6 +311,10 @@
   "clubs": {
     "allClubs": "Alle Vereine",
     "searchPlaceholder": "Vereine nach Namen suchen...",
+    "searching": "Vereine werden gesucht...",
+    "noClubsForQuery": "Keine Vereine für \"{{query}}\" gefunden.",
+    "tryAnotherSearch": "Versuchen Sie eine andere Suche.",
+    "clearSearch": "Suche löschen",
     "manageClubs": "Vereine verwalten",
     "noClubsYet": "Noch keine Vereine.",
     "viewDetails": "Details anzeigen",

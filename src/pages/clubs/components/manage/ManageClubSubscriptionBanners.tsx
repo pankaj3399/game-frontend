@@ -23,6 +23,7 @@ export function ManageClubSubscriptionBanners({
   onRenew,
 }: ManageClubSubscriptionBannersProps) {
   const { t, i18n } = useTranslation();
+  const locale = getDateFnsLocale(i18n.language);
 
   let subscriptionBannerCopy: {
     key: "manageClub.subscriptionBannerUnknownExpiry" | "manageClub.subscriptionBannerExpiredOn" | "manageClub.subscriptionBannerExpiresOn",
@@ -36,7 +37,6 @@ export function ManageClubSubscriptionBanners({
       date: undefined,
     };
   } else {
-    const locale = getDateFnsLocale(i18n.language);
     const date = format(expiresAt, "PPP", { locale });
     if (isSubscriptionExpiredByLocalDay(expiresAt)) {
       subscriptionBannerCopy = {
@@ -65,7 +65,7 @@ export function ManageClubSubscriptionBanners({
           <div className="text-right">
             <p className="text-[13px] opacity-80">{t("manageClub.expiresOn")}</p>
             <p className="text-xl leading-none font-medium">
-              {subscription?.expiresAt ? format(subscription.expiresAt, "dd/MM/yyyy") : "--"}
+              {subscription?.expiresAt ? format(subscription.expiresAt, "PPP", { locale }) : "--"}
             </p>
           </div>
         </div>

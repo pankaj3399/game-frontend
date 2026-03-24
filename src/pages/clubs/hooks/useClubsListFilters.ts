@@ -3,13 +3,13 @@ import { useDebouncedValue } from "@/lib/hooks/useDebouncedValue";
 
 const DEFAULT_PAGE = 1;
 const DEFAULT_LIMIT = 12;
-const QUERY_DEBOUNCE_MS = 180;
+const QUERY_DEBOUNCE_MS = 200;
 
 export function useClubsListFilters() {
   const [page, setPageState] = useState(DEFAULT_PAGE);
   const [query, setQuery] = useState("");
   const debouncedQuery = useDebouncedValue(query, QUERY_DEBOUNCE_MS);
-
+  const trimmedQuery = debouncedQuery.trim();
   const setPage = (nextPage: number) => {
     setPageState(Math.max(1, nextPage));
   };
@@ -23,7 +23,7 @@ export function useClubsListFilters() {
     page,
     limit: DEFAULT_LIMIT,
     query,
-    debouncedQuery,
+    debouncedQuery: trimmedQuery,
     setPage,
     setQuery: setQueryValue,
   };
