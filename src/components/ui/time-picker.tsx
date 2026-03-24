@@ -192,12 +192,12 @@ export function TimePicker({
           variant="outline"
           disabled={disabled}
           className={cn(
-            "h-[42px] w-full justify-between rounded-[12px] border-[#e1e3e8] bg-[#f9fafc] px-[15px] text-left text-[14px] font-normal text-[#010a04] sm:h-[46px]",
+            "h-[38px] w-full justify-between rounded-[10px] border-[#e1e3e8] bg-[#f9fafc] px-3 text-left text-[13px] font-normal text-[#010a04] sm:h-[46px] sm:rounded-[12px] sm:px-[15px] sm:text-[14px]",
             !formatted && "text-[#010a04]/50"
           )}
         >
           <span>{formatted || effectivePlaceholder}</span>
-          <Clock className="h-5 w-5 shrink-0 text-[#010a04]/65" />
+          <Clock className="h-4 w-4 shrink-0 text-[#010a04]/65 sm:h-5 sm:w-5" />
         </Button>
       </PopoverTrigger>
       <PopoverContent

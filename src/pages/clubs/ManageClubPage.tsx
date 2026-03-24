@@ -28,7 +28,7 @@ export default function ManageClubPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const hasAccess = useHasRoleOrAbove(ROLES.ORGANISER);
-  const { user, isAuthenticated, isProfileComplete, loading } = useAuth();
+  const { isAuthenticated, isProfileComplete, loading } = useAuth();
   const { data: adminClubsData, isLoading: clubsLoading } = useAdminClubs(hasAccess);
 
   const clubs = adminClubsData?.clubs ?? [];
@@ -53,8 +53,7 @@ export default function ManageClubPage() {
     staffData?.subscription?.plan === "free" && !showSubscriptionBanner;
   const canAddStaff =
     staffData != null && staffData.subscription?.plan !== "free";
-  const isClubAdminOrOrganiserOnly =
-    user?.role === ROLES.CLUB_ADMIN || user?.role === ROLES.ORGANISER;
+  const canManagePremiumExpiry = useHasRoleOrAbove(ROLES.SUPER_ADMIN);
 
   const handleUpdateClubSubscription = async (selectedExpiryDate: Date) => {
     try {
@@ -76,7 +75,7 @@ export default function ManageClubPage() {
     setPremiumExpiryModalOpen(true);
   };
 
-  const handleRequestSubscriptionRenewal = async (_selectedExpiryDate: Date) => {
+  const handleRequestSubscriptionRenewal = async () => {
     // Notification-only: no API accepts this date yet for club-admin renewal requests.
     toast.success(t("manageClub.renewRequestSent"));
     setPremiumExpiryModalOpen(false);
@@ -164,7 +163,7 @@ export default function ManageClubPage() {
         existingStaffIds={existingStaffIds}
       />
 
-      {isClubAdminOrOrganiserOnly ? (
+      {!canManagePremiumExpiry ? (
         <RequestSubscriptionRenewalModal
           open={premiumExpiryModalOpen}
           onOpenChange={setPremiumExpiryModalOpen}

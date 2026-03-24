@@ -36,21 +36,21 @@ export function BasicInfoTab({ form, clubs, update }: BasicInfoTabProps) {
 
   return (
     <TabsContent value="basic" className="mt-0">
-      <div className="space-y-5">
-        <div className="space-y-[10px]">
-          <Label className="text-[15px] font-medium text-[#010a04]">
+      <div className="space-y-3 sm:space-y-5">
+        <div className="space-y-2 sm:space-y-[10px]">
+          <Label className="text-[13px] font-medium text-[#010a04] sm:text-[15px]">
             {t("tournaments.tournamentName")} *
           </Label>
           <Input
             placeholder={t("tournaments.enterName")}
             value={form.name}
             onChange={(e) => update({ name: e.target.value })}
-            className="h-[42px] rounded-[12px] border-[#e1e3e8] bg-[#f9fafc] px-[15px] text-[14px] text-[#010a04] placeholder:text-[#010a04]/50 sm:h-[46px]"
+            className="h-[38px] rounded-[10px] border-[#e1e3e8] bg-[#f9fafc] px-3 text-[13px] text-[#010a04] placeholder:text-[#010a04]/50 sm:h-[46px] sm:rounded-[12px] sm:px-[15px] sm:text-[14px]"
           />
         </div>
 
-        <div className="space-y-3">
-          <Label className="text-[15px] font-medium text-[#010a04]">
+        <div className="space-y-2 sm:space-y-3">
+          <Label className="text-[13px] font-medium text-[#010a04] sm:text-[15px]">
             {t("tournaments.tournamentType")} *
           </Label>
           <Select
@@ -61,7 +61,7 @@ export function BasicInfoTab({ form, clubs, update }: BasicInfoTabProps) {
 
             }}
           >
-            <SelectTrigger className="h-[42px] w-full rounded-[12px] border-[#e1e3e8] bg-[#f9fafc] px-[15px] text-[16px] font-medium text-[#010a04] sm:h-[46px]">
+            <SelectTrigger className="h-[38px] w-full rounded-[10px] border-[#e1e3e8] bg-[#f9fafc] px-3 text-[14px] font-medium text-[#010a04] sm:h-[46px] sm:rounded-[12px] sm:px-[15px] sm:text-[16px]">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -74,15 +74,15 @@ export function BasicInfoTab({ form, clubs, update }: BasicInfoTabProps) {
           </Select>
         </div>
 
-        <div className="space-y-3">
-          <Label className="text-[15px] font-medium text-[#010a04]">
+        <div className="space-y-2 sm:space-y-3">
+          <Label className="text-[13px] font-medium text-[#010a04] sm:text-[15px]">
             {t("tournaments.selectClub")}
           </Label>
-          <p className="text-[14px] leading-[1.4] text-[#010a04]/60">
+          <p className="text-[12px] leading-[1.35] text-[#010a04]/60 sm:text-[14px] sm:leading-[1.4]">
             {t("tournaments.selectClubHint")}
           </p>
           <Select value={form.club} onValueChange={(v) => update({ club: v, sponsor: null })}>
-            <SelectTrigger className="h-[42px] w-full rounded-[12px] border-[#e1e3e8] bg-[#f9fafc] px-[15px] text-[16px] font-medium text-[#010a04] sm:h-[46px]">
+            <SelectTrigger className="h-[38px] w-full rounded-[10px] border-[#e1e3e8] bg-[#f9fafc] px-3 text-[14px] font-medium text-[#010a04] sm:h-[46px] sm:rounded-[12px] sm:px-[15px] sm:text-[16px]">
               <SelectValue placeholder={t("tournaments.chooseClub")} />
             </SelectTrigger>
             <SelectContent>
@@ -97,9 +97,9 @@ export function BasicInfoTab({ form, clubs, update }: BasicInfoTabProps) {
 
         {form.tournamentMode === "singleDay" && (
           <>
-            <div className="grid grid-cols-1 gap-[14px] sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-[14px]">
               <div>
-                <Label className="text-[15px] font-medium text-[#010a04]">
+                <Label className="text-[13px] font-medium text-[#010a04] sm:text-[15px]">
                   {t("tournaments.date")} *
                 </Label>
                 <Popover>
@@ -107,7 +107,7 @@ export function BasicInfoTab({ form, clubs, update }: BasicInfoTabProps) {
                     <Button
                       variant="outline"
                       className={cn(
-                        "mt-[10px] h-[42px] w-full justify-between rounded-[12px] border-[#e1e3e8] bg-[#f9fafc] px-[15px] text-left text-[14px] font-normal text-[#010a04] sm:h-[46px]",
+                        "mt-2 h-[38px] w-full justify-between rounded-[10px] border-[#e1e3e8] bg-[#f9fafc] px-3 text-left text-[13px] font-normal text-[#010a04] sm:mt-[10px] sm:h-[46px] sm:rounded-[12px] sm:px-[15px] sm:text-[14px]",
                         !selectedDate && "text-[#010a04]/50"
                       )}
                     >
@@ -116,7 +116,7 @@ export function BasicInfoTab({ form, clubs, update }: BasicInfoTabProps) {
                           ? format(selectedDate, "dd/MM/yyyy")
                           : t("tournaments.datePlaceholder")}
                       </span>
-                      <CalendarIcon className="h-5 w-5 shrink-0 text-[#010a04]/65" />
+                      <CalendarIcon className="h-4 w-4 shrink-0 text-[#010a04]/65 sm:h-5 sm:w-5" />
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="start">
@@ -131,10 +131,10 @@ export function BasicInfoTab({ form, clubs, update }: BasicInfoTabProps) {
               </div>
 
               <div>
-                <Label className="text-[15px] font-medium text-[#010a04]">
+                <Label className="text-[13px] font-medium text-[#010a04] sm:text-[15px]">
                   {t("tournaments.startTime")} *
                 </Label>
-                <div className="mt-[10px]">
+                <div className="mt-2 sm:mt-[10px]">
                   <TimePicker
                     value={form.startTime ?? null}
                     onChange={(time) => update({ startTime: time })}
@@ -144,12 +144,12 @@ export function BasicInfoTab({ form, clubs, update }: BasicInfoTabProps) {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 gap-[14px] sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-[14px]">
               <div>
-                <Label className="text-[15px] font-medium text-[#010a04]">
+                <Label className="text-[13px] font-medium text-[#010a04] sm:text-[15px]">
                   {t("tournaments.endTime")} *
                 </Label>
-                <div className="mt-[10px]">
+                <div className="mt-2 sm:mt-[10px]">
                   <TimePicker
                     value={form.endTime ?? null}
                     onChange={(time) => update({ endTime: time })}
@@ -164,15 +164,15 @@ export function BasicInfoTab({ form, clubs, update }: BasicInfoTabProps) {
           </>
         )}
 
-        <div className="space-y-[10px]">
-          <Label className="text-[15px] font-medium text-[#010a04]">
+        <div className="space-y-2 sm:space-y-[10px]">
+          <Label className="text-[13px] font-medium text-[#010a04] sm:text-[15px]">
             {t("tournaments.description")}
           </Label>
           <textarea
             placeholder={t("tournaments.descriptionPlaceholder")}
             value={form.descriptionInfo ?? ""}
             onChange={(e) => update({ descriptionInfo: e.target.value })}
-            className="h-[90px] w-full rounded-[12px] border border-[#e1e3e8] bg-[#f9fafc] px-[15px] py-[15px] text-[14px] text-[#010a04] placeholder:text-[#010a04]/50 sm:h-[110px]"
+            className="h-[74px] w-full rounded-[10px] border border-[#e1e3e8] bg-[#f9fafc] px-3 py-3 text-[13px] text-[#010a04] placeholder:text-[#010a04]/50 sm:h-[110px] sm:rounded-[12px] sm:px-[15px] sm:py-[15px] sm:text-[14px]"
           />
         </div>
       </div>

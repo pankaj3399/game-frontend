@@ -274,6 +274,7 @@
     "renewNow": "Jetzt erneuern",
     "renewModalTitle": "Abonnement-Erneuerung anfordern",
     "renewModalDescription": "Dies sendet eine Erneuerungsanfrage an den Super-Admin. Nach der Genehmigung werden Ihre Premium-Funktionen wiederhergestellt.",
+    "renewModalCancel": "Abbrechen",
     "renewModalClose": "Schließen",
     "renewModalConfirm": "Bestätigen",
     "expiryModalTitle": "Premium-Ablauf aktualisieren",
