@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { Navigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import {
@@ -115,17 +115,16 @@ export default function ManageClubPage() {
     staffData === undefined;
   const updateClubSubscription = useUpdateClubSubscription(effectiveClubId);
 
-  const clubsWithResolvedSubscription = useMemo(() => {
-    if (!hasSuperAdminAccess || !effectiveClubId || !staffData?.subscription) {
-      return clubsWithSubscriptionStatus;
-    }
-
+  let clubsWithResolvedSubscription: ManageClubSidebarClub[];
+  if (!hasSuperAdminAccess || !effectiveClubId || !staffData?.subscription) {
+    clubsWithResolvedSubscription = clubsWithSubscriptionStatus;
+  } else {
     const resolvedStatus = deriveSubscriptionStatus(
       staffData.subscription.plan,
       staffData.subscription.expiresAt
     );
 
-    return clubsWithSubscriptionStatus.map((club) => {
+    clubsWithResolvedSubscription = clubsWithSubscriptionStatus.map((club) => {
       if (club.id !== effectiveClubId) {
         return club;
       }
@@ -139,22 +138,14 @@ export default function ManageClubPage() {
             : null,
       };
     });
-  }, [
-    clubsWithSubscriptionStatus,
-    effectiveClubId,
-    hasSuperAdminAccess,
-    staffData?.subscription,
-  ]);
+  }
 
-  const visibleClubs = useMemo(() => {
-    if (!hasSuperAdminAccess || statusFilter === "all") {
-      return clubsWithResolvedSubscription;
-    }
-
-    return clubsWithResolvedSubscription.filter(
-      (club) => (club.subscriptionStatus ?? "nothing") === statusFilter
-    );
-  }, [clubsWithResolvedSubscription, hasSuperAdminAccess, statusFilter]);
+  const visibleClubs =
+    !hasSuperAdminAccess || statusFilter === "all"
+      ? clubsWithResolvedSubscription
+      : clubsWithResolvedSubscription.filter(
+          (club) => (club.subscriptionStatus ?? "nothing") === statusFilter
+        );
   const staff = staffData?.staff ?? [];
   const existingStaffIds = staff.map((s) => s.id);
   const showSubscriptionBanner = shouldShowSubscriptionBanner(staffData?.subscription);
