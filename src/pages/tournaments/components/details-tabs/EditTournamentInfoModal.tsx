@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { CheckCircle2, Circle } from "lucide-react";
 import { toast } from "sonner";
 import { useAdminClubs } from "@/pages/clubs/hooks";
 import { useClubSponsors } from "@/pages/sponsors/hooks";
@@ -12,7 +11,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogDescription,
 } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import InlineLoader from "@/components/shared/InlineLoader";
@@ -24,44 +22,64 @@ interface EditTournamentInfoModalProps {
   tournament: TournamentDetail;
 }
 
-function SponsorCard({
-  selected,
+function SponsorIndicator({ selected }: { selected: boolean }) {
+  return (
+    <span
+      className={`flex h-5 w-5 items-center justify-center rounded-full border transition ${
+        selected ? "border-[#0a6925]" : "border-[rgba(1,10,4,0.15)]"
+      }`}
+      aria-hidden="true"
+    >
+      <span className={`h-2.5 w-2.5 rounded-full ${selected ? "bg-[#0a6925]" : "bg-transparent"}`} />
+    </span>
+  );
+}
+
+function SponsorOption({
   title,
   subtitle,
-  logoUrl,
+  selected,
   onClick,
+  logoUrl,
+  compact = false,
+  disabled = false,
 }: {
-  selected: boolean;
   title: string;
   subtitle?: string;
-  logoUrl?: string | null;
+  selected: boolean;
   onClick: () => void;
+  logoUrl?: string | null;
+  compact?: boolean;
+  disabled?: boolean;
 }) {
   return (
-    <Button
-      variant="outline"
+    <button
+      type="button"
+      disabled={disabled}
+      aria-pressed={selected}
+      aria-disabled={disabled}
       onClick={onClick}
-      className={`h-auto w-full justify-between rounded-lg p-3 text-left transition ${
+      className={`w-full rounded-[12px] border text-left transition ${
         selected
-          ? "border-brand-primary bg-brand-primary/5"
-          : "border-border bg-background hover:bg-muted/60"
-      }`}
+          ? "border-[1.5px] border-[#067429] bg-[rgba(10,105,37,0.05)]"
+          : "border border-[#e1e3e8] bg-[#f9fafc]"
+      } ${disabled ? "cursor-not-allowed opacity-[0.92]" : ""} ${compact ? "h-[50px] px-[13px] py-3" : "px-[13px] py-3"}`}
     >
-      <div className="flex min-w-0 items-center gap-3">
-        <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-md border border-border bg-muted">
-          {logoUrl ? <img src={logoUrl} alt={title} className="h-full w-full object-cover" /> : null}
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex min-w-0 items-center gap-3">
+          {!compact ? (
+            <div className="h-[45px] w-[45px] shrink-0 overflow-hidden rounded-[8px] bg-[#d9d9d9]">
+              {logoUrl ? <img src={logoUrl} alt="" className="h-full w-full object-cover" /> : null}
+            </div>
+          ) : null}
+          <div className="min-w-0">
+            <p className="truncate text-[16px] font-medium leading-none text-[#010a04]">{title}</p>
+            {subtitle ? <p className="mt-[7px] truncate text-[14px] leading-none text-[#010a04]/70">{subtitle}</p> : null}
+          </div>
         </div>
-        <div className="min-w-0">
-          <p className="truncate text-sm font-medium leading-tight text-foreground">{title}</p>
-          {subtitle ? <p className="mt-0.5 truncate text-xs leading-tight text-muted-foreground">{subtitle}</p> : null}
-        </div>
+        <SponsorIndicator selected={selected} />
       </div>
-      {selected ? (
-        <CheckCircle2 className="h-5 w-5 shrink-0 text-brand-primary" />
-      ) : (
-        <Circle className="h-5 w-5 shrink-0 text-muted-foreground" />
-      )}
-    </Button>
+    </button>
   );
 }
 
@@ -74,10 +92,12 @@ export function EditTournamentInfoModal({ open, onOpenChange, tournament }: Edit
     clubId: tournament.club?.id ?? "",
     sponsorId: tournament.sponsor?.id ?? "",
   };
+
   const [selection, setSelection] = useState<{
     clubId: string;
     sponsorId: string;
   } | null>(null);
+
   const selectedClubId = selection?.clubId ?? initialSelection.clubId;
   const selectedSponsorId = selection?.sponsorId ?? initialSelection.sponsorId;
 
@@ -91,18 +111,57 @@ export function EditTournamentInfoModal({ open, onOpenChange, tournament }: Edit
   const { data: sponsorsData, isLoading: isSponsorsLoading } = useClubSponsors(selectedClubId || null);
   const sponsors = sponsorsData?.sponsors ?? [];
   const activeSponsors = sponsors.filter((sponsor) => sponsor.status === "active");
+  const selectedInActiveSponsors =
+    Boolean(selectedSponsorId) && activeSponsors.some((s) => s.id === selectedSponsorId);
+  const sponsorFromList = sponsors.find((s) => s.id === selectedSponsorId);
+  const sponsorFromTournament =
+    tournament.sponsor?.id === selectedSponsorId ? tournament.sponsor : null;
+  const fallbackSponsor =
+    !isSponsorsLoading &&
+    selectedClubId &&
+    selectedSponsorId &&
+    !selectedInActiveSponsors &&
+    (sponsorFromList || sponsorFromTournament)
+      ? {
+          id: selectedSponsorId,
+          name: sponsorFromList?.name ?? sponsorFromTournament?.name ?? t("tournaments.unknownSponsor"),
+          logoUrl: sponsorFromList?.logoUrl ?? sponsorFromTournament?.logoUrl ?? null,
+        }
+      : null;
 
-  const hasChanges = selectedClubId !== initialSelection.clubId || selectedSponsorId !== initialSelection.sponsorId;
+  const hasChanges =
+    selectedClubId !== initialSelection.clubId || selectedSponsorId !== initialSelection.sponsorId;
+
+  const isMutating = updateTournament.isPending;
+
+  const resetSelection = () => {
+    setSelection(null);
+  };
+
+  const closeModal = () => {
+    resetSelection();
+    onOpenChange(false);
+  };
+
+  const handleOpenChange = (nextOpen: boolean) => {
+    if (!nextOpen && isMutating) {
+      return;
+    }
+    if (!nextOpen) {
+      resetSelection();
+    }
+    onOpenChange(nextOpen);
+  };
 
   const handleClubChange = (clubId: string) => {
+    if (isMutating) return;
     setSelection({ clubId, sponsorId: "" });
   };
 
   const handleSave = async () => {
+    if (isMutating) return;
 
-    if (updateTournament.isPending) return;
-
-    if (!hasChanges || !selectedClubId) {
+    if (!hasChanges) {
       return;
     }
 
@@ -114,121 +173,138 @@ export function EditTournamentInfoModal({ open, onOpenChange, tournament }: Edit
     try {
       await updateTournament.mutateAsync({ id: tournament.id, data: payload });
       toast.success(t("settings.saveSuccess"));
-      onOpenChange(false);
+      closeModal();
     } catch (error: unknown) {
       toast.error(getErrorMessage(error) ?? t("tournaments.saveError"));
     }
   };
 
   return (
-    <Dialog
-      open={open}
-      onOpenChange={(nextOpen) => {
-        if (!nextOpen) {
-          setSelection(null);
-        }
-        onOpenChange(nextOpen);
-      }}
-    >
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent
-        className="max-w-2xl gap-0 rounded-xl border border-border p-0 shadow-xl [&_[aria-label='Close']]:right-4 [&_[aria-label='Close']]:top-4 [&_[aria-label='Close']]:text-muted-foreground"
+        className="max-w-[513px] gap-0 overflow-hidden rounded-[12px] border border-[rgba(1,10,4,0.08)] bg-white p-0 shadow-[0px_3px_15px_0px_rgba(0,0,0,0.06)] [&_[aria-label='Close']]:right-4 [&_[aria-label='Close']]:top-[18px] [&_[aria-label='Close']]:text-[#010a04]/70"
         showCloseButton={true}
       >
-        <DialogHeader className="border-b border-border px-6 py-5">
-          <DialogTitle className="text-3xl font-semibold tracking-tight text-foreground">
-            {t("tournaments.editTournamentInfo")}
-          </DialogTitle>
-          <DialogDescription className="pt-1 text-sm text-muted-foreground">
-            {tournament.name}
-          </DialogDescription>
-        </DialogHeader>
+        <div className="px-[15px] pt-5">
+          <DialogHeader className="pb-[18px]">
+            <DialogTitle className="text-[21px] font-semibold leading-none text-[#010a04]">
+              {t("tournaments.editTournamentInfo")}
+            </DialogTitle>
+          </DialogHeader>
+        </div>
+        <div className="h-px w-full bg-[#010a04]/10" />
 
-        <div className="space-y-5 px-6 py-5">
-          <div className="space-y-5 rounded-xl border border-border bg-muted/20 p-4">
-            <div>
-              <h3 className="text-sm font-semibold text-foreground">{t("tournaments.selectClub")}</h3>
-              <DialogDescription className="mt-1 max-w-[560px] text-xs leading-relaxed text-muted-foreground">
-                {t("tournaments.editClubHint")}
-              </DialogDescription>
-              <Select value={selectedClubId} onValueChange={handleClubChange}>
-                <SelectTrigger className="mt-2 h-11 w-full border-border bg-background text-foreground">
-                  <SelectValue placeholder={t("tournaments.chooseClub")} />
-                </SelectTrigger>
-                <SelectContent>
-                  {clubsWithFallback.map((club) => (
-                    <SelectItem key={club.id} value={club.id}>
-                      {club.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+        <div className="space-y-[25px] px-[15px] py-5">
+          <div className="space-y-3">
+            <div className="space-y-1.5 text-[#010a04]">
+              <p className="text-[16px] font-medium leading-none">{t("tournaments.selectClub")}</p>
+              <p className="text-[14px] leading-[1.4] text-[#010a04]/60">{t("tournaments.editClubHint")}</p>
             </div>
+
+            <Select value={selectedClubId} onValueChange={handleClubChange} disabled={isMutating}>
+              <SelectTrigger
+                className="h-[46px] w-full rounded-[12px] border-[#e1e3e8] bg-[#f9fafc] px-[15px] text-[16px] font-medium text-[#010a04]"
+                disabled={isMutating}
+              >
+                <SelectValue placeholder={t("tournaments.chooseClub")} />
+              </SelectTrigger>
+              <SelectContent>
+                {clubsWithFallback.map((club) => (
+                  <SelectItem key={club.id} value={club.id}>
+                    {club.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
-          <div className="space-y-3 rounded-xl border border-border bg-muted/20 p-4">
-            <div>
-              <h3 className="text-sm font-semibold text-foreground">{t("tournaments.selectSponsor")}</h3>
-              <p className="mt-1 max-w-[560px] text-xs leading-relaxed text-muted-foreground">{t("tournaments.selectSponsorHint")}</p>
+          <div className="h-px w-full bg-[#010a04]/10" />
+
+          <div className="space-y-[14px]">
+            <div className="space-y-1 text-[#010a04]">
+              <p className="text-[18px] font-semibold leading-[1.4]">{t("tournaments.selectSponsor")}</p>
+              <p className="text-[14px] leading-[1.4] text-[#010a04]/60">{t("tournaments.selectSponsorHint")}</p>
             </div>
-            <div
-              className={`max-h-[280px] space-y-2 overflow-y-auto rounded-lg border border-border bg-background p-2 ${
-                !selectedClubId ? "pointer-events-none opacity-50" : ""
-                }`}
-            >
+
+            <div className="max-h-[290px] space-y-3 overflow-y-auto pr-0.5">
+              <SponsorOption
+                title={t("tournaments.noSponsor")}
+                selected={selectedSponsorId === ""}
+                disabled={isMutating}
+                onClick={() => {
+                  if (isMutating) return;
+                  setSelection((prev) => ({ ...(prev ?? initialSelection), sponsorId: "" }));
+                }}
+                compact
+              />
+
               {isSponsorsLoading ? (
-                <div className="flex min-h-24 items-center justify-center">
+                <div className="flex h-[74px] items-center justify-center rounded-[12px] border border-[#e1e3e8] bg-[#f9fafc]">
                   <InlineLoader />
+                </div>
+              ) : !selectedClubId ? (
+                <div className="rounded-[12px] border border-[#e1e3e8] bg-[#f9fafc] px-[13px] py-5 text-[14px] text-[#010a04]/70">
+                  {t("tournaments.selectClubFirst")}
                 </div>
               ) : (
                 <>
-                  <SponsorCard
-                    selected={selectedSponsorId === ""}
-                    title={t("tournaments.noSponsor")}
-                    onClick={() =>
-                      setSelection((prev) => ({ ...(prev ?? initialSelection), sponsorId: "" }))
-                    }
-                  />
-
-                  {activeSponsors.length === 0 ? (
-                    <p className="rounded-md px-3 py-2 text-xs text-muted-foreground">
-                      {t("tournaments.noSponsors")}
-                    </p>
-                  ) : null}
-
-                  {activeSponsors.map((sponsor) => (
-                    <SponsorCard
-                      key={sponsor.id}
-                      selected={selectedSponsorId === sponsor.id}
-                      title={sponsor.name}
-                      subtitle={t("tournaments.statusActive")}
-                      logoUrl={sponsor.logoUrl}
-                      onClick={() =>
-                        setSelection((prev) => ({ ...(prev ?? initialSelection), sponsorId: sponsor.id }))
-                      }
+                  {fallbackSponsor ? (
+                    <SponsorOption
+                      key={`fallback-${fallbackSponsor.id}`}
+                      title={fallbackSponsor.name}
+                      subtitle={t("tournaments.officialSponsor")}
+                      selected
+                      disabled
+                      onClick={() => {}}
+                      logoUrl={fallbackSponsor.logoUrl}
                     />
-                  ))}
+                  ) : null}
+                  {activeSponsors.length === 0 && !fallbackSponsor ? (
+                    <div className="rounded-[12px] border border-[#e1e3e8] bg-[#f9fafc] px-[13px] py-5 text-[14px] text-[#010a04]/70">
+                      {t("tournaments.noSponsors")}
+                    </div>
+                  ) : (
+                    activeSponsors.map((sponsor) => (
+                      <SponsorOption
+                        key={sponsor.id}
+                        title={sponsor.name}
+                        subtitle={
+                          selectedSponsorId === sponsor.id
+                            ? t("tournaments.officialSponsor")
+                            : t("tournaments.statusActive")
+                        }
+                        selected={selectedSponsorId === sponsor.id}
+                        disabled={isMutating}
+                        onClick={() => {
+                          if (isMutating) return;
+                          setSelection((prev) => ({ ...(prev ?? initialSelection), sponsorId: sponsor.id }));
+                        }}
+                        logoUrl={sponsor.logoUrl}
+                      />
+                    ))
+                  )}
                 </>
               )}
             </div>
           </div>
-        </div>
 
-        <div className="flex items-center gap-3 border-t border-border bg-muted/10 px-6 py-4">
-          <Button
-            variant="outline"
-            className="h-11 flex-1 border-border text-sm font-medium"
-            onClick={() => onOpenChange(false)}
-            disabled={updateTournament.isPending}
-          >
-            {t("tournaments.cancel")}
-          </Button>
-          <Button
-            className="h-11 flex-1 bg-brand-primary text-sm font-semibold text-brand-primary-foreground hover:bg-brand-primary-hover"
-            onClick={handleSave}
-            disabled={!hasChanges || updateTournament.isPending}
-          >
-            {updateTournament.isPending ? t("common.loading") : t("settings.saveChanges")}
-          </Button>
+          <div className="flex items-center gap-3 pt-1">
+            <Button
+              variant="outline"
+              className="h-[38px] flex-1 rounded-[8px] border border-[rgba(0,0,0,0.15)] bg-transparent px-4 text-[16px] font-medium leading-[20px] text-[#010a04] hover:bg-[#f8f8f8]"
+              onClick={() => handleOpenChange(false)}
+              disabled={isMutating}
+            >
+              {t("tournaments.cancel")}
+            </Button>
+            <Button
+              className="h-[38px] flex-1 rounded-[8px] bg-gradient-to-r from-[#0a6925] via-[#0c7b2c] to-[#0f8d33] px-4 text-[16px] font-medium leading-[20px] text-white hover:brightness-95"
+              onClick={handleSave}
+              disabled={!hasChanges || isMutating}
+            >
+              {isMutating ? t("common.loading") : t("settings.saveChanges")}
+            </Button>
+          </div>
         </div>
       </DialogContent>
     </Dialog>

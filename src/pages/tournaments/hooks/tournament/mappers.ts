@@ -22,7 +22,7 @@ export function toBackendCreateInput(data: CreateTournamentInput): BackendCreate
     club: data.club,
     name: data.name,
     status: data.status,
-    sponsor: data.sponsor ?? null,
+    sponsor: data.sponsor && data.sponsor.trim() !== "" ? data.sponsor : undefined,
     logo: data.logo,
     date: data.date ?? undefined,
     startTime: data.startTime ?? undefined,
@@ -43,7 +43,12 @@ export function toBackendCreateInput(data: CreateTournamentInput): BackendCreate
 export function toBackendUpdateInput(data: UpdateTournamentInput): BackendUpdateTournamentInput {
   return backendUpdateTournamentInputSchema.parse({
     club: data.club,
-    sponsor: data.sponsor && data.sponsor.trim() !== "" ? data.sponsor : null,
+    sponsor:
+      data.sponsor === null
+        ? null
+        : typeof data.sponsor === "string" && data.sponsor.trim() !== ""
+          ? data.sponsor
+          : undefined,
     name: data.name,
     logo: data.logo,
     date: data.date,

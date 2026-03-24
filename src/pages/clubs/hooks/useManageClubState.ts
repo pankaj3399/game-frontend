@@ -25,14 +25,16 @@ export function useManageClubState(clubs: AdminClub[]) {
   const [premiumExpiryModalOpen, setPremiumExpiryModalOpen] = useState(false);
 
   const fallbackClubId = clubs[0]?.id ?? null;
-  const resolvedClubId = selectedClubId ?? fallbackClubId;
+  const hasSelectedClub =
+    selectedClubId != null && clubs.some((club) => club.id === selectedClubId);
+  const resolvedClubId = hasSelectedClub ? selectedClubId : fallbackClubId;
 
   const selectedClub = useMemo(
     () => clubs.find((club) => club.id === resolvedClubId) ?? null,
     [clubs, resolvedClubId]
   );
 
-  const effectiveClubId = selectedClub?.id ?? resolvedClubId;
+  const effectiveClubId = selectedClub?.id ?? null;
 
   return {
     selectedClubId,

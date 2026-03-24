@@ -21,6 +21,7 @@ export interface TournamentFiltersState {
 export type TournamentFiltersAction =
   | { type: "SET_TAB"; payload: TournamentListTab }
   | { type: "SET_STATUS"; payload?: TournamentStatus }
+  | { type: "SET_QUERY"; payload?: string }
   | { type: "SET_PAGE"; payload: number };
 
 export const DEFAULT_TOURNAMENT_FILTERS_STATE: TournamentFiltersState = {
@@ -56,6 +57,15 @@ export function filtersReducer(
           ...state.filters,
           page: 1,
           status: action.payload,
+        },
+      };
+    case "SET_QUERY":
+      return {
+        ...state,
+        filters: {
+          ...state.filters,
+          page: 1,
+          q: action.payload,
         },
       };
     case "SET_PAGE":

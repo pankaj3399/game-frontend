@@ -30,6 +30,7 @@ function TournamentListContent() {
     setFiltersOpen,
     setTab,
     setStatusFromValue,
+    setQuery,
     setPage,
   } = useTournamentFilters({ isOrganiserOrAbove });
   const {
@@ -60,28 +61,30 @@ function TournamentListContent() {
   const editTournamentId = isEditModal ? modal.id : null;
 
   return (
-    <div className="flex min-h-[calc(100vh-4rem)] flex-col bg-gray-50">
-      <div className="mx-auto w-full max-w-6xl flex-1 p-4 sm:p-6">
-        <div className="rounded-lg border bg-white shadow-sm">
-          <div className="flex flex-col gap-4 border-b border-border px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
-              <h1 className="text-xl font-semibold text-foreground">
+    <div className="flex min-h-[calc(100vh-4rem)] flex-col bg-brand-primary/[0.03]">
+      <div className="mx-auto w-full max-w-[1060px] flex-1 px-4 py-8 sm:px-6">
+        <div className="overflow-y-hidden overflow-x-auto rounded-[12px] border border-black/10 bg-white shadow-sm">
+          <div className="px-4 py-3 sm:px-5 sm:py-3.5">
+            <div className="flex items-center justify-between">
+              <h1 className="text-xl font-semibold leading-tight text-foreground">
                 {t("tournaments.allTournaments")}
               </h1>
+              <TournamentActions
+                filtersOpen={filtersOpen}
+                onFiltersOpenChange={setFiltersOpen}
+                query={filters.q ?? ""}
+                status={filters.status}
+                canShowStatusFilter={canShowStatusFilter}
+                onQueryChange={setQuery}
+                onStatusChange={setStatusFromValue}
+                onCreate={openCreateModal}
+              />
             </div>
-            <div className="flex items-center gap-2">
+            <div className="mt-3">
               <TournamentTabs
                 visible={isOrganiserOrAbove}
                 activeTab={activeTab}
                 onTabChange={setTab}
-              />
-              <TournamentActions
-                filtersOpen={filtersOpen}
-                onFiltersOpenChange={setFiltersOpen}
-                status={filters.status}
-                canShowStatusFilter={canShowStatusFilter}
-                onStatusChange={setStatusFromValue}
-                onCreate={openCreateModal}
               />
             </div>
           </div>

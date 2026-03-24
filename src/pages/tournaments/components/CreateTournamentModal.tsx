@@ -51,7 +51,6 @@ export function CreateTournamentModal({
   const isEditMode = mode === "edit";
 
   const [formUpdates, setFormUpdates] = useState<Partial<CreateTournamentInput> | null>(null);
-  const [activeTab, setActiveTab] = useState("basic");
 
   const createTournament = useCreateTournament();
   const updateTournament = useUpdateTournament();
@@ -77,12 +76,21 @@ export function CreateTournamentModal({
 
   const resetForm = () => {
     setFormUpdates(null);
-    setActiveTab("basic");
   };
 
-  const handleClose = (open: boolean) => {
-    if (!open) resetForm();
-    onOpenChange(open);
+  const closeModal = () => {
+    resetForm();
+    onOpenChange(false);
+  };
+
+  const handleClose = (nextOpen: boolean) => {
+    if (!nextOpen && isMutating) {
+      return;
+    }
+    if (!nextOpen) {
+      resetForm();
+    }
+    onOpenChange(nextOpen);
   };
 
   const handleSaveDraft = async () => {
@@ -99,7 +107,7 @@ export function CreateTournamentModal({
         await createTournament.mutateAsync(payload);
       }
       toast.success(t("tournaments.draftSaved"));
-      handleClose(false);
+      closeModal();
     } catch (err: unknown) {
       toast.error(getErrorMessage(err) ?? t("tournaments.saveError"));
     }
@@ -121,7 +129,7 @@ export function CreateTournamentModal({
         await createTournament.mutateAsync(payload);
       }
       toast.success(t("tournaments.published"));
-      handleClose(false);
+      closeModal();
     } catch (err: unknown) {
       toast.error(getErrorMessage(err) ?? t("tournaments.publishError"));
     }
@@ -130,59 +138,63 @@ export function CreateTournamentModal({
   return (
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent
-        className="max-w-[720px] max-h-[90vh] overflow-y-auto gap-0 rounded-xl border border-[#e5e7eb] p-0 shadow-xl [&_[aria-label='Close']]:right-4 [&_[aria-label='Close']]:top-4 [&_[aria-label='Close']]:h-7 [&_[aria-label='Close']]:w-7 [&_[aria-label='Close']]:text-[#6b7280] [&_[aria-label='Close']]:hover:bg-transparent [&_[aria-label='Close']]:hover:text-[#374151]"
+          className="max-h-[calc(100dvh-24px)] max-w-[390px] overflow-y-auto gap-0 rounded-[12px] border border-black/10 px-3 py-3 shadow-[0px_3px_15px_0px_rgba(0,0,0,0.06)] sm:max-w-[515px] sm:px-[15px] sm:py-5 [&_[aria-label='Close']]:right-0 [&_[aria-label='Close']]:top-0 [&_[aria-label='Close']]:h-5 [&_[aria-label='Close']]:w-5 sm:[&_[aria-label='Close']]:h-6 sm:[&_[aria-label='Close']]:w-6 [&_[aria-label='Close']]:text-[#010a04] [&_[aria-label='Close']]:hover:bg-transparent [&_[aria-label='Close']]:hover:text-[#010a04]"
         showCloseButton={true}
       >
-        <DialogHeader className="px-6 pt-5 pb-0">
-          <DialogTitle className="text-[24px] font-semibold tracking-[-0.01em]">
+        <DialogHeader className="pb-0">
+          <DialogTitle className="text-[21px] font-semibold leading-none text-[#010a04]">
             {isEditMode ? t("tournaments.editTournamentInfo") : t("tournaments.createNew")}
           </DialogTitle>
         </DialogHeader>
 
         {isEditMode && isTournamentLoading ? (
-          <div className="flex min-h-[320px] items-center justify-center px-6 py-8">
+          <div className="flex min-h-[320px] items-center justify-center py-8">
             <InlineLoader />
           </div>
         ) : (
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="mx-6 mt-3 h-auto w-fit rounded-md bg-[#f2f3f5] p-1">
+          <Tabs
+            key={`${mode}-${tournamentId ?? "create"}-${open ? "open" : "closed"}`}
+            defaultValue="basic"
+            className="w-full"
+          >
+          <TabsList className="mt-[18px] h-auto w-full rounded-[10px] bg-black/5 p-1 sm:w-fit">
             <TabsTrigger
               value="basic"
-              className="h-8 rounded-md px-4 text-[13px] font-medium text-[#6b7280] data-[state=active]:bg-white data-[state=active]:text-[#111827] data-[state=active]:shadow-sm"
+              className="h-[30px] flex-1 rounded-[8px] px-[15px] text-[14px] font-medium text-[#010a04] data-[state=active]:bg-white data-[state=active]:text-[#010a04] data-[state=active]:shadow-[0px_0px_4px_0px_rgba(0,0,0,0.04),0px_4px_8px_0px_rgba(0,0,0,0.06)] data-[state=inactive]:opacity-70 sm:flex-none"
             >
               {t("tournaments.tabBasicInfo")}
             </TabsTrigger>
             <TabsTrigger
               value="details"
-              className="h-8 rounded-md px-4 text-[13px] font-medium text-[#6b7280] data-[state=active]:bg-white data-[state=active]:text-[#111827] data-[state=active]:shadow-sm"
+              className="h-[30px] flex-1 rounded-[8px] px-[15px] text-[14px] font-medium text-[#010a04] data-[state=active]:bg-white data-[state=active]:text-[#010a04] data-[state=active]:shadow-[0px_0px_4px_0px_rgba(0,0,0,0.04),0px_4px_8px_0px_rgba(0,0,0,0.06)] data-[state=inactive]:opacity-70 sm:flex-none"
             >
               {t("tournaments.tabDetails")}
             </TabsTrigger>
             <TabsTrigger
               value="sponsor"
-              className="h-8 rounded-md px-4 text-[13px] font-medium text-[#6b7280] data-[state=active]:bg-white data-[state=active]:text-[#111827] data-[state=active]:shadow-sm"
+              className="h-[30px] flex-1 rounded-[8px] px-[15px] text-[14px] font-medium text-[#010a04] data-[state=active]:bg-white data-[state=active]:text-[#010a04] data-[state=active]:shadow-[0px_0px_4px_0px_rgba(0,0,0,0.04),0px_4px_8px_0px_rgba(0,0,0,0.06)] data-[state=inactive]:opacity-70 sm:flex-none"
             >
               {t("tournaments.tabSponsor")}
             </TabsTrigger>
           </TabsList>
 
-          <div className="px-6 py-4">
+          <div className="py-5">
             <BasicInfoTab form={form} clubs={clubs} update={update} />
             <DetailsTab form={form} update={update} />
             <SponsorTab form={form} sponsors={sponsors} update={update} />
           </div>
 
-          <div className="flex items-center gap-3 border-t border-[#e5e7eb] px-6 py-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
             <Button
               variant="outline"
               onClick={() => handleClose(false)}
-              className="h-11 flex-1 rounded-lg border-[#e5e7eb] text-[15px] font-medium text-[#374151] hover:bg-[#f9fafb]"
+              className="order-3 h-[46px] w-full rounded-[12px] border-black/12 text-[16px] font-medium text-[#010a04] hover:bg-transparent sm:order-1 sm:flex-1"
               disabled={isMutating}
             >
               {t("tournaments.cancel")}
             </Button>
             <Button
-              className="h-11 flex-1 rounded-lg border-0 bg-[#f4c542] text-[15px] font-semibold text-[#1f2937] hover:bg-[#e7b937]"
+              className="order-2 h-[46px] w-full rounded-[12px] border-0 bg-[#f4c95d] text-[16px] font-medium text-black hover:bg-[#e8bb4d] sm:flex-1"
               onClick={handleSaveDraft}
               disabled={isMutating || !form.club || !form.name.trim()}
             >
@@ -193,7 +205,7 @@ export function CreateTournamentModal({
               )}
             </Button>
             <Button
-              className="h-11 flex-1 rounded-lg bg-[#0a9f43] text-[15px] font-semibold text-white hover:bg-[#088a3a]"
+              className="order-1 h-[46px] w-full rounded-[12px] bg-gradient-to-r from-[#0a6925] via-[#0c7b2c] to-[#0f8d33] text-[16px] font-medium text-white hover:from-[#095f22] hover:via-[#0b7229] hover:to-[#0d812f] sm:order-3 sm:flex-1"
               onClick={handlePublish}
               disabled={isMutating || !form.club || !form.name.trim()}
             >

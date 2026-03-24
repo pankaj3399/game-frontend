@@ -13,37 +13,62 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Settings01Icon } from "@hugeicons/core-free-icons";
 
 interface TournamentFiltersProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  query: string;
   status?: string;
   canShowStatusFilter: boolean;
+  onQueryChange: (value: string) => void;
   onStatusChange: (value: string) => void;
 }
 
 export function TournamentFilters({
   open,
   onOpenChange,
+  query,
   status,
   canShowStatusFilter,
+  onQueryChange,
   onStatusChange,
 }: TournamentFiltersProps) {
   const { t } = useTranslation();
   const statusFilterLabelId = useId();
+  const queryFilterLabelId = useId();
 
   return (
     <Popover open={open} onOpenChange={onOpenChange}>
       <PopoverTrigger asChild>
-        <Button variant="outline" size="sm">
-          <HugeiconsIcon icon={Settings01Icon} size={16} className="mr-2" />
+        <Button
+          variant="outline"
+          size="sm"
+          className="h-[30px] rounded-[8px] border-black/10 bg-background px-[15px] text-[12px] font-medium"
+        >
+          <HugeiconsIcon icon={Settings01Icon} size={14} className="mr-0.5" />
           {t("tournaments.filters")}
         </Button>
       </PopoverTrigger>
       <PopoverContent align="end" className="w-64 p-4">
         <div className="space-y-4">
+          <div>
+            <label
+              id={queryFilterLabelId}
+              className="mb-2 block text-xs font-medium text-muted-foreground"
+            >
+              {t("tournaments.filterSearch")}
+            </label>
+            <Input
+              value={query}
+              onChange={(event) => onQueryChange(event.target.value)}
+              placeholder={t("tournaments.filterSearchPlaceholder")}
+              className="h-9"
+              aria-labelledby={queryFilterLabelId}
+            />
+          </div>
           {canShowStatusFilter && (
             <div>
               <label

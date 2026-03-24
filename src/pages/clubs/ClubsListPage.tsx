@@ -8,15 +8,20 @@ import { useClubsListData } from "@/pages/clubs/hooks/useClubsListData";
 import { useClubsListFilters } from "@/pages/clubs/hooks/useClubsListFilters";
 
 export default function ClubsListPage() {
-  const { page, limit, setPage } = useClubsListFilters();
-  const { clubs, pagination, isLoading } = useClubsListData({ page, limit });
+  const { page, limit, query, debouncedQuery, setPage, setQuery } = useClubsListFilters();
+  const { clubs, pagination, isLoading } = useClubsListData({
+    page,
+    limit,
+    q: debouncedQuery,
+  });
   const canManage = useHasRoleOrAbove(ROLES.ORGANISER);
+  const isSearching = query.trim() !== debouncedQuery.trim();
 
   return (
     <div className="flex min-h-[calc(100vh-4rem)] justify-center bg-gray-50">
       <div className="mx-auto w-full max-w-6xl p-4 sm:p-6">
         <div className="rounded-xl border border-border bg-white p-6 shadow-sm">
-          <ClubsListHeader canManage={canManage} />
+          <ClubsListHeader canManage={canManage} query={query} onQueryChange={setQuery} />
 
           {isLoading ? (
             <div className="flex justify-center py-16">
@@ -24,8 +29,15 @@ export default function ClubsListPage() {
             </div>
           ) : (
             <>
-              <ClubsGrid clubs={clubs} />
-              <ClubsPagination pagination={pagination} onPageChange={setPage} />
+              <ClubsGrid
+                clubs={clubs}
+                query={debouncedQuery}
+                isSearching={isSearching}
+                onClearSearch={() => setQuery("")}
+              />
+              {!isSearching && pagination.totalCount > 0 && (
+                <ClubsPagination pagination={pagination} onPageChange={setPage} />
+              )}
             </>
           )}
         </div>

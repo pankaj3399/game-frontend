@@ -9,8 +9,10 @@ import { TournamentFilters } from "./TournamentFilters";
 interface TournamentActionsProps {
   filtersOpen: boolean;
   onFiltersOpenChange: (open: boolean) => void;
+  query: string;
   status?: string;
   canShowStatusFilter: boolean;
+  onQueryChange: (value: string) => void;
   onStatusChange: (value: string) => void;
   onCreate: () => void;
 }
@@ -18,8 +20,10 @@ interface TournamentActionsProps {
 export function TournamentActions({
   filtersOpen,
   onFiltersOpenChange,
+  query,
   status,
   canShowStatusFilter,
+  onQueryChange,
   onStatusChange,
   onCreate,
 }: TournamentActionsProps) {
@@ -30,13 +34,19 @@ export function TournamentActions({
       <TournamentFilters
         open={filtersOpen}
         onOpenChange={onFiltersOpenChange}
+        query={query}
         status={status}
         canShowStatusFilter={canShowStatusFilter}
+        onQueryChange={onQueryChange}
         onStatusChange={onStatusChange}
       />
       <RoleGuard requireRoleOrAbove={ROLES.ORGANISER}>
-        <Button className="bg-brand-primary hover:bg-brand-primary-hover" onClick={onCreate}>
-          <HugeiconsIcon icon={PlusSignIcon} size={16} className="mr-2" />
+        <Button
+          size="sm"
+          className="h-[30px] rounded-[8px] bg-brand-primary px-[15px] has-[>svg]:px-[15px] text-[14px] font-medium leading-none hover:bg-brand-primary-hover"
+          onClick={onCreate}
+        >
+          <HugeiconsIcon icon={PlusSignIcon} size={14} />
           {t("tournaments.create")}
         </Button>
       </RoleGuard>
