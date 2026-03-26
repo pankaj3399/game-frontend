@@ -114,7 +114,7 @@ export function ManageClubStaffSection({
         return {
           ...member,
           role: "admin" as const,
-          roleLabel: "Admin",
+          roleLabel: t("manageClub.roleAdmin"),
         };
       }
 

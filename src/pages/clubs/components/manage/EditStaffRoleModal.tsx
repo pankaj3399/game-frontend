@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   Dialog,
@@ -51,16 +51,9 @@ export function EditStaffRoleModal({
   onConfirm,
 }: EditStaffRoleModalProps) {
   const { t } = useTranslation();
-  const [role, setRole] = useState<EditableClubStaffRole>(toEditableRole(member));
+  const [role, setRole] = useState<EditableClubStaffRole>(() => toEditableRole(member));
 
-  useEffect(() => {
-    if (open) {
-      setRole(toEditableRole(member));
-    }
-  }, [member, open]);
-
-
-  const currentRole = member?.role === "admin" ? "admin" : "organiser";
+  const currentRole = toEditableRole(member);
 
   function handleOpenChange(nextOpen: boolean) {
     if (isSubmitting) {

@@ -366,6 +366,7 @@ export default function ManageClubPage() {
       />
 
       <EditStaffRoleModal
+        key={editingMember?.id ?? "edit-staff-role-closed"}
         open={editingMember !== null}
         member={editingMember}
         isSubmitting={updateClubStaffRole.isPending}
