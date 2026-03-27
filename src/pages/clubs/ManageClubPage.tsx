@@ -62,7 +62,12 @@ export default function ManageClubPage() {
   const { t } = useTranslation();
   const hasSuperAdminAccess = useHasRoleOrAbove(ROLES.SUPER_ADMIN);
   const { user, isAuthenticated, isProfileComplete, loading } = useAuth();
-  const { data: adminClubsData, isLoading: clubsLoading } = useAdminClubs(true);
+  const {
+    data: adminClubsData,
+    isLoading: clubsLoading,
+    isError: clubsError,
+    isSuccess: clubsSuccess,
+  } = useAdminClubs(true);
   const { data: clubSubscriptionsData, isLoading: subscriptionsLoading } =
     useClubSubscriptionsOverview(hasSuperAdminAccess);
   const isSidebarDataLoading =
@@ -288,7 +293,13 @@ export default function ManageClubPage() {
 
   if (!isAuthenticated) return <Navigate to="/login" replace />;
   if (!isProfileComplete) return <Navigate to="/information" replace />;
-  if (!clubsLoading && !hasSuperAdminAccess && clubs.length === 0) {
+  if (
+    !clubsLoading &&
+    clubsSuccess &&
+    !clubsError &&
+    !hasSuperAdminAccess &&
+    clubs.length === 0
+  ) {
     return <Navigate to="/clubs" replace />;
   }
 

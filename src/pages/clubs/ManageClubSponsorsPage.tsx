@@ -37,12 +37,20 @@ export default function ManageClubSponsorsPage() {
   const [editSponsor, setEditSponsor] = useState<ClubSponsor | null>(null);
   const [removeSponsor, setRemoveSponsor] = useState<ClubSponsor | null>(null);
 
-  const { data: adminClubsData, isLoading: clubsLoading } = useAdminClubs(true);
+  const {
+    data: adminClubsData,
+    isLoading: clubsLoading,
+    isError: adminClubsQueryError,
+    error: adminClubsError,
+  } = useAdminClubs(true);
+  const hasAdminClubsError = adminClubsQueryError || adminClubsError !== null;
+  const hasNoAdminClubs = !clubsLoading && !hasAdminClubsError && (adminClubsData?.clubs ?? []).length === 0;
   const selectedClub = (adminClubsData?.clubs ?? []).find((club) => club.id === clubId) ?? null;
   const canAccessPage = hasSuperAdminAccess || selectedClub !== null;
+  const validatedClubId = canAccessPage ? (clubId ?? null) : null;
 
-  const { data: sponsorsData, isLoading: sponsorsLoading } = useClubSponsors(clubId ?? null);
-  const deleteSponsor = useDeleteSponsor(clubId ?? null);
+  const { data: sponsorsData, isLoading: sponsorsLoading } = useClubSponsors(validatedClubId);
+  const deleteSponsor = useDeleteSponsor(validatedClubId);
 
   const sponsors = sponsorsData?.sponsors ?? [];
   const canManageSponsors = sponsorsData?.subscription?.canManageSponsors === true;
@@ -64,7 +72,7 @@ export default function ManageClubSponsorsPage() {
 
   const confirmRemove = async (e: React.MouseEvent) => {
     e.preventDefault();
-    if (!removeSponsor || !clubId) return;
+    if (!removeSponsor || !validatedClubId) return;
 
     try {
       await deleteSponsor.mutateAsync(removeSponsor.id);
@@ -86,7 +94,16 @@ export default function ManageClubSponsorsPage() {
   if (!isAuthenticated) return <Navigate to="/login" replace />;
   if (!isProfileComplete) return <Navigate to="/information" replace />;
   if (!clubId) return <Navigate to="/clubs/manage" replace />;
-  if (!clubsLoading && !canAccessPage) return <Navigate to="/clubs/manage" replace />;
+  if (hasAdminClubsError) {
+    return (
+      <div className="flex min-h-[50vh] items-center justify-center px-4">
+        <p className="text-sm text-destructive" role="alert">
+          {getErrorMessage(adminClubsError) ?? t("settings.adminClubsLoadError")}
+        </p>
+      </div>
+    );
+  }
+  if (!clubsLoading && hasNoAdminClubs && !canAccessPage) return <Navigate to="/clubs/manage" replace />;
 
   return (
     <div className="min-h-[calc(100vh-4rem)] bg-[#f8fbf8] px-4 py-6 sm:px-6 md:py-8">
@@ -243,7 +260,7 @@ export default function ManageClubSponsorsPage() {
       <AddEditSponsorModal
         open={addEditModalOpen}
         onOpenChange={setAddEditModalOpen}
-        clubId={clubId}
+        clubId={validatedClubId}
         editSponsor={editSponsor}
         canManage={canManageSponsors}
       />

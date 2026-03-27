@@ -58,8 +58,8 @@ function App() {
             <Route path="/tournaments/:id" element={<PlaceholderPage />} />
             <Route path="/my-score" element={<PlaceholderPage />} />
             <Route path="/record-score" element={<PlaceholderPage />} />
-            <Route path="/clubs/manage" element={ <ProtectedRoute> <ManageClubPage /> </ProtectedRoute>} />
-            <Route path="/clubs/manage/sponsors/:clubId" element={ <ProtectedRoute> <ManageClubSponsorsPage /> </ProtectedRoute>} />
+            <Route path="/clubs/manage" element={ <ProtectedRoute requireRoleOrAbove={ROLES.ORGANISER}> <ManageClubPage /> </ProtectedRoute>} />
+            <Route path="/clubs/manage/sponsors/:clubId" element={ <ProtectedRoute requireRoleOrAbove={ROLES.ORGANISER}> <ManageClubSponsorsPage /> </ProtectedRoute>} />
             <Route path="/clubs/:id" element={<ClubDetailPage />} />
             <Route path="/clubs" element={<ClubsListPage />} />
             <Route path="/sponsors" element={<AllSponsorsPage />} />

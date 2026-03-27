@@ -15,8 +15,8 @@ export default function ClubsListPage() {
     limit,
     q: debouncedQuery,
   });
-  const { data: adminClubsData } = useAdminClubs(true);
   const hasSuperAdminAccess = useHasRoleOrAbove(ROLES.SUPER_ADMIN);
+  const { data: adminClubsData } = useAdminClubs(!hasSuperAdminAccess);
   const canManage = hasSuperAdminAccess || (adminClubsData?.clubs?.length ?? 0) > 0;
   const isSearching = query.trim() !== debouncedQuery.trim();
 

@@ -37,13 +37,10 @@ async function addClubStaff({
 
 export function useAddClubStaff() {
   const queryClient = useQueryClient();
-  const { checkAuth } = useAuth();
 
   return useMutation({
     mutationFn: addClubStaff,
     onSuccess: async (_, variables) => {
-      await checkAuth();
-      queryClient.invalidateQueries({ queryKey: queryKeys.auth.me() });
       queryClient.invalidateQueries({
         queryKey: queryKeys.club.staff(variables.clubId),
       });
