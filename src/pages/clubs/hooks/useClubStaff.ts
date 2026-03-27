@@ -19,6 +19,7 @@ export type ClubPlan = "free" | "premium";
 export interface ClubSubscription {
   plan: ClubPlan;
   expiresAt: Date | null;
+  renewalRequestedAt: Date | null;
 }
 
 interface ClubStaffResponse {
@@ -31,6 +32,7 @@ interface ClubStaffApiResponse {
   subscription: {
     plan: ClubPlan;
     expiresAt: string | null;
+    renewalRequestedAt: string | null;
   };
 }
 
@@ -40,6 +42,7 @@ function mapClubStaffResponse(data: ClubStaffApiResponse): ClubStaffResponse {
     subscription: {
       plan: data.subscription.plan,
       expiresAt: parseIsoDateSafely(data.subscription.expiresAt),
+      renewalRequestedAt: parseIsoDateSafely(data.subscription.renewalRequestedAt),
     },
   };
 }

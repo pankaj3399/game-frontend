@@ -39,9 +39,12 @@ export function useAddClubStaff() {
 
   return useMutation({
     mutationFn: addClubStaff,
-    onSuccess: (_, variables) => {
+    onSuccess: async (_, variables) => {
       queryClient.invalidateQueries({
         queryKey: queryKeys.club.staff(variables.clubId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.user.adminClubs(),
       });
     },
   });

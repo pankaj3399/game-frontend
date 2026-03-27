@@ -35,3 +35,5 @@ export {
   useUpdateClubSubscription,
   type UpdateClubSubscriptionInput,
 } from "./useUpdateClubSubscription";
+export { useRequestClubSubscriptionRenewal } from "./useRequestClubSubscriptionRenewal";
+export { useClubPageAccess } from "./useClubPageAccess";

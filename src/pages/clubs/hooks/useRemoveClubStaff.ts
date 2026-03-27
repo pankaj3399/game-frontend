@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { queryKeys } from "@/lib/api/queryKeys";
+import { useAuth } from "@/pages/auth/hooks";
 
 interface RemoveClubStaffInput {
   clubId: string;
@@ -25,10 +26,13 @@ async function removeClubStaff({
 
 export function useRemoveClubStaff() {
   const queryClient = useQueryClient();
+  const { checkAuth } = useAuth();
 
   return useMutation({
     mutationFn: removeClubStaff,
-    onSuccess: (_, variables) => {
+    onSuccess: async (_, variables) => {
+      await checkAuth();
+      queryClient.invalidateQueries({ queryKey: queryKeys.auth.me() });
       queryClient.invalidateQueries({
         queryKey: queryKeys.club.staff(variables.clubId),
       });

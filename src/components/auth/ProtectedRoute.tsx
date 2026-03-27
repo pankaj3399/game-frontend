@@ -12,10 +12,14 @@ export interface ProtectedRouteProps {
   requireExactRoles?: Role[];
   /** Where to redirect when unauthorized. Default: /login */
   redirectTo?: string;
+  /** When true, redirect incomplete profiles to `incompleteProfileRedirectTo` after auth. */
+  requireProfileComplete?: boolean;
+  /** Profile completion redirect. Default: /information */
+  incompleteProfileRedirectTo?: string;
 }
 
 /**
- * Protects routes by requiring authentication and optionally specific roles.
+ * Protects routes by requiring authentication, optionally a complete profile, and optionally specific roles.
  * Use requireRoleOrAbove for hierarchy checks (e.g. club_admin allows super_admin).
  * Use requireExactRoles for exact role matching.
  */
@@ -24,8 +28,10 @@ export function ProtectedRoute({
   requireRoleOrAbove,
   requireExactRoles,
   redirectTo = "/login",
+  requireProfileComplete = false,
+  incompleteProfileRedirectTo = "/information",
 }: ProtectedRouteProps) {
-  const { isAuthenticated, user, loading } = useAuth();
+  const { isAuthenticated, isProfileComplete, user, loading } = useAuth();
   const location = useLocation();
 
   if (loading) {
@@ -34,6 +40,10 @@ export function ProtectedRoute({
 
   if (!isAuthenticated) {
     return <Navigate to={redirectTo} state={{ from: location }} replace />;
+  }
+
+  if (requireProfileComplete && !isProfileComplete) {
+    return <Navigate to={incompleteProfileRedirectTo} replace />;
   }
 
   if (requireExactRoles && requireExactRoles.length > 0) {

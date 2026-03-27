@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { queryKeys } from "@/lib/api/queryKeys";
+import { useAuth } from "@/pages/auth/hooks";
 
 export type EditableClubStaffRole = "admin" | "organiser";
 
@@ -37,10 +38,13 @@ async function updateClubStaffRole({
 
 export function useUpdateClubStaffRole() {
   const queryClient = useQueryClient();
+  const { checkAuth } = useAuth();
 
   return useMutation({
     mutationFn: updateClubStaffRole,
-    onSuccess: (_, variables) => {
+    onSuccess: async (_, variables) => {
+      await checkAuth();
+      queryClient.invalidateQueries({ queryKey: queryKeys.auth.me() });
       queryClient.invalidateQueries({
         queryKey: queryKeys.club.staff(variables.clubId),
       });
