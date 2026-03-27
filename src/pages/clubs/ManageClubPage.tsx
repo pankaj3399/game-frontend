@@ -65,8 +65,11 @@ export default function ManageClubPage() {
   const {
     data: adminClubsData,
     isLoading: clubsLoading,
+    isFetching: adminClubsFetching,
     isError: clubsError,
     isSuccess: clubsSuccess,
+    error: adminClubsQueryError,
+    refetch: refetchAdminClubs,
   } = useAdminClubs(true);
   const { data: clubSubscriptionsData, isLoading: subscriptionsLoading } =
     useClubSubscriptionsOverview(hasSuperAdminAccess);
@@ -293,6 +296,23 @@ export default function ManageClubPage() {
 
   if (!isAuthenticated) return <Navigate to="/login" replace />;
   if (!isProfileComplete) return <Navigate to="/information" replace />;
+  if (!clubsLoading && clubsError) {
+    return (
+      <div className="flex min-h-[50vh] flex-col items-center justify-center gap-4 px-4">
+        <p className="text-center text-sm text-destructive" role="alert">
+          {getErrorMessage(adminClubsQueryError) ?? t("settings.adminClubsLoadError")}
+        </p>
+        <button
+          type="button"
+          disabled={adminClubsFetching}
+          onClick={() => void refetchAdminClubs()}
+          className="text-sm font-medium text-primary underline disabled:opacity-50"
+        >
+          {adminClubsFetching ? t("common.loading") : t("settings.adminClubsRetry")}
+        </button>
+      </div>
+    );
+  }
   if (
     !clubsLoading &&
     clubsSuccess &&

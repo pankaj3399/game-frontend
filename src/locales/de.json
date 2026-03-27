@@ -187,6 +187,7 @@
     "adminClubsDuplicateCourtError": "Doppelte Plätze sind nicht erlaubt. Zwei Plätze dürfen nicht denselben Namen haben.",
     "adminClubsPlaceholder": "Vereine, die Sie verwalten, werden hier angezeigt.",
     "adminClubsLoadError": "Vereine konnten nicht geladen werden. Bitte versuchen Sie es später erneut.",
+    "adminClubsRetry": "Erneut versuchen",
     "deleteAccountPlaceholder": "Zum Löschen Ihres Kontos klicken Sie auf die Löschen-Schaltfläche. Bitte beachten Sie, dass diese Aktion nicht rückgängig gemacht werden kann.",
     "deleteAccountConfirmTitle": "Konto löschen?",
     "deleteAccountConfirmDescription": "Dadurch wird Ihr Konto und alle zugehörigen Daten dauerhaft gelöscht. Sie werden abgemeldet und müssen sich erneut registrieren, um den Dienst zu nutzen. Diese Aktion kann nicht rückgängig gemacht werden.",

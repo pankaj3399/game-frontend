@@ -42,9 +42,9 @@ export default function ManageClubSponsorsPage() {
     isLoading: clubsLoading,
     isError: adminClubsQueryError,
     error: adminClubsError,
-  } = useAdminClubs(true);
-  const hasAdminClubsError = adminClubsQueryError || adminClubsError !== null;
-  const hasNoAdminClubs = !clubsLoading && !hasAdminClubsError && (adminClubsData?.clubs ?? []).length === 0;
+  } = useAdminClubs(!hasSuperAdminAccess);
+  const hasAdminClubsError =
+    !hasSuperAdminAccess && (adminClubsQueryError || adminClubsError !== null);
   const selectedClub = (adminClubsData?.clubs ?? []).find((club) => club.id === clubId) ?? null;
   const canAccessPage = hasSuperAdminAccess || selectedClub !== null;
   const validatedClubId = canAccessPage ? (clubId ?? null) : null;
@@ -103,7 +103,9 @@ export default function ManageClubSponsorsPage() {
       </div>
     );
   }
-  if (!clubsLoading && hasNoAdminClubs && !canAccessPage) return <Navigate to="/clubs/manage" replace />;
+  if (!clubsLoading && !hasAdminClubsError && !hasSuperAdminAccess && selectedClub === null) {
+    return <Navigate to="/clubs/manage" replace />;
+  }
 
   return (
     <div className="min-h-[calc(100vh-4rem)] bg-[#f8fbf8] px-4 py-6 sm:px-6 md:py-8">

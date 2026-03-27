@@ -135,6 +135,7 @@
     "favoriteClubsPlaceholder": "Your favorite clubs will appear here.",
     "adminClubsPlaceholder": "Clubs you administrate will appear here.",
     "adminClubsLoadError": "Failed to load clubs. Please try again later.",
+    "adminClubsRetry": "Try again",
     "adminClubsTitle": "My Clubs",
     "adminClubsAddButton": "Add Club",
     "adminClubsCourts": "Courts",
