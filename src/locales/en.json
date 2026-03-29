@@ -16,7 +16,7 @@
     "keepTyping": "Keep typing to search users."
   },
   "admin": {
-    "title": "Admin",
+    "title": "Super Admin",
     "dashboardDescription": "Super Admin dashboard. Coming soon.",
     "subscriptionManagementCta": "Subscription Management",
     "nav": {
