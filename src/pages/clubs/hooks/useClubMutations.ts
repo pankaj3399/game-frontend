@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { queryKeys } from "@/lib/api/queryKeys";
+import { useAuth } from "@/pages/auth/hooks";
 
 export type CourtType =
   | "concrete"
@@ -85,10 +86,15 @@ async function fetchClubById(clubId: string): Promise<ClubDetailResponse> {
 
 export function useCreateClub() {
   const queryClient = useQueryClient();
+  const { checkAuth } = useAuth();
+
   return useMutation({
     mutationFn: createClub,
-    onSuccess: () => {
+    onSuccess: async () => {
+      await checkAuth();
+      queryClient.invalidateQueries({ queryKey: queryKeys.auth.me() });
       queryClient.invalidateQueries({ queryKey: queryKeys.user.adminClubs() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.club.listRoot() });
     },
   });
 }

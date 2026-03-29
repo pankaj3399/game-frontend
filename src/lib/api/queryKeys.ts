@@ -20,6 +20,15 @@ export const queryKeys = {
   },
   club: {
     all: ["club"] as const,
+    listRoot: () => [...queryKeys.club.all, "list"] as const,
+    list: (filters?: { page?: number; limit?: number; q?: string }) => {
+      const f = filters ?? {};
+      const normalizedFilters: Record<string, string | number> = {};
+      if (f.page != null) normalizedFilters.page = f.page;
+      if (f.limit != null) normalizedFilters.limit = f.limit;
+      if (f.q?.trim()) normalizedFilters.q = f.q.trim();
+      return [...queryKeys.club.listRoot(), normalizedFilters] as const;
+    },
     detail: (id: string) => [...queryKeys.club.all, "detail", id] as const,
     staff: (id: string) => [...queryKeys.club.all, "staff", id] as const,
     sponsors: (id: string) => [...queryKeys.club.all, "sponsors", id] as const,

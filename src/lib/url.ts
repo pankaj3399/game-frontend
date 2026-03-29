@@ -12,10 +12,16 @@ export function getSafeLink(
   const trimmed = typeof value === "string" ? value.trim() : "";
   if (!trimmed) return null;
 
+  const withProtocol = /^[a-zA-Z][a-zA-Z\d+\-.]*:/.test(trimmed)
+    ? trimmed
+    : trimmed.startsWith("//")
+      ? `https:${trimmed}`
+      : `https://${trimmed}`;
+
   try {
-    const url = new URL(trimmed);
+    const url = new URL(withProtocol);
     return url.protocol === "http:" || url.protocol === "https:"
-      ? trimmed
+      ? url.toString()
       : null;
   } catch {
     return null;

@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
+import { queryKeys } from "@/lib/api/queryKeys";
 
 export interface ClubListItem {
   id: string;
@@ -50,7 +51,7 @@ export function useAllClubs(options: UseAllClubsOptions = {}) {
   const q = options.q;
 
   return useQuery<AllClubsResponse>({
-    queryKey: ["clubs", "all", page, limit, q?.trim() ?? ""],
+    queryKey: queryKeys.club.list({ page, limit, q }),
     queryFn: () => fetchAllClubs(page, limit, q),
   });
 }

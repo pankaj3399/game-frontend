@@ -12,7 +12,8 @@ interface ManageClubSubscriptionBannersProps {
   showPremiumBanner: boolean;
   showSubscriptionBanner: boolean;
   subscription: ClubSubscription | undefined;
-  onRenew: () => void;
+  onRequestRenewal: () => void;
+  isRenewalRequested: boolean;
 }
 
 export function ManageClubSubscriptionBanners({
@@ -20,7 +21,8 @@ export function ManageClubSubscriptionBanners({
   showPremiumBanner,
   showSubscriptionBanner,
   subscription,
-  onRenew,
+  onRequestRenewal,
+  isRenewalRequested,
 }: ManageClubSubscriptionBannersProps) {
   const { t, i18n } = useTranslation();
   const locale = getDateFnsLocale(i18n.language);
@@ -84,16 +86,19 @@ export function ManageClubSubscriptionBanners({
               </p>
             </div>
           </div>
-          <Button
-            variant="secondary"
-            size="sm"
-            className="h-[30px] w-full shrink-0 self-start rounded-[8px] bg-[#010a04] px-[18px] text-[14px] text-white hover:bg-[#010a04]/90 sm:w-auto sm:self-center"
-            onClick={onRenew}
-          >
-            {roleMode === "super_admin"
-              ? t("manageClub.renewNow")
-              : t("manageClub.requestRenewal")}
-          </Button>
+          {roleMode === "club_admin_or_organiser" && (
+            <Button
+              variant="secondary"
+              size="sm"
+              className="h-[30px] w-full shrink-0 self-start rounded-[8px] bg-[#010a04] px-[18px] text-[14px] text-white hover:bg-[#010a04]/90 sm:w-auto sm:self-center"
+              onClick={onRequestRenewal}
+              disabled={isRenewalRequested}
+            >
+              {isRenewalRequested
+                ? t("manageClub.statusRequested")
+                : t("manageClub.requestRenewal")}
+            </Button>
+          )}
         </div>
       )}
     </>

@@ -2,6 +2,28 @@ import { useTranslation } from "react-i18next";
 import type { ClubPublic } from "@/pages/clubs/hooks";
 
 type CourtGroup = ClubPublic["courts"][number];
+type KnownCourtType = "concrete" | "clay" | "hard" | "grass" | "carpet" | "other";
+
+const COURT_TYPE_TRANSLATION_KEYS: Record<KnownCourtType, string> = {
+  concrete: "clubs.courtTypeConcrete",
+  clay: "clubs.courtTypeClay",
+  hard: "clubs.courtTypeHard",
+  grass: "clubs.courtTypeGrass",
+  carpet: "clubs.courtTypeCarpet",
+  other: "clubs.courtTypeOther",
+};
+
+function isKnownCourtType(surface: string): surface is KnownCourtType {
+  return surface in COURT_TYPE_TRANSLATION_KEYS;
+}
+
+function getCourtSurfaceLabel(surface: string, t: (key: string) => string): string {
+  const normalizedSurface = surface.trim().toLowerCase();
+  if (isKnownCourtType(normalizedSurface)) {
+    return t(COURT_TYPE_TRANSLATION_KEYS[normalizedSurface]);
+  }
+  return surface;
+}
 
 interface ClubCourtsSectionProps {
   courts: CourtGroup[];
@@ -29,7 +51,7 @@ export function ClubCourtsSection({ courts }: ClubCourtsSectionProps) {
             <p className="mt-1 text-sm text-muted-foreground">
               {t("clubs.courtsCountSurface", {
                 count: court.count,
-                surface: court.surface,
+                surface: getCourtSurfaceLabel(court.surface, t),
               })}
             </p>
           </div>

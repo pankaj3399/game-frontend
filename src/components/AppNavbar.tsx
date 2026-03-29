@@ -57,7 +57,6 @@ const pathToTitleKey: Record<string, string> = {
   "/about": "settings.nav.about",
   "/information": "signup.title",
   "/admin/sponsors": "admin.platformSponsors.navTitle",
-  "/admin/clubs-subscriptions": "admin.title",
   "/admin": "admin.title",
 };
 

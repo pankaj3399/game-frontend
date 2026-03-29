@@ -52,9 +52,11 @@ function App() {
             <Route index element={<UserInformation />} />
           </Route>
           <Route path="/auth/callback" element={<AuthCallback />} />
-          <Route element={ <ProtectedRoute>
-      <MainLayout />
-    </ProtectedRoute>}>
+          <Route element={
+            <ProtectedRoute requireProfileComplete>
+              <MainLayout />
+            </ProtectedRoute>
+          }>
             <Route path="/profile" element={<SettingsPage />} />
             <Route path="/tournaments" element={<TournamentListPage />} />
             <Route path="/tournaments/:id" element={<TournamentDetailsPage />} />

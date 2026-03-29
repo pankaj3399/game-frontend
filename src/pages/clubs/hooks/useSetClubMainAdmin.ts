@@ -2,44 +2,41 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { queryKeys } from "@/lib/api/queryKeys";
 
-export type AddStaffRole = "admin" | "organiser";
-
-interface AddClubStaffInput {
+interface SetClubMainAdminInput {
   clubId: string;
   userId: string;
-  role: AddStaffRole;
 }
 
-interface AddClubStaffResponse {
+interface SetClubMainAdminResponse {
   message: string;
   staff: {
     id: string;
     email: string;
     name: string | null;
     alias: string | null;
-    role: string;
+    role: "default_admin";
     roleLabel: string;
   };
 }
 
-async function addClubStaff({
+async function setClubMainAdmin({
   clubId,
   userId,
-  role,
-}: AddClubStaffInput): Promise<AddClubStaffResponse> {
-  const res = await api.post<AddClubStaffResponse>(
-    `/api/clubs/${clubId}/staff`,
-    { userId, role }
+}: SetClubMainAdminInput): Promise<SetClubMainAdminResponse> {
+  const res = await api.patch<SetClubMainAdminResponse>(
+    `/api/clubs/${clubId}/staff/main-admin`,
+    { userId }
   );
+
   return res.data;
 }
 
-export function useAddClubStaff() {
+export function useSetClubMainAdmin() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: addClubStaff,
-    onSuccess: async (_, variables) => {
+    mutationFn: setClubMainAdmin,
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
         queryKey: queryKeys.club.staff(variables.clubId),
       });

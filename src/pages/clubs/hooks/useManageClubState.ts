@@ -9,6 +9,7 @@ export function shouldShowSubscriptionBanner(
   subscription: { plan: string; expiresAt: Date | null } | undefined
 ): boolean {
   if (!subscription) return false;
+  if (subscription.plan === "free") return true;
   if (subscription.plan !== "premium") return false;
 
   if (!subscription.expiresAt) return true;

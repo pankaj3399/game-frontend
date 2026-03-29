@@ -10,6 +10,12 @@ export {
 } from "./useClubStaff";
 export { useAddClubStaff, type AddStaffRole } from "./useAddClubStaff";
 export {
+  useUpdateClubStaffRole,
+  type EditableClubStaffRole,
+} from "./useUpdateClubStaffRole";
+export { useSetClubMainAdmin } from "./useSetClubMainAdmin";
+export { useRemoveClubStaff } from "./useRemoveClubStaff";
+export {
   useSearchUsers,
   isUserSearchQueryValid,
   USER_SEARCH_MIN_LENGTH,
@@ -29,3 +35,5 @@ export {
   useUpdateClubSubscription,
   type UpdateClubSubscriptionInput,
 } from "./useUpdateClubSubscription";
+export { useRequestClubSubscriptionRenewal } from "./useRequestClubSubscriptionRenewal";
+export { useClubPageAccess } from "./useClubPageAccess";
