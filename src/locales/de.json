@@ -16,11 +16,11 @@
     "keepTyping": "Tippen Sie weiter, um Benutzer zu suchen."
   },
   "admin": {
-    "title": "Administration",
+    "title": "Super-Admin",
     "dashboardDescription": "Super-Admin-Dashboard. Demnächst verfügbar.",
     "subscriptionManagementCta": "Abonnementverwaltung",
     "nav": {
-      "admin": "Administration"
+      "admin": "Super-Admin"
     },
     "clubSubscription": {
       "bannerTitleActive": "Alle Premium-Funktionen aktiv",
