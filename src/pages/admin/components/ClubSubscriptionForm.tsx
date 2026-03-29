@@ -113,11 +113,13 @@ export function ClubSubscriptionForm({ club, onSave, isSaving }: ClubSubscriptio
     <>
       <div className="mb-[25px] flex flex-col justify-between gap-5 md:mb-[22px] md:flex-row md:items-center">
         <div className="flex items-center gap-5">
-          <div className="relative size-[55px] shrink-0 rounded-[10px] bg-[#e4dbcc] p-[6px]">
-            <div className="relative size-full rounded-full bg-radial-[at_30%_30%] from-[#d7ef3e] to-[#8db712]">
-              <span className="absolute -top-[2px] left-[15px] h-[40px] w-[10px] rotate-12 rounded-full border border-white/90 bg-white/80" />
-              <span className="absolute -bottom-[2px] right-[15px] h-[40px] w-[10px] rotate-12 rounded-full border border-white/90 bg-white/80" />
-            </div>
+          <div className="size-[55px] shrink-0 overflow-hidden rounded-[10px] bg-[#e4dbcc]">
+            <img
+              src="/tennis-ball.png"
+              alt=""
+              aria-hidden
+              className="size-full object-cover"
+            />
           </div>
           <div>
             <h1 className="text-[24px] leading-none font-semibold text-[#010a04]">{club.name}</h1>

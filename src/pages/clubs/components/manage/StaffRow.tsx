@@ -1,3 +1,5 @@
+import { useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import { useTranslation } from "react-i18next";
 import {
   DropdownMenu,
@@ -29,27 +31,67 @@ function StaffAvatar({ name, alias }: { name: string | null; alias: string | nul
 
 interface StaffRowProps {
   member: ClubStaffMember;
-  onMenuAction?: (action: string, memberId: string) => void;
+  canSetMainAdmin: boolean;
+  isMainAdminUpdatePending?: boolean;
+  onMenuAction?: (action: "edit" | "remove", member: ClubStaffMember) => void;
 }
 
-export function StaffRow({ member, onMenuAction }: StaffRowProps) {
+export function StaffRow({
+  member,
+  canSetMainAdmin,
+  isMainAdminUpdatePending = false,
+  onMenuAction,
+}: StaffRowProps) {
   const { t } = useTranslation();
+  const {
+    attributes,
+    listeners,
+    setActivatorNodeRef,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({
+    id: member.id,
+    disabled: !canSetMainAdmin,
+  });
   const isDefault = member.role === "default_admin";
   const roleLabel = isDefault ? t("manageClub.mainAdmin") : member.roleLabel;
   const memberDisplayName = member.name?.trim() || member.alias?.trim() || member.email;
+  const visualTransition = "opacity 220ms ease, background-color 220ms ease, border-color 220ms ease, box-shadow 220ms ease";
+  const dndTransition = transition?.trim();
+  const mergedTransition = dndTransition ? `${dndTransition}, ${visualTransition}` : visualTransition;
 
   return (
     <div
+      ref={setNodeRef}
       className={cn(
-        "flex items-center justify-between rounded-[12px] border px-[12px] py-[15px] shadow-[0px_0px_6px_0px_rgba(0,0,0,0.02),0px_2px_4px_0px_rgba(0,0,0,0.08)]",
+        "flex items-center justify-between rounded-[12px] border px-[12px] py-[15px] shadow-[0px_0px_6px_0px_rgba(0,0,0,0.02),0px_2px_4px_0px_rgba(0,0,0,0.08)] transition-[opacity,background-color,border-color,box-shadow] duration-200 ease-out",
+        "select-none",
+        isDragging && "opacity-70",
+        isMainAdminUpdatePending && "shadow-[0px_0px_0px_1px_rgba(39,82,147,0.16),0px_3px_15px_0px_rgba(39,82,147,0.12)]",
         isDefault
           ? "border-[rgba(10,105,37,0.17)] bg-[linear-gradient(90deg,rgba(10,105,37,0.06)_0%,rgba(10,105,37,0.06)_100%),linear-gradient(90deg,#fff_0%,#fff_100%)]"
           : "border-black/12 bg-white"
       )}
+      style={{
+        transform: CSS.Transform.toString(transform),
+        transition: mergedTransition,
+      }}
     >
       <button
+        ref={setActivatorNodeRef}
+        {...attributes}
+        {...listeners}
         type="button"
-        className="mr-3 cursor-grab touch-none text-[#010a04]/45 hover:text-[#010a04]/70"
+        disabled={!canSetMainAdmin}
+        aria-disabled={!canSetMainAdmin}
+        className={cn(
+          "mr-3 touch-none text-[#010a04]/45",
+          canSetMainAdmin
+            ? "cursor-grab hover:text-[#010a04]/70 active:cursor-grabbing"
+            : "cursor-not-allowed opacity-40"
+        )}
         aria-label={t("manageClub.dragUser")}
       >
         <HugeiconsIcon icon={DragDropVerticalIcon} size={20} />
@@ -68,35 +110,42 @@ export function StaffRow({ member, onMenuAction }: StaffRowProps) {
           </div>
           <p className="truncate text-[12px] text-[#010a04]/60">{member.email}</p>
           <p className="truncate text-[12px] text-[#010a04]/60">{roleLabel}</p>
+          {isMainAdminUpdatePending && (
+            <p className="truncate text-[12px] text-brand-primary/80 animate-pulse">
+              {t("manageClub.mainAdminUpdating")}
+            </p>
+          )}
         </div>
       </div>
 
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <button
-            type="button"
-            className="ml-2 flex h-6 w-6 shrink-0 items-center justify-center text-[#010a04]/45"
-            aria-label={t("manageClub.staffActionsMenu", { name: memberDisplayName })}
-          >
-            <HugeiconsIcon icon={MoreVerticalIcon} size={18} aria-hidden />
-          </button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <DropdownMenuItem
-            onClick={() => onMenuAction?.("edit", member.id)}
-            className="cursor-pointer"
-          >
-            {t("manageClub.editRole")}
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            variant="destructive"
-            onClick={() => onMenuAction?.("remove", member.id)}
-            className="cursor-pointer"
-          >
-            {t("manageClub.remove")}
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+      {!isDefault && !isMainAdminUpdatePending && (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button
+              type="button"
+              className="ml-2 flex h-6 w-6 shrink-0 items-center justify-center text-[#010a04]/45"
+              aria-label={t("manageClub.staffActionsMenu", { name: memberDisplayName })}
+            >
+              <HugeiconsIcon icon={MoreVerticalIcon} size={18} aria-hidden />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem
+              onClick={() => onMenuAction?.("edit", member)}
+              className="cursor-pointer"
+            >
+              {t("manageClub.editRole")}
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              variant="destructive"
+              onClick={() => onMenuAction?.("remove", member)}
+              className="cursor-pointer"
+            >
+              {t("manageClub.remove")}
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      )}
     </div>
   );
 }

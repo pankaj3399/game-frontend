@@ -1,5 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { Globe, MapPin } from "lucide-react";
+import { getSafeLink } from "@/lib/url";
 import type { ClubPublic } from "@/pages/clubs/hooks";
 
 interface ClubInfoSectionProps {
@@ -8,6 +9,7 @@ interface ClubInfoSectionProps {
 
 export function ClubInfoSection({ club }: ClubInfoSectionProps) {
   const { t } = useTranslation();
+  const safeWebsiteLink = getSafeLink(club.website);
 
   return (
     <section>
@@ -28,18 +30,18 @@ export function ClubInfoSection({ club }: ClubInfoSectionProps) {
             <span className="font-medium text-foreground">{t("clubs.website")}</span>
           </div>
           <div className="pl-7">
-            {club.website ? (
+            {safeWebsiteLink ? (
               <>
                 <a
-                  href={club.website}
+                  href={safeWebsiteLink}
                   target="_blank"
                   rel="noreferrer noopener"
                   className="block text-blue-600 underline hover:text-blue-700"
                 >
-                  {club.website}
+                  {safeWebsiteLink}
                 </a>
                 <a
-                  href={club.website}
+                  href={safeWebsiteLink}
                   target="_blank"
                   rel="noreferrer noopener"
                   className="mt-2 inline-flex items-center gap-1 text-sm font-medium text-brand-primary hover:underline"

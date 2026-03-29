@@ -16,7 +16,7 @@ import { toast } from "sonner";
 interface AddEditSponsorModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  clubId: string;
+  clubId: string | null;
   editSponsor: ClubSponsor | null;
   canManage: boolean;
 }
@@ -48,7 +48,7 @@ export function AddEditSponsorModal({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!canManage) return;
+    if (!canManage || !clubId) return;
 
     const trimmedName = currentForm.name.trim();
     if (!trimmedName) {
@@ -87,6 +87,7 @@ export function AddEditSponsorModal({
   };
 
   const isPending = createSponsor.isPending || updateSponsor.isPending;
+  const canSubmit = canManage && !!clubId;
 
   return (
     <Dialog
@@ -152,7 +153,7 @@ export function AddEditSponsorModal({
           <Button
             type="submit"
             className="w-full bg-brand-primary hover:bg-brand-primary-hover"
-            disabled={!canManage || isPending}
+            disabled={!canSubmit || isPending}
           >
             {isPending ? t("common.loading") : isEdit ? t("sponsors.save") : t("sponsors.create")}
           </Button>

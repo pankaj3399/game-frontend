@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, Navigate } from "react-router-dom";
 import { differenceInCalendarDays, format } from "date-fns";
+import { Eye } from "lucide-react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   CrownIcon,
@@ -31,6 +32,16 @@ import { cn } from "@/lib/utils";
 import type { ClubSubscriptionStatus } from "@/pages/admin/hooks/useClubSubscriptionsOverview";
 
 type StatusFilter = "all" | ClubSubscriptionStatus;
+
+function isStatusFilter(value: string): value is StatusFilter {
+  return (
+    value === "all" ||
+    value === "renewal_needed" ||
+    value === "subscribed" ||
+    value === "requested" ||
+    value === "nothing"
+  );
+}
 
 function statusLabel(status: ClubSubscriptionStatus): string {
   if (status === "renewal_needed") return "Renewal Needed";
@@ -85,6 +96,15 @@ export default function ClubSubscriptionsOverviewPage() {
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
 
+  const handleStatusFilterChange = (value: string) => {
+    if (!isStatusFilter(value)) {
+      setStatusFilter("all");
+      return;
+    }
+
+    setStatusFilter(value);
+  };
+
   const rows = data?.clubs ?? [];
 
   const normalized = query.trim().toLowerCase();
@@ -131,7 +151,7 @@ export default function ClubSubscriptionsOverviewPage() {
               </div>
               <Select
                 value={statusFilter}
-                onValueChange={(value) => setStatusFilter(value as StatusFilter)}
+                onValueChange={handleStatusFilterChange}
               >
                 <SelectTrigger className="h-8 w-[122px] text-xs md:h-9 md:w-[155px] md:text-sm">
                   <SelectValue placeholder="All Status" />
@@ -290,7 +310,10 @@ export default function ClubSubscriptionsOverviewPage() {
                             </TableCell>
                             <TableCell className="px-4 py-3">
                               <Button variant="ghost" size="sm" asChild className="h-8 gap-1 px-2">
-                                <Link to={`/admin/clubs-subscriptions/${row.id}`}>View</Link>
+                                <Link to={`/admin/clubs-subscriptions/${row.id}`}>
+                                  <Eye className="size-4" aria-hidden />
+                                  View
+                                </Link>
                               </Button>
                             </TableCell>
                           </TableRow>

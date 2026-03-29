@@ -1,11 +1,12 @@
-import { useHasRoleOrAbove } from "@/pages/auth/hooks";
-import { ROLES } from "@/constants/roles";
 import InlineLoader from "@/components/shared/InlineLoader";
 import { ClubsGrid } from "@/pages/clubs/components/list/ClubsGrid";
 import { ClubsListHeader } from "@/pages/clubs/components/list/ClubsListHeader";
 import { ClubsPagination } from "@/pages/clubs/components/list/ClubsPagination";
 import { useClubsListData } from "@/pages/clubs/hooks/useClubsListData";
 import { useClubsListFilters } from "@/pages/clubs/hooks/useClubsListFilters";
+import { useAdminClubs } from "@/pages/clubs/hooks";
+import { useHasRoleOrAbove } from "@/pages/auth/hooks";
+import { ROLES } from "@/constants/roles";
 
 export default function ClubsListPage() {
   const { page, limit, query, debouncedQuery, setPage, setQuery } = useClubsListFilters();
@@ -14,7 +15,9 @@ export default function ClubsListPage() {
     limit,
     q: debouncedQuery,
   });
-  const canManage = useHasRoleOrAbove(ROLES.ORGANISER);
+  const hasSuperAdminAccess = useHasRoleOrAbove(ROLES.SUPER_ADMIN);
+  const { data: adminClubsData } = useAdminClubs(!hasSuperAdminAccess);
+  const canManage = hasSuperAdminAccess || (adminClubsData?.clubs?.length ?? 0) > 0;
   const isSearching = query.trim() !== debouncedQuery.trim();
 
   return (

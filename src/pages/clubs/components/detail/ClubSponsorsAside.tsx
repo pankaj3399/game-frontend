@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next";
+import { getSafeLink } from "@/lib/url";
 import type { ClubPublic } from "@/pages/clubs/hooks";
 
 interface ClubSponsorsAsideProps {
@@ -8,6 +9,7 @@ interface ClubSponsorsAsideProps {
 
 export function ClubSponsorsAside({ club, sponsors }: ClubSponsorsAsideProps) {
   const { t } = useTranslation();
+  const safeBookingLink = getSafeLink(club.bookingSystemUrl);
 
   return (
     <aside>
@@ -17,48 +19,52 @@ export function ClubSponsorsAside({ club, sponsors }: ClubSponsorsAsideProps) {
         </h2>
         {sponsors.length > 0 ? (
           <div className="mb-6 grid grid-cols-2 gap-3">
-            {sponsors.map((sponsor) => (
-              <div
-                key={sponsor.id}
-                className="flex aspect-[5/2] items-center justify-center overflow-hidden rounded-lg bg-[#f3f4f6] p-2"
-              >
-                {sponsor.logoUrl ? (
-                  sponsor.link ? (
-                    <a
-                      href={sponsor.link}
-                      target="_blank"
-                      rel="noreferrer noopener"
-                      className="h-full w-full"
-                    >
+            {sponsors.map((sponsor) => {
+              const safeSponsorLink = getSafeLink(sponsor.link);
+
+              return (
+                <div
+                  key={sponsor.id}
+                  className="flex aspect-[5/2] items-center justify-center overflow-hidden rounded-lg bg-[#f3f4f6] p-2"
+                >
+                  {sponsor.logoUrl ? (
+                    safeSponsorLink ? (
+                      <a
+                        href={safeSponsorLink}
+                        target="_blank"
+                        rel="noreferrer noopener"
+                        className="h-full w-full"
+                      >
+                        <img
+                          src={sponsor.logoUrl}
+                          alt={sponsor.name}
+                          className="h-full w-full object-contain"
+                        />
+                      </a>
+                    ) : (
                       <img
                         src={sponsor.logoUrl}
                         alt={sponsor.name}
                         className="h-full w-full object-contain"
                       />
-                    </a>
+                    )
                   ) : (
-                    <img
-                      src={sponsor.logoUrl}
-                      alt={sponsor.name}
-                      className="h-full w-full object-contain"
-                    />
-                  )
-                ) : (
-                  <span className="text-center text-xs font-medium text-muted-foreground">
-                    {sponsor.name}
-                  </span>
-                )}
-              </div>
-            ))}
+                    <span className="text-center text-xs font-medium text-muted-foreground">
+                      {sponsor.name}
+                    </span>
+                  )}
+                </div>
+              );
+            })}
           </div>
         ) : (
           <p className="mb-6 text-sm text-muted-foreground">{t("clubs.noSponsors")}</p>
         )}
 
         <div className="flex flex-col gap-3">
-          {club.bookingSystemUrl ? (
+          {safeBookingLink ? (
             <a
-              href={club.bookingSystemUrl}
+              href={safeBookingLink}
               target="_blank"
               rel="noreferrer noopener"
               className="flex items-center justify-center rounded-lg bg-[#1a1a1a] px-4 py-3 font-medium text-white transition-colors hover:bg-[#2d2d2d]"
