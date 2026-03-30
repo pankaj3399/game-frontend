@@ -43,6 +43,9 @@ export function StaffRow({
   onMenuAction,
 }: StaffRowProps) {
   const { t } = useTranslation();
+  const canDragForMainAdmin =
+    canSetMainAdmin &&
+    (member.role === "admin" || member.role === "default_admin");
   const {
     attributes,
     listeners,
@@ -53,7 +56,7 @@ export function StaffRow({
     isDragging,
   } = useSortable({
     id: member.id,
-    disabled: !canSetMainAdmin,
+    disabled: !canDragForMainAdmin,
   });
   const isDefault = member.role === "default_admin";
   const roleLabel = isDefault ? t("manageClub.mainAdmin") : member.roleLabel;
@@ -84,11 +87,11 @@ export function StaffRow({
         {...attributes}
         {...listeners}
         type="button"
-        disabled={!canSetMainAdmin}
-        aria-disabled={!canSetMainAdmin}
+        disabled={!canDragForMainAdmin}
+        aria-disabled={!canDragForMainAdmin}
         className={cn(
           "mr-3 touch-none text-[#010a04]/45",
-          canSetMainAdmin
+          canDragForMainAdmin
             ? "cursor-grab hover:text-[#010a04]/70 active:cursor-grabbing"
             : "cursor-not-allowed opacity-40"
         )}

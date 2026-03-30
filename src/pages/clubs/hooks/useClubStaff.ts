@@ -22,7 +22,7 @@ export interface ClubSubscription {
   renewalRequestedAt: Date | null;
 }
 
-interface ClubStaffResponse {
+export interface ClubStaffResponse {
   staff: ClubStaffMember[];
   subscription: ClubSubscription;
 }

@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useState } from "react";
 import {
   closestCenter,
   DndContext,
@@ -32,7 +32,10 @@ interface ManageClubStaffSectionProps {
   currentMainAdminId: string | null;
   onOpenAddModal: () => void;
   onMenuAction?: (action: "edit" | "remove", member: ClubStaffMember) => void;
-  onMainAdminChange?: (newMainAdminId: string) => Promise<boolean>;
+  onMainAdminChange?: (
+    newMainAdminId: string,
+    orderedIds?: string[],
+  ) => Promise<boolean>;
 }
 
 export function ManageClubStaffSection({
@@ -46,37 +49,23 @@ export function ManageClubStaffSection({
   onMainAdminChange,
 }: ManageClubStaffSectionProps) {
   const { t } = useTranslation();
-  const [orderedStaffIds, setOrderedStaffIds] = useState<string[]>(() => staff.map((member) => member.id));
-  const [pendingMainAdminId, setPendingMainAdminId] = useState<string | null>(null);
-  const latestStaffRef = useRef(staff);
-  latestStaffRef.current = staff;
+  const [pendingMainAdminId, setPendingMainAdminId] = useState<string | null>(
+    null,
+  );
   const isMainAdminChangePending = pendingMainAdminId !== null;
   const sensors = useSensors(
     useSensor(MouseSensor),
     useSensor(TouchSensor),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
-    })
+    }),
   );
 
-  const staffById = new Map(staff.map((member) => [member.id, member]));
-  const existingIds = new Set(staffById.keys());
-  const sortedIds = orderedStaffIds.filter((id) => existingIds.has(id));
-
-  const sortedIdsSet = new Set(sortedIds);
-  for (const member of staff) {
-    if (!sortedIdsSet.has(member.id)) {
-      sortedIdsSet.add(member.id);
-    }
-  }
-
   const canonicalMainAdminId =
-    staff.find((member) => member.role === "default_admin")?.id ?? currentMainAdminId;
+    staff.find((member) => member.role === "default_admin")?.id ??
+    currentMainAdminId;
 
-  const orderedStaff: ClubStaffMember[] = sortedIds
-    .map((id) => staffById.get(id))
-    .filter((member): member is ClubStaffMember => member !== undefined)
-    .map((member) => {
+  const orderedStaff: ClubStaffMember[] = staff.map((member) => {
       if (!pendingMainAdminId) {
         return member;
       }
@@ -114,49 +103,50 @@ export function ManageClubStaffSection({
       return;
     }
 
-    const sourceIndex = orderedStaff.findIndex((member) => member.id === active.id);
-    const targetIndex = orderedStaff.findIndex((member) => member.id === over.id);
+    if (!canSetMainAdmin || !onMainAdminChange) {
+      return;
+    }
+
+    const sourceIndex = orderedStaff.findIndex(
+      (member) => member.id === active.id,
+    );
+    const targetIndex = orderedStaff.findIndex(
+      (member) => member.id === over.id,
+    );
 
     if (sourceIndex === -1 || targetIndex === -1) {
       return;
     }
 
+    const draggedMember = orderedStaff[sourceIndex];
+    if (
+      draggedMember.role !== "admin" &&
+      draggedMember.role !== "default_admin"
+    ) {
+      return;
+    }
+
     const next = arrayMove(orderedStaff, sourceIndex, targetIndex);
+    const nextTopMember = next[0];
+
+    if (
+      !nextTopMember ||
+      (nextTopMember.role !== "admin" &&
+        nextTopMember.role !== "default_admin")
+    ) {
+      return;
+    }
+
+    if (nextTopMember.id === currentMainAdminId) {
+      return;
+    }
+
     const nextIds = next.map((member) => member.id);
-    const nextMainAdmin = next.find(
-      (member) => member.role === "default_admin" || member.role === "admin"
-    );
+    setPendingMainAdminId(nextTopMember.id);
 
-    if (!nextMainAdmin) {
-      setOrderedStaffIds(nextIds);
-      return;
-    }
-
-    const shouldPersistMainAdminChange =
-      canSetMainAdmin &&
-      onMainAdminChange &&
-      nextMainAdmin.id !== currentMainAdminId;
-
-    if (!shouldPersistMainAdminChange) {
-      setOrderedStaffIds(nextIds);
-      return;
-    }
-
-    setOrderedStaffIds(nextIds);
-    setPendingMainAdminId(nextMainAdmin.id);
-
-    void onMainAdminChange(nextMainAdmin.id)
-      .then((success) => {
-        if (!success) {
-          setOrderedStaffIds(latestStaffRef.current.map((member) => member.id));
-        }
-      })
-      .catch(() => {
-        setOrderedStaffIds(latestStaffRef.current.map((member) => member.id));
-      })
-      .finally(() => {
-        setPendingMainAdminId(null);
-      });
+    void onMainAdminChange(nextTopMember.id, nextIds).finally(() => {
+      setPendingMainAdminId(null);
+    });
   };
 
   if (staffLoading) {
@@ -192,7 +182,9 @@ export function ManageClubStaffSection({
           className="mt-4"
           onClick={onOpenAddModal}
           disabled={!canAddStaff}
-          title={!canAddStaff ? t("manageClub.addMemberDisabledHint") : undefined}
+          title={
+            !canAddStaff ? t("manageClub.addMemberDisabledHint") : undefined
+          }
         >
           <HugeiconsIcon icon={PlusSignIcon} size={16} className="mr-2" />
           {t("manageClub.addMember")}
@@ -209,7 +201,10 @@ export function ManageClubStaffSection({
         onDragEnd={handleDragEnd}
         sensors={sensors}
       >
-        <SortableContext items={staffIds} strategy={verticalListSortingStrategy}>
+        <SortableContext
+          items={staffIds}
+          strategy={verticalListSortingStrategy}
+        >
           <div className="space-y-3">
             {orderedStaff.map((member) => (
               <StaffRow

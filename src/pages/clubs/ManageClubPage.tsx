@@ -240,6 +240,17 @@ export default function ManageClubPage() {
       return;
     }
 
+    // Only super admin or the current main admin may edit roles
+    const isSuperAdmin = hasSuperAdminAccess;
+    const isMainAdmin = user != null && user.id === currentMainAdminId;
+    if (!isSuperAdmin && !isMainAdmin) {
+      toast.error(
+        t("manageClub.onlyMainAdminCanEditRoles") ||
+          "Only the main admin can edit member roles"
+      );
+      return;
+    }
+
     try {
       await updateClubStaffRole.mutateAsync({
         clubId: effectiveClubId,
@@ -259,6 +270,18 @@ export default function ManageClubPage() {
       return;
     }
 
+    // Only super admin or the current main admin may remove members
+    const isSuperAdmin = hasSuperAdminAccess;
+    const isMainAdmin = user != null && user.id === currentMainAdminId;
+
+    if (!isSuperAdmin && !isMainAdmin) {
+      toast.error(
+        t("manageClub.onlyMainAdminCanRemoveAdmins") ||
+          "Only the main admin can remove members"
+      );
+      return;
+    }
+
     try {
       await removeClubStaff.mutateAsync({
         clubId: effectiveClubId,
@@ -272,7 +295,10 @@ export default function ManageClubPage() {
     }
   };
 
-  const handleSetMainAdmin = async (newMainAdminId: string) => {
+  const handleSetMainAdmin = async (
+    newMainAdminId: string,
+    orderedIds?: string[]
+  ) => {
     if (!effectiveClubId) {
       return false;
     }
@@ -281,6 +307,7 @@ export default function ManageClubPage() {
       await setClubMainAdmin.mutateAsync({
         clubId: effectiveClubId,
         userId: newMainAdminId,
+        orderedIds,
       });
 
       toast.success(t("manageClub.mainAdminUpdateSuccess"));

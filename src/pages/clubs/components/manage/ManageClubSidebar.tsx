@@ -166,8 +166,9 @@ export function ManageClubSidebar({
               : t("manageClub.noClubs")}
           </p>
         ) : (
-          <div className="space-y-1 overflow-hidden rounded-[8px] border border-black/10">
-            {clubs.map((club) => {
+          <div className="overflow-hidden rounded-[8px] border border-black/10">
+            <div className="clubs-sidebar-scrollbar h-[222px] overflow-y-auto">
+              {clubs.map((club) => {
               const isSelected = club.id === effectiveClubId;
 
               return (
@@ -211,6 +212,7 @@ export function ManageClubSidebar({
                 </button>
               );
             })}
+            </div>
           </div>
         )}
       </div>

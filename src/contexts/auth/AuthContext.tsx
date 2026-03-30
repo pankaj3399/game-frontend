@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { api } from "@/lib/api";
 import { AuthContext, type AuthContextValue, type AuthUser } from "./context";
 
@@ -6,33 +6,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const checkAuth = async (): Promise<AuthUser | null> => {
+  const checkAuth = useCallback(async (): Promise<AuthUser | null> => {
+    setLoading(true);
+
     try {
       const res = await api.get<{ user: AuthUser }>("/api/auth/me");
-      const u = res.data.user;
-      setUser(u);
-      return u;
+      const nextUser = res.data.user;
+      setUser(nextUser);
+      return nextUser;
     } catch {
       setUser(null);
       return null;
     } finally {
       setLoading(false);
     }
-  };
-
-  useEffect(() => {
-    checkAuth();
-    // No dependencies needed, safe due to React Compiler
   }, []);
 
-  async function logout() {
+  useEffect(() => {
+    void checkAuth();
+  }, [checkAuth]);
+
+  const logout = useCallback(async () => {
     try {
       await api.post("/api/auth/logout");
-      setUser(null);
     } catch {
-      setUser(null);
+      // no-op; we still clear local auth state below
     }
-  }
+    setUser(null);
+  }, []);
 
   const isProfileComplete = !!(user?.alias?.trim() && user?.name?.trim());
 
