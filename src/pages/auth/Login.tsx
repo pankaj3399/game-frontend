@@ -1,9 +1,8 @@
 import { useTranslation } from "react-i18next";
 import { Link, useSearchParams } from "react-router-dom";
-import { HugeiconsIcon } from "@hugeicons/react";
-import { ArrowLeft01Icon } from "@hugeicons/core-free-icons";
-import { FcGoogle } from "react-icons/fc";
-import { SiApple } from "react-icons/si";
+import { ArrowLeft01Icon } from "@/icons/figma-icons";
+import { FcGoogle } from "@/icons/figma-icons";
+import { SiApple } from "@/icons/figma-icons";
 import { getBackendUrl } from "@/lib/api";
 
 const Login = () => {
@@ -66,7 +65,7 @@ const Login = () => {
           to="/"
           className="font-semibold rounded-lg bg-brand-primary text-white mt-8 md:h-[48px] h-[40px] font-primary md:text-base text-sm flex justify-center items-center gap-2 self-center px-8 hover:bg-brand-primary-hover active:animate-jerk"
         >
-          <HugeiconsIcon icon={ArrowLeft01Icon} size={22} className="mr-2" />
+          <ArrowLeft01Icon size={22} className="mr-2" />
           {t("auth.backToHome")}
         </Link>
       </div>

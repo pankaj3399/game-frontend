@@ -3,7 +3,7 @@ import {
   InfoIcon,
   OctagonXIcon,
   TriangleAlertIcon,
-} from "lucide-react"
+} from "@/icons/figma-icons"
 import { Toaster as Sonner, type ToasterProps } from "sonner"
 import InlineLoader from "@/components/shared/InlineLoader"
 

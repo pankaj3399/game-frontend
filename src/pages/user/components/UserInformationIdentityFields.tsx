@@ -2,8 +2,7 @@ import { useTranslation } from "react-i18next";
 import type { ChangeEvent } from "react";
 import { Field, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { HugeiconsIcon } from "@hugeicons/react";
-import { UserIcon } from "@hugeicons/core-free-icons";
+import { UserIcon } from "@/icons/figma-icons";
 import { USER_INFORMATION_INPUT_CLASSNAME } from "@/pages/user/constants";
 
 interface UserInformationIdentityFieldsProps {
@@ -30,7 +29,7 @@ export function UserInformationIdentityFields({
           htmlFor="signup-alias"
           className="flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-[#6b7280]"
         >
-          <HugeiconsIcon icon={UserIcon} size={14} />
+          <UserIcon size={14} className="text-muted-foreground" />
           {t("signup.alias")} <span className="text-destructive">*</span>
         </FieldLabel>
         <Input
@@ -59,7 +58,7 @@ export function UserInformationIdentityFields({
           htmlFor="signup-name"
           className="flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-[#6b7280]"
         >
-          <HugeiconsIcon icon={UserIcon} size={14} />
+          <UserIcon size={14} className="text-muted-foreground" />
           {t("signup.name")} <span className="text-destructive">*</span>
         </FieldLabel>
         <Input

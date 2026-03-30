@@ -4,8 +4,7 @@ import {
   DialogContent,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { HugeiconsIcon } from "@hugeicons/react";
-import { CrownIcon } from "@hugeicons/core-free-icons";
+import { CrownIcon } from "@/icons/figma-icons";
 
 interface RequestSubscriptionRenewalModalProps {
   open: boolean;
@@ -48,7 +47,7 @@ export function RequestSubscriptionRenewalModal({
       >
         <div className="flex flex-col gap-[18px]">
           <div className="inline-flex h-[44px] w-[44px] items-center justify-center rounded-[8px] bg-[#f6ecdd]">
-            <HugeiconsIcon icon={CrownIcon} size={20} className="text-[#eb920f]" />
+            <CrownIcon size={20} className="text-[#eb920f]" />
           </div>
 
           <div className="flex flex-col gap-[9px]">

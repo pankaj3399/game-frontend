@@ -14,7 +14,7 @@ import {
   Info,
   Rocket,
   X,
-} from "lucide-react";
+} from "@/icons/figma-icons";
 import type { ClubSubscriptionOverviewItem } from "@/pages/admin/hooks/useClubSubscriptionsOverview";
 import type { UpdateClubSubscriptionInput } from "@/pages/clubs/hooks";
 import { Button } from "@/components/ui/button";

@@ -1,4 +1,4 @@
-import { CloudUpload } from 'lucide-react';
+import { CloudUpload } from '@/icons/figma-icons';
 import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';

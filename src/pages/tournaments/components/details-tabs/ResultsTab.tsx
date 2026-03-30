@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ChevronDown, ChevronUp, Minus } from "lucide-react";
+import { ChevronDown, ChevronUp, Minus } from "@/icons/figma-icons";
 import type { TournamentDetail } from "@/models/tournament/types";
 import { TabsContent } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";

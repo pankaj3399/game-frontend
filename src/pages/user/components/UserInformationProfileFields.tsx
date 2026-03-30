@@ -15,8 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { HugeiconsIcon } from "@hugeicons/react";
-import { Calendar03Icon, UserIcon } from "@hugeicons/core-free-icons";
+import { Calendar03Icon, UserIcon } from "@/icons/figma-icons";
 import { USER_INFORMATION_INPUT_CLASSNAME } from "@/pages/user/constants";
 
 interface UserInformationProfileFieldsProps {
@@ -45,7 +44,7 @@ export function UserInformationProfileFields({
           htmlFor="signup-dob"
           className="flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-[#6b7280]"
         >
-          <HugeiconsIcon icon={Calendar03Icon} size={14} />
+          <Calendar03Icon size={14} className="text-muted-foreground" />
           {t("signup.dateOfBirth")}
         </FieldLabel>
         <Popover>
@@ -57,7 +56,7 @@ export function UserInformationProfileFields({
               aria-invalid={!!dateOfBirthError}
               aria-describedby={dateOfBirthError ? "signup-dob-error" : undefined}
             >
-              <HugeiconsIcon icon={Calendar03Icon} size={18} className="mr-2 shrink-0" />
+              <Calendar03Icon size={18} className="mr-2 shrink-0 text-muted-foreground" />
               {dateOfBirth ? (
                 format(dateOfBirth, "dd/MM/yyyy")
               ) : (
@@ -90,7 +89,7 @@ export function UserInformationProfileFields({
           htmlFor="gender-select-trigger"
           className="flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-[#6b7280]"
         >
-          <HugeiconsIcon icon={UserIcon} size={14} />
+          <UserIcon size={14} className="text-muted-foreground" />
           {t("signup.gender")}
         </FieldLabel>
         <Select value={gender || undefined} onValueChange={onGenderChange}>

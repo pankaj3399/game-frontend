@@ -1,12 +1,11 @@
 import { useState } from "react";
 import { Link, Navigate } from "react-router-dom";
 import { differenceInCalendarDays, format } from "date-fns";
-import { Eye } from "lucide-react";
-import { HugeiconsIcon } from "@hugeicons/react";
+import { Eye } from "@/icons/figma-icons";
 import {
   CrownIcon,
   Search01Icon,
-} from "@hugeicons/core-free-icons";
+} from "@/icons/figma-icons";
 import { useAuth, useHasRoleOrAbove } from "@/pages/auth/hooks";
 import { ROLES } from "@/constants/roles";
 import { useClubSubscriptionsOverview } from "@/pages/admin/hooks/useClubSubscriptionsOverview";
@@ -137,8 +136,7 @@ export default function ClubSubscriptionsOverviewPage() {
             <h1 className="text-lg font-semibold text-foreground md:text-3xl">Subscription Management</h1>
             <div className="flex w-full items-center gap-2 md:w-auto md:gap-3">
               <div className="relative min-w-0 flex-1 md:w-[280px] md:flex-none">
-                <HugeiconsIcon
-                  icon={Search01Icon}
+                <Search01Icon
                   size={14}
                   className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-muted-foreground"
                 />
@@ -192,7 +190,7 @@ export default function ClubSubscriptionsOverviewPage() {
                               <div className="flex items-center gap-1.5">
                                 <h2 className="truncate text-base font-medium text-foreground">{row.name}</h2>
                                 {isPremium && (
-                                  <HugeiconsIcon icon={CrownIcon} size={16} className="shrink-0 text-amber-500" aria-hidden />
+                                  <CrownIcon size={16} className="shrink-0 text-amber-500" aria-hidden />
                                 )}
                               </div>
                               <p className="mt-1 text-[13px] text-foreground/65">
@@ -274,7 +272,7 @@ export default function ClubSubscriptionsOverviewPage() {
                                 <span className="flex items-center gap-1 text-sm font-medium text-foreground">
                                   {row.name}
                                   {isPremium && (
-                                    <HugeiconsIcon icon={CrownIcon} size={16} className="text-amber-500" aria-hidden />
+                                    <CrownIcon size={16} className="text-amber-500" aria-hidden />
                                   )}
                                 </span>
                               </div>

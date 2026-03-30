@@ -7,12 +7,11 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { HugeiconsIcon } from "@hugeicons/react";
 import {
   DragDropVerticalIcon,
   CrownIcon,
   MoreVerticalIcon,
-} from "@hugeicons/core-free-icons";
+} from "@/icons/figma-icons";
 import { cn } from "@/lib/utils";
 import type { ClubStaffMember } from "@/pages/clubs/hooks";
 
@@ -43,6 +42,9 @@ export function StaffRow({
   onMenuAction,
 }: StaffRowProps) {
   const { t } = useTranslation();
+  const canDragForMainAdmin =
+    canSetMainAdmin &&
+    (member.role === "admin" || member.role === "default_admin");
   const {
     attributes,
     listeners,
@@ -53,7 +55,7 @@ export function StaffRow({
     isDragging,
   } = useSortable({
     id: member.id,
-    disabled: !canSetMainAdmin,
+    disabled: !canDragForMainAdmin,
   });
   const isDefault = member.role === "default_admin";
   const roleLabel = isDefault ? t("manageClub.mainAdmin") : member.roleLabel;
@@ -84,17 +86,17 @@ export function StaffRow({
         {...attributes}
         {...listeners}
         type="button"
-        disabled={!canSetMainAdmin}
-        aria-disabled={!canSetMainAdmin}
+        disabled={!canDragForMainAdmin}
+        aria-disabled={!canDragForMainAdmin}
         className={cn(
           "mr-3 touch-none text-[#010a04]/45",
-          canSetMainAdmin
+          canDragForMainAdmin
             ? "cursor-grab hover:text-[#010a04]/70 active:cursor-grabbing"
             : "cursor-not-allowed opacity-40"
         )}
         aria-label={t("manageClub.dragUser")}
       >
-        <HugeiconsIcon icon={DragDropVerticalIcon} size={20} />
+        <DragDropVerticalIcon size={20} />
       </button>
       <div className="flex min-w-0 flex-1 items-center gap-[14px]">
         <StaffAvatar name={member.name} alias={member.alias} />
@@ -103,7 +105,7 @@ export function StaffRow({
             <p className="truncate text-[16px] font-medium text-[#010a04]">{memberDisplayName}</p>
             {isDefault && (
               <span className="inline-flex h-[18px] items-center gap-1 rounded-[5px] bg-[rgba(10,105,37,0.12)] px-[6px] pr-[8px] text-[10px] font-medium text-brand-primary">
-                <HugeiconsIcon icon={CrownIcon} size={10} />
+                <CrownIcon size={10} />
                 {t("manageClub.default")}
               </span>
             )}
@@ -126,7 +128,7 @@ export function StaffRow({
               className="ml-2 flex h-6 w-6 shrink-0 items-center justify-center text-[#010a04]/45"
               aria-label={t("manageClub.staffActionsMenu", { name: memberDisplayName })}
             >
-              <HugeiconsIcon icon={MoreVerticalIcon} size={18} aria-hidden />
+              <MoreVerticalIcon size={18} aria-hidden />
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">

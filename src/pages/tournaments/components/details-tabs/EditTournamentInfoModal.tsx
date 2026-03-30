@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { CheckCircle2, Circle } from "lucide-react";
+import { CheckCircle2, Circle } from "@/icons/figma-icons";
 import { toast } from "sonner";
 import { useAdminClubs } from "@/pages/clubs/hooks";
 import { useClubSponsors } from "@/pages/sponsors/hooks";
