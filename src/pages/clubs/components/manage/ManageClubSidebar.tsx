@@ -1,7 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { format } from "date-fns";
-import { HugeiconsIcon } from "@hugeicons/react";
-import { ArrowRight01Icon } from "@hugeicons/core-free-icons";
+import { ArrowRight01Icon } from "@/icons/figma-icons";
 import InlineLoader from "@/components/shared/InlineLoader";
 import { cn } from "@/lib/utils";
 import type { AdminClub } from "@/pages/clubs/hooks";
@@ -208,7 +207,7 @@ export function ManageClubSidebar({
                       )}
                     </div>
                   </div>
-                  <HugeiconsIcon icon={ArrowRight01Icon} size={16} className="shrink-0 text-[#010a04]/45 lg:hidden" />
+                  <ArrowRight01Icon size={16} className="shrink-0 text-[#010a04]/45 lg:hidden" />
                 </button>
               );
             })}

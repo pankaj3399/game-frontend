@@ -2,9 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { queryKeys } from "@/lib/api/queryKeys";
 import { useAuth } from "@/pages/auth/hooks";
-import type {
-  ClubStaffResponse,
-} from "@/pages/clubs/hooks/useClubStaff";
+import type { ClubStaffResponse } from "@/pages/clubs/hooks/useClubStaff";
 
 interface RemoveClubStaffInput {
   clubId: string;
@@ -50,9 +48,7 @@ export function useRemoveClubStaff() {
 
       queryClient.setQueryData<ClubStaffResponse>(key, {
         ...previous,
-        staff: previous.staff.filter(
-          (m) => m.id !== variables.staffId
-        ),
+        staff: previous.staff.filter((m) => m.id !== variables.staffId),
       });
 
       return { key, removedMember };
@@ -86,12 +82,12 @@ export function useRemoveClubStaff() {
       }
     },
 
-    onSettled: (_data, _error, variables) => {
-      void queryClient.invalidateQueries({
+    onSettled: async (_data, _error, variables) => {
+      await queryClient.invalidateQueries({
         queryKey: queryKeys.club.staff(variables.clubId),
       });
 
-      void queryClient.invalidateQueries({
+      await queryClient.invalidateQueries({
         queryKey: queryKeys.user.adminClubs(),
       });
     },

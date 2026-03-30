@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SponsorLogoUploadZone } from "@/components/shared/SponsorLogoUploadZone";
+import { getErrorMessage } from "@/lib/errors";
 import { useCreateSponsor, useUpdateSponsor, type ClubSponsor } from "@/pages/sponsors/hooks";
 import { toast } from "sonner";
 
@@ -42,6 +43,7 @@ export function AddEditSponsorModal({
 
   const createSponsor = useCreateSponsor(clubId);
   const updateSponsor = useUpdateSponsor(clubId);
+  const isPending = createSponsor.isPending || updateSponsor.isPending;
 
   const isEdit = !!editSponsor;
   const currentForm = form ?? initialForm;
@@ -75,24 +77,26 @@ export function AddEditSponsorModal({
       }
       onOpenChange(false);
     } catch (err: unknown) {
-      const msg =
-        err &&
-        typeof err === "object" &&
-        "response" in err
-          ? (err as { response?: { data?: { message?: string } } }).response?.data
-              ?.message
-          : null;
+      const status =
+        err && typeof err === "object" && "response" in err
+          ? (err as { response?: { status?: number } }).response?.status
+          : undefined;
+      if (status === 409) {
+        toast.error(t("sponsors.duplicateName"));
+        return;
+      }
+      const msg = getErrorMessage(err);
       toast.error(msg ?? (isEdit ? t("sponsors.updateError") : t("sponsors.createError")));
     }
   };
 
-  const isPending = createSponsor.isPending || updateSponsor.isPending;
   const canSubmit = canManage && !!clubId;
 
   return (
     <Dialog
       open={open}
       onOpenChange={(nextOpen) => {
+        if (!nextOpen && isPending) return;
         if (!nextOpen) {
           setForm(null);
         }
@@ -129,7 +133,7 @@ export function AddEditSponsorModal({
               }
               placeholder={t("sponsors.namePlaceholder")}
               className="mt-1.5"
-              disabled={!canManage}
+              disabled={!canManage || isPending}
             />
           </div>
 
@@ -146,7 +150,7 @@ export function AddEditSponsorModal({
               }
               placeholder={t("sponsors.linkPlaceholder")}
               className="mt-1.5"
-              disabled={!canManage}
+              disabled={!canManage || isPending}
             />
           </div>
 

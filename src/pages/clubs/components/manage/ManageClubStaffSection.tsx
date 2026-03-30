@@ -18,8 +18,7 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { useTranslation } from "react-i18next";
-import { HugeiconsIcon } from "@hugeicons/react";
-import { PlusSignIcon } from "@hugeicons/core-free-icons";
+import { PlusSignIcon } from "@/icons/figma-icons";
 import { Button } from "@/components/ui/button";
 import type { ClubStaffMember } from "@/pages/clubs/hooks";
 import { StaffRow } from "./StaffRow";
@@ -186,7 +185,7 @@ export function ManageClubStaffSection({
             !canAddStaff ? t("manageClub.addMemberDisabledHint") : undefined
           }
         >
-          <HugeiconsIcon icon={PlusSignIcon} size={16} className="mr-2" />
+          <PlusSignIcon size={16} className="mr-2" />
           {t("manageClub.addMember")}
         </Button>
       </div>

@@ -1,11 +1,10 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { HugeiconsIcon } from "@hugeicons/react";
 import {
   Search01Icon,
   Delete01Icon,
-} from "@hugeicons/core-free-icons";
-import { House, Info } from "lucide-react";
+} from "@/icons/figma-icons";
+import { House, Info } from "@/icons/figma-icons";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -118,8 +117,7 @@ export function FavoriteClubsSection() {
 
         <div className="flex w-full flex-col items-start gap-3 sm:flex-row sm:items-center">
           <div className="relative w-full flex-1">
-            <HugeiconsIcon
-              icon={Search01Icon}
+            <Search01Icon
               size={16}
               className="absolute left-3 top-1/2 -translate-y-1/2 text-[#010a04]/50"
               aria-hidden
@@ -213,7 +211,7 @@ export function FavoriteClubsSection() {
                       name: club.name,
                     })}
                   >
-                    <HugeiconsIcon icon={Delete01Icon} size={16} className="sm:size-[18px]" />
+                    <Delete01Icon size={16} className="sm:size-[18px]" />
                   </button>
                   {isHome && (
                     <House

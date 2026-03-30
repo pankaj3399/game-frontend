@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import type { ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { AuthContext, type AuthContextValue, type AuthUser } from "./context";
@@ -7,12 +7,16 @@ async function fetchMe(): Promise<AuthUser | null> {
   try {
     const res = await api.get<{ user: AuthUser | null }>("/api/auth/me");
     return res.data.user ?? null;
-  } catch {
-    return null;
+  } catch (err: unknown) {
+    const status = (err as any)?.response?.status;
+    if (status === 401 || status === 403 || status === 404) {
+      return null;
+    }
+    throw err;
   }
 }
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
+export function AuthProvider({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient();
 
   const { data: user, isLoading } = useQuery<AuthUser | null>({
@@ -22,23 +26,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     staleTime: 5 * 60 * 1000,
   });
 
-  const logout = useCallback(async () => {
+  const logout = async () => {
     try {
       await api.post("/api/auth/logout");
     } catch {
       // ignore network errors; still clear client state
     }
 
-    queryClient.setQueryData(["auth", "me"], null);
-    queryClient.invalidateQueries({ queryKey: ["auth", "me"] });
-  }, [queryClient]);
+    await queryClient.cancelQueries({ queryKey: ["auth", "me"] });
 
-  const checkAuth = useCallback(async () => {
-    return queryClient.fetchQuery<AuthUser | null>({
+    queryClient.setQueryData(["auth", "me"], null);
+
+    void queryClient.invalidateQueries({
+      queryKey: ["auth", "me"],
+      refetchType: "none",
+    });
+  };
+
+  const checkAuth = async () =>
+    queryClient.fetchQuery<AuthUser | null>({
       queryKey: ["auth", "me"],
       queryFn: fetchMe,
     });
-  }, [queryClient]);
 
   const value: AuthContextValue = {
     user: user ?? null,

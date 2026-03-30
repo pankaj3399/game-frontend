@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { ExternalLink } from "lucide-react";
+import { ExternalLink } from "@/icons/figma-icons";
 import { useAllSponsors } from "@/pages/sponsors/hooks";
 import InlineLoader from "@/components/shared/InlineLoader";
 

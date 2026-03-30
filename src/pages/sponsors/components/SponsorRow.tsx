@@ -1,7 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
-import { HugeiconsIcon } from "@hugeicons/react";
-import { PencilEdit01Icon, Delete02Icon } from "@hugeicons/core-free-icons";
+import { PencilEdit01Icon, Delete02Icon } from "@/icons/figma-icons";
 import { cn } from "@/lib/utils";
 import { getSafeLink } from "@/lib/url";
 import type { ClubSponsor } from "@/pages/sponsors/hooks";
@@ -72,7 +71,7 @@ export function SponsorRow({ sponsor, canManage, onEdit, onRemove }: SponsorRowP
             onClick={() => onEdit(sponsor)}
             disabled={!canManage}
           >
-            <HugeiconsIcon icon={PencilEdit01Icon} size={16} className="mr-1" />
+            <PencilEdit01Icon size={16} className="mr-1" />
             {t("sponsors.edit")}
           </Button>
           <Button
@@ -82,7 +81,7 @@ export function SponsorRow({ sponsor, canManage, onEdit, onRemove }: SponsorRowP
             onClick={() => onRemove(sponsor)}
             disabled={!canManage}
           >
-            <HugeiconsIcon icon={Delete02Icon} size={16} className="mr-1" />
+            <Delete02Icon size={16} className="mr-1" />
             {t("sponsors.remove")}
           </Button>
         </div>

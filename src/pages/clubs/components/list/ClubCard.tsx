@@ -1,4 +1,4 @@
-import { ArrowRight } from "lucide-react";
+import { ArrowRight } from "@/icons/figma-icons";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import type { ClubListItem } from "@/pages/clubs/hooks";

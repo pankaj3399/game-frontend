@@ -1,7 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
-import { HugeiconsIcon } from "@hugeicons/react";
-import { PencilIcon, Upload01Icon, ViewIcon } from "@hugeicons/core-free-icons";
+import { PencilIcon, Upload01Icon, ViewIcon } from "@/icons/figma-icons";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -94,13 +93,13 @@ export function TournamentTable({
                   <div className="flex items-center justify-end gap-2">
                     <Button variant="outline" size="sm" asChild>
                       <Link to={`/tournaments/${tournament.id}`}>
-                        <HugeiconsIcon icon={ViewIcon} size={16} className="mr-1" />
+                        <ViewIcon size={16} className="mr-1" />
                         {t("tournaments.view")}
                       </Link>
                     </Button>
                     {canEditDraft && (
                       <Button variant="outline" size="sm" onClick={() => onEdit(tournament.id)}>
-                        <HugeiconsIcon icon={PencilIcon} size={16} className="mr-1" />
+                        <PencilIcon size={16} className="mr-1" />
                         {t("tournaments.edit")}
                       </Button>
                     )}
@@ -111,7 +110,7 @@ export function TournamentTable({
                         onClick={() => onPublish(tournament.id)}
                         disabled={isPublishing}
                       >
-                        <HugeiconsIcon icon={Upload01Icon} size={16} className="mr-1" />
+                        <Upload01Icon size={16} className="mr-1" />
                         {t("tournaments.publish")}
                       </Button>
                     )}

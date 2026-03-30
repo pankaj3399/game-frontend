@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { PenLine, Trash2 } from "lucide-react";
+import { PenLine, Trash2 } from "@/icons/figma-icons";
 import { Button } from "@/components/ui/button";
 import { RenderLogo } from "@/components/shared/RenderLogo";
 import { getSafeLink } from "@/lib/url";

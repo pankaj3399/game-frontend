@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Navigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { CirclePlus, PenLine, Trash2 } from "lucide-react";
+import { CirclePlus, PenLine, Trash2 } from "@/icons/figma-icons";
 import { toast } from "sonner";
 import { useHasRoleOrAbove } from "@/pages/auth/hooks";
 import { ROLES } from "@/constants/roles";
@@ -93,7 +93,12 @@ export default function ManageClubSponsorsPage() {
     );
   }
   if (!clubsLoading && !hasAdminClubsError && !hasSuperAdminAccess && selectedClub === null) {
-    return <Navigate to="/clubs/manage" replace />;
+    return (
+      <Navigate
+        to={clubId ? `/clubs/manage?clubId=${clubId}` : "/clubs/manage"}
+        replace
+      />
+    );
   }
 
   return (

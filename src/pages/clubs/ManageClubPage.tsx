@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { Navigate } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
+import { queryKeys } from "@/lib/api/queryKeys";
 import { useTranslation } from "react-i18next";
 import {
   useAdminClubs,
@@ -64,6 +66,7 @@ function deriveSubscriptionStatus(
 
 export default function ManageClubPage() {
   const { t } = useTranslation();
+  const queryClient = useQueryClient();
   const hasSuperAdminAccess = useHasRoleOrAbove(ROLES.SUPER_ADMIN);
   const { user } = useAuth();
   const {
@@ -269,23 +272,40 @@ export default function ManageClubPage() {
     if (!effectiveClubId || !removingMember) {
       return;
     }
-
-    // Only super admin or the current main admin may remove members
+    // Role-specific removal permissions:
+    // - removing default_admin: only super admin
+    // - removing organiser: super admin OR club admins (main admin or other club admins)
+    // - other roles: super admin OR main admin
     const isSuperAdmin = hasSuperAdminAccess;
     const isMainAdmin = user != null && user.id === currentMainAdminId;
+    const isClubAdmin =
+      user != null &&
+      staff.some((s) => s.id === user.id && (s.role === "default_admin" || s.role === "admin"));
 
-    if (!isSuperAdmin && !isMainAdmin) {
-      let errorKey = "manageClub.onlyMainAdminCanRemoveAdmins";
-      if (removingMember.role === "default_admin") {
-        errorKey = "manageClub.onlySuperCanRemoveDefaultAdmin";
-      } else if (removingMember.role === "organiser") {
-        errorKey = "manageClub.onlyClubAdminsCanRemoveOrganisers";
+    if (removingMember.role === "default_admin") {
+      if (!isSuperAdmin) {
+        toast.error(
+          t("manageClub.onlySuperCanRemoveDefaultAdmin") ||
+            "Only a super admin can remove the main admin"
+        );
+        return;
       }
-
-      toast.error(
-        t(errorKey) || "Only the main admin can remove members"
-      );
-      return;
+    } else if (removingMember.role === "organiser") {
+      if (!(isSuperAdmin || isClubAdmin)) {
+        toast.error(
+          t("manageClub.onlyClubAdminsCanRemoveOrganisers") ||
+            "Only club admins can remove organisers"
+        );
+        return;
+      }
+    } else {
+      if (!(isSuperAdmin || isMainAdmin)) {
+        toast.error(
+          t("manageClub.onlyMainAdminCanRemoveAdmins") ||
+            "Only the main admin can remove members"
+        );
+        return;
+      }
     }
 
     try {
@@ -388,6 +408,12 @@ export default function ManageClubPage() {
               onClubSelect={(clubId) => {
                 setSelectedClubId(clubId);
                 setMobileView("staff");
+                void queryClient.invalidateQueries({
+                  queryKey: queryKeys.user.adminClubs(),
+                });
+                void queryClient.invalidateQueries({
+                  queryKey: queryKeys.club.staff(clubId),
+                });
               }}
             />
 
@@ -407,10 +433,12 @@ export default function ManageClubPage() {
                 <>
                   <div className="rounded-[12px] border border-black/8 bg-white px-[15px] py-5 shadow-[0px_3px_15px_0px_rgba(0,0,0,0.06)] lg:px-3 lg:py-5">
                     <ManageClubHeader
+                      clubId={effectiveClubId}
                       selectedClub={selectedClub}
                       showClubCrown={staffData?.subscription?.plan === "premium"}
                       canUpdateExpiry={hasSuperAdminAccess}
                       canAddStaff={canAddStaff}
+                      showSponsorsButton={!hasSuperAdminAccess}
                       onOpenExpiryModal={openPremiumExpiryModal}
                       onOpenAddModal={() => setAddModalOpen(true)}
                     />

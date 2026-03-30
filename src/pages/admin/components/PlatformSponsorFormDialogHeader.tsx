@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { X } from "lucide-react";
+import { X } from "@/icons/figma-icons";
 import { DialogClose } from "@/components/ui/dialog";
 
 export function PlatformSponsorFormDialogHeader({ title }: { title: string }) {
