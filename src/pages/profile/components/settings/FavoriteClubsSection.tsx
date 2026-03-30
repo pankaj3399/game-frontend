@@ -104,7 +104,7 @@ export function FavoriteClubsSection() {
                 className="shrink-0 text-[#010a04]/55 hover:text-[#010a04]/70"
                 aria-label={t("settings.favoriteClubsInfoAria")}
               >
-                <Info size={20} strokeWidth={1.8} aria-hidden />
+                <Info size={20} aria-hidden />
               </Button>
             </PopoverTrigger>
             <PopoverContent align="end" className="w-[min(100vw-2rem,20rem)]">
@@ -216,7 +216,7 @@ export function FavoriteClubsSection() {
                   {isHome && (
                     <House
                       size={16}
-                      strokeWidth={2}
+                     
                       className="text-[#067429]"
                       aria-label={t("settings.favoriteClubsHomeAria")}
                     />

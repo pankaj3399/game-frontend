@@ -22,7 +22,7 @@ async function fetchMe(): Promise<AuthUser | null> {
 export function AuthProvider({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient();
 
-  const { data: user, error, status, isLoading } = useQuery<AuthUser | null>({
+  const { data: user, error, isLoading } = useQuery<AuthUser | null>({
     queryKey: ["auth", "me"],
     queryFn: fetchMe,
     retry: false,

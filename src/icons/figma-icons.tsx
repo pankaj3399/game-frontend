@@ -11,15 +11,13 @@ import Google from "@/assets/icons/Google";
  */
 
 type Size = number | string;
+
 type ImgProps = Omit<
   React.ImgHTMLAttributes<HTMLImageElement>,
   "src" | "alt"
 > & {
   size?: Size;
   title?: string;
-  strokeWidth?: number | string;
-  absoluteStrokeWidth?: boolean;
-  color?: string;
 };
 
 type FigmaName = Parameters<typeof FigmaIcon>[0]["name"];
@@ -31,14 +29,18 @@ type CreateIconOptions = {
 
 const withSize = (size?: Size): Size => size ?? 16;
 
-function resolveTone(className: string | undefined, defaultTone: FigmaIconTone): FigmaIconTone {
+function resolveTone(
+  className: string | undefined,
+  defaultTone: FigmaIconTone
+): FigmaIconTone {
   const fromClass = toneFromClass(className);
   if (fromClass !== "default") return fromClass;
 
   if (!className) return defaultTone;
 
-  // Detect Tailwind arbitrary color classes like: text-[#d92100], text-[rgb(217,33,0)], text-[var(--my-color)]
-  const customColorPattern = /text-\[(?:#|rgb|rgba|hsl|hsla|var)[^\]]+\]/;
+  const customColorPattern =
+    /text-\[(?:#|rgb|rgba|hsl|hsla|var)[^\]]+\]/;
+
   if (customColorPattern.test(className)) return "custom";
 
   return defaultTone;
@@ -46,7 +48,7 @@ function resolveTone(className: string | undefined, defaultTone: FigmaIconTone):
 
 function createIcon(
   name: FigmaName,
-  defaultOrOptions?: FigmaIconTone | CreateIconOptions,
+  defaultOrOptions?: FigmaIconTone | CreateIconOptions
 ) {
   const options: CreateIconOptions =
     typeof defaultOrOptions === "string"
@@ -56,43 +58,50 @@ function createIcon(
   const defaultTone = options.defaultTone ?? "default";
   const transform = options.transform;
 
-  const Comp = React.forwardRef<HTMLImageElement, ImgProps>((props, ref) => {
-    const {
-      size,
-      className,
-      title,
-      style,
-      ...rest
-    } = props;
-    const tone = resolveTone(className, defaultTone);
+  const Comp = React.forwardRef<HTMLImageElement, ImgProps>(
+    (props, ref) => {
+      const { size, className, title, style, ...rest } = props;
 
-    const inner = (
-      <FigmaIcon
-        ref={ref}
-        name={name}
-        tone={tone}
-        size={withSize(size)}
-        className={className}
-        title={title}
-        decorative={!title}
-        style={style}
-        {...rest}
-      />
-    );
+      const tone = resolveTone(className, defaultTone);
 
-    if (transform) {
-      return (
-        <span
-          className="inline-flex shrink-0 items-center justify-center"
-          style={{ transform }}
-        >
-          {inner}
-        </span>
+      const sharedProps = {
+        ref,
+        name,
+        tone,
+        size: withSize(size),
+        className,
+        style,
+        ...rest,
+      };
+
+      const inner = title ? (
+        <FigmaIcon
+          {...sharedProps}
+          title={title}
+          decorative={false}
+        />
+      ) : (
+        <FigmaIcon
+          {...sharedProps}
+          decorative={true}
+        />
       );
-    }
 
-    return inner;
-  });
+      if (transform) {
+        return (
+          <span
+            className="inline-flex shrink-0 items-center justify-center"
+            style={{ transform }}
+          >
+            {inner}
+          </span>
+        );
+      }
+
+      return inner;
+    }
+  );
+
   return Comp;
 }
 
@@ -112,7 +121,10 @@ export const IconUserStar = createIcon("userStar01");
 
 export const IconChevronDown = createIcon("chevronDown", { defaultTone: "muted" });
 export const IconChevronRight = createIcon("chevronRight", { defaultTone: "muted" });
-export const IconChevronLeft = createIcon("chevronRight", { defaultTone: "muted",transform: "scaleX(-1)" });
+export const IconChevronLeft = createIcon("chevronRight", {
+  defaultTone: "muted",
+  transform: "scaleX(-1)",
+});
 export const IconArrowRight = createIcon("arrowRightGreen");
 
 export const IconCalendarDays = createIcon("calendarDays", { defaultTone: "muted" });
@@ -138,14 +150,14 @@ export const IconArchiveRestore = createIcon("archiveRestore", { defaultTone: "m
 export const IconTb10Logo = createIcon("tb10LogoFrame8");
 
 /* -------------------------------------------------------------------------- */
-/* Semantic aliases requested in app flows                                     */
+/* Semantic aliases                                                            */
 /* -------------------------------------------------------------------------- */
 
 export const IconNavbarUser = IconUserStar;
 export const IconMyScore = IconChart;
 
 /* -------------------------------------------------------------------------- */
-/* Named icons (former Hugeicons token names)                                  */
+/* Named icons                                                                 */
 /* -------------------------------------------------------------------------- */
 
 export const Menu01Icon = createIcon("scanBarcodeBold");
@@ -178,7 +190,7 @@ export const ViewIcon = createIcon("userStar01");
 export const MoreVerticalIcon = createIcon("ellipsisVertical");
 
 /* -------------------------------------------------------------------------- */
-/* Former Lucide-like API names (used across app/ui)                          */
+/* Lucide-like API                                                             */
 /* -------------------------------------------------------------------------- */
 
 export const XIcon = IconX;
@@ -192,7 +204,10 @@ export const ChevronRight = IconChevronRight;
 
 export const ChevronLeftIcon = IconChevronLeft;
 export const ChevronLeft = IconChevronLeft;
-export const ChevronUp = createIcon("chevronDown",{ defaultTone: "muted", transform: "rotate(180deg)"});
+export const ChevronUp = createIcon("chevronDown", {
+  defaultTone: "muted",
+  transform: "rotate(180deg)",
+});
 
 export const Trash2 = IconTrash;
 export const CalendarDays = IconCalendarDays;
@@ -237,14 +252,14 @@ export const OctagonXIcon = IconX;
 export const TriangleAlertIcon = IconInfo;
 
 /* -------------------------------------------------------------------------- */
-/* Former react-icons specific exports used by app                             */
+/* react-icons compatibility                                                   */
 /* -------------------------------------------------------------------------- */
 
 export const FcGoogle = Google;
 export const SiApple = Apple;
 
 /* -------------------------------------------------------------------------- */
-/* Dynamic map                                                                  */
+/* Dynamic map                                                                 */
 /* -------------------------------------------------------------------------- */
 
 export const FIGMA_ICONS = {

@@ -3,7 +3,7 @@ import * as React from "react";
 type Props = React.SVGProps<SVGSVGElement>;
 
 const Google = (props: Props) => {
-  const reactId = React.useId?.();
+  const reactId = React.useId();
   const clipId = `clip-${reactId.replace(/[:]/g, "-")}`;
 
   return (

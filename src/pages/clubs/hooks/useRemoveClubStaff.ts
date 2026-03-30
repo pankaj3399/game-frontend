@@ -2,7 +2,10 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { queryKeys } from "@/lib/api/queryKeys";
 import { useAuth } from "@/pages/auth/hooks";
-import type { ClubStaffResponse, ClubStaffMember } from "@/pages/clubs/hooks/useClubStaff";
+import type {
+  ClubStaffResponse,
+  ClubStaffMember,
+} from "@/pages/clubs/hooks/useClubStaff";
 import type { QueryKey } from "@tanstack/react-query";
 
 interface RemoveClubStaffInput {
@@ -84,7 +87,6 @@ export function useRemoveClubStaff() {
         const exists = current.staff.some((m) => m.id === member.id);
         if (exists) return current;
 
-        // If originalIndex is invalid, append; otherwise insert at originalIndex
         if (typeof originalIndex !== "number" || originalIndex === -1) {
           return {
             ...current,
@@ -105,13 +107,18 @@ export function useRemoveClubStaff() {
     },
 
     onSuccess: async (_data, variables) => {
-      if (user?.id === variables.staffId) {
-        await checkAuth();
+      if (user?.id !== variables.staffId) return;
 
-        queryClient.invalidateQueries({
-          queryKey: queryKeys.auth.me(),
-        });
+      try {
+        await checkAuth();
+      } catch (err) {
+        // Replace with proper logging if available (e.g., Sentry)
+        console.error("checkAuth failed after self-removal", err);
       }
+
+      await queryClient.invalidateQueries({
+        queryKey: queryKeys.auth.me(),
+      });
     },
 
     onSettled: async (_data, _error, variables) => {
