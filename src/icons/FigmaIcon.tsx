@@ -4,13 +4,23 @@ import { figmaIconClassName, type FigmaIconTone } from "@/icons/figma-icon-utils
 
 type Size = number | string;
 
-export interface FigmaIconProps extends Omit<React.ImgHTMLAttributes<HTMLImageElement>, "src" | "alt" | "width" | "height"> {
+type BaseImgProps = Omit<React.ImgHTMLAttributes<HTMLImageElement>, "src" | "alt" | "width" | "height">;
+
+type DecorativeIconProps = {
+  decorative: true;
+  title?: string;
+};
+
+type RequiredLabelIconProps = {
+  decorative?: false;
+  title: string;
+};
+
+export type FigmaIconProps = BaseImgProps & {
   name: FigmaIconPathKey;
   size?: Size;
   tone?: FigmaIconTone;
-  decorative?: boolean;
-  title?: string;
-}
+} & (DecorativeIconProps | RequiredLabelIconProps);
 
 function normalizeSize(size: Size): { width: Size; height: Size } {
   return { width: size, height: size };
@@ -38,7 +48,7 @@ const FigmaIcon = React.forwardRef<HTMLImageElement, FigmaIconProps>(
 
     const ariaHidden = decorative ? true : undefined;
     const role = decorative ? undefined : "img";
-    const alt = decorative ? "" : title || name;
+    const alt = decorative ? "" : title;
 
     return (
       <img

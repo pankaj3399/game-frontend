@@ -2,7 +2,8 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { queryKeys } from "@/lib/api/queryKeys";
 import { useAuth } from "@/pages/auth/hooks";
-import type { ClubStaffResponse } from "@/pages/clubs/hooks/useClubStaff";
+import type { ClubStaffResponse, ClubStaffMember } from "@/pages/clubs/hooks/useClubStaff";
+import type { QueryKey } from "@tanstack/react-query";
 
 interface RemoveClubStaffInput {
   clubId: string;
@@ -12,6 +13,12 @@ interface RemoveClubStaffInput {
 interface RemoveClubStaffResponse {
   message: string;
   staffId: string;
+}
+
+interface RemoveClubStaffContext {
+  key: QueryKey;
+  removedMember: ClubStaffMember;
+  originalIndex: number;
 }
 
 async function removeClubStaff({
@@ -28,7 +35,12 @@ export function useRemoveClubStaff() {
   const queryClient = useQueryClient();
   const { checkAuth, user } = useAuth();
 
-  return useMutation({
+  return useMutation<
+    RemoveClubStaffResponse,
+    unknown,
+    RemoveClubStaffInput,
+    RemoveClubStaffContext | undefined
+  >({
     mutationFn: removeClubStaff,
     mutationKey: ["club", "removeStaff"],
 
@@ -58,7 +70,7 @@ export function useRemoveClubStaff() {
       return { key, removedMember, originalIndex };
     },
 
-    onError: (_error, _variables, context: any) => {
+    onError: (_error, _variables, context) => {
       if (!context?.key) return;
 
       queryClient.setQueryData<ClubStaffResponse>(context.key, (current) => {

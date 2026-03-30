@@ -1,6 +1,6 @@
 import type { FigmaIconPathKey } from "@/icons/figma-icon-paths";
 
-export type FigmaIconTone = "default" | "muted" | "subtle" | "white" | "danger" | "success";
+export type FigmaIconTone = "default" | "muted" | "subtle" | "white" | "danger" | "success" | "custom";
 
 /** SVGs that already encode brand/colors; do not force monochrome silhouette. */
 const NATURAL_COLOR_ICONS = new Set<FigmaIconPathKey>(["arrowRightGreen", "crown"]);
@@ -53,6 +53,8 @@ function classesForTone(
       return ["brightness-0 hue-rotate-[330deg] saturate-[2] brightness-90", className].filter(Boolean).join(" ");
     case "success":
       return ["brightness-0 hue-rotate-[80deg] saturate-[1.5] brightness-95", className].filter(Boolean).join(" ");
+    case "custom":
+      return className ?? "";
     default:
       return ["brightness-0", className].filter(Boolean).join(" ");
   }

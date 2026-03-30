@@ -34,6 +34,13 @@ const withSize = (size?: Size): Size => size ?? 16;
 function resolveTone(className: string | undefined, defaultTone: FigmaIconTone): FigmaIconTone {
   const fromClass = toneFromClass(className);
   if (fromClass !== "default") return fromClass;
+
+  if (!className) return defaultTone;
+
+  // Detect Tailwind arbitrary color classes like: text-[#d92100], text-[rgb(217,33,0)], text-[var(--my-color)]
+  const customColorPattern = /text-\[(?:#|rgb|rgba|hsl|hsla|var)[^\]]+\]/;
+  if (customColorPattern.test(className)) return "custom";
+
   return defaultTone;
 }
 
@@ -54,9 +61,6 @@ function createIcon(
       size,
       className,
       title,
-      strokeWidth: _strokeWidth,
-      absoluteStrokeWidth: _absoluteStrokeWidth,
-      color: _color,
       style,
       ...rest
     } = props;
