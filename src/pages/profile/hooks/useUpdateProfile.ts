@@ -1,15 +1,12 @@
 import { useMutation } from "@tanstack/react-query";
 import { api } from "@/lib/api";
+import { useAuth } from "@/pages/auth/hooks";
 
 export interface UpdateProfileInput {
   alias?: string;
   name?: string;
   dateOfBirth?: string | null;
   gender?: "male" | "female" | "other" | "" | null;
-}
-
-interface UseUpdateProfileOptions {
-  onSuccess?: () => void;
 }
 
 async function updateProfileMutation(data: UpdateProfileInput) {
@@ -23,10 +20,18 @@ async function updateProfileMutation(data: UpdateProfileInput) {
   return res.data;
 }
 
-export function useUpdateProfile({ onSuccess }: UseUpdateProfileOptions = {}) {
+export function useUpdateProfile() {
+  const { checkAuth } = useAuth();
+
   const mutation = useMutation({
     mutationFn: updateProfileMutation,
-    onSuccess,
+    onSuccess: async () => {
+      try {
+        await checkAuth();
+      } catch (err) {
+        console.error("checkAuth failed after profile update", err);
+      }
+    },
   });
 
   const updateProfile = async (data: UpdateProfileInput) => {

@@ -1,6 +1,5 @@
 import { useState, type ChangeEvent, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
-import { useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { Field, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
@@ -18,10 +17,8 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import { useAuth } from "@/pages/auth/hooks";
 import { type AuthUser } from "@/contexts/auth";
 import { useUpdateProfile } from "@/pages/profile/hooks";
-import { queryKeys } from "@/lib/api/queryKeys";
 import InlineLoader from "@/components/shared/InlineLoader";
 import { Calendar03Icon } from "@/icons/figma-icons";
 import { toast } from "sonner";
@@ -42,15 +39,8 @@ function getInitialInputs(user: AuthUser) {
 
 export function SettingsForm({ user }: { user: AuthUser }) {
   const { t } = useTranslation();
-  const queryClient = useQueryClient();
-  const { checkAuth } = useAuth();
   const [inputs, setInputs] = useState(() => getInitialInputs(user));
-  const { updateProfile, isLoading } = useUpdateProfile({
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.auth.me() });
-      checkAuth();
-    },
-  });
+  const { updateProfile, isLoading } = useUpdateProfile();
 
   const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;

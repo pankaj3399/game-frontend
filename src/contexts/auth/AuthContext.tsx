@@ -4,6 +4,8 @@ import { api, queryKeys } from "@/lib/api";
 import { isAxiosError } from "axios";
 import { AuthContext, type AuthContextValue, type AuthUser } from "./context";
 
+const authMeQueryKey = queryKeys.auth.me();
+
 async function fetchMe(): Promise<AuthUser | null> {
   try {
     const res = await api.get<{ user: AuthUser | null }>("/api/auth/me");
@@ -23,7 +25,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient();
 
   const { data: user, error, isLoading } = useQuery<AuthUser | null>({
-    queryKey: ["auth", "me"],
+    queryKey: authMeQueryKey,
     queryFn: fetchMe,
     retry: false,
     staleTime: 5 * 60 * 1000,
@@ -38,7 +40,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     await queryClient.cancelQueries();
 
-    queryClient.setQueryData(["auth", "me"], null);
+    queryClient.setQueryData(authMeQueryKey, null);
   
     queryClient.removeQueries({ queryKey: queryKeys.user.all });
 
@@ -48,16 +50,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     queryClient.removeQueries({ queryKey: queryKeys.user.adminClubs(), exact: true });
   
     void queryClient.invalidateQueries({
-      queryKey: ["auth", "me"],
+      queryKey: authMeQueryKey,
       refetchType: "none",
     });
   };
 
-  const checkAuth = async () =>
-    queryClient.fetchQuery<AuthUser | null>({
-      queryKey: ["auth", "me"],
+  /**
+   * Re-reads the current session from the server. Must invalidate first: a
+   * successful `fetchQuery` can return cached `null` for up to `staleTime` after
+   * the initial unauthenticated `/me` (e.g. after complete-signup sets the cookie).
+   */
+  const checkAuth = async () => {
+    await queryClient.invalidateQueries({ queryKey: authMeQueryKey });
+    return queryClient.fetchQuery<AuthUser | null>({
+      queryKey: authMeQueryKey,
       queryFn: fetchMe,
     });
+  };
 
   const confirmedUnauthenticated = (() => {
     if (!error) return false;

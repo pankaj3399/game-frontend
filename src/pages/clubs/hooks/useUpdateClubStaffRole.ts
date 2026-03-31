@@ -110,10 +110,6 @@ export function useUpdateClubStaffRole() {
     onSuccess: async (_data, variables) => {
       if (user?.id === variables.staffId) {
         await checkAuth();
-
-        queryClient.invalidateQueries({
-          queryKey: queryKeys.auth.me(),
-        });
       }
     },
 

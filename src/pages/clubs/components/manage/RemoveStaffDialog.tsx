@@ -1,7 +1,6 @@
 import { useTranslation } from "react-i18next";
 import {
   AlertDialog,
-  AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
@@ -9,6 +8,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
 import type { ClubStaffMember } from "@/pages/clubs/hooks";
 
 interface RemoveStaffDialogProps {
@@ -16,7 +16,7 @@ interface RemoveStaffDialogProps {
   member: ClubStaffMember | null;
   isRemoving: boolean;
   onOpenChange: (open: boolean) => void;
-  onConfirm: () => void;
+  onConfirm: () => void | Promise<void>;
 }
 
 export function RemoveStaffDialog({
@@ -51,13 +51,16 @@ export function RemoveStaffDialog({
           <AlertDialogCancel disabled={isRemoving}>
             {t("settings.adminClubsCancel")}
           </AlertDialogCancel>
-          <AlertDialogAction
+          <Button
+            type="button"
             variant="destructive"
-            onClick={onConfirm}
             disabled={isRemoving}
+            onClick={() => {
+              void onConfirm();
+            }}
           >
-            {isRemoving ? t("manageClub.removingMember") : t("manageClub.remove")}
-          </AlertDialogAction>
+            {isRemoving ? t("common.loading") : t("manageClub.remove")}
+          </Button>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
