@@ -23,8 +23,7 @@ import { type AuthUser } from "@/contexts/auth";
 import { useUpdateProfile } from "@/pages/profile/hooks";
 import { queryKeys } from "@/lib/api/queryKeys";
 import InlineLoader from "@/components/shared/InlineLoader";
-import { HugeiconsIcon } from "@hugeicons/react";
-import { Calendar03Icon } from "@hugeicons/core-free-icons";
+import { Calendar03Icon } from "@/icons/figma-icons";
 import { toast } from "sonner";
 import { formatDateForApi, parseIsoDateSafely } from "@/utils/date";
 
@@ -168,7 +167,7 @@ export function SettingsForm({ user }: { user: AuthUser }) {
                   ) : (
                     <span className="text-[#010a04]/45">{t("signup.selectDateOfBirth")}</span>
                   )}
-                  <HugeiconsIcon icon={Calendar03Icon} size={16} className="ml-2 shrink-0 text-[#010a04]/60" />
+                  <Calendar03Icon size={16} className="ml-2 shrink-0 text-[#010a04]/60" />
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">

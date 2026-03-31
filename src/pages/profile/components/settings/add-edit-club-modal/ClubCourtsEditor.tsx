@@ -1,6 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { HugeiconsIcon } from "@hugeicons/react";
-import { Delete01Icon } from "@hugeicons/core-free-icons";
+import { Delete01Icon } from "@/icons/figma-icons";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -92,7 +91,7 @@ export function ClubCourtsEditor({
               onClick={() => onRemoveCourt(index)}
               aria-label={t("settings.adminClubsDeleteCourtAria")}
             >
-              <HugeiconsIcon icon={Delete01Icon} size={14} />
+              <Delete01Icon size={14} />
             </Button>
           </div>
         ))}

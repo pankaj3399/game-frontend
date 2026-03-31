@@ -52,11 +52,7 @@ export default defineConfig({
           if (id.includes('@radix-ui')) return 'radix'
           if (id.includes('i18next') || id.includes('react-i18next')) return 'i18n'
 
-          // Icons - often large; split for better caching
-          if (id.includes('lucide-react')) return 'icons-lucide'
-          if (id.includes('@hugeicons')) return 'icons-hugeicons'
-
-          // Date utilities - used in SettingsForm (lazy page)
+      // Date utilities - used in SettingsForm (lazy page)
           if (id.includes('date-fns')) return 'date-fns'
           if (id.includes('react-day-picker')) return 'day-picker'
 

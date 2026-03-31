@@ -1,8 +1,7 @@
 import { Link, Navigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { Share2, Trophy } from "lucide-react";
-import { HugeiconsIcon } from "@hugeicons/react";
-import { Upload01Icon } from "@hugeicons/core-free-icons";
+import { Share2, Trophy } from "@/icons/figma-icons";
+import { Upload01Icon } from "@/icons/figma-icons";
 import { Button } from "@/components/ui/button";
 import InlineLoader from "@/components/shared/InlineLoader";
 import { useAuth } from "@/pages/auth/hooks";
@@ -109,7 +108,7 @@ export default function TournamentDetailsPage() {
               disabled={publishTournament.isPending}
               className="bg-brand-primary hover:bg-brand-primary-hover"
             >
-              <HugeiconsIcon icon={Upload01Icon} size={16} className="mr-1" />
+              <Upload01Icon size={16} className="mr-1" />
               {t("tournaments.publish")}
             </Button>
           )}

@@ -1,7 +1,6 @@
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { HugeiconsIcon } from "@hugeicons/react";
-import { Settings01Icon } from "@hugeicons/core-free-icons";
+import { Settings01Icon } from "@/icons/figma-icons";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -32,7 +31,7 @@ export function ClubsListHeader({
           {canManage && (
             <Button variant="outline" size="sm" asChild>
               <Link to="/clubs/manage">
-                <HugeiconsIcon icon={Settings01Icon} size={16} className="mr-2" />
+                <Settings01Icon size={16} className="mr-2" />
                 {t("clubs.manageClubs")}
               </Link>
             </Button>

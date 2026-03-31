@@ -1,7 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { format } from "date-fns";
-import { HugeiconsIcon } from "@hugeicons/react";
-import { ArrowRight01Icon } from "@hugeicons/core-free-icons";
+import { ArrowRight01Icon } from "@/icons/figma-icons";
 import InlineLoader from "@/components/shared/InlineLoader";
 import { cn } from "@/lib/utils";
 import type { AdminClub } from "@/pages/clubs/hooks";
@@ -166,8 +165,9 @@ export function ManageClubSidebar({
               : t("manageClub.noClubs")}
           </p>
         ) : (
-          <div className="space-y-1 overflow-hidden rounded-[8px] border border-black/10">
-            {clubs.map((club) => {
+          <div className="overflow-hidden rounded-[8px] border border-black/10">
+            <div className="clubs-sidebar-scrollbar max-h-[222px] overflow-y-auto">
+              {clubs.map((club) => {
               const isSelected = club.id === effectiveClubId;
 
               return (
@@ -207,10 +207,11 @@ export function ManageClubSidebar({
                       )}
                     </div>
                   </div>
-                  <HugeiconsIcon icon={ArrowRight01Icon} size={16} className="shrink-0 text-[#010a04]/45 lg:hidden" />
+                  <ArrowRight01Icon size={16} className="shrink-0 text-[#010a04]/45 lg:hidden" />
                 </button>
               );
             })}
+            </div>
           </div>
         )}
       </div>

@@ -1,4 +1,5 @@
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import type { AdminClub } from "@/pages/clubs/hooks";
 import {
   isSubscriptionExpiredByLocalDay,
@@ -20,25 +21,62 @@ export function shouldShowSubscriptionBanner(
 }
 
 export function useManageClubState(clubs: AdminClub[]) {
-  const [selectedClubId, setSelectedClubId] = useState<string | null>(null);
+  const [searchParams, setSearchParams] = useSearchParams();
   const [mobileView, setMobileView] = useState<"clubs" | "staff">("clubs");
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [premiumExpiryModalOpen, setPremiumExpiryModalOpen] = useState(false);
 
-  const fallbackClubId = clubs[0]?.id ?? null;
-  const hasSelectedClub =
-    selectedClubId != null && clubs.some((club) => club.id === selectedClubId);
-  const resolvedClubId = hasSelectedClub ? selectedClubId : fallbackClubId;
+  const clubIdParam = searchParams.get("clubId");
 
-  const selectedClub = useMemo(
-    () => clubs.find((club) => club.id === resolvedClubId) ?? null,
-    [clubs, resolvedClubId]
+  const effectiveClubId = useMemo(() => {
+    if (clubs.length === 0) {
+      return null;
+    }
+    if (clubIdParam && clubs.some((club) => club.id === clubIdParam)) {
+      return clubIdParam;
+    }
+    return clubs[0]?.id ?? null;
+  }, [clubs, clubIdParam]);
+
+  useEffect(() => {
+    if (clubs.length === 0) {
+      return;
+    }
+    const param = searchParams.get("clubId");
+    const valid = param != null && clubs.some((club) => club.id === param);
+    if (valid) {
+      return;
+    }
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        next.set("clubId", clubs[0]!.id);
+        return next;
+      },
+      { replace: true }
+    );
+  }, [clubs, searchParams, setSearchParams]);
+
+  const setSelectedClubId = useCallback(
+    (clubId: string) => {
+      setSearchParams(
+        (prev) => {
+          const next = new URLSearchParams(prev);
+          next.set("clubId", clubId);
+          return next;
+        },
+        { replace: true }
+      );
+    },
+    [setSearchParams]
   );
 
-  const effectiveClubId = selectedClub?.id ?? null;
+  const selectedClub = useMemo(
+    () => clubs.find((club) => club.id === effectiveClubId) ?? null,
+    [clubs, effectiveClubId]
+  );
 
   return {
-    selectedClubId,
     setSelectedClubId,
     selectedClub,
     effectiveClubId,

@@ -42,8 +42,10 @@ async function deleteSponsor(clubId: string, sponsorId: string) {
 export function useCreateSponsor(clubId: string | null) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (input: CreateSponsorInput) =>
-      createSponsor(requireClubId(clubId), input),
+    mutationFn: async (input: CreateSponsorInput) => {
+      const data = await createSponsor(requireClubId(clubId), input);
+      return data;
+    },
     onSuccess: () => {
       if (clubId) {
         queryClient.invalidateQueries({ queryKey: queryKeys.club.sponsors(clubId) });
@@ -56,13 +58,16 @@ export function useCreateSponsor(clubId: string | null) {
 export function useUpdateSponsor(clubId: string | null) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({
+    mutationFn: async ({
       sponsorId,
       input,
     }: {
       sponsorId: string;
       input: UpdateSponsorInput;
-    }) => updateSponsor(requireClubId(clubId), sponsorId, input),
+    }) => {
+      const data = await updateSponsor(requireClubId(clubId), sponsorId, input);
+      return data;
+    },
     onSuccess: () => {
       if (clubId) {
         queryClient.invalidateQueries({ queryKey: queryKeys.club.sponsors(clubId) });

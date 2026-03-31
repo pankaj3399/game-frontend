@@ -34,3 +34,15 @@ export function getErrorMessage(err: unknown): string | null {
   if (err instanceof Error && err.message) return err.message;
   return null;
 }
+
+/**
+ * Safely extract an HTTP status code from an unknown error (e.g. axios error).
+ * Returns the numeric status code or `undefined` if not available.
+ */
+export function getHttpStatus(err: unknown): number | undefined {
+  if (!err || typeof err !== "object") return undefined;
+  const maybe = err as { response?: { status?: unknown } };
+  if (!maybe.response || typeof maybe.response !== "object") return undefined;
+  const status = maybe.response.status;
+  return typeof status === "number" ? status : undefined;
+}

@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { HugeiconsIcon } from "@hugeicons/react";
-import { Search01Icon } from "@hugeicons/core-free-icons";
+import { Search01Icon } from "@/icons/figma-icons";
 import { Input } from "@/components/ui/input";
 import {
   Popover,
@@ -91,8 +90,7 @@ export function UserSearchSelect({
     <Popover open={open} onOpenChange={setOpen} modal={false}>
       <PopoverAnchor asChild>
         <div className={cn("relative", className)}>
-          <HugeiconsIcon
-            icon={Search01Icon}
+          <Search01Icon
             size={16}
             className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
           />

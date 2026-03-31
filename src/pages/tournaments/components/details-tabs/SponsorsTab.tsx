@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { ExternalLink } from "lucide-react";
+import { ExternalLink } from "@/icons/figma-icons";
 import type { TournamentDetail } from "@/models/tournament/types";
 import { TabsContent } from "@/components/ui/tabs";
 

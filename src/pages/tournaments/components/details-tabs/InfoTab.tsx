@@ -10,7 +10,7 @@ import {
   UserCircle2,
   Users,
   UsersRound,
-} from "lucide-react";
+} from "@/icons/figma-icons";
 import type { TournamentDetail } from "@/models/tournament/types";
 import { TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
