@@ -166,7 +166,7 @@ export function ManageClubSidebar({
           </p>
         ) : (
           <div className="overflow-hidden rounded-[8px] border border-black/10">
-            <div className="clubs-sidebar-scrollbar max-h-[222px] overflow-y-auto">
+            <div className="clubs-sidebar-scrollbar max-h-[350px] overflow-y-auto">
               {clubs.map((club) => {
               const isSelected = club.id === effectiveClubId;
 

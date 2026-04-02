@@ -273,7 +273,7 @@ export default function ManageClubPage() {
       return;
     }
     // Role-specific removal permissions:
-    // - removing default_admin: only super admin
+    // - removing default_admin: never allowed (assign a new main admin first)
     // - removing organiser: super admin OR club admins (main admin or other club admins)
     // - other roles: super admin OR main admin
     const isSuperAdmin = hasSuperAdminAccess;
@@ -283,13 +283,11 @@ export default function ManageClubPage() {
       staff.some((s) => s.id === user.id && (s.role === "default_admin" || s.role === "admin"));
 
     if (removingMember.role === "default_admin") {
-      if (!isSuperAdmin) {
-        toast.error(
-          t("manageClub.onlySuperCanRemoveDefaultAdmin") ||
-            "Only a super admin can remove the main admin"
-        );
-        return;
-      }
+      toast.error(
+        t("manageClub.onlySuperCanRemoveDefaultAdmin") ||
+          "Assign a new main admin first, then remove this user"
+      );
+      return;
     } else if (removingMember.role === "organiser") {
       if (!(isSuperAdmin || isClubAdmin)) {
         toast.error(

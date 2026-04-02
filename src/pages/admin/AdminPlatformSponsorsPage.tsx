@@ -100,7 +100,7 @@ export default function AdminPlatformSponsorsPage() {
             disabled={isLoading}
             className="h-[30px] rounded-lg border border-black/[0.12] bg-brand-primary px-3 text-xs font-medium text-white hover:bg-brand-primary-hover"
           >
-            <CirclePlus className="mr-1.5 size-3.5" />
+            <CirclePlus className="mr-1.5 size-3.5 text-white" />
             {t("admin.platformSponsors.newSponsor")}
           </Button>
         </div>

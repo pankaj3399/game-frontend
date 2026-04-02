@@ -272,7 +272,7 @@
     "removeMemberFallback": "this member",
     "removeMemberSuccess": "Member removed successfully.",
     "removeMemberError": "Failed to remove member.",
-    "onlySuperCanRemoveDefaultAdmin": "Only super admins can remove the default admin.",
+    "onlySuperCanRemoveDefaultAdmin": "Assign a new default admin first, then remove this user.",
     "onlyMainAdminCanRemoveAdmins": "Only the main admin can remove other admins.",
     "onlyClubAdminsCanRemoveOrganisers": "Only club admins can remove organisers.",
     "onlyMainAdminCanEditRoles": "Only the main admin can edit member roles.",

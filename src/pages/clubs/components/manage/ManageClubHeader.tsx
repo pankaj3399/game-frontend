@@ -74,7 +74,7 @@ export function ManageClubHeader({
           disabled={!canAddStaff}
           title={!canAddStaff ? t("manageClub.addMemberDisabledHint") : undefined}
         >
-          <PlusSignIcon size={16} className="mr-1.5" />
+          <PlusSignIcon size={16} className="mr-1.5 text-white" />
           {t("manageClub.addAdminOrganiser")}
         </Button>
       </div>

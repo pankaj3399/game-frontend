@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
+import svgr from 'vite-plugin-svgr'
 import path from 'path'
 import { fileURLToPath } from 'url'
 
@@ -11,6 +12,21 @@ export default defineConfig({
   envPrefix: ['VITE_', 'REACT_APP_'],
 
   plugins: [
+    svgr({
+      include: '**/*.svg?react',
+      svgrOptions: {
+        dimensions: false,
+        replaceAttrValues: {
+          white: 'currentColor',
+          black: 'currentColor',
+          '#fff': 'currentColor',
+          '#ffffff': 'currentColor',
+          '#000': 'currentColor',
+          '#000000': 'currentColor',
+          '#010A04': 'currentColor',
+        },
+      },
+    }),
     react({
       babel: {
         plugins: [['babel-plugin-react-compiler']],
