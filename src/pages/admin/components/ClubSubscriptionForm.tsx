@@ -53,7 +53,7 @@ export function ClubSubscriptionForm({ club, onSave, isSaving }: ClubSubscriptio
 
   const formatDateInput = (date: Date | null): string => {
     if (!date) return "-";
-    return format(date, "dd/MM/yyyy");
+    return format(date, "P", { locale: dateFnsLocale });
   };
 
   const formatLongDate = (date: Date | null): string => {
