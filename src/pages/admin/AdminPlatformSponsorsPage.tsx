@@ -87,8 +87,8 @@ export default function AdminPlatformSponsorsPage() {
   };
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] bg-[#f8fbf8] px-4 py-6 sm:px-6 md:py-8">
-      <div className="mx-auto w-full max-w-[992px] rounded-[12px] border border-black/10 bg-white shadow-[0px_3px_15px_0px_rgba(0,0,0,0.06)]">
+    <div className="min-h-[calc(100vh-4rem)] bg-[#f4f7f6] px-4 py-6 sm:px-6 md:py-8">
+      <div className="mx-auto w-full max-w-[992px] rounded-[15px] border border-black/10 bg-white shadow-[0px_3px_15px_0px_rgba(0,0,0,0.06)]">
         <div className="flex items-center justify-between px-5 pt-4 pb-[14px]">
           <h1 className="text-xl font-semibold leading-tight text-[#010a04]">
             <span className="">{t("admin.platformSponsors.pageTitle")}</span>
@@ -98,7 +98,7 @@ export default function AdminPlatformSponsorsPage() {
             type="button"
             onClick={openCreateDialog}
             disabled={isLoading}
-            className="h-[30px] rounded-lg border border-black/[0.12] bg-brand-primary px-3 text-xs font-medium text-white hover:bg-brand-primary-hover"
+            className="h-[30px] rounded-lg border border-black/[0.12] bg-[#006B2E] px-3 text-xs font-medium text-white hover:bg-[#005a26]"
           >
             <CirclePlus className="mr-1.5 size-3.5 text-white" />
             {t("admin.platformSponsors.newSponsor")}
@@ -106,7 +106,7 @@ export default function AdminPlatformSponsorsPage() {
         </div>
 
         <div className="hidden md:block">
-          <div className="h-[35px] border-y border-black/10 bg-black/[0.04]">
+          <div className="h-[35px] border-y border-black/10 bg-[#f0f0f0]">
             <div className="grid h-full grid-cols-[100px_minmax(180px,1fr)_minmax(220px,1fr)_170px] items-center px-5 text-xs text-[#010a04]/80">
               <span>{t("admin.platformSponsors.columnLogo")}</span>
               <span>{t("admin.platformSponsors.columnName")}</span>

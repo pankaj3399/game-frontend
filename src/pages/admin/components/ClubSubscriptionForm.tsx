@@ -8,13 +8,14 @@ import {
 } from "date-fns";
 import {
   CalendarDays,
-  Check,
-  Circle,
-  Crown,
   Info,
-  Rocket,
   X,
 } from "@/icons/figma-icons";
+import CheckIcon from "@/assets/icons/figma/lucide/check.svg?react";
+import CrownPlanIcon from "@/assets/icons/figma/misc/crown-plan.svg?react";
+import Ellipse9Icon from "@/assets/icons/figma/misc/ellipse-9.svg?react";
+import Ellipse10Icon from "@/assets/icons/figma/misc/ellipse-10.svg?react";
+import StartUpIcon from "@/assets/icons/figma/misc/start-up-02.svg?react";
 import type { ClubSubscriptionOverviewItem } from "@/pages/admin/hooks/useClubSubscriptionsOverview";
 import type { UpdateClubSubscriptionInput } from "@/pages/clubs/hooks";
 import { Button } from "@/components/ui/button";
@@ -52,12 +53,12 @@ export function ClubSubscriptionForm({ club, onSave, isSaving }: ClubSubscriptio
 
   const formatDateInput = (date: Date | null): string => {
     if (!date) return "-";
-    return format(date, "P", { locale: dateFnsLocale });
+    return format(date, "dd/MM/yyyy");
   };
 
   const formatLongDate = (date: Date | null): string => {
     if (!date) return t("admin.clubSubscription.dateUnknown");
-    return format(date, "PPP", { locale: dateFnsLocale });
+    return format(date, "MMMM d, yyyy", { locale: dateFnsLocale });
   };
 
   const membersText = t("admin.clubSubscription.membersCount", {
@@ -150,8 +151,8 @@ export function ClubSubscriptionForm({ club, onSave, isSaving }: ClubSubscriptio
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-[19px] md:grid-cols-2 md:gap-[17px]">
-        <section className="overflow-hidden rounded-[12px] border border-[rgba(1,10,4,0.08)] bg-white shadow-[0px_3px_15px_0px_rgba(0,0,0,0.06)]">
+      <div className="flex flex-col gap-[19px] md:flex-row md:items-start md:gap-[17px]">
+        <section className="min-w-0 flex-1 overflow-hidden rounded-[12px] border border-[rgba(1,10,4,0.08)] bg-white shadow-[0px_3px_15px_0px_rgba(0,0,0,0.06)]">
           <div className="p-[18px] md:p-[22px]">
             <h2 className="mb-[17px] text-[18px] leading-none font-medium text-[#010a04]">
               {t("admin.clubSubscription.subscriptionPlan")}
@@ -169,13 +170,12 @@ export function ClubSubscriptionForm({ club, onSave, isSaving }: ClubSubscriptio
                 )}
               >
                 <div className="mb-[25px] flex items-start justify-between">
-                  <Rocket className="size-6 text-[#0f8d33]" />
-                  <Circle
-                    className={cn(
-                      "size-[18px]",
-                      selectedPlan === "free" ? "fill-[#067429] text-[#067429]" : "text-black/15"
-                    )}
-                  />
+                  <StartUpIcon className="size-6" />
+                  {selectedPlan === "free" ? (
+                    <Ellipse10Icon className="size-[18px]" />
+                  ) : (
+                    <Ellipse9Icon className="size-[18px]" />
+                  )}
                 </div>
                 <p className="text-[16px] font-medium text-[#010a04]">
                   {t("admin.clubSubscription.planFree")}
@@ -196,15 +196,12 @@ export function ClubSubscriptionForm({ club, onSave, isSaving }: ClubSubscriptio
                 )}
               >
                 <div className="mb-[25px] flex items-start justify-between">
-                  <Crown className="size-6 text-[#f59e0b]" />
-                  <Circle
-                    className={cn(
-                      "size-[18px]",
-                      selectedPlan === "premium"
-                        ? "fill-[#067429] text-[#067429]"
-                        : "text-black/15"
-                    )}
-                  />
+                  <CrownPlanIcon className="size-6" />
+                  {selectedPlan === "premium" ? (
+                    <Ellipse10Icon className="size-[18px]" />
+                  ) : (
+                    <Ellipse9Icon className="size-[18px]" />
+                  )}
                 </div>
                 <p className="text-[16px] font-medium text-[#010a04]">
                   {t("admin.clubSubscription.planPremium")}
@@ -286,14 +283,14 @@ export function ClubSubscriptionForm({ club, onSave, isSaving }: ClubSubscriptio
           </div>
         </section>
 
-        <section className="rounded-[12px] border border-[rgba(1,10,4,0.12)] px-[20px] py-[22px]">
+        <section className="w-full rounded-[12px] border border-[rgba(1,10,4,0.12)] px-[20px] py-[22px] md:w-[385px] md:shrink-0">
           <h3 className="mb-[21px] text-[15px] font-medium text-[#010a04]">
             {t("admin.clubSubscription.whatThisMeans")}
           </h3>
           <ul className="space-y-[12px]">
             <li className="flex items-start gap-[8px] text-[13px] text-[#010a04]/80">
               {isPremiumActive ? (
-                <Check className="mt-px size-4 shrink-0 text-[#067429]" />
+                <CheckIcon className="mt-px size-4 shrink-0" />
               ) : (
                 <X className="mt-px size-4 shrink-0 text-[#d92100]" />
               )}
@@ -305,18 +302,14 @@ export function ClubSubscriptionForm({ club, onSave, isSaving }: ClubSubscriptio
             </li>
             <li className="flex items-start gap-[8px] text-[13px] text-[#010a04]/80">
               {isPremiumActive ? (
-                <Check className="mt-px size-4 shrink-0 text-[#067429]" />
+                <CheckIcon className="mt-px size-4 shrink-0" />
               ) : (
                 <X className="mt-px size-4 shrink-0 text-[#d92100]" />
               )}
-              <span>
-                {isPremiumActive
-                  ? t("admin.clubSubscription.meaningSponsorsVisible")
-                  : t("admin.clubSubscription.meaningSponsorsHidden")}
-              </span>
+              <span>{t("admin.clubSubscription.meaningSponsorsHidden")}</span>
             </li>
             <li className="flex items-start gap-[8px] text-[13px] text-[#010a04]/80">
-              <Check className="mt-px size-4 shrink-0 text-[#067429]" />
+              <CheckIcon className="mt-px size-4 shrink-0" />
               <span>{t("admin.clubSubscription.meaningDataPreserved")}</span>
             </li>
           </ul>

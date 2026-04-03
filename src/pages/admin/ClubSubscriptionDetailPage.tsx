@@ -49,11 +49,12 @@ export default function ClubSubscriptionDetailPage() {
     <div className="min-h-[calc(100vh-4rem)] bg-[#f8fbf8]">
       <div className="mx-auto w-full max-w-[992px] px-5 pt-8 pb-10 md:px-6 md:pt-9">
         <Button
-          variant="outline"
+          type="button"
+          variant="ghost"
           onClick={() => navigate("/admin/clubs-subscriptions")}
-          className="mb-[25px] inline-flex items-center gap-[6px] text-[14px] font-medium text-[#010a04]"
+          className="mb-[25px] inline-flex h-auto items-center gap-[6px] p-0 text-[14px] font-medium text-[#010a04] hover:bg-transparent"
         >
-          <ChevronLeft className="size-4" />
+          <ChevronLeft className="size-3" />
           <span>{t("admin.clubSubscription.goBack")}</span>
         </Button>
 

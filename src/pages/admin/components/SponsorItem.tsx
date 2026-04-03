@@ -24,8 +24,8 @@ export function SponsorItem({ sponsor, onEdit, onRemove, isDeleting, variant }: 
       rel="noreferrer noopener"
       className={
         variant === "desktop"
-          ? "truncate pr-3 text-sm font-medium text-[#3083ea] underline"
-          : "block truncate text-sm text-[#3083ea] underline"
+          ? "truncate pr-3 text-sm font-medium text-[#4A90E2] underline"
+          : "block truncate text-sm text-[#4A90E2] underline"
       }
     >
       {safeLink}
@@ -49,7 +49,7 @@ export function SponsorItem({ sponsor, onEdit, onRemove, isDeleting, variant }: 
           <Button
             variant="ghost"
             size="xs"
-            className="h-auto rounded-none p-0 text-brand-primary hover:bg-transparent hover:text-brand-primary-hover"
+            className="h-auto rounded-none p-0 text-[#006B2E] hover:bg-transparent hover:text-[#005a26]"
             onClick={onEdit}
             disabled={isDeleting}
           >
@@ -60,7 +60,7 @@ export function SponsorItem({ sponsor, onEdit, onRemove, isDeleting, variant }: 
           <Button
             variant="ghost"
             size="xs"
-            className="h-auto rounded-none p-0 text-[#d92100] hover:bg-transparent hover:text-[#b71e00]"
+            className="h-auto rounded-none p-0 text-[#D0021B] hover:bg-transparent hover:text-[#b00116]"
             onClick={onRemove}
             disabled={isDeleting}
           >
@@ -73,7 +73,7 @@ export function SponsorItem({ sponsor, onEdit, onRemove, isDeleting, variant }: 
   }
 
   return (
-    <div className="rounded-lg bg-black/[0.04] px-4 py-4">
+    <div className="rounded-[10px] bg-[#f0f0f0] px-4 py-4">
       <div className="flex items-center gap-3">
         {RenderLogo(sponsor.logoUrl, "size-6")}
 
@@ -86,7 +86,10 @@ export function SponsorItem({ sponsor, onEdit, onRemove, isDeleting, variant }: 
       <div className="mt-4 border-t border-black/10 pt-4">
         <div className="flex items-center justify-between text-xs">
           <Button
-            className="inline-flex items-center gap-[5px] text-[#d92100]"
+            type="button"
+            variant="ghost"
+            size="xs"
+            className="h-auto gap-[5px] rounded-none p-0 text-[#D0021B] hover:bg-transparent hover:text-[#b00116]"
             onClick={onRemove}
             disabled={isDeleting}
           >
@@ -95,8 +98,11 @@ export function SponsorItem({ sponsor, onEdit, onRemove, isDeleting, variant }: 
           </Button>
 
           <Button
+            type="button"
+            variant="ghost"
+            size="xs"
             disabled={isDeleting}
-            className="inline-flex items-center gap-[5px] text-brand-primary"
+            className="h-auto gap-[5px] rounded-none p-0 text-[#006B2E] hover:bg-transparent hover:text-[#005a26]"
             onClick={onEdit}
           >
             <PenLine className="size-4" />
