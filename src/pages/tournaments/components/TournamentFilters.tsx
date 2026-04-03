@@ -14,8 +14,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { HugeiconsIcon } from "@hugeicons/react";
-import { Settings01Icon } from "@hugeicons/core-free-icons";
+import { Settings01Icon } from "@/icons/figma-icons";
 
 interface TournamentFiltersProps {
   open: boolean;
@@ -43,12 +42,8 @@ export function TournamentFilters({
   return (
     <Popover open={open} onOpenChange={onOpenChange}>
       <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          size="sm"
-          className="h-[30px] rounded-[8px] border-black/10 bg-background px-[15px] text-[12px] font-medium"
-        >
-          <HugeiconsIcon icon={Settings01Icon} size={14} className="mr-0.5" />
+        <Button variant="outline" size="sm">
+          <Settings01Icon size={16} className="mr-2" />
           {t("tournaments.filters")}
         </Button>
       </PopoverTrigger>

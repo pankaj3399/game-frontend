@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Navigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { CirclePlus } from "lucide-react";
+import { CirclePlus } from "@/icons/figma-icons";
 import { toast } from "sonner";
 import { useAuth, useHasRoleOrAbove } from "@/pages/auth/hooks";
 import { ROLES } from "@/constants/roles";
@@ -32,7 +32,6 @@ export default function AdminPlatformSponsorsPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingSponsor, setEditingSponsor] = useState<PlatformSponsor | null>(null);
   const [removingSponsor, setRemovingSponsor] = useState<PlatformSponsor | null>(null);
-
   const isSaving = createSponsor.isPending || updateSponsor.isPending;
   const sponsors = data?.sponsors ?? [];
 
@@ -101,7 +100,7 @@ export default function AdminPlatformSponsorsPage() {
             disabled={isLoading}
             className="h-[30px] rounded-lg border border-black/[0.12] bg-brand-primary px-3 text-xs font-medium text-white hover:bg-brand-primary-hover"
           >
-            <CirclePlus className="mr-1.5 size-3.5" />
+            <CirclePlus className="mr-1.5 size-3.5 text-white" />
             {t("admin.platformSponsors.newSponsor")}
           </Button>
         </div>
@@ -169,6 +168,7 @@ export default function AdminPlatformSponsorsPage() {
         editingSponsor={editingSponsor}
         isSaving={isSaving}
         onOpenChange={(open: boolean) => {
+          if (!open && isSaving) return;
           setIsDialogOpen(open);
           if (!open) {
             setEditingSponsor(null);

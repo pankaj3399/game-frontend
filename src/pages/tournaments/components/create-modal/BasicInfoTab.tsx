@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { format, parseISO } from "date-fns";
-import { Calendar as CalendarIcon } from "lucide-react";
+import { Calendar as CalendarIcon } from "@/icons/figma-icons";
 import { cn } from "@/lib/utils";
 import { TOURNAMENT_MODES } from "@/constants/tournament";
 import type { CreateTournamentInput, TournamentClub, TournamentMode } from "@/models/tournament/types";

@@ -1,27 +1,32 @@
+import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { HugeiconsIcon } from "@hugeicons/react";
 import {
   Calendar03Icon,
   CrownIcon,
   PlusSignIcon,
-} from "@hugeicons/core-free-icons";
+  ShieldIcon,
+} from "@/icons/figma-icons";
 import { Button } from "@/components/ui/button";
 import type { AdminClub } from "@/pages/clubs/hooks";
 
 interface ManageClubHeaderProps {
+  clubId: string;
   selectedClub: AdminClub | null;
   showClubCrown: boolean;
   canUpdateExpiry: boolean;
   canAddStaff: boolean;
+  showSponsorsButton?: boolean;
   onOpenExpiryModal: () => void;
   onOpenAddModal: () => void;
 }
 
 export function ManageClubHeader({
+  clubId,
   selectedClub,
   showClubCrown,
   canUpdateExpiry,
   canAddStaff,
+  showSponsorsButton = false,
   onOpenExpiryModal,
   onOpenAddModal,
 }: ManageClubHeaderProps) {
@@ -33,12 +38,7 @@ export function ManageClubHeader({
         <h1 className="flex items-center gap-[10px] text-lg font-semibold leading-none text-[#010a04]">
           {selectedClub?.name}
           {showClubCrown && (
-            <HugeiconsIcon
-              icon={CrownIcon}
-              size={18}
-              className="text-[#ff8c00]"
-              aria-hidden
-            />
+            <CrownIcon size={18} className="text-[#ff8c00]" aria-hidden />
           )}
         </h1>
         <p className="mt-2 text-[14px] text-[#010a04]/60">{t("manageClub.manageAdminsSubtitle")}</p>
@@ -50,8 +50,21 @@ export function ManageClubHeader({
             className="h-[30px] w-full rounded-[8px] border-black/[0.12] px-[14px] text-[14px] font-medium sm:w-auto sm:shrink-0"
             onClick={onOpenExpiryModal}
           >
-            <HugeiconsIcon icon={Calendar03Icon} size={16} className="mr-1.5" />
+            <Calendar03Icon size={16} className="mr-1.5" />
             {t("manageClub.updateExpiry")}
+          </Button>
+        )}
+
+        {showSponsorsButton && (
+          <Button
+            variant="outline"
+            className="h-[30px] w-full rounded-[8px] border-black/[0.12] px-[14px] text-[14px] font-medium sm:w-auto sm:shrink-0"
+            asChild
+          >
+            <Link to={`/clubs/manage/sponsors/${clubId}`}>
+              <ShieldIcon size={16} className="mr-1.5" />
+              {t("manageClub.manageSponsors")}
+            </Link>
           </Button>
         )}
 
@@ -61,7 +74,7 @@ export function ManageClubHeader({
           disabled={!canAddStaff}
           title={!canAddStaff ? t("manageClub.addMemberDisabledHint") : undefined}
         >
-          <HugeiconsIcon icon={PlusSignIcon} size={16} className="mr-1.5" />
+          <PlusSignIcon size={16} className="mr-1.5 text-white" />
           {t("manageClub.addAdminOrganiser")}
         </Button>
       </div>

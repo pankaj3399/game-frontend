@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
+import svgr from 'vite-plugin-svgr'
 import path from 'path'
 import { fileURLToPath } from 'url'
 
@@ -11,6 +12,21 @@ export default defineConfig({
   envPrefix: ['VITE_', 'REACT_APP_'],
 
   plugins: [
+    svgr({
+      include: '**/*.svg?react',
+      svgrOptions: {
+        dimensions: false,
+        replaceAttrValues: {
+          white: 'currentColor',
+          black: 'currentColor',
+          '#fff': 'currentColor',
+          '#ffffff': 'currentColor',
+          '#000': 'currentColor',
+          '#000000': 'currentColor',
+          '#010A04': 'currentColor',
+        },
+      },
+    }),
     react({
       babel: {
         plugins: [['babel-plugin-react-compiler']],
@@ -52,11 +68,7 @@ export default defineConfig({
           if (id.includes('@radix-ui')) return 'radix'
           if (id.includes('i18next') || id.includes('react-i18next')) return 'i18n'
 
-          // Icons - often large; split for better caching
-          if (id.includes('lucide-react')) return 'icons-lucide'
-          if (id.includes('@hugeicons')) return 'icons-hugeicons'
-
-          // Date utilities - used in SettingsForm (lazy page)
+      // Date utilities - used in SettingsForm (lazy page)
           if (id.includes('date-fns')) return 'date-fns'
           if (id.includes('react-day-picker')) return 'day-picker'
 

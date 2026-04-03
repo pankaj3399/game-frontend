@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { Navigate } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
+import { queryKeys } from "@/lib/api/queryKeys";
 import { useTranslation } from "react-i18next";
 import {
   useAdminClubs,
@@ -64,6 +66,7 @@ function deriveSubscriptionStatus(
 
 export default function ManageClubPage() {
   const { t } = useTranslation();
+  const queryClient = useQueryClient();
   const hasSuperAdminAccess = useHasRoleOrAbove(ROLES.SUPER_ADMIN);
   const { user } = useAuth();
   const {
@@ -240,6 +243,17 @@ export default function ManageClubPage() {
       return;
     }
 
+    // Only super admin or the current main admin may edit roles
+    const isSuperAdmin = hasSuperAdminAccess;
+    const isMainAdmin = user != null && user.id === currentMainAdminId;
+    if (!isSuperAdmin && !isMainAdmin) {
+      toast.error(
+        t("manageClub.onlyMainAdminCanEditRoles") ||
+          "Only the main admin can edit member roles"
+      );
+      return;
+    }
+
     try {
       await updateClubStaffRole.mutateAsync({
         clubId: effectiveClubId,
@@ -258,6 +272,39 @@ export default function ManageClubPage() {
     if (!effectiveClubId || !removingMember) {
       return;
     }
+    // Role-specific removal permissions:
+    // - removing default_admin: never allowed (assign a new main admin first)
+    // - removing organiser: super admin OR club admins (main admin or other club admins)
+    // - other roles: super admin OR main admin
+    const isSuperAdmin = hasSuperAdminAccess;
+    const isMainAdmin = user != null && user.id === currentMainAdminId;
+    const isClubAdmin =
+      user != null &&
+      staff.some((s) => s.id === user.id && (s.role === "default_admin" || s.role === "admin"));
+
+    if (removingMember.role === "default_admin") {
+      toast.error(
+        t("manageClub.reassignBeforeRemovingDefaultAdmin") ||
+          "Assign a new main admin first, then remove this user"
+      );
+      return;
+    } else if (removingMember.role === "organiser") {
+      if (!(isSuperAdmin || isClubAdmin)) {
+        toast.error(
+          t("manageClub.onlyClubAdminsCanRemoveOrganisers") ||
+            "Only club admins can remove organisers"
+        );
+        return;
+      }
+    } else {
+      if (!(isSuperAdmin || isMainAdmin)) {
+        toast.error(
+          t("manageClub.onlyMainAdminCanRemoveAdmins") ||
+            "Only the main admin can remove members"
+        );
+        return;
+      }
+    }
 
     try {
       await removeClubStaff.mutateAsync({
@@ -272,7 +319,10 @@ export default function ManageClubPage() {
     }
   };
 
-  const handleSetMainAdmin = async (newMainAdminId: string) => {
+  const handleSetMainAdmin = async (
+    newMainAdminId: string,
+    orderedIds?: string[]
+  ) => {
     if (!effectiveClubId) {
       return false;
     }
@@ -281,6 +331,7 @@ export default function ManageClubPage() {
       await setClubMainAdmin.mutateAsync({
         clubId: effectiveClubId,
         userId: newMainAdminId,
+        orderedIds,
       });
 
       toast.success(t("manageClub.mainAdminUpdateSuccess"));
@@ -355,6 +406,12 @@ export default function ManageClubPage() {
               onClubSelect={(clubId) => {
                 setSelectedClubId(clubId);
                 setMobileView("staff");
+                void queryClient.invalidateQueries({
+                  queryKey: queryKeys.user.adminClubs(),
+                });
+                void queryClient.invalidateQueries({
+                  queryKey: queryKeys.club.staff(clubId),
+                });
               }}
             />
 
@@ -374,10 +431,12 @@ export default function ManageClubPage() {
                 <>
                   <div className="rounded-[12px] border border-black/8 bg-white px-[15px] py-5 shadow-[0px_3px_15px_0px_rgba(0,0,0,0.06)] lg:px-3 lg:py-5">
                     <ManageClubHeader
+                      clubId={effectiveClubId}
                       selectedClub={selectedClub}
                       showClubCrown={staffData?.subscription?.plan === "premium"}
                       canUpdateExpiry={hasSuperAdminAccess}
                       canAddStaff={canAddStaff}
+                      showSponsorsButton={!hasSuperAdminAccess}
                       onOpenExpiryModal={openPremiumExpiryModal}
                       onOpenAddModal={() => setAddModalOpen(true)}
                     />

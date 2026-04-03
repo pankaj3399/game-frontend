@@ -1,7 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
-import { HugeiconsIcon } from "@hugeicons/react";
-import { PencilIcon, Upload01Icon, ViewIcon } from "@hugeicons/core-free-icons";
+import { PencilIcon, Upload01Icon, ViewIcon } from "@/icons/figma-icons";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -131,18 +130,13 @@ export function TournamentTable({
                       className="h-auto px-0 text-sm font-normal text-foreground hover:bg-transparent"
                     >
                       <Link to={`/tournaments/${tournament.id}`}>
-                        <HugeiconsIcon icon={ViewIcon} size={14} className="mr-1" />
+                        <ViewIcon size={16} className="mr-1" />
                         {t("tournaments.view")}
                       </Link>
                     </Button>
                     {canEditDraft && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-auto px-1.5 text-sm font-normal text-foreground hover:bg-transparent"
-                        onClick={() => onEdit(tournament.id)}
-                      >
-                        <HugeiconsIcon icon={PencilIcon} size={14} className="mr-1" />
+                      <Button variant="outline" size="sm" onClick={() => onEdit(tournament.id)}>
+                        <PencilIcon size={16} className="mr-1" />
                         {t("tournaments.edit")}
                       </Button>
                     )}
@@ -154,7 +148,7 @@ export function TournamentTable({
                         onClick={() => onPublish(tournament.id)}
                         disabled={isPublishing}
                       >
-                        <HugeiconsIcon icon={Upload01Icon} size={14} className="mr-1" />
+                        <Upload01Icon size={16} className="mr-1" />
                         {t("tournaments.publish")}
                       </Button>
                     )}

@@ -92,7 +92,6 @@ export function useCreateClub() {
     mutationFn: createClub,
     onSuccess: async () => {
       await checkAuth();
-      queryClient.invalidateQueries({ queryKey: queryKeys.auth.me() });
       queryClient.invalidateQueries({ queryKey: queryKeys.user.adminClubs() });
       queryClient.invalidateQueries({ queryKey: queryKeys.club.listRoot() });
     },

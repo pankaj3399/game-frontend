@@ -1,6 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { HugeiconsIcon } from "@hugeicons/react";
-import { UserIcon } from "@hugeicons/core-free-icons";
+import { UserIcon } from "@/icons/figma-icons";
 
 export function UserInformationHeader() {
   const { t } = useTranslation();
@@ -14,7 +13,7 @@ export function UserInformationHeader() {
         <p className="mt-1 text-sm text-muted-foreground">{t("signup.subtitle")}</p>
       </div>
       <div className="hidden sm:flex h-10 w-10 items-center justify-center rounded-full bg-[#fef9c3] text-[#854d0e]">
-        <HugeiconsIcon icon={UserIcon} size={20} />
+        <UserIcon size={20} className="text-current" />
       </div>
     </div>
   );

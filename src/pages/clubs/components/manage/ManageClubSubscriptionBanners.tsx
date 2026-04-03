@@ -1,7 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { format } from "date-fns";
-import { HugeiconsIcon } from "@hugeicons/react";
-import { CrownIcon, InformationCircleIcon } from "@hugeicons/core-free-icons";
+import { CrownIcon, InformationCircleIcon } from "@/icons/figma-icons";
 import { Button } from "@/components/ui/button";
 import { getDateFnsLocale } from "@/lib/dateFnsLocale";
 import type { ClubSubscription } from "@/pages/clubs/hooks/useClubStaff";
@@ -58,7 +57,7 @@ export function ManageClubSubscriptionBanners({
       {showPremiumBanner && (
         <div className="mt-4 flex items-center justify-between gap-4 rounded-[12px] border border-[rgba(48,131,234,0.10)] bg-[rgba(48,131,234,0.13)] px-[15px] py-[15px] text-[#00339a]">
           <div className="flex min-w-0 flex-1 items-start gap-[12px]">
-            <HugeiconsIcon icon={CrownIcon} size={20} className="mt-0.5 shrink-0" />
+            <CrownIcon size={20} className="mt-0.5 shrink-0" />
             <div className="min-w-0">
               <p className="text-[16px] font-semibold">{t("manageClub.premiumClub")}</p>
               <p className="text-[13px]">{t("manageClub.premiumEnabled")}</p>
@@ -76,7 +75,7 @@ export function ManageClubSubscriptionBanners({
       {showSubscriptionBanner && (
         <div className="mt-5 flex flex-col gap-3 rounded-[12px] border border-black/10 bg-[rgba(244,201,93,0.13)] px-[15px] py-[15px] sm:flex-row sm:items-center sm:justify-between sm:gap-[25px]">
           <div className="min-w-0 flex flex-1 items-start gap-[14px] text-[#906500]">
-            <HugeiconsIcon icon={InformationCircleIcon} size={18} className="mt-0.5 shrink-0" />
+            <InformationCircleIcon size={18} className="mt-0.5 shrink-0" />
             <div className="min-w-0">
               <p className="text-[14px] font-medium">{t("manageClub.subscriptionBannerTitle")}</p>
               <p className="mt-2 text-[13px] leading-[1.25]">

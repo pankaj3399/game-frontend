@@ -20,23 +20,38 @@ async function removeClubStaff({
   const res = await api.delete<RemoveClubStaffResponse>(
     `/api/clubs/${clubId}/staff/${staffId}`
   );
-
   return res.data;
 }
 
 export function useRemoveClubStaff() {
   const queryClient = useQueryClient();
-  const { checkAuth } = useAuth();
+  const { checkAuth, user } = useAuth();
 
-  return useMutation({
+  return useMutation<
+    RemoveClubStaffResponse,
+    unknown,
+    RemoveClubStaffInput
+  >({
     mutationFn: removeClubStaff,
-    onSuccess: async (_, variables) => {
-      await checkAuth();
-      queryClient.invalidateQueries({ queryKey: queryKeys.auth.me() });
-      queryClient.invalidateQueries({
+    mutationKey: ["club", "removeStaff"],
+
+    onSuccess: async (_data, variables) => {
+      if (user?.id !== variables.staffId) return;
+
+      try {
+        await checkAuth();
+      } catch (err) {
+        // Replace with proper logging if available (e.g., Sentry)
+        console.error("checkAuth failed after self-removal", err);
+      }
+    },
+
+    onSettled: async (_data, _error, variables) => {
+      await queryClient.invalidateQueries({
         queryKey: queryKeys.club.staff(variables.clubId),
       });
-      queryClient.invalidateQueries({
+
+      await queryClient.invalidateQueries({
         queryKey: queryKeys.user.adminClubs(),
       });
     },

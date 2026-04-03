@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { Globe, MapPin } from "lucide-react";
+import { Globe, MapPin } from "@/icons/figma-icons";
 import { getSafeLink } from "@/lib/url";
 import type { ClubPublic } from "@/pages/clubs/hooks";
 

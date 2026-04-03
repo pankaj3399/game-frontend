@@ -1,6 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { HugeiconsIcon } from "@hugeicons/react";
-import { ArrowRight01Icon } from "@hugeicons/core-free-icons";
+import { ArrowRight01Icon } from "@/icons/figma-icons";
 import { Button } from "@/components/ui/button";
 import InlineLoader from "@/components/shared/InlineLoader";
 
@@ -27,7 +26,7 @@ export function UserInformationSubmitButton({
       ) : (
         <>
           {t("signup.submit")}
-          <HugeiconsIcon icon={ArrowRight01Icon} size={18} />
+          <ArrowRight01Icon size={18} />
         </>
       )}
     </Button>

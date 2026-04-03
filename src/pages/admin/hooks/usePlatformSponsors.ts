@@ -61,7 +61,10 @@ export function useCreatePlatformSponsor() {
   const invalidate = useInvalidatePlatformSponsors();
 
   return useMutation({
-    mutationFn: (input: UpsertPlatformSponsorInput) => createPlatformSponsor(input),
+    mutationFn: async (input: UpsertPlatformSponsorInput) => {
+      const data = await createPlatformSponsor(input);
+      return data;
+    },
     onSuccess: invalidate,
   });
 }
@@ -70,8 +73,16 @@ export function useUpdatePlatformSponsor() {
   const invalidate = useInvalidatePlatformSponsors();
 
   return useMutation({
-    mutationFn: ({ sponsorId, input }: { sponsorId: string; input: UpsertPlatformSponsorInput }) =>
-      updatePlatformSponsor(sponsorId, input),
+    mutationFn: async ({
+      sponsorId,
+      input,
+    }: {
+      sponsorId: string;
+      input: UpsertPlatformSponsorInput;
+    }) => {
+      const data = await updatePlatformSponsor(sponsorId, input);
+      return data;
+    },
     onSuccess: invalidate,
   });
 }

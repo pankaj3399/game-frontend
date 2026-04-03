@@ -1,6 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { HugeiconsIcon } from "@hugeicons/react";
-import { PlusSignIcon } from "@hugeicons/core-free-icons";
+import { PlusSignIcon } from "@/icons/figma-icons";
 import { RoleGuard } from "@/components/auth/RoleGuard";
 import { Button } from "@/components/ui/button";
 import { ROLES } from "@/constants/roles";
@@ -41,12 +40,8 @@ export function TournamentActions({
         onStatusChange={onStatusChange}
       />
       <RoleGuard requireRoleOrAbove={ROLES.ORGANISER}>
-        <Button
-          size="sm"
-          className="h-[30px] rounded-[8px] bg-brand-primary px-[15px] has-[>svg]:px-[15px] text-[14px] font-medium leading-none hover:bg-brand-primary-hover"
-          onClick={onCreate}
-        >
-          <HugeiconsIcon icon={PlusSignIcon} size={14} />
+        <Button className="bg-brand-primary hover:bg-brand-primary-hover" onClick={onCreate}>
+          <PlusSignIcon size={16} className="mr-2" />
           {t("tournaments.create")}
         </Button>
       </RoleGuard>
