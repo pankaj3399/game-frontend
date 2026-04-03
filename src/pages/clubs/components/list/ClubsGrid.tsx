@@ -7,6 +7,8 @@ interface ClubsGridProps {
   clubs: ClubListItem[];
   query: string;
   isSearching: boolean;
+  /** True while the first fetch for the current query has no data yet; avoids empty-state flash. */
+  isLoading: boolean;
   onClearSearch: () => void;
 }
 
@@ -14,6 +16,7 @@ export function ClubsGrid({
   clubs,
   query,
   isSearching,
+  isLoading,
   onClearSearch,
 }: ClubsGridProps) {
   const { t } = useTranslation();
@@ -23,6 +26,12 @@ export function ClubsGrid({
     if (isSearching) {
       return (
         <p className="mt-6 text-sm text-muted-foreground">{t("clubs.searching")}</p>
+      );
+    }
+
+    if (isLoading) {
+      return (
+        <p className="mt-6 text-sm text-muted-foreground">{t("common.loading")}</p>
       );
     }
 

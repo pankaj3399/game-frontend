@@ -251,7 +251,7 @@
     "manageSponsors": "Sponsoren",
     "noStaff": "Noch keine Admins oder Organisatoren.",
     "refreshingStaff": "Team wird aktualisiert...",
-    "selectClubToManage": "Wählen Sie einen Verein aus der Liste, um dessen Admins und Organisatoren zu verwalten.",
+    "selectClubToManage": "Verein zur Verwaltung auswählen.",
     "dragUser": "Zum Sortieren ziehen",
     "staffActionsMenu": "Weitere Aktionen für {{name}}",
     "default": "STANDARD",
@@ -371,7 +371,7 @@
   },
   "sponsors": {
     "title": "Vereinssponsoren",
-    "allSponsors": "Alle Sponsoren",
+    "allSponsors": "TB10 Sponsoren",
     "manageSponsors": "Sponsoren verwalten",
     "visitWebsite": "Website besuchen",
     "noSponsorsYet": "Es wurden noch keine Sponsoren hinzugefügt.",

@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { format } from "date-fns";
-import { ArrowRight01Icon } from "@/icons/figma-icons";
+import { ChevronRightIcon } from "@/icons/figma-icons";
 import InlineLoader from "@/components/shared/InlineLoader";
 import { cn } from "@/lib/utils";
 import type { AdminClub } from "@/pages/clubs/hooks";
@@ -124,15 +124,21 @@ export function ManageClubSidebar({
   };
 
   return (
-    <aside className={cn("w-full lg:w-[312px]", mobileView === "staff" && "hidden lg:block")}>
-      <div className="rounded-[12px] border border-black/8 bg-white px-[15px] py-5 shadow-[0px_3px_15px_0px_rgba(0,0,0,0.06)]">
+    <aside
+      className={cn(
+        "h-[calc(100dvh-104px)] w-full lg:h-auto lg:w-[312px]",
+        mobileView === "staff" && "hidden lg:block"
+      )}
+    >
+      <div className="flex h-full min-h-0 flex-col rounded-[12px] border border-black/8 bg-white px-[15px] py-5 shadow-[0px_3px_15px_0px_rgba(0,0,0,0.06)] lg:h-auto">
         <div className="mb-4 space-y-3">
-          <div className="flex items-center justify-between gap-3">
+          <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
               <h2 className="text-lg leading-[1] font-semibold text-[#010a04]">{t("manageClub.allClubs")}</h2>
+              <p className="mt-2 text-xs text-[#010a04]/60">{t("manageClub.selectClubToManage")}</p>
             </div>
             {isSuperAdminView && (
-              <div className="hidden sm:block">
+              <div className="shrink-0">
                 <StatusFilterSelect
                   value={statusFilter}
                   onChange={handleStatusFilterChange}
@@ -142,16 +148,6 @@ export function ManageClubSidebar({
               </div>
             )}
           </div>
-          {isSuperAdminView && (
-            <div className="sm:hidden">
-              <StatusFilterSelect
-                value={statusFilter}
-                onChange={handleStatusFilterChange}
-                t={t}
-                className="w-full"
-              />
-            </div>
-          )}
         </div>
 
         {clubsLoading ? (
@@ -165,8 +161,8 @@ export function ManageClubSidebar({
               : t("manageClub.noClubs")}
           </p>
         ) : (
-          <div className="overflow-hidden rounded-[8px] border border-black/10">
-            <div className="clubs-sidebar-scrollbar max-h-[350px] overflow-y-auto">
+          <div className="flex min-h-0 flex-1 lg:block lg:flex-none">
+            <div className="clubs-sidebar-scrollbar flex h-full w-full min-h-0 flex-col gap-3 overflow-y-auto lg:block lg:max-h-[350px] lg:overflow-y-auto lg:rounded-[8px] lg:border lg:border-black/10">
               {clubs.map((club) => {
               const isSelected = club.id === effectiveClubId;
 
@@ -178,8 +174,11 @@ export function ManageClubSidebar({
                   aria-current={isSelected ? "true" : undefined}
                   onClick={() => onClubSelect(club.id)}
                   className={cn(
-                    "flex w-full items-center justify-between border-b border-black/10 px-[12px] py-[15px] text-left last:border-b-0",
-                    isSelected ? "bg-[rgba(10,105,37,0.04)] lg:border-l-[3px] lg:border-l-brand-primary lg:pl-[9px]" : "bg-white hover:bg-[#fafafa]"
+                    "flex w-full items-center justify-between rounded-[12px] border border-black/5 bg-[#fafafa] px-[15px] py-[12px] text-left",
+                    "lg:rounded-none lg:border-x-0 lg:border-t-0 lg:border-b lg:border-black/10 lg:bg-white lg:px-[12px] lg:py-[15px] lg:last:border-b-0",
+                    isSelected
+                      ? "bg-[rgba(10,105,37,0.04)] lg:border-l-[3px] lg:border-l-brand-primary lg:pl-[9px]"
+                      : "hover:bg-[#f5f5f5] lg:hover:bg-[#fafafa]"
                   )}
                 >
                   <div className="flex min-w-0 items-center gap-3">
@@ -194,20 +193,20 @@ export function ManageClubSidebar({
                         <>
                           <span
                             className={cn(
-                              "mt-1 inline-flex rounded-[4px] px-[6px] py-[1px] text-[10px] font-medium",
+                              "mt-1 hidden rounded-[4px] px-[6px] py-[1px] text-[10px] font-medium lg:inline-flex",
                               statusChipClassName(club.subscriptionStatus)
                             )}
                           >
                             {statusLabel(t, club.subscriptionStatus)}
                           </span>
-                          <p className="mt-1 text-[11px] text-[#010a04]/45">
+                          <p className="mt-1 hidden text-[11px] text-[#010a04]/45 lg:block">
                             {t("manageClub.expiresOn")}: {club.subscriptionExpiresAt ? format(club.subscriptionExpiresAt, "dd/MM/yyyy") : "--"}
                           </p>
                         </>
                       )}
                     </div>
                   </div>
-                  <ArrowRight01Icon size={16} className="shrink-0 text-[#010a04]/45 lg:hidden" />
+                  <ChevronRightIcon size={16} className="shrink-0 text-[#010a04] lg:hidden" />
                 </button>
               );
             })}

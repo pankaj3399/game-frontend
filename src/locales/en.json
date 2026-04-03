@@ -252,7 +252,7 @@
     "manageSponsors": "Sponsors",
     "noStaff": "No admins or organisers yet.",
     "refreshingStaff": "Refreshing staff...",
-    "selectClubToManage": "Select a club from the list to manage its admins and organisers.",
+    "selectClubToManage": "Select club to manage",
     "dragUser": "Drag to reorder",
     "staffActionsMenu": "More actions for {{name}}",
     "default": "DEFAULT",
@@ -372,7 +372,7 @@
   },
   "sponsors": {
     "title": "Club Sponsors",
-    "allSponsors": "All Sponsors",
+    "allSponsors": "TB10 Sponsors",
     "manageSponsors": "Manage Sponsors",
     "backToAllSponsors": "Back to sponsors",
     "visitWebsite": "Visit Website",

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Navigate } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/api/queryKeys";
 import { useTranslation } from "react-i18next";
@@ -371,7 +371,14 @@ export default function ManageClubPage() {
 
   return (
     <div className="flex min-h-[calc(100vh-60px)] justify-center bg-[#f8fbf8] px-6 py-[22px]">
-      <div className="flex w-full max-w-[1088px] flex-col gap-[25px] lg:flex-row lg:gap-[34px]">
+      <div className="flex w-full max-w-[1088px] flex-col gap-[25px]">
+        <Link
+          to="/clubs"
+          className="inline-flex w-fit items-center gap-1 text-sm font-medium text-muted-foreground hover:text-foreground"
+        >
+          ← {t("clubs.goBack")}
+        </Link>
+        <div className="flex flex-col gap-[25px] lg:flex-row lg:gap-[34px]">
         {!clubsLoading && clubsError && adminClubsData != null && (
           <div className="rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive" role="alert">
             <p>{getErrorMessage(adminClubsQueryError) ?? t("settings.adminClubsLoadError")}</p>
@@ -483,6 +490,7 @@ export default function ManageClubPage() {
             </main>
           </>
         )}
+        </div>
       </div>
 
       <AddAdminOrganiserModal

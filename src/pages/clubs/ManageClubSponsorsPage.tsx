@@ -102,8 +102,8 @@ export default function ManageClubSponsorsPage() {
   }
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] bg-[#f8fbf8] px-4 py-6 sm:px-6 md:py-8">
-      <div className="mx-auto w-full max-w-[374px] rounded-[12px] border border-black/10 bg-white px-[15px] py-5 shadow-[0px_3px_15px_0px_rgba(0,0,0,0.06)] sm:max-w-[992px] sm:px-0 sm:py-0">
+    <div className="min-h-[calc(100vh-4rem)] bg-[#f4f7f6] px-4 py-6 sm:px-6 md:py-8">
+      <div className="mx-auto w-full max-w-[374px] rounded-[15px] border border-black/10 bg-white px-[15px] py-5 shadow-[0px_3px_15px_0px_rgba(0,0,0,0.06)] sm:max-w-[992px] sm:px-0 sm:py-0">
         <div className="flex items-center justify-between sm:px-5 sm:pt-4 sm:pb-[14px]">
           <h1 className="text-xl font-semibold leading-tight text-[#010a04]">
             {t("sponsors.title")}
@@ -113,7 +113,7 @@ export default function ManageClubSponsorsPage() {
             type="button"
             onClick={handleAddSponsor}
             disabled={sponsorsLoading || !canManageSponsors}
-            className="h-[30px] rounded-lg border border-black/[0.12] bg-brand-primary px-3 text-xs font-medium text-white hover:bg-brand-primary-hover"
+            className="h-[30px] rounded-lg border border-black/[0.12] bg-[#006B2E] px-3 text-xs font-medium text-white hover:bg-[#005a26]"
           >
             <CirclePlus className="mr-1.5 size-3.5 text-white" />
             {t("sponsors.newSponsor")}
@@ -126,7 +126,7 @@ export default function ManageClubSponsorsPage() {
           </div>
         )}
 
-        <div className="hidden h-[35px] border-y border-black/10 bg-black/[0.04] sm:block">
+        <div className="hidden h-[35px] border-y border-black/10 bg-[#f0f0f0] sm:block">
           <div className="grid h-full grid-cols-[100px_minmax(180px,1fr)_minmax(220px,1fr)_170px] items-center px-5 text-xs text-[#010a04]/80">
             <span>{t("sponsors.logo")}</span>
             <span>{t("sponsors.name")}</span>
@@ -150,7 +150,7 @@ export default function ManageClubSponsorsPage() {
 
               return (
                 <div key={sponsor.id}>
-                  <div className="rounded-[10px] bg-black/[0.04] px-[15px] py-[15px] sm:hidden">
+                  <div className="rounded-[10px] bg-[#f0f0f0] px-[15px] py-[15px] sm:hidden">
                     <div className="flex items-center gap-3">
                       <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-[#d9d9d9]">
                         {sponsor.logoUrl ? (
@@ -165,7 +165,7 @@ export default function ManageClubSponsorsPage() {
                             href={safeLink}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="mt-1 block truncate text-sm text-[#3083ea] underline"
+                            className="mt-1 block truncate text-sm text-[#1D4ED8] underline"
                           >
                             {safeLink}
                           </a>
@@ -180,7 +180,7 @@ export default function ManageClubSponsorsPage() {
                     <div className="flex items-center justify-between text-xs">
                       <button
                         type="button"
-                        className="inline-flex items-center gap-1 text-[#d92100] disabled:cursor-not-allowed disabled:opacity-50"
+                        className="inline-flex items-center gap-1 text-[#D0021B] disabled:cursor-not-allowed disabled:opacity-50"
                         onClick={() => handleRemoveSponsor(sponsor)}
                         disabled={!canManageSponsors}
                       >
@@ -189,7 +189,7 @@ export default function ManageClubSponsorsPage() {
                       </button>
                       <button
                         type="button"
-                        className="inline-flex items-center gap-1 text-[#067429] disabled:cursor-not-allowed disabled:opacity-50"
+                        className="inline-flex items-center gap-1 text-[#006B2E] disabled:cursor-not-allowed disabled:opacity-50"
                         onClick={() => handleEditSponsor(sponsor)}
                         disabled={!canManageSponsors}
                       >
@@ -216,7 +216,7 @@ export default function ManageClubSponsorsPage() {
                           href={safeLink}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-[#3083ea] underline"
+                          className="text-[#1D4ED8] underline"
                         >
                           {safeLink}
                         </a>
@@ -228,7 +228,7 @@ export default function ManageClubSponsorsPage() {
                     <div className="flex items-center gap-4 text-xs">
                       <button
                         type="button"
-                        className="inline-flex items-center gap-1 text-[#067429] disabled:cursor-not-allowed disabled:opacity-50"
+                        className="inline-flex items-center gap-1 text-[#006B2E] disabled:cursor-not-allowed disabled:opacity-50"
                         onClick={() => handleEditSponsor(sponsor)}
                         disabled={!canManageSponsors}
                       >
@@ -237,7 +237,7 @@ export default function ManageClubSponsorsPage() {
                       </button>
                       <button
                         type="button"
-                        className="inline-flex items-center gap-1 text-[#d92100] disabled:cursor-not-allowed disabled:opacity-50"
+                        className="inline-flex items-center gap-1 text-[#D0021B] disabled:cursor-not-allowed disabled:opacity-50"
                         onClick={() => handleRemoveSponsor(sponsor)}
                         disabled={!canManageSponsors}
                       >

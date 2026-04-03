@@ -150,11 +150,22 @@ function createIcon(name: IconKey, override?: { defaultTone?: IconTone; transfor
     const iconSize = toCssSize(size);
     const Svg = definition.component;
 
+    // Size the SVG/img itself: flex + % sizing often leaves the vector at its viewBox
+    // intrinsic size while the wrapper grows; explicit dimensions scale the drawing.
+    //
+    // `size-full` on the drawable opts out of patterns like Button's
+    // `[&_svg:not([class*='size-'])]:size-4`, which would otherwise ignore the wrapper's
+    // Tailwind `size-*` classes and keep the vector stuck at 16px.
+    const explicitDimensions =
+      iconSize !== undefined
+        ? { width: iconSize, height: iconSize }
+        : { width: "100%" as const, height: "100%" as const };
+
     const icon = (
       <span
         ref={ref}
         className={[
-          "inline-flex shrink-0 align-middle",
+          "inline-flex shrink-0 items-center justify-center align-middle",
           definition.nativeColor ? "" : TONE_CLASS[defaultTone],
           className,
         ]
@@ -173,8 +184,8 @@ function createIcon(name: IconKey, override?: { defaultTone?: IconTone; transfor
       >
         {Svg ? (
           <Svg
-            width="100%"
-            height="100%"
+            {...explicitDimensions}
+            className="block size-full"
             preserveAspectRatio="xMidYMid meet"
             focusable={false}
             aria-hidden={true}
@@ -183,8 +194,8 @@ function createIcon(name: IconKey, override?: { defaultTone?: IconTone; transfor
           <img
             src={definition.imageSrc}
             alt=""
-            width="100%"
-            height="100%"
+            {...explicitDimensions}
+            className="block size-full"
             draggable={false}
             aria-hidden={true}
           />
