@@ -59,7 +59,6 @@ function SponsorOption({
       type="button"
       disabled={disabled}
       aria-pressed={selected}
-      aria-disabled={disabled}
       onClick={onClick}
       className={`w-full rounded-[12px] border text-left transition ${
         selected
