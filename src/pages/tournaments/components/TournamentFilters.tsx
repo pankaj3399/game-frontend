@@ -14,7 +14,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { Settings01Icon } from "@/icons/figma-icons";
+import ListFilterIcon from "@/assets/icons/figma/misc/list-filter.svg?react";
 
 interface TournamentFiltersProps {
   open: boolean;
@@ -43,7 +43,9 @@ export function TournamentFilters({
     <Popover open={open} onOpenChange={onOpenChange}>
       <PopoverTrigger asChild>
         <Button variant="outline" size="sm">
-          <Settings01Icon size={16} className="mr-2" />
+          <span className="inline-flex mr-2" style={{ width: 16, height: 16 }}>
+            <ListFilterIcon width={16} height={16} aria-hidden />
+          </span>
           {t("tournaments.filters")}
         </Button>
       </PopoverTrigger>
