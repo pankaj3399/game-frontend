@@ -82,7 +82,7 @@ export function deriveMatches(
     const court = tournament.courts[i % Math.max(1, tournament.courts.length)];
 
     const isMine =
-      !!currentUserId && (first.id === currentUserId || (second && second.id === currentUserId));
+      !!currentUserId && (first.id === currentUserId || second?.id === currentUserId);
 
     pairs.push({
       id: `${first.id}-${second?.id ?? "bye"}`,
