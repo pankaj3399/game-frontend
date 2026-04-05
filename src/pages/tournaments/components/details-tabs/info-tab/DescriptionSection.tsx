@@ -1,3 +1,4 @@
+import { useId } from "react";
 import { ChevronDown, ChevronUp } from "@/icons/figma-icons";
 import type { TFunction } from "i18next";
 
@@ -20,10 +21,14 @@ export function DescriptionSection({
   onToggle,
   t,
 }: DescriptionSectionProps) {
+  const idPrefix = useId();
+  const headingId = `${idPrefix}-heading`;
+  const descriptionId = `${idPrefix}-description`;
+
   return (
     <div>
       <div className="mb-[17px] flex items-center justify-between">
-        <h2 className="text-[20px] font-semibold text-[#010a04]" id="tournament-info-description-heading">
+        <h2 className="text-[20px] font-semibold text-[#010a04]" id={headingId}>
           {title}
         </h2>
         {isCollapsible ? (
@@ -31,7 +36,7 @@ export function DescriptionSection({
             type="button"
             className="flex h-6 w-6 shrink-0 items-center justify-center rounded-[6px] border border-[#010a04]/25 text-[#010a04] transition-colors hover:bg-[#010a04]/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#010a04]/25"
             aria-expanded={isExpanded}
-            aria-controls="tournament-info-description"
+            aria-controls={descriptionId}
             aria-label={isExpanded ? t("tournaments.collapseDescription") : t("tournaments.expandDescription")}
             onClick={onToggle}
           >
@@ -46,9 +51,9 @@ export function DescriptionSection({
 
       <div className="space-y-[18px] text-[16px] leading-5">
         <p
-          id="tournament-info-description"
+          id={descriptionId}
           className={`whitespace-pre-line ${hasDescription ? "text-[#010a04]" : "text-[#010a04]/60"}`}
-          aria-labelledby="tournament-info-description-heading"
+          aria-labelledby={headingId}
         >
           {descriptionDisplay}
         </p>

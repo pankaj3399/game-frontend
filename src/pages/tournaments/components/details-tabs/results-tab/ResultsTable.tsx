@@ -40,7 +40,8 @@ export function ResultsTable({
         </thead>
         <tbody>
           {filteredResults.map((row, index) => {
-            const position = myScoreOnly ? allResults.findIndex((result) => result.id === row.id) + 1 : index + 1;
+            const idx = allResults.findIndex((result) => result.id === row.id);
+            const position = myScoreOnly ? (idx >= 0 ? idx + 1 : index + 1) : index + 1;
             const isHighlighted = isCurrentUser(row.id);
 
             return (

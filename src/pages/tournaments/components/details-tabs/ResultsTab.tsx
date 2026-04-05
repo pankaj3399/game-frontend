@@ -31,7 +31,12 @@ export function ResultsTab({ tournament, currentUserId }: ResultsTabProps) {
   return (
     <TabsContent value="results" className="mt-5 sm:mt-6">
       <div className="rounded-xl border border-[#e5e7eb] bg-white p-4 shadow-sm sm:p-6">
-        <ResultsHeader myScoreOnly={myScoreOnly} onMyScoreOnlyChange={setMyScoreOnly} t={t} />
+        <ResultsHeader
+          myScoreOnly={myScoreOnly}
+          onMyScoreOnlyChange={setMyScoreOnly}
+          disabled={!currentUserId}
+          t={t}
+        />
         {resultsContent}
       </div>
     </TabsContent>

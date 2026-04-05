@@ -10,6 +10,7 @@ import calendarDaysIcon from "@/assets/icons/figma/lucide/calendar-days.svg?reac
 import chevronDownIcon from "@/assets/icons/figma/lucide/chevron-down.svg?react";
 import chevronRightIcon from "@/assets/icons/figma/lucide/chevron-right.svg?react";
 import externalLinkIcon from "@/assets/icons/figma/lucide/external-link.svg?react";
+import share2Icon from "@/assets/icons/figma/lucide/share-2.svg?react";
 import circlePlusIcon from "@/assets/icons/figma/lucide/circle-plus.svg?react";
 import cloudUploadIcon from "@/assets/icons/figma/lucide/cloud-upload.svg?react";
 import crownIcon from "@/assets/icons/figma/lucide/crown.svg?react";
@@ -47,7 +48,7 @@ import userLinearIcon from "@/assets/icons/figma/vuesax/linear/user.svg?react";
 type Size = number | string;
 type IconTone = "default" | "muted" | "subtle" | "white" | "danger" | "success";
 
-type IconProps = Omit<React.HTMLAttributes<HTMLSpanElement>, "children"> & {
+export type IconProps = Omit<React.HTMLAttributes<HTMLSpanElement>, "children"> & {
   size?: Size;
   title?: string;
 };
@@ -112,6 +113,7 @@ const ICONS = {
   chevronDown: defineSvgIcon(chevronDownIcon, { defaultTone: "muted" }),
   chevronRight: defineSvgIcon(chevronRightIcon, { defaultTone: "muted" }),
   externalLink: defineSvgIcon(externalLinkIcon, { defaultTone: "muted" }),
+  share2: defineSvgIcon(share2Icon, { defaultTone: "muted" }),
   arrowRightGreen: defineSvgIcon(arrowRightGreenIcon),
 
   calendarDays: defineSvgIcon(calendarDaysIcon, { defaultTone: "muted" }),
@@ -251,6 +253,7 @@ export const IconChevronDown = createIcon("chevronDown");
 export const IconChevronRight = createIcon("chevronRight");
 export const IconChevronLeft = createIcon("chevronRight", { transform: "scaleX(-1)" });
 export const IconExternalLink = createIcon("externalLink");
+export const IconShare2 = createIcon("share2");
 export const IconArrowRight = createIcon("arrowRightGreen");
 
 export const IconCalendarDays = createIcon("calendarDays");
@@ -358,7 +361,7 @@ export const Users = IconPeople;
 export const UsersRound = IconPeople;
 export const Compass = IconMap;
 export const Tag = IconTag2;
-export const Share2 = IconExternalLink;
+export const Share2 = IconShare2;
 export const Trophy = IconCup;
 export const Timer = IconTimerStart;
 export const Minus = IconArchiveRestore;
@@ -387,6 +390,7 @@ export const FIGMA_ICONS = {
   chevronRight: IconChevronRight,
   chevronLeft: IconChevronLeft,
   externalLink: IconExternalLink,
+  share2: IconShare2,
   arrowRight: IconArrowRight,
   calendarDays: IconCalendarDays,
   calendarTick: IconCalendarTick,

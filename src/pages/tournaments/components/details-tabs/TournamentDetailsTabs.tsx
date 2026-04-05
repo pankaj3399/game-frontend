@@ -28,7 +28,12 @@ export function TournamentDetailsTabs({
   return (
     <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
       <div className="mt-2 w-full border-b border-[#dddddd] pb-6 sm:mt-3 sm:pb-7">
-        <TabsList className="grid h-auto w-full grid-cols-4 rounded-[10px] bg-[rgba(1,10,4,0.05)] p-1 sm:inline-flex sm:w-fit sm:grid-cols-none">
+        <TabsList
+          className="grid h-auto w-full rounded-[10px] bg-[rgba(1,10,4,0.05)] p-1 sm:inline-flex sm:w-fit"
+          style={{
+            gridTemplateColumns: `repeat(${Math.max(1, tabOptions.length)}, minmax(0, 1fr))`,
+          }}
+        >
           {tabOptions.map((tab) => (
             <TabsTrigger
               key={tab.value}
@@ -42,6 +47,7 @@ export function TournamentDetailsTabs({
       </div>
 
       <InfoTab
+        key={tournament.id}
         tournament={tournament}
         isJoinPending={isJoinPending}
         onJoin={onJoin}

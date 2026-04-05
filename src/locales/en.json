@@ -463,7 +463,7 @@
     "statusActive": "Active",
     "statusDraft": "Draft",
     "statusInactive": "Inactive",
-    "backToList": "Go back",
+    "goBack": "Go back",
     "tabBasicInfo": "Basic Info",
     "tabDetails": "Details",
     "tabSponsor": "Sponsor",
@@ -545,6 +545,7 @@
     "unknownClub": "Unknown club",
     "unknownSponsor": "Unknown sponsor",
     "unknownPlayer": "Unknown player",
+    "participantNoAlias": "Anonymous",
     "tournamentNotFound": "Tournament not found",
     "failedToLoadDetails": "Failed to load tournament details.",
     "currentPlayers": "Current Players",
@@ -582,6 +583,7 @@
     "noResultsYet": "No results yet.",
     "noMyResults": "You are not in this tournament's results.",
     "allResults": "All Results",
+    "myScoreFilterSignInHint": "Sign in to filter the table to your row.",
     "resultsPosition": "Position",
     "resultsPlayers": "Players",
     "resultsWins": "Wins",
@@ -595,6 +597,7 @@
     "time": "Time",
     "timeRange": "{{start}} – {{end}}",
     "notSpecified": "–",
+    "entryFeeFree": "Free",
     "entryFeeFormat": "${{amount}}"
   },
   "about": {

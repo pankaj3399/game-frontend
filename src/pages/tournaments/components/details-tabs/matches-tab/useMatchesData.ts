@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import type { TFunction } from "i18next";
 import { getDateFnsLocale } from "@/lib/dateFnsLocale";
 import type { TournamentDetail } from "@/models/tournament/types";
-import { deriveMatches, getMatchCounts } from "./deriveMatches";
+import { deriveMatches, getCurrentRound, getMatchCounts } from "./deriveMatches";
 
 interface UseMatchesDataArgs {
   tournament: TournamentDetail;
@@ -32,10 +32,12 @@ export function useMatchesData({
   );
 
   const counts = useMemo(() => getMatchCounts(matches), [matches]);
+  const currentRound = useMemo(() => getCurrentRound(matches), [matches]);
 
   return {
     matches,
     filteredMatches,
     counts,
+    currentRound,
   };
 }

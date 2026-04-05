@@ -15,7 +15,7 @@ interface MatchesTabProps {
 export function MatchesTab({ tournament, currentUserId }: MatchesTabProps) {
   const { t, i18n } = useTranslation();
   const [onlyMyMatches, setOnlyMyMatches] = useState(false);
-  const { matches, filteredMatches, counts } = useMatchesData({
+  const { matches, filteredMatches, counts, currentRound } = useMatchesData({
     tournament,
     currentUserId,
     onlyMyMatches,
@@ -26,12 +26,12 @@ export function MatchesTab({ tournament, currentUserId }: MatchesTabProps) {
   return (
     <TabsContent value="matches" className="mt-5 space-y-4 sm:mt-6 sm:space-y-5">
       <MatchesActions t={t} />
-      <MatchesProgress counts={counts} total={matches.length} t={t} />
+      <MatchesProgress counts={counts} total={matches.length} currentRound={currentRound} t={t} />
       <MatchesList
         matches={matches}
         filteredMatches={filteredMatches}
         onlyMyMatches={onlyMyMatches}
-        onToggleOnlyMine={() => setOnlyMyMatches((prev) => !prev)}
+        onOnlyMyMatchesChange={setOnlyMyMatches}
         t={t}
       />
     </TabsContent>

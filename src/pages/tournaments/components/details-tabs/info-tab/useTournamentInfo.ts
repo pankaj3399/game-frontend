@@ -15,13 +15,15 @@ interface UseTournamentInfoArgs {
 export function useTournamentInfo({ tournament, t, language, isDescriptionExpanded }: UseTournamentInfoArgs) {
   return useMemo(() => {
     const feeValue = Number.isFinite(tournament.entryFee) ? tournament.entryFee : 0;
-    const feeText = feeValue > 0 ? t("tournaments.entryFeeFormat", { amount: feeValue }) : "Free";
+    const feeText =
+      feeValue > 0 ? t("tournaments.entryFeeFormat", { amount: feeValue }) : t("tournaments.entryFeeFree");
 
     const foodInfoTrimmed = tournament.foodInfo?.trim() ?? "";
     const hasFoodInfo = foodInfoTrimmed.length > 0;
 
-    const hasDescription = Boolean(tournament.descriptionInfo?.trim());
-    const descriptionText = hasDescription ? (tournament.descriptionInfo ?? "") : t("tournaments.noDescription");
+    const normalizedDescription = tournament.descriptionInfo?.trim() ?? "";
+    const hasDescription = normalizedDescription.length > 0;
+    const descriptionText = hasDescription ? normalizedDescription : t("tournaments.noDescription");
     const isDescriptionCollapsible = hasDescription && descriptionText.length > UI_LIMITS.DESCRIPTION_PREVIEW;
     const descriptionDisplay =
       isDescriptionExpanded || !isDescriptionCollapsible

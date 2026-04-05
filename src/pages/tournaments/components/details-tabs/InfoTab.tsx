@@ -55,13 +55,6 @@ export function InfoTab({ tournament, onJoin, isJoinPending }: InfoTabProps) {
     isDescriptionExpanded,
   });
 
-  useEffect(() => {
-    setDescriptionExpanded(true);
-  }, [setDescriptionExpanded, tournament.id, tournament.descriptionInfo]);
-
-  useEffect(() => {
-    setPlayersExpanded(true);
-  }, [setPlayersExpanded, tournament.id]);
 
   return (
     <TabsContent value="info" className="mt-6 sm:mt-[30px]">
@@ -82,6 +75,18 @@ export function InfoTab({ tournament, onJoin, isJoinPending }: InfoTabProps) {
               clubName={tournament.club?.name ?? t("tournaments.unknownClub")}
               canEdit={tournament.permissions.canEdit}
               onEdit={() => setIsEditModalOpen(true)}
+              onGetDirection={
+                tournament.club
+                  ? () => {
+                      const q = encodeURIComponent(tournament.club!.name);
+                      window.open(
+                        `https://www.google.com/maps/search/?api=1&query=${q}`,
+                        "_blank",
+                        "noopener,noreferrer",
+                      );
+                    }
+                  : undefined
+              }
               t={t}
             />
 

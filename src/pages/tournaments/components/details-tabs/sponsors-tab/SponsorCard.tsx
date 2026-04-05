@@ -12,7 +12,13 @@ export function SponsorCard({ sponsor, t }: SponsorCardProps) {
     <div className="flex flex-col overflow-hidden rounded-xl border border-border bg-white shadow-sm transition-shadow hover:shadow-md">
       <div className="flex aspect-[16/10] w-full items-center justify-center overflow-hidden rounded-t-xl bg-[#f3f4f6]">
         {sponsor.logoUrl ? (
-          <img src={sponsor.logoUrl} alt={sponsor.name} className="h-full w-full object-contain p-4" />
+          <img
+            src={sponsor.logoUrl}
+            alt={sponsor.name}
+            className="h-full w-full object-contain p-4"
+            loading="lazy"
+            decoding="async"
+          />
         ) : (
           <div className="flex h-full w-full items-center justify-center rounded-t-xl bg-[#e5e7eb]">
             <span className="text-sm font-medium text-[#9ca3af]">{sponsor.name.charAt(0) || "?"}</span>

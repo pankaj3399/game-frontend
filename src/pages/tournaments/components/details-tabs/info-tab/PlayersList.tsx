@@ -41,7 +41,9 @@ function getPlayersContent({
               <p className="truncate text-[14px] leading-5 text-[#010a04] sm:text-[16px]">
                 {participant.name ?? participant.alias ?? t("tournaments.unknownPlayer")}
               </p>
-              <p className="truncate text-[14px] leading-[18px] text-[#6a6a6a]">{participant.alias || participant.id.slice(0, 8)}</p>
+              <p className="truncate text-[14px] leading-[18px] text-[#6a6a6a]">
+                {participant.alias?.trim() ? participant.alias : t("tournaments.participantNoAlias")}
+              </p>
             </div>
           </div>
         ))}

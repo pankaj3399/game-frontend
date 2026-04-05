@@ -42,7 +42,7 @@ export default function TournamentDetailsPage() {
             {getErrorMessage(error) ?? t("tournaments.failedToLoadDetails")}
           </p>
           <Button asChild variant="outline" className="mt-4">
-            <Link to="/tournaments">{t("tournaments.backToList")}</Link>
+            <Link to="/tournaments">{t("tournaments.goBack")}</Link>
           </Button>
         </div>
       </div>
@@ -105,7 +105,7 @@ export default function TournamentDetailsPage() {
           >
             <Link to="/tournaments">
               <ChevronLeft size={16} className="text-[#010a04]/70 group-hover:text-[#010a04]" />
-              {t("tournaments.backToList")}
+              {t("tournaments.goBack")}
             </Link>
           </Button>
 
@@ -126,7 +126,7 @@ export default function TournamentDetailsPage() {
               variant="ghost"
               size="sm"
               onClick={onShare}
-              className="group hidden h-auto gap-1.5 rounded-md px-2 py-1 text-[14px] font-medium text-[#010a04] transition-[background-color,transform] duration-200 ease-out hover:bg-[#010a04]/[0.07] hover:text-[#010a04] active:bg-[#010a04]/[0.1] sm:inline-flex"
+              className="group inline-flex h-auto gap-1.5 rounded-md px-2 py-1 text-[14px] font-medium text-[#010a04] transition-[background-color,transform] duration-200 ease-out hover:bg-[#010a04]/[0.07] hover:text-[#010a04] active:bg-[#010a04]/[0.1]"
             >
               <Share2
                 size={16}
@@ -147,17 +147,32 @@ export default function TournamentDetailsPage() {
             </h1>
           </div>
 
-          <div className="flex items-center gap-3 self-start pt-0.5 sm:pt-1">
-            <p className="text-[14px] font-normal text-[#010a04]/60">{t("tournaments.sponsoredBy")}:</p>
-            <div className="flex items-center gap-[10px]">
-              <div className="flex h-[45px] w-[45px] items-center justify-center overflow-hidden rounded-[10px] border-[2.5px] border-white bg-[#d9d9d9] shadow-[0_2px_3px_rgba(143,143,143,0.1),0_6px_6px_rgba(143,143,143,0.09)]">
-                {tournament.sponsor?.logoUrl ? (
-                  <img src={tournament.sponsor.logoUrl} alt={tournament.sponsor.name} className="h-full w-full object-cover" />
-                ) : null}
+          {tournament.sponsor ? (
+            <div className="flex flex-wrap items-center gap-3 self-start pt-0.5 sm:pt-1">
+              <p className="text-[14px] font-normal text-[#010a04]/60">{t("tournaments.sponsoredBy")}:</p>
+              <div className="flex min-w-0 items-center gap-[10px]">
+                <div className="flex h-[45px] w-[45px] shrink-0 items-center justify-center overflow-hidden rounded-[10px] border-[2.5px] border-white bg-[#d9d9d9] shadow-[0_2px_3px_rgba(143,143,143,0.1),0_6px_6px_rgba(143,143,143,0.09)]">
+                  {tournament.sponsor.logoUrl ? (
+                    <img
+                      src={tournament.sponsor.logoUrl}
+                      alt={tournament.sponsor.name}
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <span className="px-1 text-center text-[11px] font-semibold leading-tight text-[#6b7280]">
+                      {tournament.sponsor.name
+                        .split(/\s+/)
+                        .filter(Boolean)
+                        .slice(0, 2)
+                        .map((word) => word.charAt(0).toUpperCase())
+                        .join("") || "?"}
+                    </span>
+                  )}
+                </div>
+                <span className="truncate text-[14px] font-medium text-[#010a04]">{tournament.sponsor.name}</span>
               </div>
-              <div className="h-[45px] w-[45px] rounded-[10px] border-[2.5px] border-white bg-[#d9d9d9] shadow-[0_2px_3px_rgba(143,143,143,0.1),0_6px_6px_rgba(143,143,143,0.09)]" />
             </div>
-          </div>
+          ) : null}
         </div>
 
         <TournamentDetailsTabs

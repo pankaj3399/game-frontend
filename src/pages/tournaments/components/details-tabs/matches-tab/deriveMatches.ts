@@ -2,7 +2,7 @@ import type { Locale } from "date-fns";
 import type { TournamentDetail } from "@/models/tournament/types";
 import { formatDateOrFallback } from "@/utils/date";
 import { formatTimeTo12Hour } from "@/utils/time";
-import type { DerivedMatch, MatchCounts, MatchStatus } from "./types";
+import type { DerivedMatch, MatchCounts, MatchStatus, TournamentMatchOutcome } from "./types";
 
 function participantName(name: string | null, alias: string | null, fallback: string) {
   return name || alias || fallback;
@@ -34,15 +34,13 @@ export function statusClassName(status: MatchStatus) {
   return "bg-[#f3f4f6] text-[#6b7280]";
 }
 
-export function deriveMatches(
-  tournament: TournamentDetail,
-  currentUserId: string | null,
-  t: (key: string, options?: Record<string, unknown>) => string,
-  locale: Locale | undefined
-): DerivedMatch[] {
-  const pairs: DerivedMatch[] = [];
+/**
+ * Derives bracket pairings and match status from participant order (same source as the matches tab).
+ * Used by deriveMatches and deriveResults so standings reflect the same schedule.
+ */
+export function getTournamentMatchOutcomes(tournament: TournamentDetail): TournamentMatchOutcome[] {
   const participants = tournament.participants;
-  const tbdLabel = t("tournaments.scheduledTbd");
+  const out: TournamentMatchOutcome[] = [];
 
   for (let index = 0; index < participants.length; index += 2) {
     const first = participants[index];
@@ -50,16 +48,43 @@ export function deriveMatches(
     if (!first) continue;
 
     const status: MatchStatus = index % 6 === 0 ? "completed" : index % 6 === 2 ? "inProgress" : "scheduled";
-    const court = tournament.courts[(index / 2) % Math.max(1, tournament.courts.length)];
+    out.push({ playerAId: first.id, playerBId: second?.id ?? null, status });
+  }
 
-    const isMine = !!currentUserId && (first.id === currentUserId || (second && second.id === currentUserId));
+  return out;
+}
+
+export function deriveMatches(
+  tournament: TournamentDetail,
+  currentUserId: string | null,
+  t: (key: string, options?: Record<string, unknown>) => string,
+  locale: Locale | undefined
+): DerivedMatch[] {
+  const outcomes = getTournamentMatchOutcomes(tournament);
+  const participants = tournament.participants;
+  const byId = new Map(participants.map((p) => [p.id, p]));
+  const pairs: DerivedMatch[] = [];
+  const tbdLabel = t("tournaments.scheduledTbd");
+
+  for (let i = 0; i < outcomes.length; i++) {
+    const o = outcomes[i];
+    const first = byId.get(o.playerAId);
+    if (!first) continue;
+    const second = o.playerBId ? byId.get(o.playerBId) : null;
+
+    const round = Math.floor(i / 3) + 1;
+    const court = tournament.courts[i % Math.max(1, tournament.courts.length)];
+
+    const isMine =
+      !!currentUserId && (first.id === currentUserId || (second && second.id === currentUserId));
 
     pairs.push({
       id: `${first.id}-${second?.id ?? "bye"}`,
       playerA: participantName(first.name, first.alias, t("tournaments.playerAFallback")),
       playerB: participantName(second?.name ?? null, second?.alias ?? null, t("tournaments.playerBFallback")),
-      courtName: court?.name || t("tournaments.courtFallback", { number: Math.floor(index / 2) + 1 }),
-      status,
+      courtName: court?.name || t("tournaments.courtFallback", { number: i + 1 }),
+      status: o.status,
+      round,
       isMine,
       scheduledText: scheduleText(tournament.date, tournament.startTime, tbdLabel, locale),
     });
@@ -68,10 +93,31 @@ export function deriveMatches(
   return pairs;
 }
 
+/** Round where play is still open (min among incomplete); if all finished, last round. */
+export function getCurrentRound(matches: DerivedMatch[]): number {
+  if (matches.length === 0) return 1;
+  const active = matches.filter((m) => m.status !== "completed");
+  if (active.length > 0) {
+    return Math.min(...active.map((m) => m.round));
+  }
+  return Math.max(...matches.map((m) => m.round));
+}
+
 export function getMatchCounts(matches: DerivedMatch[]): MatchCounts {
-  const completedCount = matches.filter((match) => match.status === "completed").length;
-  const inProgressCount = matches.filter((match) => match.status === "inProgress").length;
-  const scheduledCount = matches.filter((match) => match.status === "scheduled").length;
+  let completedCount = 0;
+  let inProgressCount = 0;
+  let scheduledCount = 0;
+
+  for (const match of matches) {
+    if (match.status === "completed") {
+      completedCount += 1;
+    } else if (match.status === "inProgress") {
+      inProgressCount += 1;
+    } else {
+      scheduledCount += 1;
+    }
+  }
+
   const progressPct = matches.length ? Math.round((completedCount / matches.length) * 100) : 0;
 
   return {

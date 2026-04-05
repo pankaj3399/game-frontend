@@ -1,13 +1,10 @@
 import type { ComponentType } from "react";
+import type { IconProps } from "@/icons/figma-icons";
 
-type IconComponent = ComponentType<{
-  size?: number | string;
-  className?: string;
-  "aria-hidden"?: boolean;
-}>;
+type FigmaIconComponent = ComponentType<IconProps>;
 
 interface InfoItemProps {
-  icon: IconComponent;
+  icon: FigmaIconComponent;
   label: string;
   value: string;
   valueClassName?: string;

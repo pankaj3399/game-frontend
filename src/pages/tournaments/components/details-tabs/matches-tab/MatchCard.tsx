@@ -32,7 +32,7 @@ export function MatchCard({ match, t }: MatchCardProps) {
           {t(MATCH_STATUS_KEYS[match.status])}
         </span>
         <span className="rounded bg-[#111827] px-2 py-0.5 text-[11px] font-semibold text-white">
-          {t("tournaments.roundNumber", { round: 1 })}
+          {t("tournaments.roundNumber", { round: match.round })}
         </span>
       </div>
     </div>
