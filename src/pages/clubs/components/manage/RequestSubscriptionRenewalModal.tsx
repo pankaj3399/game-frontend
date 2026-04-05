@@ -43,7 +43,7 @@ export function RequestSubscriptionRenewalModal({
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent
         showCloseButton={false}
-        className="w-[424px] max-w-[calc(100%-2rem)] gap-0 rounded-[12px] border border-[rgba(1,10,4,0.08)] p-[20px_15px] shadow-[0px_3px_15px_0px_rgba(0,0,0,0.06)]"
+        className="w-[414px] max-w-[calc(100%-2rem)] gap-0 rounded-[12px] border border-[rgba(1,10,4,0.08)] p-[20px_15px] shadow-[0px_3px_15px_0px_rgba(0,0,0,0.06)]"
       >
         <div className="flex flex-col gap-[18px]">
           <div className="inline-flex h-[44px] w-[44px] items-center justify-center rounded-[8px] bg-[#f6ecdd]">

@@ -151,25 +151,15 @@
 }
 
 @layer utilities {
-  .clubs-sidebar-scrollbar {
-    scrollbar-width: thin;
-    scrollbar-color: rgba(217, 217, 217, 0.9) rgba(217, 217, 217, 0.2);
+  .scrollbar-none {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
   }
 
-  .clubs-sidebar-scrollbar::-webkit-scrollbar {
-    width: 14px;
-  }
-
-  .clubs-sidebar-scrollbar::-webkit-scrollbar-track {
-    background: rgba(217, 217, 217, 0.2);
-    border-left: 1px solid rgba(0, 0, 0, 0.1);
-    border-top: 1px solid rgba(0, 0, 0, 0.1);
-  }
-
-  .clubs-sidebar-scrollbar::-webkit-scrollbar-thumb {
-    background: rgba(217, 217, 217, 0.9);
-    border-radius: 111px;
-    min-height: 53px;
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+    width: 0;
+    height: 0;
   }
 }
 

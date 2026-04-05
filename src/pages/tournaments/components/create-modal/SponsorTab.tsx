@@ -13,11 +13,15 @@ function SponsorCard({
   selected,
   title,
   subtitle,
+  logoUrl,
+  hideAvatar = false,
   onClick,
 }: {
   selected: boolean;
   title: string;
   subtitle?: string;
+  logoUrl?: string | null;
+  hideAvatar?: boolean;
   onClick: () => void;
 }) {
   return (
@@ -25,26 +29,42 @@ function SponsorCard({
       type="button"
       onClick={onClick}
       aria-pressed={selected}
-      className={`flex w-full items-center justify-between rounded-xl border p-3 text-left transition-colors ${
+      className={`flex w-full items-center justify-between rounded-[12px] border px-[13px] py-3 text-left transition-colors ${
         selected
-          ? "border-[#27a457] bg-[#f7fbf8] ring-1 ring-[#27a457]"
-          : "border-[#e5e7eb] bg-[#f3f4f6] hover:bg-[#eef0f2]"
+          ? "border-[1.5px] border-brand-primary bg-brand-primary/[0.05]"
+          : "border-[#e1e3e8] bg-[#f9fafc] hover:bg-[#f4f7fb]"
       }`}
     >
-      <div className="flex items-center gap-3">
-        <div className="h-10 w-10 rounded-md bg-[#d8dadd]" />
+      <div className="flex min-w-0 items-center gap-3">
+        {!hideAvatar ? (
+          logoUrl ? (
+            <img
+              src={logoUrl}
+              alt=""
+              className="h-10 w-10 shrink-0 rounded-[8px] object-cover"
+            />
+          ) : (
+            <div className="h-10 w-10 shrink-0 rounded-[8px] bg-[#d9d9d9]" />
+          )
+        ) : null}
         <div>
-          <p className="text-[14px] font-medium leading-tight text-[#1f2937]">{title}</p>
+          <p className="text-[16px] font-medium leading-[1.2] text-[#010a04]">{title}</p>
           {subtitle ? (
-            <p className="mt-0.5 text-[13px] leading-tight text-[#6b7280]">{subtitle}</p>
+            <p className="mt-[5px] text-[14px] leading-tight text-[#010a04]/70">{subtitle}</p>
           ) : null}
         </div>
       </div>
       <span
-        className={`h-4 w-4 rounded-full border ${
-          selected ? "border-[#27a457] ring-4 ring-[#27a457] ring-offset-2" : "border-[#d1d5db]"
+        className={`flex h-5 w-5 items-center justify-center rounded-full border transition-colors ${
+          selected ? "border-brand-primary" : "border-black/15"
         }`}
-      />
+      >
+        <span
+          className={`h-2.5 w-2.5 rounded-full transition-colors ${
+            selected ? "bg-brand-primary" : "bg-transparent"
+          }`}
+        />
+      </span>
     </button>
   );
 }
@@ -55,21 +75,22 @@ export function SponsorTab({ form, sponsors, update }: SponsorTabProps) {
 
   return (
     <TabsContent value="sponsor" className="mt-0">
-      <div className="space-y-3">
-        <h3 className="text-[15px] font-semibold text-[#1f2937]">
+      <div className="space-y-[14px]">
+        <h3 className="text-[18px] font-medium leading-[1.3] text-[#010a04]">
           {t("tournaments.selectSponsor")}
         </h3>
-        <p className="max-w-[540px] text-[14px] leading-snug text-[#6b7280]">
+        <p className="max-w-[540px] text-[14px] leading-[1.4] text-[#010a04]/60">
           {t("tournaments.selectSponsorHint")}
         </p>
 
         {!form.club ? (
-          <p className="text-[14px] text-[#6b7280]">{t("tournaments.selectClubFirst")}</p>
+          <p className="text-[14px] text-[#010a04]/60">{t("tournaments.selectClubFirst")}</p>
         ) : (
           <div className="space-y-2">
             <SponsorCard
               selected={form.sponsor == null || form.sponsor === ""}
               title={t("tournaments.noSponsor")}
+              hideAvatar
               onClick={() => update({ sponsor: null })}
             />
 
@@ -78,7 +99,8 @@ export function SponsorTab({ form, sponsors, update }: SponsorTabProps) {
                 key={sponsor.id}
                 selected={form.sponsor === sponsor.id}
                 title={sponsor.name}
-                subtitle={t("tournaments.officialSponsor")}
+                subtitle={sponsor.description?.trim() || t("tournaments.officialSponsor")}
+                logoUrl={sponsor.logoUrl}
                 onClick={() => update({ sponsor: sponsor.id })}
               />
             ))}
