@@ -19,9 +19,6 @@ interface TournamentFiltersProps {
   when?: string;
   distance?: string;
   clubId?: string;
-  canShowStatusFilter: boolean;
-  onQueryChange: (value: string) => void;
-  onStatusChange: (value: string) => void;
   onWhenChange: (value: string) => void;
   onDistanceChange: (value: string) => void;
   onClubChange: (clubId?: string) => void;
@@ -90,12 +87,15 @@ export function TournamentFilters({
   const [draftWhen, setDraftWhen] = useState(when ?? "all");
   const [draftDistance, setDraftDistance] = useState(distance ?? "all");
   const [draftClubId, setDraftClubId] = useState<string | undefined>(clubId);
+  const [selectedClubState, setSelectedClubState] = useState<{ id: string; name: string } | null>(null);
 
   const handlePopoverOpenChange = (nextOpen: boolean) => {
     if (nextOpen) {
       setDraftWhen(when ?? "all");
       setDraftDistance(distance ?? "all");
       setDraftClubId(clubId);
+      const matchedClub = clubId ? clubsData?.clubs?.find((c) => c.id === clubId) : null;
+      setSelectedClubState(matchedClub ? { id: matchedClub.id, name: matchedClub.name } : null);
       setClubSearch("");
       setClubSearchOpen(false);
     }
@@ -110,7 +110,12 @@ export function TournamentFilters({
   });
 
   const clubs = clubsData?.clubs ?? [];
-  const selectedClub = clubs.find((c) => c.id === draftClubId) ?? null;
+  const selectedClub =
+    draftClubId
+      ? (selectedClubState?.id === draftClubId
+          ? selectedClubState
+          : clubsData?.clubs?.find((c) => c.id === draftClubId)) ?? null
+      : null;
 
 const activeFilterCount =
   ((query ?? "").trim().length > 0 ? 1 : 0) +
@@ -203,6 +208,7 @@ const activeFilterCount =
                     type="button"
                     onClick={() => {
                       setDraftClubId(undefined);
+                      setSelectedClubState(null);
                       setClubSearch("");
                     }}
                     className="shrink-0 leading-none text-brand-primary/60 hover:text-brand-primary"
@@ -254,6 +260,7 @@ const activeFilterCount =
                       ].join(" ")}
                       onClick={() => {
                         setDraftClubId(undefined);
+                        setSelectedClubState(null);
                         setClubSearchOpen(false);
                         setClubSearch("");
                       }}
@@ -282,6 +289,7 @@ const activeFilterCount =
                           ].join(" ")}
                           onClick={() => {
                             setDraftClubId(club.id);
+                            setSelectedClubState({ id: club.id, name: club.name });
                             setClubSearchOpen(false);
                             setClubSearch("");
                           }}
@@ -309,6 +317,7 @@ const activeFilterCount =
               setDraftWhen("all");
               setDraftDistance("all");
               setDraftClubId(undefined);
+              setSelectedClubState(null);
               setClubSearch("");
               setClubSearchOpen(false);
             }}

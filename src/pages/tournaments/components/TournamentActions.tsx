@@ -17,8 +17,6 @@ interface TournamentActionsProps {
   distance?: string;
   clubId?: string;
   canShowStatusFilter: boolean;
-  onQueryChange: (value: string) => void;
-  onStatusChange: (value: string) => void;
   onWhenChange: (value: string) => void;
   onDistanceChange: (value: string) => void;
   onClubChange: (clubId?: string) => void;
@@ -35,9 +33,6 @@ export function TournamentActions({
   when,
   distance,
   clubId,
-  canShowStatusFilter,
-  onQueryChange,
-  onStatusChange,
   onWhenChange,
   onDistanceChange,
   onClubChange,
@@ -55,9 +50,6 @@ export function TournamentActions({
         when={when}
         distance={distance}
         clubId={clubId}
-        canShowStatusFilter={canShowStatusFilter}
-        onQueryChange={onQueryChange}
-        onStatusChange={onStatusChange}
         onWhenChange={onWhenChange}
         onDistanceChange={onDistanceChange}
         onClubChange={onClubChange}

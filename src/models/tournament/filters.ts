@@ -4,7 +4,7 @@ import type {
   TournamentListView,
   TournamentStatus,
   TournamentWhenFilter,
-} from "@/models/tournament";
+} from "./types";
 
 export type TournamentListTab = TournamentListView;
 
@@ -49,14 +49,6 @@ export const DEFAULT_TOURNAMENT_FILTERS_STATE: TournamentFiltersState = {
 
 export function isTournamentStatus(value: string): value is TournamentStatus {
   return value === "active" || value === "draft" || value === "inactive";
-}
-
-export function isTournamentWhenFilter(value: string): value is TournamentWhenFilter {
-  return value === "future" || value === "past";
-}
-
-export function isTournamentDistanceFilter(value: string): value is TournamentDistanceFilter {
-  return value === "under50" || value === "between50And80" || value === "over80";
 }
 
 export function filtersReducer(

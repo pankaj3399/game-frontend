@@ -30,18 +30,12 @@ function TournamentListContent() {
     filtersOpen,
     setFiltersOpen,
     setTab,
-    setStatusFromValue,
     setWhenFromValue,
     setDistanceFromValue,
     setClubId,
-    setQuery,
     setPage,
   } = useTournamentFilters({ isOrganiserOrAbove, userId: user?.id ?? null });
-  const {
-    modal,
-    openCreateModal,
-    closeModal,
-  } = useTournamentActions({ onPublished: () => setTab("published") });
+  const { modal, openCreateModal, closeModal } = useTournamentActions();
   const { isDraftTab, canShowStatusFilter } = useTournamentPermissions({
     activeTab,
     isOrganiserOrAbove,
@@ -80,8 +74,6 @@ function TournamentListContent() {
                 distance={filters.distance}
                 clubId={filters.clubId}
                 canShowStatusFilter={canShowStatusFilter}
-                onQueryChange={setQuery}
-                onStatusChange={setStatusFromValue}
                 onWhenChange={setWhenFromValue}
                 onDistanceChange={setDistanceFromValue}
                 onClubChange={setClubId}

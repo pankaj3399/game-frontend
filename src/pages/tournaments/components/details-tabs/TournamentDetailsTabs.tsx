@@ -59,4 +59,3 @@ export function TournamentDetailsTabs({
   );
 }
 
-export default TournamentDetailsTabs;

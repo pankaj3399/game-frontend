@@ -1,4 +1,4 @@
-import { useEffect, useReducer, useState } from "react";
+import { useEffect, useReducer, useRef, useState } from "react";
 import {
   DEFAULT_TOURNAMENT_FILTERS_STATE,
   filtersReducer,
@@ -78,6 +78,7 @@ function parsePersistedState(rawValue: string) {
 export function useTournamentFilters({ isOrganiserOrAbove, userId }: UseTournamentFiltersOptions) {
   const [state, dispatch] = useReducer(filtersReducer, DEFAULT_TOURNAMENT_FILTERS_STATE);
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const isHydratedRef = useRef(false);
 
   const effectiveFilters = () => shapeTournamentFilters(state, isOrganiserOrAbove);
 
@@ -126,21 +127,32 @@ export function useTournamentFilters({ isOrganiserOrAbove, userId }: UseTourname
   };
 
   useEffect(() => {
-    if (!userId || typeof window === "undefined") return;
+    if (!userId || typeof window === "undefined") {
+      isHydratedRef.current = true;
+      return;
+    }
     const rawValue = window.localStorage.getItem(getStorageKey(userId));
-    if (!rawValue) return;
+    if (!rawValue) {
+      isHydratedRef.current = true;
+      return;
+    }
 
     const persisted = parsePersistedState(rawValue);
-    if (!persisted) return;
+    if (!persisted) {
+      isHydratedRef.current = true;
+      return;
+    }
 
     dispatch({
       type: "HYDRATE",
       payload: persisted,
     });
+    isHydratedRef.current = true;
   }, [userId]);
 
   useEffect(() => {
     if (!userId || typeof window === "undefined") return;
+    if (!isHydratedRef.current) return;
     const storagePayload = {
       activeTab: state.activeTab,
       filters: {
