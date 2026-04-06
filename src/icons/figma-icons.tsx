@@ -9,6 +9,8 @@ import bellIcon from "@/assets/icons/figma/lucide/bell.svg?react";
 import calendarDaysIcon from "@/assets/icons/figma/lucide/calendar-days.svg?react";
 import chevronDownIcon from "@/assets/icons/figma/lucide/chevron-down.svg?react";
 import chevronRightIcon from "@/assets/icons/figma/lucide/chevron-right.svg?react";
+import externalLinkIcon from "@/assets/icons/figma/lucide/external-link.svg?react";
+import share2Icon from "@/assets/icons/figma/lucide/share-2.svg?react";
 import circlePlusIcon from "@/assets/icons/figma/lucide/circle-plus.svg?react";
 import cloudUploadIcon from "@/assets/icons/figma/lucide/cloud-upload.svg?react";
 import crownIcon from "@/assets/icons/figma/lucide/crown.svg?react";
@@ -16,6 +18,7 @@ import ellipsisVerticalIcon from "@/assets/icons/figma/lucide/ellipsis-vertical.
 import gripVerticalIcon from "@/assets/icons/figma/lucide/grip-vertical.svg?react";
 import houseIcon from "@/assets/icons/figma/lucide/house.svg?react";
 import infoIcon from "@/assets/icons/figma/lucide/info.svg?react";
+import penLine1Icon from "@/assets/icons/figma/lucide/pen-line-1.svg?react";
 import penLineIcon from "@/assets/icons/figma/lucide/pen-line.svg?react";
 import plusIcon from "@/assets/icons/figma/lucide/plus.svg?react";
 import squarePenIcon from "@/assets/icons/figma/lucide/square-pen.svg?react";
@@ -34,12 +37,18 @@ import peopleBoldIcon from "@/assets/icons/figma/vuesax/bold/people.svg?react";
 import scanBarcodeBoldIcon from "@/assets/icons/figma/vuesax/bold/scan-barcode.svg?react";
 import setting2BoldIcon from "@/assets/icons/figma/vuesax/bold/setting-2.svg?react";
 import shieldTickBoldIcon from "@/assets/icons/figma/vuesax/bold/shield-tick.svg?react";
+import calendarTickLinearIcon from "@/assets/icons/figma/vuesax/linear/calendar-tick.svg?react";
+import clockLinearIcon from "@/assets/icons/figma/vuesax/linear/clock.svg?react";
+import mapLinearIcon from "@/assets/icons/figma/vuesax/linear/map.svg?react";
+import tag2LinearIcon from "@/assets/icons/figma/vuesax/linear/tag-2.svg?react";
+import timerPauseLinearIcon from "@/assets/icons/figma/vuesax/linear/timer-pause.svg?react";
+import timerStartLinearIcon from "@/assets/icons/figma/vuesax/linear/timer-start.svg?react";
 import userLinearIcon from "@/assets/icons/figma/vuesax/linear/user.svg?react";
 
 type Size = number | string;
 type IconTone = "default" | "muted" | "subtle" | "white" | "danger" | "success";
 
-type IconProps = Omit<React.HTMLAttributes<HTMLSpanElement>, "children"> & {
+export type IconProps = Omit<React.HTMLAttributes<HTMLSpanElement>, "children"> & {
   size?: Size;
   title?: string;
 };
@@ -103,9 +112,18 @@ const ICONS = {
 
   chevronDown: defineSvgIcon(chevronDownIcon, { defaultTone: "muted" }),
   chevronRight: defineSvgIcon(chevronRightIcon, { defaultTone: "muted" }),
+  externalLink: defineSvgIcon(externalLinkIcon, { defaultTone: "muted" }),
+  share2: defineSvgIcon(share2Icon, { defaultTone: "muted" }),
   arrowRightGreen: defineSvgIcon(arrowRightGreenIcon),
 
   calendarDays: defineSvgIcon(calendarDaysIcon, { defaultTone: "muted" }),
+  calendarTickLinear: defineSvgIcon(calendarTickLinearIcon, { defaultTone: "muted" }),
+  clockLinear: defineSvgIcon(clockLinearIcon, { defaultTone: "muted" }),
+  mapLinear: defineSvgIcon(mapLinearIcon, { defaultTone: "muted" }),
+  tag2Linear: defineSvgIcon(tag2LinearIcon, { defaultTone: "muted" }),
+  timerPauseLinear: defineSvgIcon(timerPauseLinearIcon, { defaultTone: "muted" }),
+  timerStartLinear: defineSvgIcon(timerStartLinearIcon, { defaultTone: "muted" }),
+  penLine1: defineSvgIcon(penLine1Icon, { defaultTone: "muted" }),
   squarePen: defineSvgIcon(squarePenIcon, { defaultTone: "muted" }),
   penLine: defineSvgIcon(penLineIcon, { defaultTone: "muted" }),
   trash2: defineSvgIcon(trash2Icon, { defaultTone: "muted" }),
@@ -234,10 +252,19 @@ export const IconUserStar = createIcon("userStar01");
 export const IconChevronDown = createIcon("chevronDown");
 export const IconChevronRight = createIcon("chevronRight");
 export const IconChevronLeft = createIcon("chevronRight", { transform: "scaleX(-1)" });
+export const IconExternalLink = createIcon("externalLink");
+export const IconShare2 = createIcon("share2");
 export const IconArrowRight = createIcon("arrowRightGreen");
 
 export const IconCalendarDays = createIcon("calendarDays");
+export const IconCalendarTick = createIcon("calendarTickLinear");
+export const IconClock = createIcon("clockLinear");
+export const IconMap = createIcon("mapLinear");
+export const IconTag2 = createIcon("tag2Linear");
+export const IconTimerPause = createIcon("timerPauseLinear");
+export const IconTimerStart = createIcon("timerStartLinear");
 export const IconSquarePen = createIcon("squarePen");
+export const IconPenLine1 = createIcon("penLine1");
 export const IconPenLine = createIcon("penLine");
 export const IconTrash = createIcon("trash2");
 export const IconX = createIcon("xIcon");
@@ -306,39 +333,39 @@ export const ChevronUp = createIcon("chevronDown", { transform: "rotate(180deg)"
 
 export const Trash2 = IconTrash;
 export const CalendarDays = IconCalendarDays;
-export const Calendar = IconCalendarDays;
+export const Calendar = IconCalendarTick;
 export const House = IconHouse;
 export const Info = IconInfo;
 
 export const CheckIcon = IconInfoCircle;
 export const CircleIcon = IconInfoCircle;
 export const MoreHorizontal = IconEllipsisVertical;
-export const Clock = IconArchiveRestore;
-export const Clock3 = IconArchiveRestore;
+export const Clock = IconClock;
+export const Clock3 = IconClock;
 
 export const CloudUpload = IconCloudUpload;
 export const CirclePlus = IconCirclePlus;
 export const PenLine = IconPenLine;
-export const Pencil = IconPenLine;
+export const Pencil = IconPenLine1;
 
 export const ArrowRight = IconArrowRight;
-export const MapPin = IconInfoCircle;
+export const MapPin = IconMap;
 export const Globe = IconInfoCircle;
 export const Eye = IconUserStar;
 export const Crown = IconCrown;
 export const Rocket = IconArchiveRestore;
 export const Check = IconInfoCircle;
 export const Circle = IconInfoCircle;
-export const UserCircle2 = IconUserStar;
+export const UserCircle2 = IconUser;
 export const Users = IconPeople;
 export const UsersRound = IconPeople;
-export const Compass = IconInfoCircle;
-export const Tag = IconInfoCircle;
-export const Share2 = IconArchiveRestore;
+export const Compass = IconMap;
+export const Tag = IconTag2;
+export const Share2 = IconShare2;
 export const Trophy = IconCup;
-export const Timer = IconArchiveRestore;
+export const Timer = IconTimerStart;
 export const Minus = IconArchiveRestore;
-export const ExternalLink = IconArrowRight;
+export const ExternalLink = IconExternalLink;
 
 export const CheckCircle2 = IconInfoCircle;
 export const CircleCheckIcon = IconInfoCircle;
@@ -362,8 +389,17 @@ export const FIGMA_ICONS = {
   chevronDown: IconChevronDown,
   chevronRight: IconChevronRight,
   chevronLeft: IconChevronLeft,
+  externalLink: IconExternalLink,
+  share2: IconShare2,
   arrowRight: IconArrowRight,
   calendarDays: IconCalendarDays,
+  calendarTick: IconCalendarTick,
+  clock: IconClock,
+  map: IconMap,
+  tag: IconTag2,
+  timerPause: IconTimerPause,
+  timerStart: IconTimerStart,
+  penLine1: IconPenLine1,
   squarePen: IconSquarePen,
   penLine: IconPenLine,
   trash: IconTrash,

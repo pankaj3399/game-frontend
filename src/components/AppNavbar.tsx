@@ -86,11 +86,15 @@ function NavLinks({
   location,
   t,
   onNavigate,
+  variant = "menu",
 }: {
   location: ReturnType<typeof useLocation>;
   t: (key: string) => string;
   onNavigate?: () => void;
+  /** Header row: responsive type scale; sheet/menu uses default 14px. */
+  variant?: "menu" | "inline";
 }) {
+  const isInline = variant === "inline";
   return (
     <>
       {navItems.map(({ path, labelKey, icon: Icon }) => {
@@ -110,7 +114,8 @@ function NavLinks({
             to={path}
             onClick={onNavigate}
             className={cn(
-              "flex items-center gap-1.5 text-[14px] leading-none whitespace-nowrap transition-opacity",
+              "flex items-center leading-none whitespace-nowrap transition-opacity",
+              isInline ? "gap-1.5 text-[14px] 2xl:gap-2 2xl:text-[15px]" : "gap-1.5 text-[14px]",
               isActive
                 ? "font-medium text-white opacity-100"
                 : "font-medium text-white opacity-80 hover:opacity-100",
@@ -252,27 +257,27 @@ export function AppNavbar() {
       className="sticky top-0 z-50 h-[56px] w-full lg:h-[60px]"
       style={{ backgroundColor: "var(--brand-primary)" }}
     >
-      <div className="mx-auto flex h-full w-full max-w-[1440px] min-w-0 items-center justify-between px-5 lg:px-[96px]">
-        <div className="flex h-[33px] w-[169px] items-center lg:h-[39px] lg:w-[200px]">
+      <div className="mx-auto flex h-full w-full max-w-[1440px] min-w-0 items-center justify-between gap-3 px-5 lg:px-10 xl:px-[96px]">
+        <div className="flex h-[33px] w-[169px] shrink-0 items-center lg:h-[39px] lg:w-[200px]">
           <Link
             to="/"
-            className="inline-flex items-center"
+            className="inline-flex shrink-0 items-center"
             aria-label="TB10 Home"
           >
             <img
               src={tb10LogoImage}
               alt="TB10 v1.6"
-              className="block h-[33px] w-auto lg:h-[39px]"
+              className="block h-[33px] w-auto shrink-0 lg:h-[39px]"
             />
           </Link>
         </div>
 
-        <nav className="hidden flex-1 items-center justify-center gap-[25px] lg:flex">
-          <NavLinks location={location} t={t} />
+        <nav className="hidden min-w-0 flex-1 items-center justify-center gap-x-5 gap-y-1 xl:flex 2xl:gap-x-7">
+          <NavLinks variant="inline" location={location} t={t} />
         </nav>
 
-        <div className="flex min-w-0 flex-shrink-0 items-center justify-end gap-3 lg:gap-[14px]">
-          <div className="hidden min-w-0 items-center gap-3 lg:flex lg:gap-[14px]">
+        <div className="flex shrink-0 items-center justify-end gap-2 sm:gap-3 xl:gap-[14px]">
+          <div className="hidden min-w-0 items-center gap-3 xl:flex xl:gap-[14px]">
             {!isAuthenticated && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -312,8 +317,8 @@ export function AppNavbar() {
             <SheetTrigger asChild>
               <button
                 type="button"
-                className="flex items-center justify-center p-0 text-white lg:hidden"
-                aria-label="Open menu"
+                className="flex items-center justify-center p-0 text-white xl:hidden"
+                aria-label={t("common.openMenu")}
               >
                 <Menu01Icon size={30} className="text-white" aria-hidden />
               </button>
