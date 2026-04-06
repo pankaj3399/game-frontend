@@ -16,7 +16,6 @@ interface TournamentActionsProps {
   when?: string;
   distance?: string;
   clubId?: string;
-  canShowStatusFilter: boolean;
   onWhenChange: (value: string) => void;
   onDistanceChange: (value: string) => void;
   onClubChange: (clubId?: string) => void;

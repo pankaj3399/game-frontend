@@ -151,21 +151,3 @@ export function shapeTournamentFilters(
   };
 }
 
-export function getDraftActionPermissions(params: {
-  activeTab: TournamentListTab;
-  status: TournamentStatus;
-  isOrganiserOrAbove: boolean;
-}) {
-  const isDraftTab = params.activeTab === "drafts";
-  const isDraft = params.status === "draft";
-  const isOrganiser = params.isOrganiserOrAbove;
-  const canEditDraft = isDraftTab && isDraft && isOrganiser;
-
-  return {
-    isDraftTab,
-    isDraft,
-    isOrganiser,
-    canEditDraft,
-    canPublishDraft: canEditDraft,
-  };
-}

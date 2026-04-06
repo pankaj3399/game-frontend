@@ -36,7 +36,7 @@ function TournamentListContent() {
     setPage,
   } = useTournamentFilters({ isOrganiserOrAbove, userId: user?.id ?? null });
   const { modal, openCreateModal, closeModal } = useTournamentActions();
-  const { isDraftTab, canShowStatusFilter } = useTournamentPermissions({
+  const { isDraftTab } = useTournamentPermissions({
     activeTab,
     isOrganiserOrAbove,
   });
@@ -50,9 +50,6 @@ function TournamentListContent() {
     limit: 10,
     totalPages: 0,
   };
-
-  const isEditModal = false;
-  const editTournamentId = null;
 
   return (
     <div className="flex min-h-[calc(100vh-4rem)] flex-col bg-brand-primary/[0.03]">
@@ -73,7 +70,6 @@ function TournamentListContent() {
                 when={filters.when}
                 distance={filters.distance}
                 clubId={filters.clubId}
-                canShowStatusFilter={canShowStatusFilter}
                 onWhenChange={setWhenFromValue}
                 onDistanceChange={setDistanceFromValue}
                 onClubChange={setClubId}
@@ -130,8 +126,8 @@ function TournamentListContent() {
         onOpenChange={(open) => {
           if (!open) closeModal();
         }}
-        mode={isEditModal ? "edit" : "create"}
-        tournamentId={editTournamentId}
+        mode="create"
+        tournamentId={null}
       />
     </div>
   );

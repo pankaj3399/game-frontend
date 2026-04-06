@@ -22,7 +22,6 @@ export type {
 export {
   DEFAULT_TOURNAMENT_FILTERS_STATE,
   filtersReducer,
-  getDraftActionPermissions,
   isTournamentStatus,
   shapeTournamentFilters,
   type TournamentFiltersAction,

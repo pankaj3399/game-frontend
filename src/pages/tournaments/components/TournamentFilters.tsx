@@ -60,9 +60,9 @@ function PillGroup({
 }
 
 // Thin section label
-function FilterLabel({ children }: { children: React.ReactNode }) {
+function FilterLabel({ children, id }: { children: React.ReactNode; id?: string }) {
   return (
-    <span className="block text-[10.5px] font-semibold uppercase tracking-widest text-black/35 mb-2">
+    <span id={id} className="block text-[10.5px] font-semibold uppercase tracking-widest text-black/35 mb-2">
       {children}
     </span>
   );
@@ -197,7 +197,7 @@ const activeFilterCount =
 
           {/* Club search */}
           <div>
-            <FilterLabel>{t("tournaments.filterClub")}</FilterLabel>
+            <FilterLabel id={clubFilterLabelId}>{t("tournaments.filterClub")}</FilterLabel>
 
             {/* Selected club chip */}
             {draftClubId && selectedClub && (
@@ -220,7 +220,7 @@ const activeFilterCount =
               </div>
             )}
 
-            <div className="relative" id={clubFilterLabelId}>
+            <div className="relative">
               <Search01Icon
                 size={14}
                 className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-black/35"
