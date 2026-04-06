@@ -27,7 +27,7 @@ export function TournamentDetailsTabs({
 
   return (
     <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-      <div className="mt-2 w-full border-b border-[#dddddd] pb-6 sm:mt-3 sm:pb-7">
+      <div className="mt-0.5 w-full border-b border-[#dddddd] pb-6 sm:mt-1 sm:pb-7">
         <TabsList
           className="grid h-auto w-full rounded-[10px] bg-[rgba(1,10,4,0.05)] p-1 sm:inline-flex sm:w-fit"
           style={{
@@ -58,3 +58,5 @@ export function TournamentDetailsTabs({
     </Tabs>
   );
 }
+
+export default TournamentDetailsTabs;

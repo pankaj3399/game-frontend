@@ -49,11 +49,17 @@ export const queryKeys = {
       limit?: number;
       q?: string;
       view?: "published" | "drafts";
+      when?: "future" | "past";
+      distance?: "under50" | "between50And80" | "over80";
+      clubId?: string;
     }) => {
       const f = filters ?? {};
       const normalizedFilters: Record<string, string | number> = {};
       if (f.status) normalizedFilters.status = f.status;
       if (f.view) normalizedFilters.view = f.view;
+      if (f.when) normalizedFilters.when = f.when;
+      if (f.distance) normalizedFilters.distance = f.distance;
+      if (f.clubId) normalizedFilters.clubId = f.clubId;
       if (f.page != null) normalizedFilters.page = f.page;
       if (f.limit != null) normalizedFilters.limit = f.limit;
       if (f.q) normalizedFilters.q = f.q;

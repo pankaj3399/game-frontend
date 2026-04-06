@@ -35,7 +35,7 @@ export function ClubInfo({ clubName, canEdit, onEdit, onGetDirection, t }: ClubI
                 </button>
               )}
             </div>
-            <p className="text-[14px] leading-[18px] text-[#6a6a6a]">{t("tournaments.club")}</p>
+            <p className="mt-1 text-[14px] leading-[18px] text-[#6a6a6a]">{t("tournaments.club")}</p>
           </div>
         </div>
 

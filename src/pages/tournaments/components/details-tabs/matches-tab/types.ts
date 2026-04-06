@@ -1,5 +1,3 @@
-import type { MatchStatus } from "../shared/types";
-
 export type { MatchStatus, TournamentMatchOutcome } from "../shared/types";
 
 export interface DerivedMatch {

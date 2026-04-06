@@ -79,9 +79,9 @@ export function getCurrentRound(matches: DerivedMatch[]): number {
   if (matches.length === 0) return 1;
   const active = matches.filter((m) => m.status !== "completed");
   if (active.length > 0) {
-    return Math.min(...active.map((m) => m.round));
+    return active.reduce((minRound, match) => Math.min(minRound, match.round), active[0].round);
   }
-  return Math.max(...matches.map((m) => m.round));
+  return matches.reduce((maxRound, match) => Math.max(maxRound, match.round), matches[0].round);
 }
 
 export function getMatchCounts(matches: DerivedMatch[]): MatchCounts {

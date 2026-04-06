@@ -8,6 +8,18 @@ interface SponsorCardProps {
 }
 
 export function SponsorCard({ sponsor, t }: SponsorCardProps) {
+  const safeSponsorLink = (() => {
+    const rawLink = sponsor.link?.trim();
+    if (!rawLink) return null;
+
+    try {
+      const parsed = new URL(rawLink);
+      return parsed.protocol === "http:" || parsed.protocol === "https:" ? rawLink : null;
+    } catch {
+      return null;
+    }
+  })();
+
   return (
     <div className="flex flex-col overflow-hidden rounded-xl border border-border bg-white shadow-sm transition-shadow hover:shadow-md">
       <div className="flex aspect-[16/10] w-full items-center justify-center overflow-hidden rounded-t-xl bg-[#f3f4f6]">
@@ -27,9 +39,9 @@ export function SponsorCard({ sponsor, t }: SponsorCardProps) {
       </div>
       <div className="flex flex-1 flex-col p-4">
         <h3 className="font-semibold text-foreground">{sponsor.name}</h3>
-        {sponsor.link ? (
+        {safeSponsorLink ? (
           <a
-            href={sponsor.link}
+            href={safeSponsorLink}
             target="_blank"
             rel="noreferrer noopener"
             className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-[#0a9f43] hover:underline"

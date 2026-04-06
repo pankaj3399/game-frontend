@@ -1,7 +1,9 @@
 import type {
+  TournamentDistanceFilter,
   TournamentListFilters,
   TournamentListView,
   TournamentStatus,
+  TournamentWhenFilter,
 } from "@/models/tournament";
 
 export type TournamentListTab = TournamentListView;
@@ -11,6 +13,9 @@ export interface TournamentListPageFilters {
   page: number;
   limit: number;
   q?: string;
+  when?: TournamentWhenFilter;
+  distance?: TournamentDistanceFilter;
+  clubId?: string;
 }
 
 export interface TournamentFiltersState {
@@ -22,7 +27,17 @@ export type TournamentFiltersAction =
   | { type: "SET_TAB"; payload: TournamentListTab }
   | { type: "SET_STATUS"; payload?: TournamentStatus }
   | { type: "SET_QUERY"; payload?: string }
-  | { type: "SET_PAGE"; payload: number };
+  | { type: "SET_WHEN"; payload?: TournamentWhenFilter }
+  | { type: "SET_DISTANCE"; payload?: TournamentDistanceFilter }
+  | { type: "SET_CLUB"; payload?: string }
+  | { type: "SET_PAGE"; payload: number }
+  | {
+      type: "HYDRATE";
+      payload: {
+        activeTab: TournamentListTab;
+        filters: Partial<TournamentListPageFilters>;
+      };
+    };
 
 export const DEFAULT_TOURNAMENT_FILTERS_STATE: TournamentFiltersState = {
   activeTab: "published",
@@ -34,6 +49,14 @@ export const DEFAULT_TOURNAMENT_FILTERS_STATE: TournamentFiltersState = {
 
 export function isTournamentStatus(value: string): value is TournamentStatus {
   return value === "active" || value === "draft" || value === "inactive";
+}
+
+export function isTournamentWhenFilter(value: string): value is TournamentWhenFilter {
+  return value === "future" || value === "past";
+}
+
+export function isTournamentDistanceFilter(value: string): value is TournamentDistanceFilter {
+  return value === "under50" || value === "between50And80" || value === "over80";
 }
 
 export function filtersReducer(
@@ -68,12 +91,48 @@ export function filtersReducer(
           q: action.payload,
         },
       };
+    case "SET_WHEN":
+      return {
+        ...state,
+        filters: {
+          ...state.filters,
+          page: 1,
+          when: action.payload,
+        },
+      };
+    case "SET_DISTANCE":
+      return {
+        ...state,
+        filters: {
+          ...state.filters,
+          page: 1,
+          distance: action.payload,
+        },
+      };
+    case "SET_CLUB":
+      return {
+        ...state,
+        filters: {
+          ...state.filters,
+          page: 1,
+          clubId: action.payload,
+        },
+      };
     case "SET_PAGE":
       return {
         ...state,
         filters: {
           ...state.filters,
           page: action.payload,
+        },
+      };
+    case "HYDRATE":
+      return {
+        activeTab: action.payload.activeTab,
+        filters: {
+          ...state.filters,
+          ...action.payload.filters,
+          page: 1,
         },
       };
     default:
@@ -94,6 +153,9 @@ export function shapeTournamentFilters(
     q: state.filters.q,
     status,
     view,
+    when: state.filters.when,
+    distance: state.filters.distance,
+    clubId: state.filters.clubId,
   };
 }
 

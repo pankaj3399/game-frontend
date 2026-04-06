@@ -1,15 +1,15 @@
 import { Navigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import InlineLoader from "@/components/shared/InlineLoader";
 import { PaginationBar } from "@/components/pagination/PaginationBar";
 import { CreateTournamentModal } from "@/pages/tournaments/components/CreateTournamentModal";
 import { useAuth, useIsOrganiserOrAbove } from "@/pages/auth/hooks";
 import { TournamentActions } from "@/pages/tournaments/components/TournamentActions";
 import { TournamentTable } from "@/pages/tournaments/components/TournamentTable";
-import { TournamentTabs } from "@/pages/tournaments/components/TournamentTabs";
 import { useTournamentActions } from "@/pages/tournaments/hooks/useTournamentActions";
 import { useTournamentFilters } from "@/pages/tournaments/hooks/useTournamentFilters";
 import { useTournamentPermissions } from "@/pages/tournaments/hooks/useTournamentPermissions";
-import { useTournamentsSuspense } from "@/pages/tournaments/hooks/tournament";
+import { useTournaments } from "@/pages/tournaments/hooks/tournament";
 
 export default function TournamentListPage() {
   const { isAuthenticated, isProfileComplete } = useAuth();
@@ -21,6 +21,7 @@ export default function TournamentListPage() {
 
 function TournamentListContent() {
   const { t, i18n } = useTranslation();
+  const { user } = useAuth();
   const isOrganiserOrAbove = useIsOrganiserOrAbove();
   const {
     activeTab,
@@ -30,24 +31,23 @@ function TournamentListContent() {
     setFiltersOpen,
     setTab,
     setStatusFromValue,
+    setWhenFromValue,
+    setDistanceFromValue,
+    setClubId,
     setQuery,
     setPage,
-  } = useTournamentFilters({ isOrganiserOrAbove });
+  } = useTournamentFilters({ isOrganiserOrAbove, userId: user?.id ?? null });
   const {
     modal,
     openCreateModal,
-    openEditModal,
     closeModal,
-    publishDraft,
-    isPublishing,
   } = useTournamentActions({ onPublished: () => setTab("published") });
-  const { isDraftTab, canShowStatusFilter, getRowPermissions } =
-    useTournamentPermissions({
-      activeTab,
-      isOrganiserOrAbove,
-    });
+  const { isDraftTab, canShowStatusFilter } = useTournamentPermissions({
+    activeTab,
+    isOrganiserOrAbove,
+  });
 
-  const { data } = useTournamentsSuspense(effectiveFilters());
+  const { data, isPending, isFetching } = useTournaments(effectiveFilters());
 
   const tournaments = data?.tournaments ?? [];
   const pagination = data?.pagination ?? {
@@ -67,29 +67,32 @@ function TournamentListContent() {
           <div className="px-4 py-3 sm:px-5 sm:py-3.5">
             <div className="flex items-center justify-between">
               <h1 className="text-xl font-semibold leading-tight text-foreground">
-                {t("tournaments.allTournaments")}
+                {activeTab === "drafts" ? t("tournaments.tabDrafts") : t("tournaments.allTournaments")}
               </h1>
               <TournamentActions
+                activeTab={activeTab}
+                onTabChange={setTab}
                 filtersOpen={filtersOpen}
                 onFiltersOpenChange={setFiltersOpen}
                 query={filters.q ?? ""}
                 status={filters.status}
+                when={filters.when}
+                distance={filters.distance}
+                clubId={filters.clubId}
                 canShowStatusFilter={canShowStatusFilter}
                 onQueryChange={setQuery}
                 onStatusChange={setStatusFromValue}
+                onWhenChange={setWhenFromValue}
+                onDistanceChange={setDistanceFromValue}
+                onClubChange={setClubId}
                 onCreate={openCreateModal}
-              />
-            </div>
-            <div className="mt-3">
-              <TournamentTabs
-                visible={isOrganiserOrAbove}
-                activeTab={activeTab}
-                onTabChange={setTab}
               />
             </div>
           </div>
 
-          {tournaments.length === 0 ? (
+          {isPending ? (
+            <TournamentTableSkeleton />
+          ) : tournaments.length === 0 ? (
             <div className="px-6 py-12 text-center">
               <p className="text-muted-foreground">
                 {isDraftTab
@@ -102,12 +105,17 @@ function TournamentListContent() {
               tournaments={tournaments}
               pagination={pagination}
               language={i18n.language}
-              getRowPermissions={getRowPermissions}
-              onEdit={openEditModal}
-              onPublish={publishDraft}
-              isPublishing={isPublishing}
             />
           )}
+
+          {isFetching && !isPending ? (
+            <div className="border-t border-black/10 px-4 py-2">
+              <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
+                <InlineLoader size="sm" />
+                {t("common.loading")}
+              </div>
+            </div>
+          ) : null}
 
           <PaginationBar
             pagination={pagination}
@@ -133,6 +141,26 @@ function TournamentListContent() {
         mode={isEditModal ? "edit" : "create"}
         tournamentId={editTournamentId}
       />
+    </div>
+  );
+}
+
+function TournamentTableSkeleton() {
+  const rows = Array.from({ length: 8 }, (_, index) => index);
+
+  return (
+    <div className="border-y border-black/10">
+      <div className="h-[35px] bg-black/5" />
+      <div className="px-4 py-2">
+        {rows.map((row) => (
+          <div key={row} className="flex h-[45px] items-center gap-3 border-b border-black/5 last:border-b-0">
+            <div className="h-3 w-5 animate-pulse rounded bg-black/10" />
+            <div className="h-3 w-[38%] animate-pulse rounded bg-black/10" />
+            <div className="h-3 w-[30%] animate-pulse rounded bg-black/10" />
+            <div className="h-3 w-[16%] animate-pulse rounded bg-black/10" />
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

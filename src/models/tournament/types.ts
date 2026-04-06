@@ -4,15 +4,20 @@ export const tournamentStatusSchema = z.enum(["active", "draft", "inactive"]);
 export const tournamentModeSchema = z.enum(["singleDay", "period"]);
 export const tournamentPlayModeSchema = z.enum(["TieBreak10", "1set", "3setTieBreak10", "3set", "5set"]);
 export const tournamentListViewSchema = z.enum(["published", "drafts"]);
+export const tournamentWhenFilterSchema = z.enum(["future", "past"]);
+export const tournamentDistanceFilterSchema = z.enum(["under50", "between50And80", "over80"]);
 
 export type TournamentStatus = z.infer<typeof tournamentStatusSchema>;
 export type TournamentMode = z.infer<typeof tournamentModeSchema>;
 export type TournamentPlayMode = z.infer<typeof tournamentPlayModeSchema>;
 export type TournamentListView = z.infer<typeof tournamentListViewSchema>;
+export type TournamentWhenFilter = z.infer<typeof tournamentWhenFilterSchema>;
+export type TournamentDistanceFilter = z.infer<typeof tournamentDistanceFilterSchema>;
 
 export const tournamentClubSchema = z.object({
   id: z.string(),
   name: z.string(),
+  address: z.string().nullable().optional(),
 });
 
 export const tournamentSponsorSchema = z.object({
@@ -62,6 +67,9 @@ export const tournamentListFiltersSchema = z.object({
   limit: z.number().int().min(1).optional(),
   q: z.string().optional(),
   view: tournamentListViewSchema.optional(),
+  when: tournamentWhenFilterSchema.optional(),
+  distance: tournamentDistanceFilterSchema.optional(),
+  clubId: z.string().optional(),
 });
 
 export const tournamentPaginationSchema = z.object({
@@ -263,3 +271,11 @@ export type CreateTournamentResponse = z.infer<typeof createTournamentResponseSc
 export type UpdateTournamentResponse = z.infer<typeof updateTournamentResponseSchema>;
 export type PublishTournamentResponse = z.infer<typeof publishTournamentResponseSchema>;
 export type JoinTournamentResponse = z.infer<typeof joinTournamentResponseSchema>;
+
+export function isTournamentWhenFilter(value: string): value is TournamentWhenFilter {
+  return value === "future" || value === "past";
+}
+
+export function isTournamentDistanceFilter(value: string): value is TournamentDistanceFilter {
+  return value === "under50" || value === "between50And80" || value === "over80";
+}

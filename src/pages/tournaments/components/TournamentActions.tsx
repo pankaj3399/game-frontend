@@ -1,29 +1,46 @@
 import { useTranslation } from "react-i18next";
-import { PlusSignIcon } from "@/icons/figma-icons";
+import { PlusSignIcon, PencilEdit01Icon, IconChevronLeft } from "@/icons/figma-icons";
 import { RoleGuard } from "@/components/auth/RoleGuard";
 import { Button } from "@/components/ui/button";
 import { ROLES } from "@/constants/roles";
 import { TournamentFilters } from "./TournamentFilters";
+import type { TournamentListTab } from "@/models/tournament";
 
 interface TournamentActionsProps {
+  activeTab: TournamentListTab;
+  onTabChange: (tab: TournamentListTab) => void;
   filtersOpen: boolean;
   onFiltersOpenChange: (open: boolean) => void;
   query: string;
   status?: string;
+  when?: string;
+  distance?: string;
+  clubId?: string;
   canShowStatusFilter: boolean;
   onQueryChange: (value: string) => void;
   onStatusChange: (value: string) => void;
+  onWhenChange: (value: string) => void;
+  onDistanceChange: (value: string) => void;
+  onClubChange: (clubId?: string) => void;
   onCreate: () => void;
 }
 
 export function TournamentActions({
+  activeTab,
+  onTabChange,
   filtersOpen,
   onFiltersOpenChange,
   query,
   status,
+  when,
+  distance,
+  clubId,
   canShowStatusFilter,
   onQueryChange,
   onStatusChange,
+  onWhenChange,
+  onDistanceChange,
+  onClubChange,
   onCreate,
 }: TournamentActionsProps) {
   const { t } = useTranslation();
@@ -35,13 +52,30 @@ export function TournamentActions({
         onOpenChange={onFiltersOpenChange}
         query={query}
         status={status}
+        when={when}
+        distance={distance}
+        clubId={clubId}
         canShowStatusFilter={canShowStatusFilter}
         onQueryChange={onQueryChange}
         onStatusChange={onStatusChange}
+        onWhenChange={onWhenChange}
+        onDistanceChange={onDistanceChange}
+        onClubChange={onClubChange}
       />
       <RoleGuard requireRoleOrAbove={ROLES.ORGANISER}>
-        <Button className="bg-brand-primary hover:bg-brand-primary-hover" onClick={onCreate}>
-          <PlusSignIcon size={16} className="mr-2" />
+        {activeTab === "published" ? (
+          <Button variant="outline" onClick={() => onTabChange("drafts")}>
+            <PencilEdit01Icon size={16} className="mr-2" />
+            {t("tournaments.tabDrafts")}
+          </Button>
+        ) : (
+          <Button variant="outline" onClick={() => onTabChange("published")}>
+            <IconChevronLeft size={16} className="mr-1" />
+            {t("tournaments.tabPublished")}
+          </Button>
+        )}
+        <Button className="bg-brand-primary text-white hover:bg-brand-primary-hover" onClick={onCreate}>
+          <PlusSignIcon size={16} className="mr-2 text-white" />
           {t("tournaments.create")}
         </Button>
       </RoleGuard>
