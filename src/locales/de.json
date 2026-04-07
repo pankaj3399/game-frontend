@@ -477,6 +477,8 @@
     "unscheduled": "Nicht geplant",
     "noTournaments": "Noch keine Turniere.",
     "noDrafts": "Noch keine Entwürfe.",
+    "listLoadError": "Turniere konnten nicht geladen werden. Bitte versuche es erneut.",
+    "retry": "Erneut versuchen",
     "paginationInfo": "{{from}}–{{to}} von {{total}}",
     "prev": "Zurück",
     "next": "Weiter",

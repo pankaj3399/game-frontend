@@ -178,7 +178,7 @@ export function TimePicker({
 
   const setNow = () => {
     const now = new Date();
-    let minute = Math.floor(now.getMinutes() / stepMinutes) * stepMinutes;
+    const minute = Math.floor(now.getMinutes() / stepMinutes) * stepMinutes;
     let m = now.getHours() * 60 + minute;
     if (hasValidRange && !isMinutesWithinTimeBounds(m, bounds)) {
       if (bounds.minMinutes !== null && m < bounds.minMinutes) m = bounds.minMinutes;

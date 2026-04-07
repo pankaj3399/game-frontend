@@ -24,23 +24,29 @@ export function useTournamentForm({ mode, tournamentId = null, open }: UseTourna
     Boolean(validTournamentId && open)
   );
 
-  const initialForm = useMemo<CreateTournamentInput>(() => {
-    if (isEditMode && tournamentData?.tournament) {
-      return mapTournamentDetailToForm(tournamentData.tournament);
+  const initialForm = useMemo((): CreateTournamentInput | null => {
+    if (isEditMode) {
+      return tournamentData?.tournament
+        ? mapTournamentDetailToForm(tournamentData.tournament)
+        : null;
     }
-
     return DEFAULT_CREATE_TOURNAMENT_FORM;
   }, [isEditMode, tournamentData]);
 
-  const [form, setForm] = useState<CreateTournamentInput>(initialForm);
+  const [form, setForm] = useState<CreateTournamentInput>(DEFAULT_CREATE_TOURNAMENT_FORM);
 
   useEffect(() => {
     if (!open) {
       return;
     }
-
-    setForm(initialForm);
-  }, [initialForm, open]);
+    if (isEditMode && (isTournamentLoading || initialForm === null)) {
+      return;
+    }
+    if (initialForm !== null) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setForm(initialForm);
+    }
+  }, [open, isEditMode, isTournamentLoading, initialForm]);
 
   const { data: sponsorsData, isLoading: isSponsorsLoading } = useClubSponsors(form.club || null);
   const sponsors = sponsorsData?.sponsors ?? [];

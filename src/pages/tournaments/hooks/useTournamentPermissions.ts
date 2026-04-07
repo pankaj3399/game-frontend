@@ -5,10 +5,7 @@ interface UseTournamentPermissionsOptions {
   isOrganiserOrAbove: boolean;
 }
 
-export function useTournamentPermissions({
-  activeTab,
-  isOrganiserOrAbove: _isOrganiserOrAbove,
-}: UseTournamentPermissionsOptions) {
+export function useTournamentPermissions({ activeTab }: UseTournamentPermissionsOptions) {
   const isDraftTab = activeTab === "drafts";
 
   return {

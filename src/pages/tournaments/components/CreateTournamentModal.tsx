@@ -67,7 +67,7 @@ export function CreateTournamentModal({
   return (
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent
-        key={`${mode}-${tournamentId ?? "create"}-${open}`}
+        key={`${mode}-${tournamentId ?? "create"}`}
         className="max-h-[calc(100dvh-24px)] max-w-[390px] overflow-y-auto gap-0 rounded-[12px] border border-black/10 px-3 py-3 shadow-[0px_3px_15px_0px_rgba(0,0,0,0.06)] sm:max-w-[515px] sm:px-[15px] sm:py-5"
         showCloseButton
       >

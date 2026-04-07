@@ -103,7 +103,11 @@ export function buildDraftUpdatePayload(form: CreateTournamentInput): Omit<Creat
 }
 
 function invalidMemberRangeKey(form: CreateTournamentInput): TournamentValidationErrorKey | null {
-  if (form.minMember && form.maxMember && form.minMember > form.maxMember) {
+  if (
+    form.minMember != null &&
+    form.maxMember != null &&
+    form.minMember > form.maxMember
+  ) {
     return "tournaments.invalidMemberRange";
   }
   return null;

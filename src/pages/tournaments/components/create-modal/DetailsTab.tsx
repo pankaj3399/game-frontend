@@ -181,7 +181,11 @@ export function DetailsTab({ form, update }: DetailsTabProps) {
               const n = v === "" ? 1 : parseFloat(v);
               const parsed = Number.isFinite(n) ? n : 1;
               const atLeastOne = Math.max(1, parsed);
-              update({ minMember: Math.min(atLeastOne, form.maxMember) });
+              const validMax =
+                Number.isFinite(form.maxMember) && form.maxMember >= 1
+                  ? form.maxMember
+                  : atLeastOne;
+              update({ minMember: Math.min(atLeastOne, validMax) });
             }}
             className="h-[38px] rounded-[10px] border-[#e1e3e8] bg-[#f9fafc] px-3 text-[13px] font-normal text-[#010a04] sm:h-[46px] sm:rounded-[12px] sm:px-[15px] sm:text-[16px]"
           />
@@ -206,7 +210,8 @@ export function DetailsTab({ form, update }: DetailsTabProps) {
               const n = v === "" ? 1 : parseFloat(v);
               const parsed = Number.isFinite(n) ? n : 1;
               const atLeastOne = Math.max(1, parsed);
-              update({ maxMember: Math.max(atLeastOne, form.minMember) });
+              const safeMin = Number.isFinite(form.minMember) ? form.minMember : 1;
+              update({ maxMember: Math.max(atLeastOne, safeMin) });
             }}
             className="h-[38px] rounded-[10px] border-[#e1e3e8] bg-[#f9fafc] px-3 text-[13px] font-normal text-[#010a04] sm:h-[46px] sm:rounded-[12px] sm:px-[15px] sm:text-[16px]"
           />

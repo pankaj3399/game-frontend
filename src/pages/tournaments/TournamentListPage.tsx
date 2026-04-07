@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Button } from "@/components/ui/button";
 import { useTranslation } from "react-i18next";
 import InlineLoader from "@/components/shared/InlineLoader";
 import { PaginationBar } from "@/components/pagination/PaginationBar";
@@ -11,6 +12,7 @@ import { useTournamentPermissions } from "@/pages/tournaments/hooks/useTournamen
 import { useTournaments } from "./hooks/useTournaments";
 import { useAuth } from "@/pages/auth/hooks";
 import { TournamentTableSkeleton } from "@/components/ui/tournament-table-skeleton";
+import { getErrorMessage } from "@/lib/errors";
 
 export default function TournamentListPage() {
   return <TournamentListContent/>;
@@ -51,10 +53,11 @@ function TournamentListContent() {
     isOrganiserOrAbove,
   });
 
-  const { data, isPending, isFetching } = useTournaments(effectiveFilters());
+  const { data, error, isPending, isFetching, refetch } = useTournaments(effectiveFilters());
 
   const tournaments = data?.tournaments ?? [];
   const pagination = data?.pagination ?? DEFAULT_PAGINATION;
+  const loadErrorDetail = error ? getErrorMessage(error) : null;
   const handleFiltersChange = (next: { when: string; distance: string; clubId?: string }) => {
     setWhenFromValue(next.when);
     setDistanceFromValue(next.distance);
@@ -68,7 +71,9 @@ function TournamentListContent() {
           <div className="px-4 py-3 sm:px-5 sm:py-3.5">
             <div className="flex items-center justify-between">
               <h1 className="text-xl font-semibold leading-tight text-foreground">
-                {activeTab === TournamentTab.Drafts ? t("tournaments.allTournaments") : t("tournaments.tabDrafts")}
+                {activeTab === TournamentTab.Drafts
+                  ? t("tournaments.tabDrafts")
+                  : t("tournaments.allTournaments")}
               </h1>
               <TournamentActions
                 activeTab={activeTab}
@@ -87,6 +92,22 @@ function TournamentListContent() {
 
           {isPending ? (
             <TournamentTableSkeleton />
+          ) : error ? (
+            <div className="space-y-4 px-6 py-12 text-center">
+              <p className="text-muted-foreground">{t("tournaments.listLoadError")}</p>
+              {loadErrorDetail ? (
+                <p className="text-sm text-muted-foreground/90">{loadErrorDetail}</p>
+              ) : null}
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={isFetching}
+                onClick={() => void refetch()}
+              >
+                {isFetching ? t("common.loading") : t("tournaments.retry")}
+              </Button>
+            </div>
           ) : tournaments.length === 0 ? (
             <div className="px-6 py-12 text-center">
               <p className="text-muted-foreground">

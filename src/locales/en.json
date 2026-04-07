@@ -478,6 +478,8 @@
     "unscheduled": "Unscheduled",
     "noTournaments": "No tournaments yet.",
     "noDrafts": "No drafts yet.",
+    "listLoadError": "Couldn't load tournaments. Please try again.",
+    "retry": "Try again",
     "paginationInfo": "Showing {{from}}–{{to}} of {{total}}",
     "prev": "Previous",
     "next": "Next",

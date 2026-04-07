@@ -83,15 +83,13 @@ export function useTournamentActions({
     }
 
     try {
-      const payload = buildTournamentPayload(form, "active");
-
       if (validTournamentId) {
         await publishTournament.mutateAsync({
           id: validTournamentId,
           data: buildDraftUpdatePayload(form),
         });
       } else {
-        await createTournament.mutateAsync(payload);
+        await createTournament.mutateAsync(buildTournamentPayload(form, "active"));
       }
 
       toast.success(t("tournaments.published"));

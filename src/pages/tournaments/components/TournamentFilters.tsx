@@ -1,4 +1,4 @@
-import { useId, useState } from "react";
+import { useId, useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import {
   Popover,
@@ -59,7 +59,7 @@ function PillGroup({
 }
 
 // Thin section label
-function FilterLabel({ children, id }: { children: React.ReactNode; id?: string }) {
+function FilterLabel({ children, id }: { children: ReactNode; id?: string }) {
   return (
     <span id={id} className="block text-[10.5px] font-semibold uppercase tracking-widest text-black/35 mb-2">
       {children}
@@ -73,7 +73,7 @@ export function TournamentFilters({
   filters,
   onFiltersChange,
 }: TournamentFiltersProps) {
-  const { query, when, distance, clubId } = filters;
+  const { when, distance, clubId } = filters;
   const { t } = useTranslation();
   const clubFilterLabelId = useId();
   const [clubSearch, setClubSearch] = useState("");
@@ -111,11 +111,10 @@ export function TournamentFilters({
           : clubsData?.clubs?.find((c) => c.id === draftClubId)) ?? null
       : null;
 
-const activeFilterCount =
-  ((query ?? "").trim().length > 0 ? 1 : 0) +
-  ((when ?? "all") !== "all" ? 1 : 0) +
-  ((distance ?? "all") !== "all" ? 1 : 0) +
-  (clubId ? 1 : 0);
+  const activeFilterCount =
+    ((when ?? "all") !== "all" ? 1 : 0) +
+    ((distance ?? "all") !== "all" ? 1 : 0) +
+    (clubId ? 1 : 0);
 
   const hasDraftChanges =
     draftWhen !== (when ?? "all") ||
