@@ -41,7 +41,7 @@ function parsePersistedState(rawValue: string) {
     const q =
       typeof filtersRaw.q === "string" && filtersRaw.q.trim().length > 0
         ? filtersRaw.q.trim()
-      : undefined;
+        : undefined;
 
     const when =
       typeof filtersRaw.when === "string" && isTournamentWhenFilter(filtersRaw.when)
@@ -49,13 +49,16 @@ function parsePersistedState(rawValue: string) {
         : undefined;
 
     const distance =
-      typeof filtersRaw.distance === "string" && isTournamentDistanceFilter(filtersRaw.distance)
+      typeof filtersRaw.distance === "string" &&
+      isTournamentDistanceFilter(filtersRaw.distance)
         ? filtersRaw.distance
         : undefined;
 
-    const clubId = typeof filtersRaw.clubId === "string" && filtersRaw.clubId.trim().length > 0
-      ? filtersRaw.clubId
-      : undefined;
+    const clubId =
+      typeof filtersRaw.clubId === "string" &&
+      filtersRaw.clubId.trim().length > 0
+        ? filtersRaw.clubId
+        : undefined;
 
     return {
       activeTab,
@@ -71,12 +74,23 @@ function parsePersistedState(rawValue: string) {
   }
 }
 
-export function useTournamentFilters({ isOrganiserOrAbove, userId }: UseTournamentFiltersOptions) {
-  const [state, dispatch] = useReducer(filtersReducer, DEFAULT_TOURNAMENT_FILTERS_STATE);
+export function useTournamentFilters({
+  isOrganiserOrAbove,
+  userId,
+}: UseTournamentFiltersOptions) {
+  const [state, dispatch] = useReducer(
+    filtersReducer,
+    DEFAULT_TOURNAMENT_FILTERS_STATE
+  );
+
   const [filtersOpen, setFiltersOpen] = useState(false);
   const isHydratedRef = useRef(false);
 
-  const debouncedQ = useDebouncedValue(state.filters.q, QUERY_DEBOUNCE_MS);
+  // ✅ Debounce only affects API layer, not state updates
+  const debouncedQ = useDebouncedValue(
+    state.filters.q,
+    QUERY_DEBOUNCE_MS
+  );
 
   const effectiveFilters = useCallback(
     () =>
@@ -93,59 +107,81 @@ export function useTournamentFilters({ isOrganiserOrAbove, userId }: UseTourname
     [state, debouncedQ, isOrganiserOrAbove]
   );
 
-  const setTab = (tab: TournamentListTab) => {
+  const setTab = useCallback((tab: TournamentListTab) => {
     dispatch({ type: "SET_TAB", payload: tab });
-  };
+  }, []);
 
-  const setQuery = (value: string) => {
+  /**
+   * ✅ FIXED:
+   * - Only dispatch SET_QUERY
+   * - Pagination reset handled inside reducer
+   */
+  const setQuery = useCallback((value: string) => {
     const normalized = value.trim();
-    const query = normalized.length ? normalized : undefined;
+    const query = normalized.length > 0 ? normalized : undefined;
+
     dispatch({
       type: "SET_QUERY",
       payload: query,
     });
-    dispatch({ type: "SET_PAGE", payload: 1 });
-  };
+  }, []);
 
-  const setPage = (page: number) => {
+  const setPage = useCallback((page: number) => {
     dispatch({ type: "SET_PAGE", payload: page });
-  };
+  }, []);
 
-  const setWhenFromValue = (value: string) => {
+  const setWhenFromValue = useCallback((value: string) => {
     dispatch({
       type: "SET_WHEN",
-      payload: value === "all" ? undefined : isTournamentWhenFilter(value) ? value : undefined,
+      payload:
+        value === "all"
+          ? undefined
+          : isTournamentWhenFilter(value)
+          ? value
+          : undefined,
     });
-  };
+  }, []);
 
-  const setDistanceFromValue = (value: string) => {
+  const setDistanceFromValue = useCallback((value: string) => {
     dispatch({
       type: "SET_DISTANCE",
-      payload: value === "all" ? undefined : isTournamentDistanceFilter(value) ? value : undefined,
+      payload:
+        value === "all"
+          ? undefined
+          : isTournamentDistanceFilter(value)
+          ? value
+          : undefined,
     });
-  };
+  }, []);
 
-  const setClubId = (value?: string) => {
+  const setClubId = useCallback((value?: string) => {
     dispatch({
       type: "SET_CLUB",
-      payload: value && value.trim().length > 0 ? value : undefined,
+      payload:
+        value && value.trim().length > 0 ? value : undefined,
     });
-  };
+  }, []);
 
-  // isOrganiserOrAbove is read once at hydrate time; omit from deps to avoid
-  // re-applying persisted state over in-session edits when role resolves.
+  /**
+   * 🔄 Hydrate from localStorage
+   */
   useEffect(() => {
     if (!userId || typeof window === "undefined") {
       isHydratedRef.current = true;
       return;
     }
-    const rawValue = window.localStorage.getItem(getStorageKey(userId));
+
+    const rawValue = window.localStorage.getItem(
+      getStorageKey(userId)
+    );
+
     if (!rawValue) {
       isHydratedRef.current = true;
       return;
     }
 
     const persisted = parsePersistedState(rawValue);
+
     if (!persisted) {
       isHydratedRef.current = true;
       return;
@@ -154,17 +190,24 @@ export function useTournamentFilters({ isOrganiserOrAbove, userId }: UseTourname
     dispatch({
       type: "HYDRATE",
       payload: {
-        activeTab: isOrganiserOrAbove ? persisted.activeTab : "published",
+        activeTab: isOrganiserOrAbove
+          ? persisted.activeTab
+          : "published",
         filters: persisted.filters,
       },
     });
+
     isHydratedRef.current = true;
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId]);
 
+  /**
+   * 💾 Persist to localStorage
+   */
   useEffect(() => {
     if (!userId || typeof window === "undefined") return;
     if (!isHydratedRef.current) return;
+
     const storagePayload = {
       activeTab: state.activeTab,
       filters: {
@@ -174,7 +217,11 @@ export function useTournamentFilters({ isOrganiserOrAbove, userId }: UseTourname
         clubId: state.filters.clubId,
       },
     };
-    window.localStorage.setItem(getStorageKey(userId), JSON.stringify(storagePayload));
+
+    window.localStorage.setItem(
+      getStorageKey(userId),
+      JSON.stringify(storagePayload)
+    );
   }, [
     userId,
     state.activeTab,
