@@ -75,7 +75,6 @@ export function useTournamentFilters({ isOrganiserOrAbove, userId }: UseTourname
   const [state, dispatch] = useReducer(filtersReducer, DEFAULT_TOURNAMENT_FILTERS_STATE);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const isHydratedRef = useRef(false);
-  const prevDebouncedQRef = useRef<string | undefined>();
 
   const debouncedQ = useDebouncedValue(state.filters.q, QUERY_DEBOUNCE_MS);
 
@@ -94,27 +93,18 @@ export function useTournamentFilters({ isOrganiserOrAbove, userId }: UseTourname
     [state, debouncedQ, isOrganiserOrAbove]
   );
 
-  useEffect(() => {
-    if (prevDebouncedQRef.current === undefined) {
-      prevDebouncedQRef.current = debouncedQ;
-      return;
-    }
-    if (prevDebouncedQRef.current !== debouncedQ) {
-      prevDebouncedQRef.current = debouncedQ;
-      dispatch({ type: "SET_PAGE", payload: 1 });
-    }
-  }, [debouncedQ]);
-
   const setTab = (tab: TournamentListTab) => {
     dispatch({ type: "SET_TAB", payload: tab });
   };
 
   const setQuery = (value: string) => {
     const normalized = value.trim();
+    const query = normalized.length ? normalized : undefined;
     dispatch({
       type: "SET_QUERY",
-      payload: normalized.length ? normalized : undefined,
+      payload: query,
     });
+    dispatch({ type: "SET_PAGE", payload: 1 });
   };
 
   const setPage = (page: number) => {

@@ -47,6 +47,12 @@ interface TimePickerProps {
   nowLabel?: string;
   /** Override confirm/done button (default: timepicker.confirm) */
   confirmLabel?: string;
+  /** Optional i18n keys for warning toasts. Defaults to timepicker.* keys. */
+  warningKeys?: {
+    invalidInput?: string;
+    noAvailableSlots?: string;
+    outOfBounds?: string;
+  };
   /** Passed to the trigger button for a11y (e.g. link to an external Label via aria-labelledby) */
   id?: string;
   "aria-labelledby"?: string;
@@ -75,6 +81,7 @@ export function TimePicker({
   clearLabel,
   nowLabel,
   confirmLabel,
+  warningKeys,
   id,
   "aria-labelledby": ariaLabelledBy,
   "aria-describedby": ariaDescribedBy,
@@ -94,6 +101,9 @@ export function TimePicker({
   const effectiveClearLabel = clearLabel ?? t("timepicker.clear");
   const effectiveNowLabel = nowLabel ?? t("timepicker.now");
   const effectiveConfirmLabel = confirmLabel ?? t("timepicker.confirm");
+  const warningInvalidInputKey = warningKeys?.invalidInput ?? "timepicker.invalidInput";
+  const warningNoAvailableSlotsKey = warningKeys?.noAvailableSlots ?? "timepicker.noAvailableSlots";
+  const warningOutOfBoundsKey = warningKeys?.outOfBounds ?? "timepicker.outOfBounds";
 
   const [open, setOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
@@ -152,37 +162,34 @@ export function TimePicker({
 
   const notifyTimeConstraint = useCallback((messageKey: string) => {
     toast.warning(t(messageKey), {
-      id: "tournament-time-constraint",
+      id: "timepicker-constraint",
       duration: 3800,
     });
   }, [t]);
 
-  const proposeTime = useCallback(
-    (next: string | null): boolean => {
-      if (next === null) {
-        onChange(null);
-        syncInputsToTotalMinutes(0);
-        return true;
-      }
-      const m = time24ToMinutes(next);
-      if (m === null) {
-        notifyTimeConstraint("tournaments.invalidTimeInput");
-        return false;
-      }
-      if (!hasSelectableTime) {
-        notifyTimeConstraint("tournaments.noAvailableSlots");
-        return false;
-      }
-      if (!isMinutesWithinTimeBounds(m, bounds)) {
-        notifyTimeConstraint("tournaments.timeOutOfBounds");
-        return false;
-      }
-      onChange(minutesToTime24(m));
-      syncInputsToTotalMinutes(m);
+  const proposeTime = (next: string | null): boolean => {
+    if (next === null) {
+      onChange(null);
+      syncInputsToTotalMinutes(0);
       return true;
-    },
-    [onChange, bounds, hasSelectableTime, notifyTimeConstraint, syncInputsToTotalMinutes]
-  );
+    }
+    const m = time24ToMinutes(next);
+    if (m === null) {
+      notifyTimeConstraint(warningInvalidInputKey);
+      return false;
+    }
+    if (!hasSelectableTime) {
+      notifyTimeConstraint(warningNoAvailableSlotsKey);
+      return false;
+    }
+    if (!isMinutesWithinTimeBounds(m, bounds)) {
+      notifyTimeConstraint(warningOutOfBoundsKey);
+      return false;
+    }
+    onChange(minutesToTime24(m));
+    syncInputsToTotalMinutes(m);
+    return true;
+  };
 
   const setHour = (hour: number) => {
     const ok = proposeTime(formatTime(to24Hour(hour, selectedMeridian), selectedMinute));
