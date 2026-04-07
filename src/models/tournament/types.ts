@@ -156,12 +156,16 @@ export const updateTournamentInputSchema = tournamentInputBaseSchema
     name: z.string(),
   })
   .partial()
-  .transform((value) => {
-    if (value.minMember == null || value.maxMember == null) {
-      return value;
+  .refine(
+    (value) =>
+      value.minMember == null ||
+      value.maxMember == null ||
+      value.minMember <= value.maxMember,
+    {
+      path: ["minMember"],
+      message: "minMember must be less than or equal to maxMember",
     }
-    return normalizeMemberRange(value);
-  });
+  );
 
 export const backendCreateTournamentInputSchema = z.object({
   club: z.string(),
@@ -205,12 +209,16 @@ export const backendUpdateTournamentInputSchema = z
     descriptionInfo: z.string().nullable(),
   })
   .partial()
-  .transform((value) => {
-    if (value.minMember == null || value.maxMember == null) {
-      return value;
+  .refine(
+    (value) =>
+      value.minMember == null ||
+      value.maxMember == null ||
+      value.minMember <= value.maxMember,
+    {
+      path: ["minMember"],
+      message: "minMember must be less than or equal to maxMember",
     }
-    return normalizeMemberRange(value);
-  });
+  );
 
 const createTournamentSummarySchema = z.object({
   id: z.string().optional(),

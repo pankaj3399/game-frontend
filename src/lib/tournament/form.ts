@@ -62,6 +62,9 @@ export function buildTournamentPayload(
   form: CreateTournamentInput,
   status: "draft" | "active"
 ): CreateTournamentInput {
+  const minMember = Math.max(1, Math.floor(Number(form.minMember) || 1));
+  const maxMember = Math.max(1, Math.floor(Number(form.maxMember) || 1));
+
   return {
     ...form,
     status,
@@ -74,8 +77,8 @@ export function buildTournamentPayload(
     foodInfo: form.foodInfo ?? "",
     descriptionInfo: form.descriptionInfo ?? "",
     entryFee: Number(form.entryFee) || 0,
-    minMember: Number(form.minMember) || 1,
-    maxMember: Number(form.maxMember) || 1,
+    minMember: Math.min(minMember, maxMember),
+    maxMember: Math.max(minMember, maxMember),
   };
 }
 
