@@ -11,6 +11,7 @@
     "comingSoon": "Coming soon!",
     "openMenu": "Open menu"
   },
+  "selectOption": "Select an option",
   "userSearch": {
     "placeholder": "Search users",
     "searching": "Searching users...",
@@ -535,6 +536,7 @@
     "selectSponsorHint": "Choose one sponsor from your club's sponsors to display on the tournament page. You can also choose to not display any sponsor.",
     "selectClubFirst": "Select a club first to see sponsors.",
     "noSponsor": "No Sponsor - Don't display any sponsor",
+    "noActiveSponsors": "No active sponsors for this club. You can still run the tournament without displaying one.",
     "noSponsors": "No active sponsors found for this club.",
     "officialSponsor": "Official Sponsor",
     "cancel": "Cancel",

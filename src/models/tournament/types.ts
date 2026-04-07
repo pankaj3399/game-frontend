@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const tournamentStatusSchema = z.enum(["active", "draft", "inactive"]);
+export const tournamentStatusSchema = z.enum(["active", "draft"]);
 export const tournamentModeSchema = z.enum(["singleDay", "period"]);
 export const tournamentPlayModeSchema = z.enum(["TieBreak10", "1set", "3setTieBreak10", "3set", "5set"]);
 export const tournamentListViewSchema = z.enum(["published", "drafts"]);
@@ -62,7 +62,6 @@ export const tournamentListItemSchema = z.object({
 });
 
 export const tournamentListFiltersSchema = z.object({
-  status: tournamentStatusSchema.optional(),
   page: z.number().int().min(1).optional(),
   limit: z.number().int().min(1).optional(),
   q: z.string().optional(),
@@ -223,7 +222,7 @@ const joinTournamentSummarySchema = z.object({
   isParticipant: z.boolean(),
 });
 
-export const publishTournamentPayloadSchema = z.object({}).strict();
+export const publishTournamentPayloadSchema = updateTournamentInputSchema;
 
 export const createTournamentResponseSchema = z.object({
   message: z.string(),

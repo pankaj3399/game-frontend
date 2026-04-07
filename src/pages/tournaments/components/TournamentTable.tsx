@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import {
   Table,
   TableBody,
@@ -15,6 +15,7 @@ import type {
 } from "@/models/tournament";
 import { formatDateDisplay } from "@/utils/display";
 import { getDateFnsLocale } from "@/lib/dateFnsLocale";
+import type { TFunction } from "i18next";
 
 interface TournamentTableProps {
   tournaments: TournamentListItem[];
@@ -22,24 +23,32 @@ interface TournamentTableProps {
   language: string;
 }
 
+const STATUS_DOTS: Record<TournamentStatus, string> = {
+  active: "bg-emerald-500",
+  draft: "bg-amber-400",
+};
+
 export function TournamentTable({
   tournaments,
   pagination,
   language,
 }: TournamentTableProps) {
   const { t } = useTranslation();
-  const navigate = useNavigate();
 
-  const STATUS_LABELS: Record<TournamentStatus, string> = {
-    active: t("tournaments.statusActive"),
-    draft: t("tournaments.statusDraft"),
-    inactive: t("tournaments.statusInactive"),
-  };
-  const STATUS_DOTS: Record<TournamentStatus, string> = {
-    active: "bg-emerald-500",
-    draft: "bg-amber-400",
-    inactive: "bg-muted-foreground/50",
-  };
+  function getStatusLabel(status: TournamentStatus, t: TFunction) {
+    switch (status) {
+      case "active":
+        return t("tournaments.statusActive");
+      case "draft":
+        return t("tournaments.statusDraft");
+      default:
+        return "";
+    }
+  }
+
+  
+ 
+
 
   return (
     <div className="overflow-x-auto border-y border-black/10">
@@ -62,28 +71,23 @@ export function TournamentTable({
         </TableHeader>
         <TableBody>
           {tournaments.map((tournament, idx) => {
-            const statusLabel = STATUS_LABELS[tournament.status] || STATUS_LABELS.inactive;
-            const statusDotClass = STATUS_DOTS[tournament.status] || STATUS_DOTS.inactive;
+
+            const statusLabel = getStatusLabel(tournament.status, t);
+            const statusDotClass = STATUS_DOTS[tournament.status];
 
             return (
               <TableRow
                 key={tournament.id}
-                className="h-[45px] cursor-pointer border-black/10 bg-card hover:bg-black/[0.015]"
-                onClick={() => navigate(`/tournaments/${tournament.id}`)}
-                onKeyDown={(event) => {
-                  if (event.key === "Enter" || event.key === " ") {
-                    event.preventDefault();
-                    navigate(`/tournaments/${tournament.id}`);
-                  }
-                }}
-                role="link"
-                tabIndex={0}
+                className="h-[45px] border-black/10 bg-card hover:bg-black/[0.015]"
               >
                 <TableCell className="px-4 py-0 text-xs text-foreground/90">
                   {(pagination.page - 1) * pagination.limit + idx + 1}
                 </TableCell>
                 <TableCell className="px-3 py-0">
-                  <div className="flex items-center gap-2">
+                  <Link
+                    to={`/tournaments/${tournament.id}`}
+                    className="flex items-center gap-2 rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-brand-primary/60"
+                  >
                     <span
                       className="h-[22px] w-[22px] shrink-0 rounded-[5px] bg-black/15"
                       aria-hidden="true"
@@ -95,7 +99,7 @@ export function TournamentTable({
                       aria-label={statusLabel}
                       title={statusLabel}
                     />
-                  </div>
+                  </Link>
                 </TableCell>
                 <TableCell className="px-3 py-0">
                   <div className="flex items-center gap-2">
@@ -118,6 +122,13 @@ export function TournamentTable({
               </TableRow>
             );
           })}
+          {tournaments.length === 0 && (
+            <TableRow>
+              <TableCell colSpan={4} className="py-6 text-center text-sm text-muted-foreground">
+                {t("tournaments.empty")}
+              </TableCell>
+            </TableRow>
+          )}
         </TableBody>
       </Table>
     </div>

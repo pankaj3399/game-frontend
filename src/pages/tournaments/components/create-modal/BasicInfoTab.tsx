@@ -1,7 +1,8 @@
 import { useTranslation } from "react-i18next";
-import { format, parseISO } from "date-fns";
+import { format } from "date-fns";
 import { Calendar as CalendarIcon } from "@/icons/figma-icons";
 import { cn } from "@/lib/utils";
+import { parseIsoDateSafely } from "@/utils/date";
 import { TOURNAMENT_MODES } from "@/constants/tournament";
 import type {
   CreateTournamentInput,
@@ -25,7 +26,7 @@ import {
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { TimePicker } from "@/components/ui/time-picker";
-
+import { Textarea } from "@/components/ui/textarea";
 interface BasicInfoTabProps {
   form: CreateTournamentInput;
   clubs: TournamentClub[];
@@ -35,7 +36,7 @@ interface BasicInfoTabProps {
 export function BasicInfoTab({ form, clubs, update }: BasicInfoTabProps) {
   const { t } = useTranslation();
 
-  const selectedDate = form.date ? parseISO(form.date) : undefined;
+  const selectedDate = parseIsoDateSafely(form.date) ?? undefined;
 
   return (
     <div className="space-y-3 sm:space-y-5">
@@ -48,6 +49,8 @@ export function BasicInfoTab({ form, clubs, update }: BasicInfoTabProps) {
         </Label>
         <Input
           id="create-tournament-basic-name"
+          required
+          aria-required="true"
           placeholder={t("tournaments.enterName")}
           value={form.name}
           onChange={(e) => update({ name: e.target.value })}
@@ -63,9 +66,10 @@ export function BasicInfoTab({ form, clubs, update }: BasicInfoTabProps) {
           {t("tournaments.tournamentType")} *
         </Label>
         <Select
+          required
           value={form.tournamentMode}
-          onValueChange={(v: TournamentMode) => {
-            const mode = v;
+          onValueChange={(mode: TournamentMode) => {
+            if(!TOURNAMENT_MODES.includes(mode)) return;
             update(
               mode === "period"
                 ? {
@@ -81,9 +85,10 @@ export function BasicInfoTab({ form, clubs, update }: BasicInfoTabProps) {
           <SelectTrigger
             id="create-tournament-basic-mode"
             aria-labelledby="create-tournament-basic-mode-label"
+            aria-required="true"
             className="h-[38px] w-full rounded-[10px] border-[#e1e3e8] bg-[#f9fafc] px-3 text-[14px] font-medium text-[#010a04] sm:h-[46px] sm:rounded-[12px] sm:px-[15px] sm:text-[16px]"
           >
-            <SelectValue />
+            <SelectValue placeholder={t("selectOption")} />
           </SelectTrigger>
           <SelectContent>
             {TOURNAMENT_MODES.map((mode) => (
@@ -146,6 +151,7 @@ export function BasicInfoTab({ form, clubs, update }: BasicInfoTabProps) {
                     id="create-tournament-basic-date"
                     type="button"
                     aria-labelledby="create-tournament-basic-date-label"
+                    aria-required="true"
                     variant="outline"
                     className={cn(
                       "mt-2 h-[38px] w-full justify-between rounded-[10px] border-[#e1e3e8] bg-[#f9fafc] px-3 text-left text-[13px] font-normal text-[#010a04] sm:mt-[10px] sm:h-[46px] sm:rounded-[12px] sm:px-[15px] sm:text-[14px]",
@@ -164,9 +170,10 @@ export function BasicInfoTab({ form, clubs, update }: BasicInfoTabProps) {
                   <Calendar
                     mode="single"
                     selected={selectedDate}
-                    onSelect={(date) =>
-                      update({ date: date ? format(date, "yyyy-MM-dd") : null })
-                    }
+                    onSelect={(date) => {
+                      if (!date) return;
+                      update({ date: format(date, "yyyy-MM-dd") });
+                    }}
                     autoFocus
                   />
                 </PopoverContent>
@@ -184,8 +191,11 @@ export function BasicInfoTab({ form, clubs, update }: BasicInfoTabProps) {
                 <TimePicker
                   id="create-tournament-basic-start"
                   aria-labelledby="create-tournament-basic-start-label"
+                  required
                   value={form.startTime ?? null}
                   onChange={(time) => update({ startTime: time })}
+                  maxTime={form.endTime ?? undefined}
+                  maxExclusive
                 />
               </div>
             </div>
@@ -203,8 +213,11 @@ export function BasicInfoTab({ form, clubs, update }: BasicInfoTabProps) {
                 <TimePicker
                   id="create-tournament-basic-end"
                   aria-labelledby="create-tournament-basic-end-label"
+                  required
                   value={form.endTime ?? null}
                   onChange={(time) => update({ endTime: time })}
+                  minTime={form.startTime ?? undefined}
+                  minExclusive
                 />
               </div>
             </div>
@@ -221,9 +234,10 @@ export function BasicInfoTab({ form, clubs, update }: BasicInfoTabProps) {
         >
           {t("tournaments.description")}
         </Label>
-        <textarea
+        <Textarea
           id="create-tournament-basic-description"
           placeholder={t("tournaments.descriptionPlaceholder")}
+          maxLength={500}
           value={form.descriptionInfo ?? ""}
           onChange={(e) => update({ descriptionInfo: e.target.value })}
           className="h-[74px] w-full rounded-[10px] border border-[#e1e3e8] bg-[#f9fafc] px-3 py-3 text-[13px] text-[#010a04] placeholder:text-[#010a04]/50 sm:h-[110px] sm:rounded-[12px] sm:px-[15px] sm:py-[15px] sm:text-[14px]"

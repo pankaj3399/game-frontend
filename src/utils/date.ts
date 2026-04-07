@@ -49,9 +49,11 @@ export function isSubscriptionExpiredByLocalDay(
 }
 
 export function parseIsoDateSafely(value: string | null | undefined): Date | null {
-  if (!value) return null;
+  if (value == null) return null;
+  const normalized = value.trim();
+  if (!normalized) return null;
   try {
-    const parsed = parseISO(value);
+    const parsed = parseISO(normalized);
     return isValid(parsed) ? parsed : null;
   } catch {
     return null;

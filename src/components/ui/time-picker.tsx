@@ -1,7 +1,14 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Clock } from "@/icons/figma-icons";
 import { cn } from "@/lib/utils";
+import {
+  hasNonEmptyTimeBounds,
+  isMinutesWithinTimeBounds,
+  minutesToTime24,
+  resolveTimeBoundsMinutes,
+  time24ToMinutes,
+} from "@/utils/time";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Input } from "./input";
@@ -9,6 +16,14 @@ import { Input } from "./input";
 interface TimePickerProps {
   value: string | null | undefined;
   onChange: (value: string | null) => void;
+  /** Lower bound (HH:MM). Combine with {@link minExclusive} for strict ordering (e.g. end after start). */
+  minTime?: string | null;
+  /** Upper bound (HH:MM). Combine with {@link maxExclusive} for strict ordering (e.g. start before end). */
+  maxTime?: string | null;
+  /** When true, values must be strictly greater than {@link minTime} (first allowed minute is minTime + 1). */
+  minExclusive?: boolean;
+  /** When true, values must be strictly less than {@link maxTime} (last allowed minute is maxTime − 1). */
+  maxExclusive?: boolean;
   stepMinutes?: number;
   placeholder?: string;
   disabled?: boolean;
@@ -35,6 +50,8 @@ interface TimePickerProps {
   id?: string;
   "aria-labelledby"?: string;
   "aria-describedby"?: string;
+  /** When true, sets aria-required on the trigger (custom control, not a native required input). */
+  required?: boolean;
 }
 
 type Meridian = "AM" | "PM";
@@ -42,6 +59,10 @@ type Meridian = "AM" | "PM";
 export function TimePicker({
   value,
   onChange,
+  minTime,
+  maxTime,
+  minExclusive = false,
+  maxExclusive = false,
   stepMinutes = 5,
   placeholder,
   disabled,
@@ -58,8 +79,15 @@ export function TimePicker({
   id,
   "aria-labelledby": ariaLabelledBy,
   "aria-describedby": ariaDescribedBy,
+  required,
 }: TimePickerProps) {
   const { t } = useTranslation();
+
+  const bounds = useMemo(
+    () => resolveTimeBoundsMinutes(minTime, maxTime, { minExclusive, maxExclusive }),
+    [minTime, maxTime, minExclusive, maxExclusive]
+  );
+  const hasValidRange = hasNonEmptyTimeBounds(bounds);
   const effectivePlaceholder = placeholder ?? placeholderLabel ?? t("timepicker.placeholder");
   const effectiveTitle = titleLabel ?? t("timepicker.title");
   const effectiveHourLabel = hourLabel ?? t("timepicker.hour");
@@ -104,15 +132,61 @@ export function TimePicker({
     return hour === 12 ? 12 : hour + 12;
   };
 
-  const setHour = (hour: number) => onChange(formatTime(to24Hour(hour, selectedMeridian), selectedMinute));
-  const setMinute = (minute: number) => onChange(formatTime(selectedHour24, minute));
-  const setMeridian = (meridian: Meridian) =>
-    onChange(formatTime(to24Hour(selectedHour, meridian), selectedMinute));
+  const hourDisplay = String(selectedHour).padStart(2, "0");
+  const minuteDisplay = String(selectedMinute).padStart(2, "0");
+
+  const [hourInput, setHourInput] = useState(hourDisplay);
+  const [minuteInput, setMinuteInput] = useState(minuteDisplay);
+
+  const proposeTime = useCallback(
+    (next: string | null): boolean => {
+      if (next === null) {
+        onChange(null);
+        return true;
+      }
+      const m = time24ToMinutes(next);
+      if (m === null) return false;
+      if (hasValidRange && !isMinutesWithinTimeBounds(m, bounds)) {
+        return false;
+      }
+      onChange(minutesToTime24(m));
+      return true;
+    },
+    [onChange, bounds, hasValidRange]
+  );
+
+  const rejectAndSyncInputs = useCallback(() => {
+    setHourInput(String(selectedHour).padStart(2, "0"));
+    setMinuteInput(String(selectedMinute).padStart(2, "0"));
+  }, [selectedHour, selectedMinute]);
+
+  const setHour = (hour: number) => {
+    const ok = proposeTime(formatTime(to24Hour(hour, selectedMeridian), selectedMinute));
+    if (!ok) rejectAndSyncInputs();
+    return ok;
+  };
+  const setMinute = (minute: number) => {
+    const ok = proposeTime(formatTime(selectedHour24, minute));
+    if (!ok) rejectAndSyncInputs();
+    return ok;
+  };
+  const setMeridian = (meridian: Meridian) => {
+    const ok = proposeTime(formatTime(to24Hour(selectedHour, meridian), selectedMinute));
+    if (!ok) rejectAndSyncInputs();
+    return ok;
+  };
 
   const setNow = () => {
     const now = new Date();
-    const minute = Math.floor(now.getMinutes() / stepMinutes) * stepMinutes;
-    onChange(formatTime(now.getHours(), minute));
+    let minute = Math.floor(now.getMinutes() / stepMinutes) * stepMinutes;
+    let m = now.getHours() * 60 + minute;
+    if (hasValidRange && !isMinutesWithinTimeBounds(m, bounds)) {
+      if (bounds.minMinutes !== null && m < bounds.minMinutes) m = bounds.minMinutes;
+      else if (bounds.maxMinutes !== null && m > bounds.maxMinutes) m = bounds.maxMinutes;
+      if (!isMinutesWithinTimeBounds(m, bounds)) return;
+    }
+    const ok = proposeTime(minutesToTime24(m));
+    if (!ok) rejectAndSyncInputs();
   };
 
   useEffect(() => {
@@ -126,11 +200,6 @@ export function TimePicker({
     }, 0);
     return () => window.clearTimeout(id);
   }, [open]);
-
-  const hourDisplay = String(selectedHour).padStart(2, "0");
-  const minuteDisplay = String(selectedMinute).padStart(2, "0");
-  const [hourInput, setHourInput] = useState(hourDisplay);
-  const [minuteInput, setMinuteInput] = useState(minuteDisplay);
 
   const handleOpenChange = (nextOpen: boolean) => {
     if (nextOpen) {
@@ -156,7 +225,7 @@ export function TimePicker({
     }
     if (next < 1) next = 1;
     if (next > 12) next = 12;
-    setHour(next);
+    if (!setHour(next)) return;
     setHourInput(String(next).padStart(2, "0"));
   };
 
@@ -172,21 +241,21 @@ export function TimePicker({
     }
     if (next < 0) next = 0;
     if (next > 59) next = 59;
-    setMinute(next);
+    if (!setMinute(next)) return;
     setMinuteInput(String(next).padStart(2, "0"));
   };
 
   const nudgeHour = (delta: 1 | -1) => {
     const current = selectedHour;
     const wrapped = current + delta < 1 ? 12 : current + delta > 12 ? 1 : current + delta;
-    setHour(wrapped);
+    if (!setHour(wrapped)) return;
     setHourInput(String(wrapped).padStart(2, "0"));
   };
 
   const nudgeMinute = (delta: 1 | -1) => {
     const increment = Math.max(1, stepMinutes);
     const next = (selectedMinute + delta * increment + 60) % 60;
-    setMinute(next);
+    if (!setMinute(next)) return;
     setMinuteInput(String(next).padStart(2, "0"));
   };
 
@@ -201,6 +270,7 @@ export function TimePicker({
           disabled={disabled}
           aria-labelledby={ariaLabelledBy}
           aria-describedby={ariaDescribedBy}
+          aria-required={required ? true : undefined}
           className={cn(
             "h-[38px] w-full justify-between rounded-[10px] border-[#e1e3e8] bg-[#f9fafc] px-3 text-left text-[13px] font-normal text-[#010a04] sm:h-[46px] sm:rounded-[12px] sm:px-[15px] sm:text-[14px]",
             !formatted && "text-[#010a04]/50"
@@ -321,7 +391,7 @@ export function TimePicker({
             type="button"
             variant="outline"
             className="h-8 flex-1 rounded-md text-[12px]"
-            onClick={() => onChange(null)}
+            onClick={() => proposeTime(null)}
           >
             {effectiveClearLabel}
           </Button>

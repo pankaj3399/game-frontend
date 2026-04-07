@@ -2,7 +2,6 @@
 export {
   DEFAULT_TOURNAMENT_FILTERS_STATE,
   filtersReducer,
-  isTournamentStatus,
   shapeTournamentFilters,
   type TournamentFiltersAction,
   type TournamentFiltersState,

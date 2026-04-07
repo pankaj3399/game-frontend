@@ -10,7 +10,7 @@ import {
   useTournamentById,
   useJoinTournament,
   usePublishTournament,
-} from "@/pages/tournaments/hooks/tournament";
+} from "@/pages/tournaments/hooks";
 import { getErrorMessage } from "@/lib/errors";
 import { toast } from "sonner";
 
@@ -164,7 +164,7 @@ export default function TournamentDetailsPage() {
                         .split(/\s+/)
                         .filter(Boolean)
                         .slice(0, 2)
-                        .map((word) => word.charAt(0).toUpperCase())
+                        .map((word: string) => word.charAt(0).toUpperCase())
                         .join("") || "?"}
                     </span>
                   )}

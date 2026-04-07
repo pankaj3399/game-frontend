@@ -66,6 +66,7 @@ function App() {
               }
             >
               <Route path="/profile" element={<SettingsPage />} />
+              
               <Route path="/tournaments" element={<TournamentListPage />} />
               <Route path="/tournaments/:id" element={<TournamentDetailsPage />} />
               <Route path="/my-score" element={<PlaceholderPage />} />

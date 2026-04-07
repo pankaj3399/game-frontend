@@ -9,7 +9,6 @@ import {
 
 async function fetchTournaments(filters: TournamentListFilters): Promise<TournamentsResponse> {
   const params = new URLSearchParams();
-  if (filters.status) params.set("status", filters.status);
   if (filters.view) params.set("view", filters.view);
   if (filters.when) params.set("when", filters.when);
   if (filters.distance) params.set("distance", filters.distance);

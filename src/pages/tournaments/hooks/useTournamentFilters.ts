@@ -3,7 +3,6 @@ import {
   DEFAULT_TOURNAMENT_FILTERS_STATE,
   filtersReducer,
   isTournamentDistanceFilter,
-  isTournamentStatus,
   isTournamentWhenFilter,
   shapeTournamentFilters,
   type TournamentListTab,
@@ -37,13 +36,8 @@ function parsePersistedState(rawValue: string) {
       };
     }
 
-    const status =
-      typeof filtersRaw.status === "string" && isTournamentStatus(filtersRaw.status)
-        ? filtersRaw.status
-        : undefined;
-
     const q = typeof filtersRaw.q === "string" && filtersRaw.q.trim().length > 0
-      ? filtersRaw.q.trim()
+    ? filtersRaw.q.trim()
       : undefined;
 
     const when =
@@ -63,7 +57,6 @@ function parsePersistedState(rawValue: string) {
     return {
       activeTab,
       filters: {
-        status,
         q,
         when,
         distance,
@@ -84,13 +77,6 @@ export function useTournamentFilters({ isOrganiserOrAbove, userId }: UseTourname
 
   const setTab = (tab: TournamentListTab) => {
     dispatch({ type: "SET_TAB", payload: tab });
-  };
-
-  const setStatusFromValue = (value: string) => {
-    dispatch({
-      type: "SET_STATUS",
-      payload: value === "all" ? undefined : isTournamentStatus(value) ? value : undefined,
-    });
   };
 
   const setQuery = (value: string) => {
@@ -156,7 +142,6 @@ export function useTournamentFilters({ isOrganiserOrAbove, userId }: UseTourname
     const storagePayload = {
       activeTab: state.activeTab,
       filters: {
-        status: state.filters.status,
         q: state.filters.q,
         when: state.filters.when,
         distance: state.filters.distance,
@@ -167,7 +152,6 @@ export function useTournamentFilters({ isOrganiserOrAbove, userId }: UseTourname
   }, [
     userId,
     state.activeTab,
-    state.filters.status,
     state.filters.q,
     state.filters.when,
     state.filters.distance,
@@ -181,7 +165,6 @@ export function useTournamentFilters({ isOrganiserOrAbove, userId }: UseTourname
     filtersOpen,
     setFiltersOpen,
     setTab,
-    setStatusFromValue,
     setWhenFromValue,
     setDistanceFromValue,
     setClubId,

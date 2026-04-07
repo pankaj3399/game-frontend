@@ -188,7 +188,7 @@ export function AddAdminOrganiserModal({
                 id="role-select"
                 className="h-[38px] w-full rounded-[8px] border-[#e1e3e8] bg-[#f9fafc] text-[14px]"
               >
-                <SelectValue />
+                <SelectValue placeholder={t("selectOption")} />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="admin">

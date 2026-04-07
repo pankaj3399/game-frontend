@@ -5,20 +5,17 @@ import { Button } from "@/components/ui/button";
 import { ROLES } from "@/constants/roles";
 import { TournamentFilters } from "./TournamentFilters";
 import type { TournamentListTab } from "@/models/tournament";
-
+import { TournamentTab } from "../TournamentListPage";
 interface TournamentActionsProps {
   activeTab: TournamentListTab;
   onTabChange: (tab: TournamentListTab) => void;
   filtersOpen: boolean;
   onFiltersOpenChange: (open: boolean) => void;
   query: string;
-  status?: string;
   when?: string;
   distance?: string;
   clubId?: string;
-  onWhenChange: (value: string) => void;
-  onDistanceChange: (value: string) => void;
-  onClubChange: (clubId?: string) => void;
+  onFiltersChange: (next: { when: string; distance: string; clubId?: string }) => void;
   onCreate: () => void;
 }
 
@@ -28,13 +25,10 @@ export function TournamentActions({
   filtersOpen,
   onFiltersOpenChange,
   query,
-  status,
   when,
   distance,
   clubId,
-  onWhenChange,
-  onDistanceChange,
-  onClubChange,
+  onFiltersChange,
   onCreate,
 }: TournamentActionsProps) {
   const { t } = useTranslation();
@@ -44,24 +38,23 @@ export function TournamentActions({
       <TournamentFilters
         open={filtersOpen}
         onOpenChange={onFiltersOpenChange}
-        query={query}
-        status={status}
-        when={when}
-        distance={distance}
-        clubId={clubId}
-        onWhenChange={onWhenChange}
-        onDistanceChange={onDistanceChange}
-        onClubChange={onClubChange}
+        filters={{
+          query,
+          when,
+          distance,
+          clubId,
+        }}
+        onFiltersChange={onFiltersChange}
       />
       <RoleGuard requireRoleOrAbove={ROLES.ORGANISER}>
-        {activeTab === "published" ? (
-          <Button variant="outline" onClick={() => onTabChange("drafts")}>
+        {activeTab === TournamentTab.Published ? (
+          <Button variant="outline" onClick={() => onTabChange(TournamentTab.Drafts)}>
             <PencilEdit01Icon size={16} className="mr-2" />
             {t("tournaments.tabDrafts")}
           </Button>
         ) : (
-          <Button variant="outline" onClick={() => onTabChange("published")}>
-            <IconChevronLeft size={16} className="mr-1" />
+          <Button variant="outline" onClick={() => onTabChange(TournamentTab.Published)}>
+            <IconChevronLeft size={16} className="mr-2" />
             {t("tournaments.tabPublished")}
           </Button>
         )}

@@ -11,6 +11,7 @@
     "comingSoon": "Demnächst verfügbar!",
     "openMenu": "Menü öffnen"
   },
+  "selectOption": "Option auswählen",
   "userSearch": {
     "placeholder": "Benutzer suchen",
     "searching": "Benutzer werden gesucht...",
@@ -534,6 +535,7 @@
     "selectSponsorHint": "Wählen Sie einen Sponsor Ihres Vereins zur Anzeige auf der Turnierseite. Sie können auch keinen Sponsor anzeigen.",
     "selectClubFirst": "Wählen Sie zuerst einen Verein, um Sponsoren zu sehen.",
     "noSponsor": "Kein Sponsor – keinen Sponsor anzeigen",
+    "noActiveSponsors": "Keine aktiven Sponsoren für diesen Verein. Sie können das Turnier trotzdem ohne Sponsor-Anzeige durchführen.",
     "noSponsors": "Für diesen Verein wurden keine aktiven Sponsoren gefunden.",
     "officialSponsor": "Offizieller Sponsor",
     "cancel": "Abbrechen",

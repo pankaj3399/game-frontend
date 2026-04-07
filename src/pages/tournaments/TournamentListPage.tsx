@@ -1,41 +1,51 @@
-import { Navigate } from "react-router-dom";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import InlineLoader from "@/components/shared/InlineLoader";
 import { PaginationBar } from "@/components/pagination/PaginationBar";
 import { CreateTournamentModal } from "@/pages/tournaments/components/CreateTournamentModal";
-import { useAuth, useIsOrganiserOrAbove } from "@/pages/auth/hooks";
+import {  useIsOrganiserOrAbove } from "@/pages/auth/hooks";
 import { TournamentActions } from "@/pages/tournaments/components/TournamentActions";
 import { TournamentTable } from "@/pages/tournaments/components/TournamentTable";
-import { useTournamentActions } from "@/pages/tournaments/hooks/useTournamentActions";
 import { useTournamentFilters } from "@/pages/tournaments/hooks/useTournamentFilters";
 import { useTournamentPermissions } from "@/pages/tournaments/hooks/useTournamentPermissions";
-import { useTournaments } from "@/pages/tournaments/hooks/tournament";
+import { useTournaments } from "./hooks/useTournaments";
+import { useAuth } from "@/pages/auth/hooks";
+import { TournamentTableSkeleton } from "@/components/ui/tournament-table-skeleton";
 
 export default function TournamentListPage() {
-  const { isAuthenticated, isProfileComplete } = useAuth();
-  if (!isAuthenticated) return <Navigate to="/login" replace />;
-  if (!isProfileComplete) return <Navigate to="/information" replace />;
-
-  return <TournamentListContent />;
+  return <TournamentListContent/>;
 }
+
+
+const DEFAULT_PAGINATION =  {
+  total: 0,
+  page: 1,
+  limit: 10,
+  totalPages: 0,
+}
+
+export const TournamentTab = {
+  Drafts: "drafts",
+  Published: "published",
+} as const;
 
 function TournamentListContent() {
   const { t, i18n } = useTranslation();
-  const { user } = useAuth();
   const isOrganiserOrAbove = useIsOrganiserOrAbove();
+  const {user} = useAuth();
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const {
     activeTab,
     filters,
     effectiveFilters,
     filtersOpen,
     setFiltersOpen,
-    setTab,
+  setTab,
     setWhenFromValue,
     setDistanceFromValue,
     setClubId,
     setPage,
-  } = useTournamentFilters({ isOrganiserOrAbove, userId: user?.id ?? null });
-  const { modal, openCreateModal, closeModal } = useTournamentActions();
+  } = useTournamentFilters({ isOrganiserOrAbove, userId: user?.id ?? undefined });
   const { isDraftTab } = useTournamentPermissions({
     activeTab,
     isOrganiserOrAbove,
@@ -44,11 +54,11 @@ function TournamentListContent() {
   const { data, isPending, isFetching } = useTournaments(effectiveFilters());
 
   const tournaments = data?.tournaments ?? [];
-  const pagination = data?.pagination ?? {
-    total: 0,
-    page: 1,
-    limit: 10,
-    totalPages: 0,
+  const pagination = data?.pagination ?? DEFAULT_PAGINATION;
+  const handleFiltersChange = (next: { when: string; distance: string; clubId?: string }) => {
+    setWhenFromValue(next.when);
+    setDistanceFromValue(next.distance);
+    setClubId(next.clubId);
   };
 
   return (
@@ -58,7 +68,7 @@ function TournamentListContent() {
           <div className="px-4 py-3 sm:px-5 sm:py-3.5">
             <div className="flex items-center justify-between">
               <h1 className="text-xl font-semibold leading-tight text-foreground">
-                {activeTab === "drafts" ? t("tournaments.tabDrafts") : t("tournaments.allTournaments")}
+                {activeTab === TournamentTab.Drafts ? t("tournaments.allTournaments") : t("tournaments.tabDrafts")}
               </h1>
               <TournamentActions
                 activeTab={activeTab}
@@ -66,14 +76,11 @@ function TournamentListContent() {
                 filtersOpen={filtersOpen}
                 onFiltersOpenChange={setFiltersOpen}
                 query={filters.q ?? ""}
-                status={filters.status}
                 when={filters.when}
                 distance={filters.distance}
                 clubId={filters.clubId}
-                onWhenChange={setWhenFromValue}
-                onDistanceChange={setDistanceFromValue}
-                onClubChange={setClubId}
-                onCreate={openCreateModal}
+                onFiltersChange={handleFiltersChange}
+                onCreate={() => setIsCreateModalOpen(true)}
               />
             </div>
           </div>
@@ -122,10 +129,8 @@ function TournamentListContent() {
       </div>
 
       <CreateTournamentModal
-        open={Boolean(modal)}
-        onOpenChange={(open) => {
-          if (!open) closeModal();
-        }}
+        open={isCreateModalOpen}
+        onOpenChange={setIsCreateModalOpen}
         mode="create"
         tournamentId={null}
       />
@@ -133,22 +138,3 @@ function TournamentListContent() {
   );
 }
 
-function TournamentTableSkeleton() {
-  const rows = Array.from({ length: 8 }, (_, index) => index);
-
-  return (
-    <div className="border-y border-black/10">
-      <div className="h-[35px] bg-black/5" />
-      <div className="px-4 py-2">
-        {rows.map((row) => (
-          <div key={row} className="flex h-[45px] items-center gap-3 border-b border-black/5 last:border-b-0">
-            <div className="h-3 w-5 animate-pulse rounded bg-black/10" />
-            <div className="h-3 w-[38%] animate-pulse rounded bg-black/10" />
-            <div className="h-3 w-[30%] animate-pulse rounded bg-black/10" />
-            <div className="h-3 w-[16%] animate-pulse rounded bg-black/10" />
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}

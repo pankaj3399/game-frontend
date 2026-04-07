@@ -44,7 +44,6 @@ export const queryKeys = {
   tournament: {
     all: ["tournament"] as const,
     list: (filters?: {
-      status?: string;
       page?: number;
       limit?: number;
       q?: string;
@@ -55,7 +54,6 @@ export const queryKeys = {
     }) => {
       const f = filters ?? {};
       const normalizedFilters: Record<string, string | number> = {};
-      if (f.status) normalizedFilters.status = f.status;
       if (f.view) normalizedFilters.view = f.view;
       if (f.when) normalizedFilters.when = f.when;
       if (f.distance) normalizedFilters.distance = f.distance;

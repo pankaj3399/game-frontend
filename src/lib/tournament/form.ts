@@ -102,11 +102,18 @@ export function buildDraftUpdatePayload(form: CreateTournamentInput): Omit<Creat
   };
 }
 
+function invalidMemberRangeKey(form: CreateTournamentInput): TournamentValidationErrorKey | null {
+  if (form.minMember && form.maxMember && form.minMember > form.maxMember) {
+    return "tournaments.invalidMemberRange";
+  }
+  return null;
+}
+
 export function getDraftValidationError(form: CreateTournamentInput): TournamentValidationErrorKey | null {
   if (!form.club || !form.name.trim()) {
     return "tournaments.requiredNameAndClub";
   }
-  return null;
+  return invalidMemberRangeKey(form);
 }
 
 export function getPublishValidationError(form: CreateTournamentInput): TournamentValidationErrorKey | null {
@@ -123,8 +130,5 @@ export function getPublishValidationError(form: CreateTournamentInput): Tourname
       return "tournaments.invalidTimeRange";
     }
   }
-  if (form.minMember && form.maxMember && form.minMember > form.maxMember) {
-    return "tournaments.invalidMemberRange";
-  }
-  return null;
+  return invalidMemberRangeKey(form);
 }

@@ -14,14 +14,13 @@ import { Search01Icon } from "@/icons/figma-icons";
 interface TournamentFiltersProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  query: string;
-  status?: string;
-  when?: string;
-  distance?: string;
-  clubId?: string;
-  onWhenChange: (value: string) => void;
-  onDistanceChange: (value: string) => void;
-  onClubChange: (clubId?: string) => void;
+  filters: {
+    query: string;
+    when?: string;
+    distance?: string;
+    clubId?: string;
+  };
+  onFiltersChange: (next: { when: string; distance: string; clubId?: string }) => void;
 }
 
 // Pill toggle group — replaces <Select> for When and Distance
@@ -71,15 +70,10 @@ function FilterLabel({ children, id }: { children: React.ReactNode; id?: string 
 export function TournamentFilters({
   open,
   onOpenChange,
-  query,
-  status,
-  when,
-  distance,
-  clubId,
-  onWhenChange,
-  onDistanceChange,
-  onClubChange,
+  filters,
+  onFiltersChange,
 }: TournamentFiltersProps) {
+  const { query, when, distance, clubId } = filters;
   const { t } = useTranslation();
   const clubFilterLabelId = useId();
   const [clubSearch, setClubSearch] = useState("");
@@ -119,7 +113,6 @@ export function TournamentFilters({
 
 const activeFilterCount =
   ((query ?? "").trim().length > 0 ? 1 : 0) +
-  ((status ?? "all") !== "all" ? 1 : 0) +
   ((when ?? "all") !== "all" ? 1 : 0) +
   ((distance ?? "all") !== "all" ? 1 : 0) +
   (clubId ? 1 : 0);
@@ -328,9 +321,11 @@ const activeFilterCount =
             size="sm"
             className="h-9 flex-[2] rounded-xl bg-brand-primary text-[13px] font-semibold text-white shadow-sm shadow-brand-primary/20 hover:bg-brand-primary-hover transition-colors"
             onClick={() => {
-              onWhenChange(draftWhen);
-              onDistanceChange(draftDistance);
-              onClubChange(draftClubId);
+              onFiltersChange({
+                when: draftWhen,
+                distance: draftDistance,
+                clubId: draftClubId,
+              });
               onOpenChange(false);
             }}
           >

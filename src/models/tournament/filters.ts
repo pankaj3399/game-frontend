@@ -2,14 +2,12 @@ import type {
   TournamentDistanceFilter,
   TournamentListFilters,
   TournamentListView,
-  TournamentStatus,
   TournamentWhenFilter,
 } from "./types";
 
 export type TournamentListTab = TournamentListView;
 
 export interface TournamentListPageFilters {
-  status?: TournamentStatus;
   page: number;
   limit: number;
   q?: string;
@@ -25,7 +23,6 @@ export interface TournamentFiltersState {
 
 export type TournamentFiltersAction =
   | { type: "SET_TAB"; payload: TournamentListTab }
-  | { type: "SET_STATUS"; payload?: TournamentStatus }
   | { type: "SET_QUERY"; payload?: string }
   | { type: "SET_WHEN"; payload?: TournamentWhenFilter }
   | { type: "SET_DISTANCE"; payload?: TournamentDistanceFilter }
@@ -47,10 +44,6 @@ export const DEFAULT_TOURNAMENT_FILTERS_STATE: TournamentFiltersState = {
   },
 };
 
-export function isTournamentStatus(value: string): value is TournamentStatus {
-  return value === "active" || value === "draft" || value === "inactive";
-}
-
 export function filtersReducer(
   state: TournamentFiltersState,
   action: TournamentFiltersAction
@@ -62,16 +55,6 @@ export function filtersReducer(
         filters: {
           ...state.filters,
           page: 1,
-          ...(action.payload === "drafts" ? { status: undefined } : {}),
-        },
-      };
-    case "SET_STATUS":
-      return {
-        ...state,
-        filters: {
-          ...state.filters,
-          page: 1,
-          status: action.payload,
         },
       };
     case "SET_QUERY":
@@ -137,13 +120,11 @@ export function shapeTournamentFilters(
   isOrganiserOrAbove: boolean
 ): TournamentListFilters {
   const view = isOrganiserOrAbove ? state.activeTab : undefined;
-  const status = state.activeTab === "drafts" ? undefined : state.filters.status;
 
   return {
     page: state.filters.page,
     limit: state.filters.limit,
     q: state.filters.q,
-    status,
     view,
     when: state.filters.when,
     distance: state.filters.distance,

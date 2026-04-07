@@ -1,37 +1,38 @@
 import { useTranslation } from "react-i18next";
 import type { ClubSponsor } from "@/pages/sponsors/hooks";
 import type { CreateTournamentInput } from "@/models/tournament/types";
+import {
+  RadioGroup,
+  RadioGroupCardItem,
+} from "@/components/ui/radio-group";
+import InlineLoader from "@/components/shared/InlineLoader";
+
 interface SponsorTabProps {
   form: CreateTournamentInput;
   sponsors: ClubSponsor[];
   update: (updates: Partial<CreateTournamentInput>) => void;
+  loading?: boolean;
 }
 
+const NO_SPONSOR_VALUE = "";
+
 function SponsorCard({
-  selected,
+  value,
   title,
   subtitle,
   logoUrl,
   hideAvatar = false,
-  onClick,
 }: {
-  selected: boolean;
+  value: string;
   title: string;
   subtitle?: string;
   logoUrl?: string | null;
   hideAvatar?: boolean;
-  onClick: () => void;
 }) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-pressed={selected}
-      className={`flex w-full items-center justify-between rounded-[12px] border px-[13px] py-3 text-left transition-colors ${
-        selected
-          ? "border-[1.5px] border-brand-primary bg-brand-primary/[0.05]"
-          : "border-[#e1e3e8] bg-[#f9fafc] hover:bg-[#f4f7fb]"
-      }`}
+    <RadioGroupCardItem
+      value={value}
+      className={`flex w-full items-center justify-between rounded-[12px] border px-[13px] py-3 text-left transition-colors data-[state=checked]:border-[1.5px] data-[state=checked]:border-brand-primary data-[state=checked]:bg-brand-primary/[0.05] data-[state=unchecked]:border-[#e1e3e8] data-[state=unchecked]:bg-[#f9fafc] data-[state=unchecked]:hover:bg-[#f4f7fb]`}
     >
       <div className="flex min-w-0 items-center gap-3">
         {!hideAvatar ? (
@@ -57,21 +58,17 @@ function SponsorCard({
         </div>
       </div>
       <span
-        className={`flex h-5 w-5 items-center justify-center rounded-full border transition-colors ${
-          selected ? "border-brand-primary" : "border-black/15"
-        }`}
+        className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-black/15 transition-colors group-data-[state=checked]:border-brand-primary`}
       >
         <span
-          className={`h-2.5 w-2.5 rounded-full transition-colors ${
-            selected ? "bg-brand-primary" : "bg-transparent"
-          }`}
+          className={`h-2.5 w-2.5 rounded-full bg-transparent transition-colors group-data-[state=checked]:bg-brand-primary`}
         />
       </span>
-    </button>
+    </RadioGroupCardItem>
   );
 }
 
-export function SponsorTab({ form, sponsors, update }: SponsorTabProps) {
+export function SponsorTab({ form, sponsors, update, loading = false }: SponsorTabProps) {
   const { t } = useTranslation();
   const activeSponsors = sponsors.filter((s) => s.status === "active");
 
@@ -88,28 +85,36 @@ export function SponsorTab({ form, sponsors, update }: SponsorTabProps) {
         <p className="text-[14px] text-[#010a04]/60">
           {t("tournaments.selectClubFirst")}
         </p>
+      ) : loading ? (
+        <div className="flex justify-center py-10">
+          <InlineLoader />
+        </div>
       ) : (
-        <div className="space-y-2">
+        <RadioGroup
+          className="gap-2"
+          value={form.sponsor ?? NO_SPONSOR_VALUE}
+          onValueChange={(v) =>
+            update({ sponsor: v === NO_SPONSOR_VALUE ? null : v })
+          }
+        >
           <SponsorCard
-            selected={form.sponsor == null || form.sponsor === ""}
+            value={NO_SPONSOR_VALUE}
             title={t("tournaments.noSponsor")}
             hideAvatar
-            onClick={() => update({ sponsor: null })}
           />
 
           {activeSponsors.map((sponsor) => (
             <SponsorCard
               key={sponsor.id}
-              selected={form.sponsor === sponsor.id}
+              value={sponsor.id}
               title={sponsor.name}
               subtitle={
                 sponsor.description?.trim() || t("tournaments.officialSponsor")
               }
               logoUrl={sponsor.logoUrl}
-              onClick={() => update({ sponsor: sponsor.id })}
             />
           ))}
-        </div>
+        </RadioGroup>
       )}
     </div>
   );
