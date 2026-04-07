@@ -29,6 +29,8 @@ export {
   type TournamentListTab,
 } from "./filters";
 
+export { TournamentTab, type TournamentTabValue } from "./tabs";
+
 export {
   isTournamentDistanceFilter,
   isTournamentWhenFilter,

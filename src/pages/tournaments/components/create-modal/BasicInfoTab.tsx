@@ -85,7 +85,6 @@ export function BasicInfoTab({ form, clubs, update }: BasicInfoTabProps) {
           <SelectTrigger
             id="create-tournament-basic-mode"
             aria-labelledby="create-tournament-basic-mode-label"
-            aria-required="true"
             className="h-[38px] w-full rounded-[10px] border-[#e1e3e8] bg-[#f9fafc] px-3 text-[14px] font-medium text-[#010a04] sm:h-[46px] sm:rounded-[12px] sm:px-[15px] sm:text-[16px]"
           >
             <SelectValue placeholder={t("selectOption")} />
@@ -151,7 +150,6 @@ export function BasicInfoTab({ form, clubs, update }: BasicInfoTabProps) {
                     id="create-tournament-basic-date"
                     type="button"
                     aria-labelledby="create-tournament-basic-date-label"
-                    aria-required="true"
                     variant="outline"
                     className={cn(
                       "mt-2 h-[38px] w-full justify-between rounded-[10px] border-[#e1e3e8] bg-[#f9fafc] px-3 text-left text-[13px] font-normal text-[#010a04] sm:mt-[10px] sm:h-[46px] sm:rounded-[12px] sm:px-[15px] sm:text-[14px]",

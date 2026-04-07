@@ -101,6 +101,7 @@ export function TournamentFilters({
     page: 1,
     limit: 200,
     q: clubSearch.trim().length > 0 ? clubSearch : undefined,
+    enabled: open || clubSearch.trim().length > 0,
   });
 
   const clubs = clubsData?.clubs ?? [];

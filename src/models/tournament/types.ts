@@ -52,6 +52,14 @@ export const tournamentPermissionsSchema = z.object({
   isParticipant: z.boolean(),
 });
 
+const memberCountSchema = z.coerce.number().int().min(1);
+
+function normalizeMemberRange<T extends { minMember: number; maxMember: number }>(value: T): T {
+  const minMember = Math.min(value.minMember, value.maxMember);
+  const maxMember = Math.max(value.minMember, value.maxMember);
+  return { ...value, minMember, maxMember };
+}
+
 export const tournamentListItemSchema = z.object({
   id: z.string(),
   name: z.string(),
@@ -96,8 +104,8 @@ export const backendTournamentDetailSchema = z.object({
   playMode: tournamentPlayModeSchema,
   tournamentMode: tournamentModeSchema,
   entryFee: z.number(),
-  minMember: z.number(),
-  maxMember: z.number(),
+  minMember: memberCountSchema,
+  maxMember: memberCountSchema,
   duration: z.string(),
   breakDuration: z.string(),
   courts: z.array(tournamentCourtSchema),
@@ -109,7 +117,7 @@ export const backendTournamentDetailSchema = z.object({
   permissions: tournamentPermissionsSchema,
   createdAt: z.string().nullable(),
   updatedAt: z.string().nullable(),
-});
+}).transform(normalizeMemberRange);
 
 export const backendTournamentDetailResponseSchema = z.object({
   tournament: backendTournamentDetailSchema,
@@ -124,8 +132,8 @@ const tournamentInputBaseSchema = z.object({
   playMode: tournamentPlayModeSchema,
   tournamentMode: tournamentModeSchema,
   entryFee: z.number(),
-  minMember: z.number(),
-  maxMember: z.number(),
+  minMember: memberCountSchema,
+  maxMember: memberCountSchema,
   duration: z.string(),
   breakDuration: z.string(),
   courts: z.array(z.string()).optional(),
@@ -133,19 +141,27 @@ const tournamentInputBaseSchema = z.object({
   descriptionInfo: z.string().nullable().optional(),
 });
 
-export const createTournamentInputSchema = tournamentInputBaseSchema.extend({
-  club: z.string(),
-  name: z.string(),
-  status: z.enum(["draft", "active"]),
-  date: z.string().nullable(),
-});
+export const createTournamentInputSchema = tournamentInputBaseSchema
+  .extend({
+    club: z.string(),
+    name: z.string(),
+    status: z.enum(["draft", "active"]),
+    date: z.string().nullable(),
+  })
+  .transform(normalizeMemberRange);
 
 export const updateTournamentInputSchema = tournamentInputBaseSchema
   .extend({
     club: z.string(),
     name: z.string(),
   })
-  .partial();
+  .partial()
+  .transform((value) => {
+    if (value.minMember == null || value.maxMember == null) {
+      return value;
+    }
+    return normalizeMemberRange(value);
+  });
 
 export const backendCreateTournamentInputSchema = z.object({
   club: z.string(),
@@ -159,14 +175,14 @@ export const backendCreateTournamentInputSchema = z.object({
   playMode: tournamentPlayModeSchema,
   tournamentMode: tournamentModeSchema,
   entryFee: z.number(),
-  minMember: z.number(),
-  maxMember: z.number(),
+  minMember: memberCountSchema,
+  maxMember: memberCountSchema,
   duration: z.string(),
   breakDuration: z.string(),
   courts: z.array(z.string()).optional(),
   foodInfo: z.string().nullable().optional(),
   descriptionInfo: z.string().nullable().optional(),
-});
+}).transform(normalizeMemberRange);
 
 export const backendUpdateTournamentInputSchema = z
   .object({
@@ -180,15 +196,21 @@ export const backendUpdateTournamentInputSchema = z
     playMode: tournamentPlayModeSchema,
     tournamentMode: tournamentModeSchema,
     entryFee: z.number(),
-    minMember: z.number(),
-    maxMember: z.number(),
+    minMember: memberCountSchema,
+    maxMember: memberCountSchema,
     duration: z.string().nullable(),
     breakDuration: z.string().nullable(),
     courts: z.array(z.string()),
     foodInfo: z.string().nullable(),
     descriptionInfo: z.string().nullable(),
   })
-  .partial();
+  .partial()
+  .transform((value) => {
+    if (value.minMember == null || value.maxMember == null) {
+      return value;
+    }
+    return normalizeMemberRange(value);
+  });
 
 const createTournamentSummarySchema = z.object({
   id: z.string().optional(),

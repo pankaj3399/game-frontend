@@ -1,11 +1,11 @@
 import type {
   TournamentDistanceFilter,
   TournamentListFilters,
-  TournamentListView,
   TournamentWhenFilter,
 } from "./types";
+import type { TournamentTabValue } from "./tabs";
 
-export type TournamentListTab = TournamentListView;
+export type TournamentListTab = TournamentTabValue;
 
 export interface TournamentListPageFilters {
   page: number;

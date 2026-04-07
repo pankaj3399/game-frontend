@@ -15,6 +15,7 @@ import { useTournaments } from "./hooks/useTournaments";
 import { useAuth } from "@/pages/auth/hooks";
 import { TournamentTableSkeleton } from "@/components/ui/tournament-table-skeleton";
 import { getErrorMessage } from "@/lib/errors";
+import { TournamentTab } from "@/models/tournament";
 
 export default function TournamentListPage() {
   return <TournamentListContent/>;
@@ -27,11 +28,6 @@ const DEFAULT_PAGINATION =  {
   limit: 10,
   totalPages: 0,
 }
-
-export const TournamentTab = {
-  Drafts: "drafts",
-  Published: "published",
-} as const;
 
 function TournamentListContent() {
   const { t, i18n } = useTranslation();

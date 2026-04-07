@@ -4,8 +4,7 @@ import { RoleGuard } from "@/components/auth/RoleGuard";
 import { Button } from "@/components/ui/button";
 import { ROLES } from "@/constants/roles";
 import { TournamentFilters } from "./TournamentFilters";
-import type { TournamentListTab } from "@/models/tournament";
-import { TournamentTab } from "../TournamentListPage";
+import { TournamentTab, type TournamentListTab } from "@/models/tournament";
 interface TournamentActionsProps {
   activeTab: TournamentListTab;
   onTabChange: (tab: TournamentListTab) => void;
