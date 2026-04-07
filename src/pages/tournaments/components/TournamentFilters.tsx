@@ -15,7 +15,6 @@ interface TournamentFiltersProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   filters: {
-    query: string;
     when?: string;
     distance?: string;
     clubId?: string;
@@ -41,6 +40,7 @@ function PillGroup({
           <button
             key={opt.value}
             type="button"
+            aria-pressed={active}
             onClick={() => onChange(opt.value)}
             className={[
               "relative h-8 rounded-full px-3.5 text-[12.5px] font-medium transition-all duration-150 select-none",
@@ -233,8 +233,6 @@ export function TournamentFilters({
                 className="h-9 rounded-xl border-black/12 bg-black/[0.025] pl-9 text-sm placeholder:text-black/30 focus:bg-white focus:border-brand-primary/40 transition-colors"
                 aria-labelledby={clubFilterLabelId}
                 autoComplete="off"
-                role="combobox"
-                aria-expanded={clubSearchOpen}
               />
 
               {/* Dropdown */}

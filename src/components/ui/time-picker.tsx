@@ -139,13 +139,22 @@ export function TimePicker({
     setMinuteInput(String(selectedMinute).padStart(2, "0"));
   }, [selectedHour, selectedMinute]);
 
+  /** Sync hour/minute text inputs to a proposed total-minutes value (12h display). */
+  const syncInputsToTotalMinutes = useCallback((totalMinutes: number) => {
+    const hour24 = ((Math.floor(totalMinutes / 60) % 24) + 24) % 24;
+    const minute = ((totalMinutes % 60) + 60) % 60;
+    const hour12 = hour24 % 12 || 12;
+    setHourInput(String(hour12).padStart(2, "0"));
+    setMinuteInput(String(minute).padStart(2, "0"));
+  }, []);
+
   const hasSelectableTime = hasNonEmptyTimeBounds(bounds);
 
   const proposeTime = useCallback(
     (next: string | null): boolean => {
       if (next === null) {
         onChange(null);
-        rejectAndSyncInputs();
+        syncInputsToTotalMinutes(0);
         return true;
       }
       const m = time24ToMinutes(next);
@@ -157,10 +166,10 @@ export function TimePicker({
         return false;
       }
       onChange(minutesToTime24(m));
-      rejectAndSyncInputs();
+      syncInputsToTotalMinutes(m);
       return true;
     },
-    [onChange, bounds, hasSelectableTime, rejectAndSyncInputs]
+    [onChange, bounds, hasSelectableTime, syncInputsToTotalMinutes]
   );
 
   const setHour = (hour: number) => {

@@ -45,6 +45,7 @@ export function useTournamentForm({ mode, tournamentId = null, open }: UseTourna
   const hasUserEditedRef = useRef(false);
   const previousOpenRef = useRef(open);
   const previousInitialFormRef = useRef<CreateTournamentInput | null>(null);
+  const previousValidTournamentIdRef = useRef<string | null>(validTournamentId);
 
   useEffect(() => {
     const justOpened = open && !previousOpenRef.current;
@@ -52,7 +53,12 @@ export function useTournamentForm({ mode, tournamentId = null, open }: UseTourna
 
     if (!open) {
       hasUserEditedRef.current = false;
+      previousValidTournamentIdRef.current = validTournamentId;
       return;
+    }
+    if (validTournamentId !== previousValidTournamentIdRef.current) {
+      hasUserEditedRef.current = false;
+      previousValidTournamentIdRef.current = validTournamentId;
     }
     if (isEditMode && (isTournamentLoading || initialForm === null)) {
       return;
@@ -63,7 +69,7 @@ export function useTournamentForm({ mode, tournamentId = null, open }: UseTourna
       setForm(initialForm);
     }
     previousInitialFormRef.current = initialForm;
-  }, [open, isEditMode, isTournamentLoading, initialForm]);
+  }, [open, isEditMode, isTournamentLoading, initialForm, validTournamentId]);
 
   const { data: sponsorsData, isLoading: isSponsorsLoading } = useClubSponsors(
     open ? form.club || null : null

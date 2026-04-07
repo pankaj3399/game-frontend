@@ -179,13 +179,14 @@ export function DetailsTab({ form, update }: DetailsTabProps) {
             value={form.minMember}
             onChange={(e) => {
               const v = e.target.value;
-              const n = v === "" ? 1 : parseFloat(v);
+              const n = v === "" ? 1 : parseInt(v, 10);
               const parsed = Number.isFinite(n) ? n : 1;
               const atLeastOne = Math.max(1, parsed);
-              const validMax =
+              const validMaxRaw =
                 Number.isFinite(form.maxMember) && form.maxMember >= 1
-                  ? form.maxMember
+                  ? Math.floor(form.maxMember)
                   : atLeastOne;
+              const validMax = Math.max(1, validMaxRaw);
               update({ minMember: Math.min(atLeastOne, validMax) });
             }}
             className="h-[38px] rounded-[10px] border-[#e1e3e8] bg-[#f9fafc] px-3 text-[13px] font-normal text-[#010a04] sm:h-[46px] sm:rounded-[12px] sm:px-[15px] sm:text-[16px]"
@@ -208,10 +209,13 @@ export function DetailsTab({ form, update }: DetailsTabProps) {
             value={form.maxMember}
             onChange={(e) => {
               const v = e.target.value;
-              const n = v === "" ? 1 : parseFloat(v);
+              const n = v === "" ? 1 : parseInt(v, 10);
               const parsed = Number.isFinite(n) ? n : 1;
               const atLeastOne = Math.max(1, parsed);
-              const safeMin = Number.isFinite(form.minMember) ? form.minMember : 1;
+              const safeMin = Math.max(
+                1,
+                Number.isFinite(form.minMember) ? Math.floor(form.minMember) : 1
+              );
               update({ maxMember: Math.max(atLeastOne, safeMin) });
             }}
             className="h-[38px] rounded-[10px] border-[#e1e3e8] bg-[#f9fafc] px-3 text-[13px] font-normal text-[#010a04] sm:h-[46px] sm:rounded-[12px] sm:px-[15px] sm:text-[16px]"

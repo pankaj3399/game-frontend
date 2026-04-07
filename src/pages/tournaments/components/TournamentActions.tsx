@@ -11,7 +11,6 @@ interface TournamentActionsProps {
   onTabChange: (tab: TournamentListTab) => void;
   filtersOpen: boolean;
   onFiltersOpenChange: (open: boolean) => void;
-  query: string;
   when?: string;
   distance?: string;
   clubId?: string;
@@ -24,7 +23,6 @@ export function TournamentActions({
   onTabChange,
   filtersOpen,
   onFiltersOpenChange,
-  query,
   when,
   distance,
   clubId,
@@ -39,7 +37,6 @@ export function TournamentActions({
         open={filtersOpen}
         onOpenChange={onFiltersOpenChange}
         filters={{
-          query,
           when,
           distance,
           clubId,

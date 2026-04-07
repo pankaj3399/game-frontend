@@ -1,12 +1,14 @@
-import { useState } from "react";
+import { useId, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useTranslation } from "react-i18next";
 import InlineLoader from "@/components/shared/InlineLoader";
 import { PaginationBar } from "@/components/pagination/PaginationBar";
 import { CreateTournamentModal } from "@/pages/tournaments/components/CreateTournamentModal";
-import {  useIsOrganiserOrAbove } from "@/pages/auth/hooks";
+import { useIsOrganiserOrAbove } from "@/pages/auth/hooks";
 import { TournamentActions } from "@/pages/tournaments/components/TournamentActions";
 import { TournamentTable } from "@/pages/tournaments/components/TournamentTable";
+import { Input } from "@/components/ui/input";
+import { Search01Icon } from "@/icons/figma-icons";
 import { useTournamentFilters } from "@/pages/tournaments/hooks/useTournamentFilters";
 import { useTournamentPermissions } from "@/pages/tournaments/hooks/useTournamentPermissions";
 import { useTournaments } from "./hooks/useTournaments";
@@ -34,29 +36,35 @@ export const TournamentTab = {
 function TournamentListContent() {
   const { t, i18n } = useTranslation();
   const isOrganiserOrAbove = useIsOrganiserOrAbove();
-  const {user} = useAuth();
+  const { user } = useAuth();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const listSearchLabelId = useId();
   const {
     activeTab,
     filters,
     effectiveFilters,
     filtersOpen,
     setFiltersOpen,
-  setTab,
+    setTab,
     setWhenFromValue,
     setDistanceFromValue,
     setClubId,
+    setQuery,
     setPage,
   } = useTournamentFilters({ isOrganiserOrAbove, userId: user?.id ?? undefined });
   const { isDraftTab } = useTournamentPermissions({
     activeTab,
   });
 
-  const { data, error, isPending, isFetching, refetch } = useTournaments(effectiveFilters());
+  const { data, error, isPending, isFetching, refetch, isLoadingError } = useTournaments(
+    effectiveFilters()
+  );
 
   const tournaments = data?.tournaments ?? [];
   const pagination = data?.pagination ?? DEFAULT_PAGINATION;
   const loadErrorDetail = error ? getErrorMessage(error) : null;
+  const showFullPageLoadError = isLoadingError || (!data && !!error && !isPending);
+  const showRefetchErrorBanner = !!error && !!data && !isPending;
   const handleFiltersChange = (next: { when: string; distance: string; clubId?: string }) => {
     setWhenFromValue(next.when);
     setDistanceFromValue(next.distance);
@@ -79,7 +87,6 @@ function TournamentListContent() {
                 onTabChange={setTab}
                 filtersOpen={filtersOpen}
                 onFiltersOpenChange={setFiltersOpen}
-                query={filters.q ?? ""}
                 when={filters.when}
                 distance={filters.distance}
                 clubId={filters.clubId}
@@ -87,11 +94,33 @@ function TournamentListContent() {
                 onCreate={() => setIsCreateModalOpen(true)}
               />
             </div>
+
+            <div className="border-t border-black/[0.08] pt-3 pb-1 sm:pt-3.5 sm:pb-2">
+              <div className="relative">
+                <Search01Icon
+                  size={16}
+                  className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-black/35"
+                  aria-hidden
+                />
+                <Input
+                  type="search"
+                  value={filters.q ?? ""}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder={t("tournaments.filterSearchPlaceholder")}
+                  aria-labelledby={listSearchLabelId}
+                  autoComplete="off"
+                  className="h-10 w-full rounded-xl border-black/12 bg-black/[0.025] pl-10 text-sm placeholder:text-black/35 focus:border-brand-primary/40 focus:bg-white"
+                />
+                <span id={listSearchLabelId} className="sr-only">
+                  {t("tournaments.filterSearch")}
+                </span>
+              </div>
+            </div>
           </div>
 
           {isPending ? (
             <TournamentTableSkeleton />
-          ) : error ? (
+          ) : showFullPageLoadError ? (
             <div className="space-y-4 px-6 py-12 text-center">
               <p className="text-muted-foreground">{t("tournaments.listLoadError")}</p>
               {loadErrorDetail ? (
@@ -107,20 +136,46 @@ function TournamentListContent() {
                 {isFetching ? t("common.loading") : t("tournaments.retry")}
               </Button>
             </div>
-          ) : tournaments.length === 0 ? (
-            <div className="px-6 py-12 text-center">
-              <p className="text-muted-foreground">
-                {isDraftTab
-                  ? t("tournaments.noDrafts")
-                  : t("tournaments.noTournaments")}
-              </p>
-            </div>
           ) : (
-            <TournamentTable
-              tournaments={tournaments}
-              pagination={pagination}
-              language={i18n.language}
-            />
+            <>
+              {showRefetchErrorBanner ? (
+                <div className="flex flex-col gap-2 border-b border-destructive/20 bg-destructive/5 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-5">
+                  <p className="text-sm text-muted-foreground">
+                    {t("tournaments.listLoadError")}
+                    {loadErrorDetail ? (
+                      <span className="mt-1 block text-xs text-muted-foreground/90">
+                        {loadErrorDetail}
+                      </span>
+                    ) : null}
+                  </p>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="shrink-0 self-start sm:self-auto"
+                    disabled={isFetching}
+                    onClick={() => void refetch()}
+                  >
+                    {isFetching ? t("common.loading") : t("tournaments.retry")}
+                  </Button>
+                </div>
+              ) : null}
+              {tournaments.length === 0 ? (
+                <div className="px-6 py-12 text-center">
+                  <p className="text-muted-foreground">
+                    {isDraftTab
+                      ? t("tournaments.noDrafts")
+                      : t("tournaments.noTournaments")}
+                  </p>
+                </div>
+              ) : (
+                <TournamentTable
+                  tournaments={tournaments}
+                  pagination={pagination}
+                  language={i18n.language}
+                />
+              )}
+            </>
           )}
 
           {isFetching && !isPending ? (
