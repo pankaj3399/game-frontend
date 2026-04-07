@@ -87,6 +87,7 @@ export function buildDraftUpdatePayload(form: CreateTournamentInput): Omit<Creat
     club: payload.club,
     name: payload.name,
     sponsor: payload.sponsor,
+    logo: payload.logo,
     date: payload.date,
     startTime: payload.startTime,
     endTime: payload.endTime,

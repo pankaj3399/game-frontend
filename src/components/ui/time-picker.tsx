@@ -150,8 +150,8 @@ export function TimePicker({
 
   const hasSelectableTime = hasNonEmptyTimeBounds(bounds);
 
-  const notifyTimeConstraint = useCallback(() => {
-    toast.warning(t("tournaments.invalidTimeRange"), {
+  const notifyTimeConstraint = useCallback((messageKey: string) => {
+    toast.warning(t(messageKey), {
       id: "tournament-time-constraint",
       duration: 3800,
     });
@@ -166,15 +166,15 @@ export function TimePicker({
       }
       const m = time24ToMinutes(next);
       if (m === null) {
-        notifyTimeConstraint();
+        notifyTimeConstraint("tournaments.invalidTimeInput");
         return false;
       }
       if (!hasSelectableTime) {
-        notifyTimeConstraint();
+        notifyTimeConstraint("tournaments.noAvailableSlots");
         return false;
       }
       if (!isMinutesWithinTimeBounds(m, bounds)) {
-        notifyTimeConstraint();
+        notifyTimeConstraint("tournaments.timeOutOfBounds");
         return false;
       }
       onChange(minutesToTime24(m));

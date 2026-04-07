@@ -45,6 +45,7 @@ export function BasicInfoTab({
   const { t } = useTranslation();
 
   const selectedDate = parseIsoDateSafely(form.date) ?? undefined;
+  const scheduledErrorKey = getScheduledTimeRangeErrorKey(form);
 
   return (
     <div className="min-w-0 max-w-full space-y-3 overflow-x-clip sm:space-y-5">
@@ -239,12 +240,12 @@ export function BasicInfoTab({
             <div aria-hidden="true" className="hidden sm:block" />
           </div>
 
-          {getScheduledTimeRangeErrorKey(form) ? (
+          {scheduledErrorKey ? (
             <p
               className="text-[13px] font-medium leading-snug text-destructive sm:text-sm"
               role="alert"
             >
-              {t("tournaments.invalidTimeRange")}
+              {t(scheduledErrorKey)}
             </p>
           ) : null}
         </>
