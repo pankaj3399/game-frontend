@@ -1,18 +1,23 @@
 import { z } from "zod";
 
-export const tournamentStatusSchema = z.enum(["active", "draft", "inactive"]);
+export const tournamentStatusSchema = z.enum(["active", "draft"]);
 export const tournamentModeSchema = z.enum(["singleDay", "period"]);
 export const tournamentPlayModeSchema = z.enum(["TieBreak10", "1set", "3setTieBreak10", "3set", "5set"]);
 export const tournamentListViewSchema = z.enum(["published", "drafts"]);
+export const tournamentWhenFilterSchema = z.enum(["future", "past"]);
+export const tournamentDistanceFilterSchema = z.enum(["under50", "between50And80", "over80"]);
 
 export type TournamentStatus = z.infer<typeof tournamentStatusSchema>;
 export type TournamentMode = z.infer<typeof tournamentModeSchema>;
 export type TournamentPlayMode = z.infer<typeof tournamentPlayModeSchema>;
 export type TournamentListView = z.infer<typeof tournamentListViewSchema>;
+export type TournamentWhenFilter = z.infer<typeof tournamentWhenFilterSchema>;
+export type TournamentDistanceFilter = z.infer<typeof tournamentDistanceFilterSchema>;
 
 export const tournamentClubSchema = z.object({
   id: z.string(),
   name: z.string(),
+  address: z.string().nullable().optional(),
 });
 
 export const tournamentSponsorSchema = z.object({
@@ -47,6 +52,14 @@ export const tournamentPermissionsSchema = z.object({
   isParticipant: z.boolean(),
 });
 
+const memberCountSchema = z.coerce.number().int().min(1);
+
+function normalizeMemberRange<T extends { minMember: number; maxMember: number }>(value: T): T {
+  const minMember = Math.min(value.minMember, value.maxMember);
+  const maxMember = Math.max(value.minMember, value.maxMember);
+  return { ...value, minMember, maxMember };
+}
+
 export const tournamentListItemSchema = z.object({
   id: z.string(),
   name: z.string(),
@@ -57,11 +70,13 @@ export const tournamentListItemSchema = z.object({
 });
 
 export const tournamentListFiltersSchema = z.object({
-  status: tournamentStatusSchema.optional(),
   page: z.number().int().min(1).optional(),
   limit: z.number().int().min(1).optional(),
   q: z.string().optional(),
   view: tournamentListViewSchema.optional(),
+  when: tournamentWhenFilterSchema.optional(),
+  distance: tournamentDistanceFilterSchema.optional(),
+  clubId: z.string().optional(),
 });
 
 export const tournamentPaginationSchema = z.object({
@@ -89,8 +104,8 @@ export const backendTournamentDetailSchema = z.object({
   playMode: tournamentPlayModeSchema,
   tournamentMode: tournamentModeSchema,
   entryFee: z.number(),
-  minMember: z.number(),
-  maxMember: z.number(),
+  minMember: memberCountSchema,
+  maxMember: memberCountSchema,
   duration: z.string(),
   breakDuration: z.string(),
   courts: z.array(tournamentCourtSchema),
@@ -102,7 +117,7 @@ export const backendTournamentDetailSchema = z.object({
   permissions: tournamentPermissionsSchema,
   createdAt: z.string().nullable(),
   updatedAt: z.string().nullable(),
-});
+}).transform(normalizeMemberRange);
 
 export const backendTournamentDetailResponseSchema = z.object({
   tournament: backendTournamentDetailSchema,
@@ -117,8 +132,8 @@ const tournamentInputBaseSchema = z.object({
   playMode: tournamentPlayModeSchema,
   tournamentMode: tournamentModeSchema,
   entryFee: z.number(),
-  minMember: z.number(),
-  maxMember: z.number(),
+  minMember: memberCountSchema,
+  maxMember: memberCountSchema,
   duration: z.string(),
   breakDuration: z.string(),
   courts: z.array(z.string()).optional(),
@@ -126,19 +141,31 @@ const tournamentInputBaseSchema = z.object({
   descriptionInfo: z.string().nullable().optional(),
 });
 
-export const createTournamentInputSchema = tournamentInputBaseSchema.extend({
-  club: z.string(),
-  name: z.string(),
-  status: z.enum(["draft", "active"]),
-  date: z.string().nullable(),
-});
+export const createTournamentInputSchema = tournamentInputBaseSchema
+  .extend({
+    club: z.string(),
+    name: z.string(),
+    status: z.enum(["draft", "active"]),
+    date: z.string().nullable(),
+  })
+  .transform(normalizeMemberRange);
 
 export const updateTournamentInputSchema = tournamentInputBaseSchema
   .extend({
     club: z.string(),
     name: z.string(),
   })
-  .partial();
+  .partial()
+  .refine(
+    (value) =>
+      value.minMember == null ||
+      value.maxMember == null ||
+      value.minMember <= value.maxMember,
+    {
+      path: ["minMember"],
+      message: "minMember must be less than or equal to maxMember",
+    }
+  );
 
 export const backendCreateTournamentInputSchema = z.object({
   club: z.string(),
@@ -152,14 +179,14 @@ export const backendCreateTournamentInputSchema = z.object({
   playMode: tournamentPlayModeSchema,
   tournamentMode: tournamentModeSchema,
   entryFee: z.number(),
-  minMember: z.number(),
-  maxMember: z.number(),
+  minMember: memberCountSchema,
+  maxMember: memberCountSchema,
   duration: z.string(),
   breakDuration: z.string(),
   courts: z.array(z.string()).optional(),
   foodInfo: z.string().nullable().optional(),
   descriptionInfo: z.string().nullable().optional(),
-});
+}).transform(normalizeMemberRange);
 
 export const backendUpdateTournamentInputSchema = z
   .object({
@@ -173,15 +200,25 @@ export const backendUpdateTournamentInputSchema = z
     playMode: tournamentPlayModeSchema,
     tournamentMode: tournamentModeSchema,
     entryFee: z.number(),
-    minMember: z.number(),
-    maxMember: z.number(),
+    minMember: memberCountSchema,
+    maxMember: memberCountSchema,
     duration: z.string().nullable(),
     breakDuration: z.string().nullable(),
     courts: z.array(z.string()),
     foodInfo: z.string().nullable(),
     descriptionInfo: z.string().nullable(),
   })
-  .partial();
+  .partial()
+  .refine(
+    (value) =>
+      value.minMember == null ||
+      value.maxMember == null ||
+      value.minMember <= value.maxMember,
+    {
+      path: ["minMember"],
+      message: "minMember must be less than or equal to maxMember",
+    }
+  );
 
 const createTournamentSummarySchema = z.object({
   id: z.string().optional(),
@@ -215,7 +252,7 @@ const joinTournamentSummarySchema = z.object({
   isParticipant: z.boolean(),
 });
 
-export const publishTournamentPayloadSchema = z.object({}).strict();
+export const publishTournamentPayloadSchema = updateTournamentInputSchema;
 
 export const createTournamentResponseSchema = z.object({
   message: z.string(),
@@ -263,3 +300,11 @@ export type CreateTournamentResponse = z.infer<typeof createTournamentResponseSc
 export type UpdateTournamentResponse = z.infer<typeof updateTournamentResponseSchema>;
 export type PublishTournamentResponse = z.infer<typeof publishTournamentResponseSchema>;
 export type JoinTournamentResponse = z.infer<typeof joinTournamentResponseSchema>;
+
+export function isTournamentWhenFilter(value: string): value is TournamentWhenFilter {
+  return value === "future" || value === "past";
+}
+
+export function isTournamentDistanceFilter(value: string): value is TournamentDistanceFilter {
+  return value === "under50" || value === "between50And80" || value === "over80";
+}

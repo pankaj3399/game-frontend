@@ -77,9 +77,19 @@ export function InfoTab({ tournament, onJoin, isJoinPending }: InfoTabProps) {
               onGetDirection={
                 club
                   ? () => {
-                      const q = encodeURIComponent(club.name);
+                      const userAgent = navigator.userAgent;
+                      const isIOS =
+                        /iPad|iPhone|iPod/i.test(userAgent) ||
+                        (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+                      const locationParts = [club.name, club.address]
+                        .map((part) => part?.trim())
+                        .filter((part): part is string => Boolean(part));
+                      const q = encodeURIComponent(locationParts.join(", "));
+                      const mapsUrl = isIOS
+                        ? `https://maps.apple.com/?q=${q}`
+                        : `https://www.google.com/maps/search/?api=1&query=${q}`;
                       window.open(
-                        `https://www.google.com/maps/search/?api=1&query=${q}`,
+                        mapsUrl,
                         "_blank",
                         "noopener,noreferrer",
                       );

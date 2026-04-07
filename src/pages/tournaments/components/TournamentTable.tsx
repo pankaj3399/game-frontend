@@ -1,7 +1,5 @@
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
-import { PencilIcon, Upload01Icon, ViewIcon } from "@/icons/figma-icons";
-import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
@@ -17,41 +15,40 @@ import type {
 } from "@/models/tournament";
 import { formatDateDisplay } from "@/utils/display";
 import { getDateFnsLocale } from "@/lib/dateFnsLocale";
+import type { TFunction } from "i18next";
 
 interface TournamentTableProps {
   tournaments: TournamentListItem[];
   pagination: TournamentPagination;
   language: string;
-  getRowPermissions: (status: TournamentStatus) => {
-    canEditDraft: boolean;
-    canPublishDraft: boolean;
-  };
-  onEdit: (id: string) => void;
-  onPublish: (id: string) => void;
-  isPublishing: boolean;
 }
+
+const STATUS_DOTS: Record<TournamentStatus, string> = {
+  active: "bg-emerald-500",
+  draft: "bg-amber-400",
+};
 
 export function TournamentTable({
   tournaments,
   pagination,
   language,
-  getRowPermissions,
-  onEdit,
-  onPublish,
-  isPublishing,
 }: TournamentTableProps) {
   const { t } = useTranslation();
 
-  const STATUS_LABELS: Record<TournamentStatus, string> = {
-    active: t("tournaments.statusActive"),
-    draft: t("tournaments.statusDraft"),
-    inactive: t("tournaments.statusInactive"),
-  };
-  const STATUS_DOTS: Record<TournamentStatus, string> = {
-    active: "bg-emerald-500",
-    draft: "bg-amber-400",
-    inactive: "bg-muted-foreground/50",
-  };
+  function getStatusLabel(status: TournamentStatus, t: TFunction) {
+    switch (status) {
+      case "active":
+        return t("tournaments.statusActive");
+      case "draft":
+        return t("tournaments.statusDraft");
+      default:
+        return "";
+    }
+  }
+
+  
+ 
+
 
   return (
     <div className="overflow-x-auto border-y border-black/10">
@@ -61,25 +58,22 @@ export function TournamentTable({
             <TableHead className="h-[35px] w-12 px-4 py-0 text-left text-xs font-normal text-foreground/80">
               #
             </TableHead>
-            <TableHead className="h-[35px] w-[35%] px-3 py-0 text-left text-xs font-normal text-foreground/80">
+            <TableHead className="h-[35px] w-[42%] px-3 py-0 text-left text-xs font-normal text-foreground/80">
               {t("tournaments.tournamentName")}
             </TableHead>
-            <TableHead className="h-[35px] w-[33%] px-3 py-0 text-left text-xs font-normal text-foreground/80">
+            <TableHead className="h-[35px] w-[38%] px-3 py-0 text-left text-xs font-normal text-foreground/80">
               {t("tournaments.club")}
             </TableHead>
-            <TableHead className="h-[35px] w-[16%] px-3 py-0 text-left text-xs font-normal text-foreground/80">
+            <TableHead className="h-[35px] w-[20%] px-3 py-0 text-left text-xs font-normal text-foreground/80">
               {t("tournaments.date")}
-            </TableHead>
-            <TableHead className="h-[35px] w-[16%] px-3 py-0 text-left text-xs font-normal text-foreground/80">
-              {t("tournaments.action")}
             </TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {tournaments.map((tournament, idx) => {
-            const { canEditDraft, canPublishDraft } = getRowPermissions(tournament.status);
-            const statusLabel = STATUS_LABELS[tournament.status] || STATUS_LABELS.inactive;
-            const statusDotClass = STATUS_DOTS[tournament.status] || STATUS_DOTS.inactive;
+
+            const statusLabel = getStatusLabel(tournament.status, t);
+            const statusDotClass = STATUS_DOTS[tournament.status];
 
             return (
               <TableRow
@@ -90,7 +84,10 @@ export function TournamentTable({
                   {(pagination.page - 1) * pagination.limit + idx + 1}
                 </TableCell>
                 <TableCell className="px-3 py-0">
-                  <div className="flex items-center gap-2">
+                  <Link
+                    to={`/tournaments/${tournament.id}`}
+                    className="flex items-center gap-2 rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-brand-primary/60"
+                  >
                     <span
                       className="h-[22px] w-[22px] shrink-0 rounded-[5px] bg-black/15"
                       aria-hidden="true"
@@ -102,7 +99,7 @@ export function TournamentTable({
                       aria-label={statusLabel}
                       title={statusLabel}
                     />
-                  </div>
+                  </Link>
                 </TableCell>
                 <TableCell className="px-3 py-0">
                   <div className="flex items-center gap-2">
@@ -122,42 +119,16 @@ export function TournamentTable({
                     getDateFnsLocale(language)
                   )}
                 </TableCell>
-                <TableCell className="px-3 py-0">
-                  <div className="flex items-center gap-1.5">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      asChild
-                      className="h-auto px-0 text-sm font-normal text-foreground hover:bg-transparent"
-                    >
-                      <Link to={`/tournaments/${tournament.id}`}>
-                        <ViewIcon size={16} className="mr-1" />
-                        {t("tournaments.view")}
-                      </Link>
-                    </Button>
-                    {canEditDraft && (
-                      <Button variant="outline" size="sm" onClick={() => onEdit(tournament.id)}>
-                        <PencilIcon size={16} className="mr-1" />
-                        {t("tournaments.edit")}
-                      </Button>
-                    )}
-                    {canPublishDraft && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-auto px-1.5 text-sm font-normal text-foreground hover:bg-transparent"
-                        onClick={() => onPublish(tournament.id)}
-                        disabled={isPublishing}
-                      >
-                        <Upload01Icon size={16} className="mr-1" />
-                        {t("tournaments.publish")}
-                      </Button>
-                    )}
-                  </div>
-                </TableCell>
               </TableRow>
             );
           })}
+          {tournaments.length === 0 && (
+            <TableRow>
+              <TableCell colSpan={4} className="py-6 text-center text-sm text-muted-foreground">
+                {t("tournaments.noTournaments")}
+              </TableCell>
+            </TableRow>
+          )}
         </TableBody>
       </Table>
     </div>

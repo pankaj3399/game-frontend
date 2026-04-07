@@ -10,7 +10,7 @@ import {
   useTournamentById,
   useJoinTournament,
   usePublishTournament,
-} from "@/pages/tournaments/hooks/tournament";
+} from "@/pages/tournaments/hooks";
 import { getErrorMessage } from "@/lib/errors";
 import { toast } from "sonner";
 
@@ -137,7 +137,7 @@ export default function TournamentDetailsPage() {
           </div>
         </div>
 
-        <div className="flex flex-col gap-5 pb-6 sm:gap-6 sm:pb-7 lg:flex-row lg:items-start lg:justify-between">
+        <div className="flex flex-col gap-5 pb-3 sm:gap-6 sm:pb-4 lg:flex-row lg:items-start lg:justify-between">
           <div className="flex min-w-0 items-center gap-4 sm:gap-5">
             <div className="flex h-10 w-10 shrink-0 overflow-hidden rounded-[10px] bg-[#e4dbcc]">
               <img src="/tennis-ball.png" alt="" className="h-full w-full object-cover" />
@@ -164,7 +164,7 @@ export default function TournamentDetailsPage() {
                         .split(/\s+/)
                         .filter(Boolean)
                         .slice(0, 2)
-                        .map((word) => word.charAt(0).toUpperCase())
+                        .map((word: string) => word.charAt(0).toUpperCase())
                         .join("") || "?"}
                     </span>
                   )}

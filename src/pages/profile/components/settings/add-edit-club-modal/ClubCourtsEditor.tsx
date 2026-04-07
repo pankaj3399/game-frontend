@@ -56,7 +56,7 @@ export function ClubCourtsEditor({
             />
             <Select value={court.type} onValueChange={(value) => onCourtChange(index, "type", value)}>
               <SelectTrigger className="h-[38px] w-full rounded-[8px] border-[#e1e3e8] bg-[#f9fafc] px-2 text-[13px] font-medium text-[#010a04] shadow-none focus-visible:ring-0 [&_svg]:size-3.5">
-                <SelectValue />
+                <SelectValue placeholder={t("selectOption")} />
               </SelectTrigger>
               <SelectContent>
                 {courtTypes.map((type) => (
@@ -71,7 +71,7 @@ export function ClubCourtsEditor({
               onValueChange={(value) => onCourtChange(index, "placement", value)}
             >
               <SelectTrigger className="h-[38px] w-full rounded-[8px] border-[#e1e3e8] bg-[#f9fafc] px-2 text-[13px] font-medium text-[#010a04] shadow-none focus-visible:ring-0 [&_svg]:size-3.5">
-                <SelectValue />
+                <SelectValue placeholder={t("selectOption")} />
               </SelectTrigger>
               <SelectContent>
                 {courtPlacements.map((placement) => (

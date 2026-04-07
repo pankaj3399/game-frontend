@@ -12,7 +12,9 @@ export type {
   TournamentMode,
   TournamentPagination,
   TournamentPlayMode,
+  TournamentDistanceFilter,
   TournamentStatus,
+  TournamentWhenFilter,
   TournamentsResponse,
   UpdateTournamentInput,
 } from "./types";
@@ -20,11 +22,16 @@ export type {
 export {
   DEFAULT_TOURNAMENT_FILTERS_STATE,
   filtersReducer,
-  getDraftActionPermissions,
-  isTournamentStatus,
   shapeTournamentFilters,
   type TournamentFiltersAction,
   type TournamentFiltersState,
   type TournamentListPageFilters,
   type TournamentListTab,
 } from "./filters";
+
+export { TournamentTab, type TournamentTabValue } from "./tabs";
+
+export {
+  isTournamentDistanceFilter,
+  isTournamentWhenFilter,
+} from "./types";

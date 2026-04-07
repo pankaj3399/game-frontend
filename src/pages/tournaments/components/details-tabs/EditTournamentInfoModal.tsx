@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import { useAdminClubs } from "@/pages/clubs/hooks";
 import { useClubSponsors } from "@/pages/sponsors/hooks";
 import type { TournamentDetail, UpdateTournamentInput } from "@/models/tournament/types";
-import { useUpdateTournament } from "@/pages/tournaments/hooks/tournament";
+import { useUpdateTournament } from "@/pages/tournaments/hooks";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,

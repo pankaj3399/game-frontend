@@ -29,7 +29,8 @@ async function updateTournament(id: string, data: UpdateTournamentInput): Promis
 }
 
 async function publishTournament(id: string, data: PublishTournamentPayload = {}) {
-  const payload = publishTournamentPayloadSchema.parse(data);
+  const parsed = publishTournamentPayloadSchema.parse(data);
+  const payload = toBackendUpdateInput(parsed);
   const res = await api.post(`/api/tournaments/${id}/publish`, payload);
   return publishTournamentResponseSchema.parse(res.data);
 }

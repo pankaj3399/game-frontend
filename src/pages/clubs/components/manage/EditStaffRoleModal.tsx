@@ -106,7 +106,7 @@ export function EditStaffRoleModal({
                 id="staff-role-select"
                 className="h-[40px] w-full rounded-[8px] border-[#e1e3e8] bg-white text-[14px]"
               >
-                <SelectValue />
+                <SelectValue placeholder={t("selectOption")} />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="admin">{t("manageClub.roleAdmin")}</SelectItem>

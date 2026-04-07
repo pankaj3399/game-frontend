@@ -67,7 +67,11 @@ export function Sidebar({
         <div className="my-6 h-px w-full bg-[#dddddd]" />
 
         <div className="flex items-end gap-1 text-[#010a04]">
-          <p className="text-[22px] leading-[26px]">{t("tournaments.entryFeeFormat", { amount: feeValue })}</p>
+          <p className="text-[22px] leading-[26px]">
+            {feeValue > 0
+              ? t("tournaments.entryFeeFormat", { amount: feeValue })
+              : t("tournaments.entryFeeFree")}
+          </p>
           <p className="text-[16px] font-medium leading-5 text-[#010a04]/75">{t("tournaments.feeSidebarCaption")}</p>
         </div>
 

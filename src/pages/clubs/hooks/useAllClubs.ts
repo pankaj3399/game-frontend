@@ -25,6 +25,7 @@ interface UseAllClubsOptions {
   page?: number;
   limit?: number;
   q?: string;
+  enabled?: boolean;
 }
 
 const DEFAULT_PAGE = 1;
@@ -49,10 +50,12 @@ export function useAllClubs(options: UseAllClubsOptions = {}) {
   const page = options.page ?? DEFAULT_PAGE;
   const limit = options.limit ?? DEFAULT_LIMIT;
   const q = options.q;
+  const enabled = options.enabled ?? true;
 
   return useQuery<AllClubsResponse>({
     queryKey: queryKeys.club.list({ page, limit, q }),
     queryFn: () => fetchAllClubs(page, limit, q),
+    enabled,
     placeholderData: (previousData) => previousData,
   });
 }
