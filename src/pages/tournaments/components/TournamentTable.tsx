@@ -78,6 +78,7 @@ export function TournamentTable({
               if (e.defaultPrevented) return;
               if (e.button !== 0) return;
               if (e.ctrlKey || e.metaKey) {
+                e.preventDefault();
                 window.open(rowPath, "_blank", "noopener,noreferrer");
                 return;
               }
@@ -99,6 +100,11 @@ export function TournamentTable({
                 }}
                 onKeyDown={(e) => {
                   if (e.key === "Enter" || e.key === " ") {
+                    if (e.ctrlKey || e.metaKey) {
+                      e.preventDefault();
+                      window.open(rowPath, "_blank", "noopener,noreferrer");
+                      return;
+                    }
                     e.preventDefault();
                     void navigate(rowPath);
                   }

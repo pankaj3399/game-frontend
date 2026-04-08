@@ -9,7 +9,6 @@ import {
   DURATION_OPTIONS,
   PLAY_MODES,
 } from "@/constants/tournament";
-import { getMemberRangeErrorKey } from "@/lib/tournament/form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -225,15 +224,6 @@ export function DetailsTab({ form, update }: DetailsTabProps) {
 
         <div className="hidden sm:block" aria-hidden="true" />
       </div>
-
-      {getMemberRangeErrorKey(form) ? (
-        <p
-          className="text-[13px] font-medium leading-snug text-destructive sm:text-sm"
-          role="alert"
-        >
-          {t("tournaments.invalidMemberRange")}
-        </p>
-      ) : null}
 
       <div className="min-w-0 space-y-2 sm:space-y-[10px]">
         <div className="flex min-w-0 flex-wrap items-baseline gap-x-1.5 gap-y-0">
