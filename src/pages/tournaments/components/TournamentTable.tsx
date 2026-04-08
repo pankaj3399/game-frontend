@@ -133,7 +133,7 @@ export function TournamentTable({
                       {row.isDraft ? (
                         <PencilEdit01Icon size={16} className="text-[#010a04]" />
                       ) : (
-                        <EyeIcon className="size-4 text-[#010a04]" />
+                        <EyeIcon size={16} className="text-[#010a04]" />
                       )}
                       {row.isDraft ? t("tournaments.edit") : t("tournaments.view")}
                     </span>

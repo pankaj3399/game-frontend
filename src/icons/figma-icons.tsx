@@ -334,9 +334,7 @@ export const Mail01Icon = createIcon("infoCircleBold");
 export const PencilEdit01Icon = createIcon("penLine");
 export const EyeIcon = createIcon("eye");
 EyeIcon.displayName = "EyeIcon";
-export const ViewIcon = React.forwardRef<HTMLSpanElement, IconProps>((props, ref) => (
-  <EyeIcon ref={ref} {...props} />
-));
+export const ViewIcon = EyeIcon;
 ViewIcon.displayName = "ViewIcon";
 export const PencilIcon = createIcon("penLine");
 export const PlusSignIcon = createIcon("plus");

@@ -114,7 +114,8 @@ export function useTournamentFilters({
   const [filtersOpen, setFiltersOpen] = useState(false);
   const hydratedStorageKeyRef = useRef<string | null>(null);
   const skipNextPersistRef = useRef(false);
-  const storageKey = getStorageKey(userId ?? ANONYMOUS_USER_STORAGE_ID);
+  const normalizedUserId = userId || ANONYMOUS_USER_STORAGE_ID;
+  const storageKey = getStorageKey(normalizedUserId);
 
   // ✅ Debounce only affects API layer, not state updates
   const debouncedQ = useDebouncedValue(
@@ -202,17 +203,23 @@ export function useTournamentFilters({
     if (isAuthLoading) {
       return;
     }
+    if (hydratedStorageKeyRef.current === storageKey) {
+      return;
+    }
 
     const anonymousStorageKey = getStorageKey(ANONYMOUS_USER_STORAGE_ID);
     const anonymousPersisted = readPersistedState(anonymousStorageKey);
-    const userPersisted = userId ? readPersistedState(storageKey) : null;
+    const userPersisted =
+      normalizedUserId === ANONYMOUS_USER_STORAGE_ID
+        ? null
+        : readPersistedState(storageKey);
 
     const persisted =
-      userId && userPersisted && anonymousPersisted
+      normalizedUserId !== ANONYMOUS_USER_STORAGE_ID && userPersisted && anonymousPersisted
         ? userPersisted.updatedAt >= anonymousPersisted.updatedAt
           ? userPersisted
           : anonymousPersisted
-        : userId
+        : normalizedUserId !== ANONYMOUS_USER_STORAGE_ID
           ? userPersisted ?? anonymousPersisted
           : anonymousPersisted;
 
@@ -235,7 +242,7 @@ export function useTournamentFilters({
     skipNextPersistRef.current = true;
 
     // Ensure logged-in key reflects latest state when fallback/anonymous was newer.
-    if (userId) {
+    if (normalizedUserId !== ANONYMOUS_USER_STORAGE_ID) {
       const shouldSyncToUserKey =
         !userPersisted ||
         (anonymousPersisted != null &&
@@ -257,7 +264,7 @@ export function useTournamentFilters({
     }
 
     hydratedStorageKeyRef.current = storageKey;
-  }, [isAuthLoading, isOrganiserOrAbove, storageKey, userId]);
+  }, [isAuthLoading, isOrganiserOrAbove, normalizedUserId, storageKey]);
 
   /**
    * 💾 Persist to localStorage
