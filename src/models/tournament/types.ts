@@ -228,21 +228,25 @@ const createTournamentSummarySchema = z.object({
   createdAt: z.string().nullable().optional(),
 });
 
-const updateTournamentSummarySchema = z.object({
-  id: z.string(),
-  name: z.string(),
-  club: z.string(),
-  status: z.string(),
-  date: z.string().nullable().optional(),
-  updatedAt: z.string().nullable().optional(),
-});
+const updateTournamentSummarySchema = z
+  .object({
+    id: z.string().optional(),
+    name: z.string().optional(),
+    club: z.string().optional(),
+    status: z.string().optional(),
+    date: z.string().nullable().optional(),
+    updatedAt: z.string().nullable().optional(),
+  })
+  .passthrough();
 
-const publishTournamentSummarySchema = z.object({
-  id: z.string(),
-  name: z.string(),
-  club: z.string(),
-  status: z.string(),
-});
+const publishTournamentSummarySchema = z
+  .object({
+    id: z.string().optional(),
+    name: z.string().optional(),
+    club: z.string().optional(),
+    status: z.string().optional(),
+  })
+  .passthrough();
 
 const joinTournamentSummarySchema = z.object({
   id: z.string(),

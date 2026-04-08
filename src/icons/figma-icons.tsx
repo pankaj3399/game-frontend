@@ -314,7 +314,7 @@ export const Mail01Icon = createIcon("infoCircleBold");
 export const PencilEdit01Icon = createIcon("penLine");
 export const PencilIcon = createIcon("penLine");
 export const PlusSignIcon = createIcon("plus");
-export const Upload01Icon = createIcon("cloudUpload");
+export const Upload01Icon = createIcon("cloudUpload", { defaultTone: "white" });
 export const ViewIcon = createIcon("userStar01");
 export const MoreVerticalIcon = createIcon("ellipsisVertical");
 

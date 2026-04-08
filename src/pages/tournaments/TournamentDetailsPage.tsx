@@ -118,7 +118,7 @@ export default function TournamentDetailsPage() {
                 disabled={publishTournament.isPending}
                 className="h-9 bg-[#067429] px-3 text-[13px] hover:bg-[#055b20]"
               >
-                <Upload01Icon size={15} className="mr-1" />
+                <Upload01Icon size={15} className="mr-1 text-white" />
                 {t("tournaments.publish")}
               </Button>
             )}
@@ -169,7 +169,6 @@ export default function TournamentDetailsPage() {
                     </span>
                   )}
                 </div>
-                <span className="truncate text-[14px] font-medium text-[#010a04]">{tournament.sponsor.name}</span>
               </div>
             </div>
           ) : null}
