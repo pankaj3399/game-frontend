@@ -430,13 +430,7 @@ export function EditTournamentInfoModal({ open, onOpenChange, tournament }: Edit
               onClick={handleSave}
               disabled={!hasChanges || isMutating}
             >
-              {tournament.status === "draft" ? (
-                isSavingDraft ? (
-                  <InlineLoader size="sm" />
-                ) : (
-                  t("settings.saveChanges")
-                )
-              ) : isPublishing ? (
+              {isMutating ? (
                 <InlineLoader size="sm" />
               ) : (
                 t("settings.saveChanges")

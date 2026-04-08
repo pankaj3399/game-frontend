@@ -334,10 +334,13 @@ export const Mail01Icon = createIcon("infoCircleBold");
 export const PencilEdit01Icon = createIcon("penLine");
 export const EyeIcon = createIcon("eye");
 EyeIcon.displayName = "EyeIcon";
+export const ViewIcon = React.forwardRef<HTMLSpanElement, IconProps>((props, ref) => (
+  <EyeIcon ref={ref} {...props} />
+));
+ViewIcon.displayName = "ViewIcon";
 export const PencilIcon = createIcon("penLine");
 export const PlusSignIcon = createIcon("plus");
 export const Upload01Icon = createIcon("cloudUpload");
-export const ViewIcon = createIcon("userStar01");
 export const MoreVerticalIcon = createIcon("ellipsisVertical");
 
 export const XIcon = IconX;

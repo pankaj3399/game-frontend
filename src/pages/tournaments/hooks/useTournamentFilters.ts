@@ -140,6 +140,11 @@ export function useTournamentFilters({
     [state, debouncedQ, isOrganiserOrAbove]
   );
 
+  const persistedQ =
+    typeof state.filters.q === "string" && state.filters.q.trim().length > 0
+      ? state.filters.q.trim()
+      : undefined;
+
   const setTab = useCallback((tab: TournamentListTab) => {
     dispatch({ type: "SET_TAB", payload: tab });
   }, []);
@@ -195,8 +200,6 @@ export function useTournamentFilters({
       return;
     }
     if (isAuthLoading) {
-      hydratedStorageKeyRef.current = null;
-      skipNextPersistRef.current = false;
       return;
     }
 
@@ -270,7 +273,7 @@ export function useTournamentFilters({
     const storagePayload = {
       activeTab: state.activeTab,
       filters: {
-        q: state.filters.q,
+        q: persistedQ,
         when: state.filters.when,
         distance: state.filters.distance,
         clubId: state.filters.clubId,
@@ -282,7 +285,7 @@ export function useTournamentFilters({
   }, [
     storageKey,
     state.activeTab,
-    state.filters.q,
+    persistedQ,
     state.filters.when,
     state.filters.distance,
     state.filters.clubId,
