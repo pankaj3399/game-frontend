@@ -63,17 +63,18 @@ export function PaginationBar({
   return (
     <div
       className={[
-        "flex items-center justify-between border-t border-border px-6 py-3",
+        "flex flex-col gap-3 border-t border-border px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:gap-0 sm:px-5 md:px-6",
         className,
       ]
         .filter(Boolean)
         .join(" ")}
     >
-      <p className="text-sm text-muted-foreground">{infoNode}</p>
-      <div className="flex gap-2">
+      <p className="text-center text-sm text-muted-foreground sm:text-left">{infoNode}</p>
+      <div className="flex w-full gap-2 sm:w-auto sm:justify-end">
         <Button
           variant="outline"
           size="sm"
+          className="h-9 flex-1 sm:flex-none"
           disabled={!canGoPrev}
           onClick={() => onPageChange(Math.max(1, pagination.page - 1))}
         >
@@ -82,6 +83,7 @@ export function PaginationBar({
         <Button
           variant="outline"
           size="sm"
+          className="h-9 flex-1 sm:flex-none"
           disabled={!canGoNext}
           onClick={() =>
             onPageChange(Math.min(pagination.totalPages, pagination.page + 1))

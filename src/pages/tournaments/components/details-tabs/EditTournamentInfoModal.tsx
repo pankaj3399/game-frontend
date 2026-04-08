@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import { useAdminClubs } from "@/pages/clubs/hooks";
 import { useClubSponsors } from "@/pages/sponsors/hooks";
 import type { TournamentDetail, UpdateTournamentInput } from "@/models/tournament/types";
-import { useUpdateTournament } from "@/pages/tournaments/hooks";
+import { usePublishTournament, useUpdateTournament } from "@/pages/tournaments/hooks";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -30,6 +30,33 @@ type TournamentInfoSelection = {
   sponsorName: string | null;
   sponsorLogoUrl: string | null;
 };
+
+function buildPublishPayload({
+  tournament,
+  resolvedClubId,
+  selectedSponsorId,
+}: {
+  tournament: TournamentDetail;
+  resolvedClubId: string;
+  selectedSponsorId: string;
+}): UpdateTournamentInput {
+  return {
+    club: resolvedClubId,
+    sponsor: selectedSponsorId || null,
+    name: tournament.name,
+    date: tournament.date ?? undefined,
+    startTime: tournament.startTime ?? undefined,
+    endTime: tournament.endTime ?? undefined,
+    playMode: tournament.playMode,
+    tournamentMode: tournament.tournamentMode,
+    entryFee: tournament.entryFee,
+    minMember: tournament.minMember,
+    maxMember: tournament.maxMember,
+    duration: tournament.duration ?? undefined,
+    breakDuration: tournament.breakDuration ?? undefined,
+    courts: tournament.courts.map((court) => court.id),
+  };
+}
 
 function SponsorIndicator({ selected }: { selected: boolean }) {
   return (
@@ -95,6 +122,7 @@ function SponsorOption({
 export function EditTournamentInfoModal({ open, onOpenChange, tournament }: EditTournamentInfoModalProps) {
   const { t } = useTranslation();
   const updateTournament = useUpdateTournament();
+  const publishTournament = usePublishTournament();
   const { data: adminClubsData } = useAdminClubs(open);
 
   const initialSelection: TournamentInfoSelection = {
@@ -162,7 +190,9 @@ export function EditTournamentInfoModal({ open, onOpenChange, tournament }: Edit
   const hasChanges =
     selectedClubId !== initialSelection.clubId || selectedSponsorId !== initialSelection.sponsorId;
 
-  const isMutating = updateTournament.isPending;
+  const isSavingDraft = updateTournament.isPending;
+  const isPublishing = publishTournament.isPending;
+  const isMutating = isSavingDraft || isPublishing;
 
   const resetSelection = () => {
     setSelection(null);
@@ -199,15 +229,18 @@ export function EditTournamentInfoModal({ open, onOpenChange, tournament }: Edit
     });
   };
 
-  const handleSave = async () => {
-    if (isMutating) return;
+  const handleSaveDraft = async () => {
+    if (isSavingDraft || isPublishing) return;
+    if (!hasChanges) return;
 
-    if (!hasChanges) {
+    const resolvedClubId = selectedClubId || tournament.club?.id;
+    if (!resolvedClubId) {
+      toast.error(t("tournaments.requiredNameAndClub"));
       return;
     }
 
     const payload: UpdateTournamentInput = {
-      club: selectedClubId,
+      club: resolvedClubId,
       sponsor: selectedSponsorId || null,
     };
 
@@ -217,6 +250,39 @@ export function EditTournamentInfoModal({ open, onOpenChange, tournament }: Edit
       closeModal();
     } catch (error: unknown) {
       toast.error(getErrorMessage(error) ?? t("tournaments.saveError"));
+    }
+  };
+
+  const handlePublish = async () => {
+    if (isSavingDraft || isPublishing) return;
+    if (!hasChanges) return;
+
+    const resolvedClubId = selectedClubId || tournament.club?.id;
+    if (!resolvedClubId) {
+      toast.error(t("tournaments.requiredNameAndClub"));
+      return;
+    }
+
+    const publishPayload = buildPublishPayload({
+      tournament,
+      resolvedClubId,
+      selectedSponsorId,
+    });
+
+    try {
+      await publishTournament.mutateAsync({ id: tournament.id, data: publishPayload });
+      toast.success(t("settings.saveSuccess"));
+      closeModal();
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error) ?? t("tournaments.saveError"));
+    }
+  };
+
+  const handleSave = () => {
+    if (tournament.status === "draft") {
+      void handleSaveDraft();
+    } else {
+      void handlePublish();
     }
   };
 
@@ -364,7 +430,11 @@ export function EditTournamentInfoModal({ open, onOpenChange, tournament }: Edit
               onClick={handleSave}
               disabled={!hasChanges || isMutating}
             >
-              {isMutating ? t("common.loading") : t("settings.saveChanges")}
+              {isMutating ? (
+                <InlineLoader size="sm" />
+              ) : (
+                t("settings.saveChanges")
+              )}
             </Button>
           </div>
         </div>

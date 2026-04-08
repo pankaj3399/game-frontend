@@ -31,7 +31,7 @@ export function TournamentActions({
   const { t } = useTranslation();
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex w-full flex-wrap items-center justify-start gap-2 sm:w-auto sm:justify-end">
       <TournamentFilters
         open={filtersOpen}
         onOpenChange={onFiltersOpenChange}
@@ -44,19 +44,30 @@ export function TournamentActions({
       />
       <RoleGuard requireRoleOrAbove={ROLES.ORGANISER}>
         {activeTab === TournamentTab.Published ? (
-          <Button variant="outline" onClick={() => onTabChange(TournamentTab.Drafts)}>
-            <PencilEdit01Icon size={16} className="mr-2" />
-            {t("tournaments.tabDrafts")}
+          <Button
+            variant="outline"
+            className="h-9 min-w-0 flex-1 sm:flex-none"
+            onClick={() => onTabChange(TournamentTab.Drafts)}
+          >
+            <PencilEdit01Icon size={16} className="mr-2 shrink-0" />
+            <span className="truncate">{t("tournaments.tabDrafts")}</span>
           </Button>
         ) : (
-          <Button variant="outline" onClick={() => onTabChange(TournamentTab.Published)}>
-            <IconChevronLeft size={16} className="mr-2" />
-            {t("tournaments.tabPublished")}
+          <Button
+            variant="outline"
+            className="h-9 min-w-0 flex-1 sm:flex-none"
+            onClick={() => onTabChange(TournamentTab.Published)}
+          >
+            <IconChevronLeft size={16} className="mr-2 shrink-0" />
+            <span className="truncate">{t("tournaments.tabPublished")}</span>
           </Button>
         )}
-        <Button className="bg-brand-primary text-white hover:bg-brand-primary-hover" onClick={onCreate}>
-          <PlusSignIcon size={16} className="mr-2 text-white" />
-          {t("tournaments.create")}
+        <Button
+          className="h-9 min-w-0 flex-1 bg-brand-primary text-white hover:bg-brand-primary-hover sm:flex-none"
+          onClick={onCreate}
+        >
+          <PlusSignIcon size={16} className="mr-2 shrink-0 text-white" />
+          <span className="truncate">{t("tournaments.create")}</span>
         </Button>
       </RoleGuard>
     </div>

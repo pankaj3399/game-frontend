@@ -55,6 +55,25 @@ export type IconProps = Omit<React.HTMLAttributes<HTMLSpanElement>, "children"> 
 
 type SvgIconComponent = React.ComponentType<React.SVGProps<SVGSVGElement>>;
 
+const EyeSvgIcon = React.forwardRef<SVGSVGElement, React.SVGProps<SVGSVGElement>>(
+  (props, ref) => (
+    <svg
+      ref={ref}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      {...props}
+    >
+      <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6-10-6-10-6Z" />
+      <circle cx="12" cy="12" r="3" />
+    </svg>
+  )
+);
+EyeSvgIcon.displayName = "EyeSvgIcon";
+
 type IconDefinition = {
   component?: SvgIconComponent;
   imageSrc?: string;
@@ -143,6 +162,7 @@ const ICONS = {
   search: defineSvgIcon(searchIcon, { defaultTone: "muted" }),
   archiveRestore: defineSvgIcon(archiveRestoreIcon, { defaultTone: "muted" }),
   alignRight: defineSvgIcon(alignRightIcon, { defaultTone: "muted" }),
+  eye: defineSvgIcon(EyeSvgIcon, { defaultTone: "default" }),
   tb10LogoFrame8: defineImageIcon(tb10LogoFrame8Url, { nativeColor: true }),
 };
 
@@ -312,10 +332,13 @@ export const Delete02Icon = createIcon("trash2");
 export const DragDropVerticalIcon = createIcon("gripVertical");
 export const Mail01Icon = createIcon("infoCircleBold");
 export const PencilEdit01Icon = createIcon("penLine");
+export const EyeIcon = createIcon("eye");
+EyeIcon.displayName = "EyeIcon";
+export const ViewIcon = EyeIcon;
+ViewIcon.displayName = "ViewIcon";
 export const PencilIcon = createIcon("penLine");
 export const PlusSignIcon = createIcon("plus");
 export const Upload01Icon = createIcon("cloudUpload");
-export const ViewIcon = createIcon("userStar01");
 export const MoreVerticalIcon = createIcon("ellipsisVertical");
 
 export const XIcon = IconX;
@@ -351,7 +374,7 @@ export const Pencil = IconPenLine1;
 export const ArrowRight = IconArrowRight;
 export const MapPin = IconMap;
 export const Globe = IconInfoCircle;
-export const Eye = IconUserStar;
+export const Eye = EyeIcon;
 export const Crown = IconCrown;
 export const Rocket = IconArchiveRestore;
 export const Check = IconInfoCircle;

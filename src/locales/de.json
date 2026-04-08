@@ -496,7 +496,7 @@
     "tournamentType": "Turniertyp",
     "tournamentMode": {
       "singleDay": "Geplant",
-      "period": "Zeitraum"
+      "unscheduled": "Nicht geplant"
     },
     "selectClub": "Verein auswählen",
     "selectClubHint": "Wählen Sie den Verein, dem dieses Turnier zugeordnet ist. Wenn Sie mehrere Vereine verwalten, wählen Sie den passenden.",

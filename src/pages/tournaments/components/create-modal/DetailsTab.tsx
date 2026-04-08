@@ -78,7 +78,7 @@ export function DetailsTab({ form, update }: DetailsTabProps) {
           <Label
             id={durationLabelId}
             htmlFor={durationTriggerId}
-            className="text-[15px] font-medium text-[#010a04]"
+            className="text-[13px] font-medium text-[#010a04] sm:text-[15px]"
           >
             {t("tournaments.matchDuration")}
           </Label>
@@ -109,7 +109,7 @@ export function DetailsTab({ form, update }: DetailsTabProps) {
           <Label
             id={breakLabelId}
             htmlFor={breakTriggerId}
-            className="text-[15px] font-medium text-[#010a04]"
+            className="text-[13px] font-medium text-[#010a04] sm:text-[15px]"
           >
             {t("tournaments.breakTime")}
           </Label>
@@ -141,7 +141,7 @@ export function DetailsTab({ form, update }: DetailsTabProps) {
         <div className="space-y-2 sm:space-y-[10px]">
           <Label
             htmlFor={entryFeeId}
-            className="text-[15px] font-medium text-[#010a04]"
+            className="text-[13px] font-medium text-[#010a04] sm:text-[15px]"
           >
             {t("tournaments.entryFee")}
           </Label>
@@ -169,7 +169,7 @@ export function DetailsTab({ form, update }: DetailsTabProps) {
         <div className="space-y-2 sm:space-y-[10px]">
           <Label
             htmlFor={minPlayersId}
-            className="text-[15px] font-medium text-[#010a04]"
+            className="text-[13px] font-medium text-[#010a04] sm:text-[15px]"
           >
             {t("tournaments.minPlayers")}
           </Label>
@@ -199,7 +199,7 @@ export function DetailsTab({ form, update }: DetailsTabProps) {
         <div className="space-y-2 sm:space-y-[10px]">
           <Label
             htmlFor={maxPlayersId}
-            className="text-[15px] font-medium text-[#010a04]"
+            className="text-[13px] font-medium text-[#010a04] sm:text-[15px]"
           >
             {t("tournaments.maxPlayers")}
           </Label>
@@ -249,7 +249,7 @@ export function DetailsTab({ form, update }: DetailsTabProps) {
           maxLength={500}
           value={form.foodInfo ?? ""}
           onChange={(e) => update({ foodInfo: e.target.value })}
-          className="min-h-[74px] w-full rounded-[10px] border border-[#e1e3e8] bg-[#f9fafc] px-3 py-3 text-[13px] font-normal text-[#010a04] placeholder:text-[#010a04]/50 sm:min-h-[106px] sm:rounded-[12px] sm:px-[15px] sm:py-[15px] sm:text-[16px]"
+          className="h-[74px] w-full rounded-[10px] border border-[#e1e3e8] bg-[#f9fafc] px-3 py-3 text-[13px] text-[#010a04] placeholder:text-[#010a04]/50 sm:h-[110px] sm:rounded-[12px] sm:px-[15px] sm:py-[15px] sm:text-[14px]"
         />
       </div>
     </div>

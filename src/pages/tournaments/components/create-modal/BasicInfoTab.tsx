@@ -80,7 +80,7 @@ export function BasicInfoTab({
           onValueChange={(mode: TournamentMode) => {
             if(!TOURNAMENT_MODES.includes(mode)) return;
             update(
-              mode === "period"
+              mode === "unscheduled"
                 ? {
                     tournamentMode: mode,
                     date: null,

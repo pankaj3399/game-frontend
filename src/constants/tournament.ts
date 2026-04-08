@@ -3,7 +3,7 @@ import type { TournamentMode, TournamentPlayMode } from "@/models/tournament/typ
 export const DEFAULT_TOURNAMENT_DURATION = "30 Min";
 export const DEFAULT_TOURNAMENT_BREAK_DURATION = "5 Minutes";
 
-export const TOURNAMENT_MODES: TournamentMode[] = ["singleDay", "period"];
+export const TOURNAMENT_MODES: TournamentMode[] = ["singleDay", "unscheduled"];
 
 export const PLAY_MODES: Array<{ value: TournamentPlayMode; labelKey: string }> = [
   { value: "TieBreak10", labelKey: "tournaments.playModes.tieBreak10" },

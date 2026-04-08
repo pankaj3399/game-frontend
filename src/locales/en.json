@@ -497,7 +497,7 @@
     "tournamentType": "Tournament Type",
     "tournamentMode": {
       "singleDay": "Scheduled",
-      "period": "Period"
+      "unscheduled": "Unscheduled"
     },
     "selectClub": "Select Club",
     "selectClubHint": "Choose which club this tournament belongs to. If you admin multiple clubs, select the appropriate one.",

@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from "react";
+import { useCallback, useState } from "react";
 import type { TFunction } from "i18next";
 import { toast } from "sonner";
 import { getErrorMessage } from "@/lib/errors";
@@ -31,10 +31,19 @@ export function useTournamentActions({
   const updateTournament = useUpdateTournament();
   const publishTournament = usePublishTournament();
 
-  const isMutating = useMemo(
-    () => createTournament.isPending || updateTournament.isPending || publishTournament.isPending,
-    [createTournament.isPending, publishTournament.isPending, updateTournament.isPending]
-  );
+  const [creationAction, setCreationAction] = useState<
+    "draft" | "publish" | null
+  >(null);
+
+  const isPublishing =
+    (creationAction === "publish" && createTournament.isPending) ||
+    publishTournament.isPending;
+
+  const isSavingDraft =
+    (creationAction === "draft" && createTournament.isPending) ||
+    updateTournament.isPending;
+
+  const isMutating = isSavingDraft || isPublishing;
 
   const handleClose = useCallback(
     (nextOpen: boolean) => {
@@ -57,8 +66,13 @@ export function useTournamentActions({
           data: updatePayload,
         });
       } else {
-        const createPayload = buildTournamentPayload(form, "draft");
-        await createTournament.mutateAsync(createPayload);
+        setCreationAction("draft");
+        try {
+          const createPayload = buildTournamentPayload(form, "draft");
+          await createTournament.mutateAsync(createPayload);
+        } finally {
+          setCreationAction(null);
+        }
       }
 
       toast.success(t("tournaments.draftSaved"));
@@ -89,7 +103,14 @@ export function useTournamentActions({
           data: buildDraftUpdatePayload(form),
         });
       } else {
-        await createTournament.mutateAsync(buildTournamentPayload(form, "active"));
+        setCreationAction("publish");
+        try {
+          await createTournament.mutateAsync(
+            buildTournamentPayload(form, "active")
+          );
+        } finally {
+          setCreationAction(null);
+        }
       }
 
       toast.success(t("tournaments.published"));
@@ -109,6 +130,8 @@ export function useTournamentActions({
 
   return {
     isMutating,
+    isPublishing,
+    isSavingDraft,
     handleClose,
     handleSaveDraft,
     handlePublish,

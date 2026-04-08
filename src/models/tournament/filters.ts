@@ -28,6 +28,7 @@ export type TournamentFiltersAction =
   | { type: "SET_DISTANCE"; payload?: TournamentDistanceFilter }
   | { type: "SET_CLUB"; payload?: string }
   | { type: "SET_PAGE"; payload: number }
+  | { type: "RESET" }
   | {
       type: "HYDRATE";
       payload: {
@@ -100,6 +101,11 @@ export function filtersReducer(
           ...state.filters,
           page: action.payload,
         },
+      };
+    case "RESET":
+      return {
+        activeTab: DEFAULT_TOURNAMENT_FILTERS_STATE.activeTab,
+        filters: { ...DEFAULT_TOURNAMENT_FILTERS_STATE.filters },
       };
     case "HYDRATE":
       return {

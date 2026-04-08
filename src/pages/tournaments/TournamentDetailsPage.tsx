@@ -96,20 +96,26 @@ export default function TournamentDetailsPage() {
   return (
     <div className="flex min-h-[calc(100vh-4rem)] w-full flex-col items-center bg-[#f8fbf8]">
       <div className="w-full max-w-6xl px-5 pb-10 pt-7 sm:px-6 sm:pt-8 lg:px-6">
-        <div className="mb-6 flex items-center justify-between sm:mb-7">
+        <div className="mb-6 flex flex-col gap-3 sm:mb-7 sm:flex-row sm:items-center sm:justify-between">
           <Button
             asChild
             variant="ghost"
             size="sm"
-            className="group h-auto gap-1.5 px-1 text-[14px] font-medium text-[#010a04]/70 hover:bg-transparent hover:text-[#010a04]"
+            className="group h-auto w-fit gap-1.5 px-1 text-[14px] font-medium text-[#010a04]/70 hover:bg-transparent hover:text-[#010a04]"
           >
-            <Link to="/tournaments">
+            <Link
+              to={
+                tournament.status === "draft"
+                  ? "/tournaments?view=drafts"
+                  : "/tournaments"
+              }
+            >
               <ChevronLeft size={16} className="text-[#010a04]/70 group-hover:text-[#010a04]" />
               {t("tournaments.goBack")}
             </Link>
           </Button>
 
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2 sm:justify-end">
             {tournament.status === "draft" && tournament.permissions.canEdit && (
               <Button
                 variant="default"
@@ -118,7 +124,7 @@ export default function TournamentDetailsPage() {
                 disabled={publishTournament.isPending}
                 className="h-9 bg-[#067429] px-3 text-[13px] hover:bg-[#055b20]"
               >
-                <Upload01Icon size={15} className="mr-1" />
+                <Upload01Icon size={15} className="mr-1 text-white" />
                 {t("tournaments.publish")}
               </Button>
             )}
@@ -169,7 +175,6 @@ export default function TournamentDetailsPage() {
                     </span>
                   )}
                 </div>
-                <span className="truncate text-[14px] font-medium text-[#010a04]">{tournament.sponsor.name}</span>
               </div>
             </div>
           ) : null}
