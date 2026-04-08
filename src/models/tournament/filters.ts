@@ -62,6 +62,7 @@ export function filtersReducer(
         ...state,
         filters: {
           ...state.filters,
+          page: 1,
           q: action.payload,
         },
       };
