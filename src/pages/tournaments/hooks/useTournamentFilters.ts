@@ -115,6 +115,14 @@ export function useTournamentFilters({
     dispatch({ type: "SET_PAGE", payload: page });
   }, []);
 
+  const setQuery = useCallback((value: string) => {
+    const nextValue = value.trim();
+    dispatch({
+      type: "SET_QUERY",
+      payload: nextValue.length > 0 ? nextValue : undefined,
+    });
+  }, []);
+
   const setWhenFromValue = useCallback((value: string) => {
     dispatch({
       type: "SET_WHEN",
@@ -226,6 +234,7 @@ export function useTournamentFilters({
     setWhenFromValue,
     setDistanceFromValue,
     setClubId,
+    setQuery,
     setPage,
   };
 }

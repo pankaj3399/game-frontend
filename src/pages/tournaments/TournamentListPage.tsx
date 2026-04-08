@@ -18,10 +18,8 @@ import { TournamentTab } from "@/models/tournament";
 import { Search01Icon } from "@/icons/figma-icons";
 
 export default function TournamentListPage() {
-  return <TournamentListContent/>;
+  return <TournamentListContent />;
 }
-
-
 const DEFAULT_PAGINATION = {
   total: 0,
   page: 1,
