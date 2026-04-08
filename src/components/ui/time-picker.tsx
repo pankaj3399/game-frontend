@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
 import { Clock } from "@/icons/figma-icons";
 import { cn } from "@/lib/utils";
 import {
@@ -46,6 +47,12 @@ interface TimePickerProps {
   nowLabel?: string;
   /** Override confirm/done button (default: timepicker.confirm) */
   confirmLabel?: string;
+  /** Optional i18n keys for warning toasts. Defaults to timepicker.* keys. */
+  warningKeys?: {
+    invalidInput?: string;
+    noAvailableSlots?: string;
+    outOfBounds?: string;
+  };
   /** Passed to the trigger button for a11y (e.g. link to an external Label via aria-labelledby) */
   id?: string;
   "aria-labelledby"?: string;
@@ -74,6 +81,7 @@ export function TimePicker({
   clearLabel,
   nowLabel,
   confirmLabel,
+  warningKeys,
   id,
   "aria-labelledby": ariaLabelledBy,
   "aria-describedby": ariaDescribedBy,
@@ -93,9 +101,11 @@ export function TimePicker({
   const effectiveClearLabel = clearLabel ?? t("timepicker.clear");
   const effectiveNowLabel = nowLabel ?? t("timepicker.now");
   const effectiveConfirmLabel = confirmLabel ?? t("timepicker.confirm");
+  const warningInvalidInputKey = warningKeys?.invalidInput ?? "timepicker.invalidInput";
+  const warningNoAvailableSlotsKey = warningKeys?.noAvailableSlots ?? "timepicker.noAvailableSlots";
+  const warningOutOfBoundsKey = warningKeys?.outOfBounds ?? "timepicker.outOfBounds";
 
   const [open, setOpen] = useState(false);
-  const [portalContainer, setPortalContainer] = useState<HTMLElement | null>(null);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
   const hourInputRef = useRef<HTMLInputElement | null>(null);
   const minuteInputRef = useRef<HTMLInputElement | null>(null);
@@ -150,27 +160,36 @@ export function TimePicker({
 
   const hasSelectableTime = hasNonEmptyTimeBounds(bounds);
 
-  const proposeTime = useCallback(
-    (next: string | null): boolean => {
-      if (next === null) {
-        onChange(null);
-        syncInputsToTotalMinutes(0);
-        return true;
-      }
-      const m = time24ToMinutes(next);
-      if (m === null) return false;
-      if (!hasSelectableTime) {
-        return false;
-      }
-      if (!isMinutesWithinTimeBounds(m, bounds)) {
-        return false;
-      }
-      onChange(minutesToTime24(m));
-      syncInputsToTotalMinutes(m);
+  const notifyTimeConstraint = useCallback((messageKey: string) => {
+    toast.warning(t(messageKey), {
+      id: "timepicker-constraint",
+      duration: 3800,
+    });
+  }, [t]);
+
+  const proposeTime = (next: string | null): boolean => {
+    if (next === null) {
+      onChange(null);
+      syncInputsToTotalMinutes(0);
       return true;
-    },
-    [onChange, bounds, hasSelectableTime, syncInputsToTotalMinutes]
-  );
+    }
+    const m = time24ToMinutes(next);
+    if (m === null) {
+      notifyTimeConstraint(warningInvalidInputKey);
+      return false;
+    }
+    if (!hasSelectableTime) {
+      notifyTimeConstraint(warningNoAvailableSlotsKey);
+      return false;
+    }
+    if (!isMinutesWithinTimeBounds(m, bounds)) {
+      notifyTimeConstraint(warningOutOfBoundsKey);
+      return false;
+    }
+    onChange(minutesToTime24(m));
+    syncInputsToTotalMinutes(m);
+    return true;
+  };
 
   const setHour = (hour: number) => {
     const ok = proposeTime(formatTime(to24Hour(hour, selectedMeridian), selectedMinute));
@@ -225,10 +244,6 @@ export function TimePicker({
     if (nextOpen) {
       setHourInput(hourDisplay);
       setMinuteInput(minuteDisplay);
-      const dialogContent = triggerRef.current?.closest("[data-slot='dialog-content']");
-      setPortalContainer(dialogContent instanceof HTMLElement ? dialogContent : null);
-    } else {
-      setPortalContainer(null);
     }
     setOpen(nextOpen);
   };
@@ -291,18 +306,21 @@ export function TimePicker({
           aria-labelledby={ariaLabelledBy}
           aria-describedby={ariaDescribedBy}
           className={cn(
-            "h-[38px] w-full justify-between rounded-[10px] border-[#e1e3e8] bg-[#f9fafc] px-3 text-left text-[13px] font-normal text-[#010a04] sm:h-[46px] sm:rounded-[12px] sm:px-[15px] sm:text-[14px]",
+            "h-[38px] w-full min-w-0 max-w-full justify-between overflow-hidden rounded-[10px] border-[#e1e3e8] bg-[#f9fafc] px-3 text-left text-[13px] font-normal text-[#010a04] sm:h-[46px] sm:rounded-[12px] sm:px-[15px] sm:text-[14px]",
             !formatted && "text-[#010a04]/50"
           )}
         >
-          <span>{formatted || effectivePlaceholder}</span>
+          <span className="min-w-0 truncate">{formatted || effectivePlaceholder}</span>
           <Clock className="h-4 w-4 shrink-0 text-[#010a04]/65 sm:h-5 sm:w-5" />
         </Button>
       </PopoverTrigger>
       <PopoverContent
-        className="w-[320px] rounded-xl border border-[#e5e7eb] p-0"
+        className="z-[100] w-[min(100vw-1.5rem,320px)] max-w-[320px] rounded-xl border border-[#e5e7eb] p-0"
         align={popoverAlign}
-        container={portalContainer}
+        side="bottom"
+        sideOffset={6}
+        collisionPadding={12}
+        sticky="partial"
       >
         <div className="border-b border-[#e5e7eb] p-4">
           <div className="mb-3 flex items-center justify-between gap-3">

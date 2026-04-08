@@ -41,7 +41,6 @@ export function mapTournamentDetailToForm(tournament: TournamentDetail): CreateT
     name: tournament.name ?? "",
     status: "draft",
     sponsor: tournament.sponsor?.id ?? null,
-    logo: tournament.logo ?? null,
     date: normalizeIsoDateInputValue(tournament.date),
     startTime: tournament.startTime ?? null,
     endTime: tournament.endTime ?? null,
@@ -50,8 +49,8 @@ export function mapTournamentDetailToForm(tournament: TournamentDetail): CreateT
     entryFee: tournament.entryFee,
     minMember: tournament.minMember,
     maxMember: tournament.maxMember,
-    duration: tournament.duration,
-    breakDuration: tournament.breakDuration,
+    duration: tournament.duration ?? DEFAULT_TOURNAMENT_DURATION,
+    breakDuration: tournament.breakDuration ?? DEFAULT_TOURNAMENT_BREAK_DURATION,
     courts: tournament.courts?.map((court) => court.id) ?? [],
     foodInfo: tournament.foodInfo ?? "",
     descriptionInfo: tournament.descriptionInfo ?? "",
@@ -105,7 +104,9 @@ export function buildDraftUpdatePayload(form: CreateTournamentInput): Omit<Creat
   };
 }
 
-function invalidMemberRangeKey(form: CreateTournamentInput): TournamentValidationErrorKey | null {
+export function getMemberRangeErrorKey(
+  form: CreateTournamentInput
+): "tournaments.invalidMemberRange" | null {
   if (
     form.minMember != null &&
     form.maxMember != null &&
@@ -116,11 +117,27 @@ function invalidMemberRangeKey(form: CreateTournamentInput): TournamentValidatio
   return null;
 }
 
+/** When set, scheduled single-day times are missing or end is not after start. */
+export function getScheduledTimeRangeErrorKey(
+  form: CreateTournamentInput
+): "tournaments.invalidTimeRange" | null {
+  if (form.tournamentMode !== "singleDay") return null;
+  if (!form.date || !form.startTime || !form.endTime) return null;
+  const normStart = normalizeTimeTo24Hour(form.startTime);
+  const normEnd = normalizeTimeTo24Hour(form.endTime);
+  if (normStart === null || normEnd === null || normEnd <= normStart) {
+    return "tournaments.invalidTimeRange";
+  }
+  return null;
+}
+
 export function getDraftValidationError(form: CreateTournamentInput): TournamentValidationErrorKey | null {
   if (!form.club || !form.name.trim()) {
     return "tournaments.requiredNameAndClub";
   }
-  return invalidMemberRangeKey(form);
+  const timeRangeErr = getScheduledTimeRangeErrorKey(form);
+  if (timeRangeErr) return timeRangeErr;
+  return getMemberRangeErrorKey(form);
 }
 
 export function getPublishValidationError(form: CreateTournamentInput): TournamentValidationErrorKey | null {
@@ -130,12 +147,7 @@ export function getPublishValidationError(form: CreateTournamentInput): Tourname
   if (form.tournamentMode === "singleDay" && (!form.date || !form.startTime || !form.endTime)) {
     return "tournaments.requiredDateAndTime";
   }
-  if (form.tournamentMode === "singleDay" && form.date && form.startTime && form.endTime) {
-    const normStart = normalizeTimeTo24Hour(form.startTime);
-    const normEnd = normalizeTimeTo24Hour(form.endTime);
-    if (normStart === null || normEnd === null || normEnd <= normStart) {
-      return "tournaments.invalidTimeRange";
-    }
-  }
-  return invalidMemberRangeKey(form);
+  const timeRangeErr = getScheduledTimeRangeErrorKey(form);
+  if (timeRangeErr) return timeRangeErr;
+  return getMemberRangeErrorKey(form);
 }

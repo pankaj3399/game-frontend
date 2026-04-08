@@ -472,6 +472,7 @@
     "allStatuses": "All statuses",
     "allClubs": "All clubs",
     "tournamentName": "Tournament",
+    "openTournamentRow": "Open tournament: {{name}}",
     "club": "Club",
     "date": "Date",
     "action": "Action",
@@ -661,6 +662,9 @@
     "pm": "PM",
     "clear": "Clear",
     "now": "Now",
-    "confirm": "Done"
+    "confirm": "Done",
+    "invalidInput": "Please enter a valid time.",
+    "noAvailableSlots": "No selectable times are available for this range.",
+    "outOfBounds": "Selected time is outside the allowed range."
   }
 }

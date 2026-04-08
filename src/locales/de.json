@@ -471,6 +471,7 @@
     "allStatuses": "Alle Status",
     "allClubs": "Alle Vereine",
     "tournamentName": "Turnier",
+    "openTournamentRow": "Turnier öffnen: {{name}}",
     "club": "Verein",
     "date": "Datum",
     "action": "Aktion",
@@ -660,6 +661,9 @@
     "pm": "PM",
     "clear": "Löschen",
     "now": "Jetzt",
-    "confirm": "Fertig"
+    "confirm": "Fertig",
+    "invalidInput": "Bitte geben Sie eine gültige Uhrzeit ein.",
+    "noAvailableSlots": "Für diesen Bereich sind keine auswählbaren Zeiten verfügbar.",
+    "outOfBounds": "Die ausgewählte Zeit liegt außerhalb des erlaubten Bereichs."
   }
 }

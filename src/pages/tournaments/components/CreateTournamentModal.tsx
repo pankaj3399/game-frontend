@@ -68,19 +68,19 @@ export function CreateTournamentModal({
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent
         key={`${mode}-${tournamentId ?? "create"}`}
-        className="max-h-[calc(100dvh-24px)] max-w-[390px] overflow-y-auto gap-0 rounded-[12px] border border-black/10 px-3 py-3 shadow-[0px_3px_15px_0px_rgba(0,0,0,0.06)] sm:max-w-[515px] sm:px-[15px] sm:py-5"
+        className="max-h-[calc(100dvh-24px)] max-w-[min(100vw-1.5rem,390px)] min-w-0 gap-0 overflow-x-clip overflow-y-auto rounded-[12px] border border-brand-primary/20 px-3 py-3 shadow-sm shadow-brand-primary/15 sm:max-w-[min(100vw-2rem,515px)] sm:px-[15px] sm:py-5 [&>*]:min-w-0"
         showCloseButton
       >
-        <DialogHeader className="pb-0">
-          <DialogTitle className="text-[21px] font-semibold">
+        <DialogHeader className="min-w-0 max-w-full pb-0">
+          <DialogTitle className="min-w-0 max-w-full break-words text-[21px] font-semibold text-foreground">
             {isEditMode
               ? t("tournaments.editTournamentInfo")
               : t("tournaments.createNew")}
           </DialogTitle>
         </DialogHeader>
 
-        <Tabs defaultValue="basic" className="w-full">
-          <TabsList className="mt-[18px] w-full sm:w-fit">
+        <Tabs defaultValue="basic" className="w-full min-w-0 max-w-full overflow-x-clip">
+          <TabsList className="mt-[18px] w-full min-w-0 max-w-full bg-brand-primary/10 sm:w-fit">
             <TabsTrigger value="basic">
               {t("tournaments.tabBasicInfo")}
             </TabsTrigger>
@@ -92,9 +92,14 @@ export function CreateTournamentModal({
             </TabsTrigger>
           </TabsList>
 
-          <div className="py-5">
+          <div className="min-w-0 max-w-full overflow-x-clip py-5">
             <TabsContent value="basic">
-              <BasicInfoTab form={form} clubs={clubs} update={update} />
+              <BasicInfoTab
+                form={form}
+                clubs={clubs}
+                update={update}
+                allowPastDates={isEditMode}
+              />
             </TabsContent>
             <TabsContent value="details">
               <DetailsTab form={form} update={update} />
@@ -109,9 +114,10 @@ export function CreateTournamentModal({
             </TabsContent>
           </div>
 
-          <div className="flex flex-col gap-3 sm:flex-row">
+          <div className="flex min-w-0 max-w-full flex-col gap-3 overflow-x-clip sm:flex-row">
             <Button
               variant="outline"
+              className="w-full min-w-0 border-brand-primary/25 hover:bg-brand-primary/5 hover:text-brand-primary sm:flex-1"
               onClick={() => handleClose(false)}
               disabled={isMutating}
             >
@@ -119,6 +125,7 @@ export function CreateTournamentModal({
             </Button>
 
             <Button
+              className="w-full min-w-0 bg-brand-accent text-brand-black shadow-sm hover:bg-brand-accent-hover focus-visible:ring-brand-primary/30 sm:flex-1"
               onClick={handleSaveDraft}
               disabled={isMutating || Boolean(draftValidationError)}
             >
@@ -132,6 +139,7 @@ export function CreateTournamentModal({
             </Button>
 
             <Button
+              className="w-full min-w-0 bg-brand-primary text-white shadow-sm shadow-brand-primary/20 hover:bg-brand-primary-hover focus-visible:ring-brand-primary/40 sm:flex-1"
               onClick={handlePublish}
               disabled={isMutating || Boolean(publishValidationError)}
             >

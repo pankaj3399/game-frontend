@@ -1,9 +1,10 @@
 import { useTranslation } from "react-i18next";
-import { format } from "date-fns";
+import { format, startOfDay } from "date-fns";
 import { Calendar as CalendarIcon } from "@/icons/figma-icons";
 import { cn } from "@/lib/utils";
 import { parseIsoDateSafely } from "@/utils/date";
 import { TOURNAMENT_MODES } from "@/constants/tournament";
+import { getScheduledTimeRangeErrorKey } from "@/lib/tournament/form";
 import type {
   CreateTournamentInput,
   TournamentClub,
@@ -31,16 +32,24 @@ interface BasicInfoTabProps {
   form: CreateTournamentInput;
   clubs: TournamentClub[];
   update: (updates: Partial<CreateTournamentInput>) => void;
+  /** When false (default), the date picker cannot select days before today. */
+  allowPastDates?: boolean;
 }
 
-export function BasicInfoTab({ form, clubs, update }: BasicInfoTabProps) {
+export function BasicInfoTab({
+  form,
+  clubs,
+  update,
+  allowPastDates = false,
+}: BasicInfoTabProps) {
   const { t } = useTranslation();
 
   const selectedDate = parseIsoDateSafely(form.date) ?? undefined;
+  const scheduledErrorKey = getScheduledTimeRangeErrorKey(form);
 
   return (
-    <div className="space-y-3 sm:space-y-5">
-      <div className="space-y-2 sm:space-y-[10px]">
+    <div className="min-w-0 max-w-full space-y-3 overflow-x-clip sm:space-y-5">
+      <div className="min-w-0 space-y-2 sm:space-y-[10px]">
         <Label
           htmlFor="create-tournament-basic-name"
           className="text-[13px] font-medium text-[#010a04] sm:text-[15px]"
@@ -99,7 +108,7 @@ export function BasicInfoTab({ form, clubs, update }: BasicInfoTabProps) {
         </Select>
       </div>
 
-      <div className="space-y-2 sm:space-y-3">
+      <div className="min-w-0 space-y-2 sm:space-y-3">
         <Label
           id="create-tournament-basic-club-label"
           className="text-[13px] font-medium text-[#010a04] sm:text-[15px]"
@@ -108,7 +117,7 @@ export function BasicInfoTab({ form, clubs, update }: BasicInfoTabProps) {
         </Label>
         <p
           id="create-tournament-basic-club-hint"
-          className="text-[12px] leading-[1.35] text-[#010a04]/60 sm:text-[14px] sm:leading-[1.4]"
+          className="break-words text-[12px] leading-[1.35] text-[#010a04]/60 [overflow-wrap:anywhere] sm:text-[14px] sm:leading-[1.4]"
         >
           {t("tournaments.selectClubHint")}
         </p>
@@ -136,8 +145,8 @@ export function BasicInfoTab({ form, clubs, update }: BasicInfoTabProps) {
 
       {form.tournamentMode === "singleDay" && (
         <>
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-[14px]">
-            <div>
+          <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-[14px]">
+            <div className="min-w-0">
               <Label
                 id="create-tournament-basic-date-label"
                 className="text-[13px] font-medium text-[#010a04] sm:text-[15px]"
@@ -152,11 +161,11 @@ export function BasicInfoTab({ form, clubs, update }: BasicInfoTabProps) {
                     aria-labelledby="create-tournament-basic-date-label"
                     variant="outline"
                     className={cn(
-                      "mt-2 h-[38px] w-full justify-between rounded-[10px] border-[#e1e3e8] bg-[#f9fafc] px-3 text-left text-[13px] font-normal text-[#010a04] sm:mt-[10px] sm:h-[46px] sm:rounded-[12px] sm:px-[15px] sm:text-[14px]",
+                      "mt-2 h-[38px] w-full min-w-0 max-w-full justify-between overflow-hidden rounded-[10px] border-[#e1e3e8] bg-[#f9fafc] px-3 text-left text-[13px] font-normal text-[#010a04] sm:mt-[10px] sm:h-[46px] sm:rounded-[12px] sm:px-[15px] sm:text-[14px]",
                       !selectedDate && "text-[#010a04]/50",
                     )}
                   >
-                    <span>
+                    <span className="min-w-0 truncate">
                       {selectedDate
                         ? format(selectedDate, "dd/MM/yyyy")
                         : t("tournaments.datePlaceholder")}
@@ -172,13 +181,18 @@ export function BasicInfoTab({ form, clubs, update }: BasicInfoTabProps) {
                       if (!date) return;
                       update({ date: format(date, "yyyy-MM-dd") });
                     }}
+                    disabled={
+                      allowPastDates
+                        ? undefined
+                        : (date) => startOfDay(date) < startOfDay(new Date())
+                    }
                     autoFocus
                   />
                 </PopoverContent>
               </Popover>
             </div>
 
-            <div>
+            <div className="min-w-0">
               <Label
                 id="create-tournament-basic-start-label"
                 className="text-[13px] font-medium text-[#010a04] sm:text-[15px]"
@@ -200,8 +214,8 @@ export function BasicInfoTab({ form, clubs, update }: BasicInfoTabProps) {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-[14px]">
-            <div>
+          <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-[14px]">
+            <div className="min-w-0">
               <Label
                 id="create-tournament-basic-end-label"
                 className="text-[13px] font-medium text-[#010a04] sm:text-[15px]"
@@ -218,22 +232,40 @@ export function BasicInfoTab({ form, clubs, update }: BasicInfoTabProps) {
                   minExclusive={
                     form.startTime != null && form.startTime !== form.endTime
                   }
+                  popoverAlign="end"
                 />
               </div>
             </div>
 
             <div aria-hidden="true" className="hidden sm:block" />
           </div>
+
+          {scheduledErrorKey ? (
+            <p
+              className="text-[13px] font-medium leading-snug text-destructive sm:text-sm"
+              role="alert"
+            >
+              {t(scheduledErrorKey)}
+            </p>
+          ) : null}
         </>
       )}
 
-      <div className="space-y-2 sm:space-y-[10px]">
-        <Label
-          htmlFor="create-tournament-basic-description"
-          className="text-[13px] font-medium text-[#010a04] sm:text-[15px]"
-        >
-          {t("tournaments.description")}
-        </Label>
+      <div className="min-w-0 space-y-2 sm:space-y-[10px]">
+        <div className="flex min-w-0 flex-wrap items-baseline gap-x-1.5 gap-y-0">
+          <Label
+            htmlFor="create-tournament-basic-description"
+            className="text-[13px] font-medium text-[#010a04] sm:text-[15px]"
+          >
+            {t("tournaments.description")}
+          </Label>
+          <span
+            className="text-[11px] font-normal tabular-nums text-[#010a04]/40 sm:text-[12px] sm:text-[#010a04]/38"
+            aria-live="polite"
+          >
+            {(form.descriptionInfo ?? "").length}/500
+          </span>
+        </div>
         <Textarea
           id="create-tournament-basic-description"
           placeholder={t("tournaments.descriptionPlaceholder")}
