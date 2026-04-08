@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { useTranslation } from "react-i18next";
 import InlineLoader from "@/components/shared/InlineLoader";
 import { PaginationBar } from "@/components/pagination/PaginationBar";
@@ -14,6 +15,7 @@ import { useAuth } from "@/pages/auth/hooks";
 import { TournamentTableSkeleton } from "@/components/ui/tournament-table-skeleton";
 import { getErrorMessage } from "@/lib/errors";
 import { TournamentTab } from "@/models/tournament";
+import { Search01Icon } from "@/icons/figma-icons";
 
 export default function TournamentListPage() {
   return <TournamentListContent/>;
@@ -42,6 +44,7 @@ function TournamentListContent() {
     setWhenFromValue,
     setDistanceFromValue,
     setClubId,
+    setQuery,
     setPage,
   } = useTournamentFilters({ isOrganiserOrAbove, userId: user?.id ?? undefined });
   const { isDraftTab } = useTournamentPermissions({
@@ -85,6 +88,22 @@ function TournamentListContent() {
                 onFiltersChange={handleFiltersChange}
                 onCreate={() => setIsCreateModalOpen(true)}
               />
+            </div>
+            <div className="mt-3 max-w-[340px]">
+              <div className="relative">
+                <Search01Icon
+                  size={14}
+                  className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-black/35"
+                />
+                <Input
+                  value={filters.q ?? ""}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder={t("tournaments.searchPlaceholder", {
+                    defaultValue: "Search tournaments",
+                  })}
+                  className="h-9 rounded-xl border-black/12 bg-black/[0.025] pl-9 text-sm placeholder:text-black/30 focus:border-brand-primary/40 focus:bg-white transition-colors"
+                />
+              </div>
             </div>
           </div>
 

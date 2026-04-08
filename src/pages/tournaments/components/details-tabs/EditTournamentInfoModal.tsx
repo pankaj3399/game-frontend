@@ -31,6 +31,35 @@ type TournamentInfoSelection = {
   sponsorLogoUrl: string | null;
 };
 
+function buildPublishPayload({
+  tournament,
+  resolvedClubId,
+  selectedSponsorId,
+}: {
+  tournament: TournamentDetail;
+  resolvedClubId: string;
+  selectedSponsorId: string;
+}): UpdateTournamentInput {
+  return {
+    club: resolvedClubId,
+    sponsor: selectedSponsorId || null,
+    name: tournament.name,
+    date: tournament.date ?? undefined,
+    startTime: tournament.startTime ?? undefined,
+    endTime: tournament.endTime ?? undefined,
+    playMode: tournament.playMode,
+    tournamentMode: tournament.tournamentMode,
+    entryFee: tournament.entryFee,
+    minMember: tournament.minMember,
+    maxMember: tournament.maxMember,
+    duration: tournament.duration ?? undefined,
+    breakDuration: tournament.breakDuration ?? undefined,
+    courts: tournament.courts.map((court) => court.id),
+    foodInfo: tournament.foodInfo ?? "",
+    descriptionInfo: tournament.descriptionInfo ?? "",
+  };
+}
+
 function SponsorIndicator({ selected }: { selected: boolean }) {
   return (
     <span
@@ -222,24 +251,11 @@ export function EditTournamentInfoModal({ open, onOpenChange, tournament }: Edit
       if (tournament.status === "draft") {
         await updateTournament.mutateAsync({ id: tournament.id, data: payload });
       } else {
-        const publishPayload: UpdateTournamentInput = {
-          club: resolvedClubId,
-          sponsor: selectedSponsorId || null,
-          name: tournament.name,
-          date: tournament.date ?? undefined,
-          startTime: tournament.startTime ?? undefined,
-          endTime: tournament.endTime ?? undefined,
-          playMode: tournament.playMode,
-          tournamentMode: tournament.tournamentMode,
-          entryFee: tournament.entryFee,
-          minMember: tournament.minMember,
-          maxMember: tournament.maxMember,
-          duration: tournament.duration ?? undefined,
-          breakDuration: tournament.breakDuration ?? undefined,
-          courts: tournament.courts.map((court) => court.id),
-          foodInfo: tournament.foodInfo ?? "",
-          descriptionInfo: tournament.descriptionInfo ?? "",
-        };
+        const publishPayload = buildPublishPayload({
+          tournament,
+          resolvedClubId,
+          selectedSponsorId,
+        });
         await publishTournament.mutateAsync({ id: tournament.id, data: publishPayload });
       }
       toast.success(t("settings.saveSuccess"));

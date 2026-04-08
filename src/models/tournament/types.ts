@@ -230,7 +230,7 @@ const createTournamentSummarySchema = z.object({
 
 const updateTournamentSummarySchema = z
   .object({
-    id: z.string().optional(),
+    id: z.string(),
     name: z.string().optional(),
     club: z.string().optional(),
     status: z.string().optional(),
@@ -241,7 +241,7 @@ const updateTournamentSummarySchema = z
 
 const publishTournamentSummarySchema = z
   .object({
-    id: z.string().optional(),
+    id: z.string(),
     name: z.string().optional(),
     club: z.string().optional(),
     status: z.string().optional(),

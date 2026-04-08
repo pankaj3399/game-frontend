@@ -42,7 +42,7 @@ export function toBackendCreateInput(data: CreateTournamentInput): BackendCreate
 
 export function toBackendUpdateInput(data: UpdateTournamentInput): BackendUpdateTournamentInput {
   const sponsorTrimmed = typeof data.sponsor === "string" ? data.sponsor.trim() : undefined;
-  return backendUpdateTournamentInputSchema.parse({
+  const payload = {
     club: data.club,
     sponsor:
       data.sponsor === null
@@ -64,5 +64,11 @@ export function toBackendUpdateInput(data: UpdateTournamentInput): BackendUpdate
     courts: data.courts,
     foodInfo: data.foodInfo,
     descriptionInfo: data.descriptionInfo,
-  });
+  };
+
+  const sanitizedPayload = Object.fromEntries(
+    Object.entries(payload).filter(([, value]) => value !== undefined)
+  );
+
+  return backendUpdateTournamentInputSchema.parse(sanitizedPayload);
 }
