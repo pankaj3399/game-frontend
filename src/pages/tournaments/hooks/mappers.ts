@@ -34,7 +34,6 @@ export function toBackendCreateInput(data: CreateTournamentInput): BackendCreate
     maxMember: data.maxMember,
     duration: data.duration ?? undefined,
     breakDuration: data.breakDuration ?? undefined,
-    courts: data.courts,
     foodInfo: data.foodInfo,
     descriptionInfo: data.descriptionInfo,
   });
@@ -61,7 +60,6 @@ export function toBackendUpdateInput(data: UpdateTournamentInput): BackendUpdate
     maxMember: data.maxMember,
     duration: data.duration,
     breakDuration: data.breakDuration,
-    courts: data.courts,
     foodInfo: data.foodInfo,
     descriptionInfo: data.descriptionInfo,
   };

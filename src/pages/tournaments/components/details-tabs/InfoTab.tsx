@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { TournamentDetail } from "@/models/tournament/types";
 import { TabsContent } from "@/components/ui/tabs";
+import { CreateTournamentModal } from "@/pages/tournaments/components/CreateTournamentModal";
 import { EditTournamentInfoModal } from "./EditTournamentInfoModal";
 import { ClubInfo } from "./info-tab/ClubInfo";
 import { DescriptionSection } from "./info-tab/DescriptionSection";
@@ -14,11 +15,15 @@ import { useTournamentInfo } from "./info-tab/useTournamentInfo";
 
 interface InfoTabProps {
   tournament: TournamentDetail;
-  onJoin: () => Promise<void>;
-  isJoinPending: boolean;
+  onParticipationAction: () => Promise<void>;
+  isParticipationPending: boolean;
 }
 
-export function InfoTab({ tournament, onJoin, isJoinPending }: InfoTabProps) {
+export function InfoTab({
+  tournament,
+  onParticipationAction,
+  isParticipationPending,
+}: InfoTabProps) {
   const { t, i18n } = useTranslation();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const descriptionExpansion = useExpandable(true);
@@ -124,19 +129,28 @@ export function InfoTab({ tournament, onJoin, isJoinPending }: InfoTabProps) {
           className="order-1 xl:order-2"
           tournament={tournament}
           spotPercentage={spotPercentage}
-          onJoin={onJoin}
-          isJoinPending={isJoinPending}
+          onParticipationAction={onParticipationAction}
+          isParticipationPending={isParticipationPending}
           onEdit={() => setIsEditModalOpen(true)}
           t={t}
         />
       </div>
 
-      <EditTournamentInfoModal
-        key={tournament.id}
-        open={isEditModalOpen}
-        onOpenChange={setIsEditModalOpen}
-        tournament={tournament}
-      />
+      {tournament.status === "draft" ? (
+        <CreateTournamentModal
+          open={isEditModalOpen}
+          onOpenChange={setIsEditModalOpen}
+          mode="edit"
+          tournamentId={tournament.id}
+        />
+      ) : (
+        <EditTournamentInfoModal
+          key={tournament.id}
+          open={isEditModalOpen}
+          onOpenChange={setIsEditModalOpen}
+          tournament={tournament}
+        />
+      )}
     </TabsContent>
   );
 }

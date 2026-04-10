@@ -2,6 +2,7 @@ export type {
   ClubSponsorSummary,
   CreateTournamentInput,
   JoinTournamentResponse,
+  LeaveTournamentResponse,
   PublishTournamentPayload,
   PublishTournamentResponse,
   TournamentDetail,

@@ -9,6 +9,7 @@ import { TournamentDetailsTabs } from "@/pages/tournaments/components/details-ta
 import {
   useTournamentById,
   useJoinTournament,
+  useLeaveTournament,
   usePublishTournament,
 } from "@/pages/tournaments/hooks";
 import { getErrorMessage } from "@/lib/errors";
@@ -19,6 +20,7 @@ export default function TournamentDetailsPage() {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
   const joinTournament = useJoinTournament();
+  const leaveTournament = useLeaveTournament();
   const publishTournament = usePublishTournament();
 
   const { data, isLoading, isError, error } = useTournamentById(id ?? null, Boolean(id));
@@ -50,12 +52,22 @@ export default function TournamentDetailsPage() {
   }
 
   const tournament = data.tournament;
-  const onJoin = async () => {
+  const onParticipationAction = async () => {
+    const isParticipant = tournament.permissions.isParticipant;
+
     try {
-      await joinTournament.mutateAsync({ id: tournament.id });
-      toast.success(t("tournaments.joined"));
-    } catch (joinError: unknown) {
-      toast.error(getErrorMessage(joinError) ?? t("tournaments.joinError"));
+      if (isParticipant) {
+        await leaveTournament.mutateAsync({ id: tournament.id });
+        toast.success(t("tournaments.left"));
+      } else {
+        await joinTournament.mutateAsync({ id: tournament.id });
+        toast.success(t("tournaments.joined"));
+      }
+    } catch (participationError: unknown) {
+      toast.error(
+        getErrorMessage(participationError) ??
+          (isParticipant ? t("tournaments.leaveError") : t("tournaments.joinError"))
+      );
     }
   };
 
@@ -183,8 +195,8 @@ export default function TournamentDetailsPage() {
         <TournamentDetailsTabs
           tournament={tournament}
           currentUserId={user?.id ?? null}
-          onJoin={onJoin}
-          isJoinPending={joinTournament.isPending}
+          onParticipationAction={onParticipationAction}
+          isParticipationPending={joinTournament.isPending || leaveTournament.isPending}
         />
       </div>
     </div>

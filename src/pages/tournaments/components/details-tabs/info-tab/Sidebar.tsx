@@ -7,8 +7,8 @@ interface SidebarProps {
   className?: string;
   tournament: TournamentDetail;
   spotPercentage: number;
-  onJoin: () => Promise<void>;
-  isJoinPending: boolean;
+  onParticipationAction: () => Promise<void>;
+  isParticipationPending: boolean;
   onEdit: () => void;
   t: TFunction;
 }
@@ -17,13 +17,16 @@ export function Sidebar({
   className,
   tournament,
   spotPercentage,
-  onJoin,
-  isJoinPending,
+  onParticipationAction,
+  isParticipationPending,
   onEdit,
   t,
 }: SidebarProps) {
   const canJoin = tournament.permissions.canJoin;
   const isParticipant = tournament.permissions.isParticipant;
+  const participationButtonClass = isParticipant
+    ? "h-[42px] w-full rounded-[12px] bg-[#e8c15a] text-[16px] font-medium text-[#111111] hover:bg-[#ddb44c]"
+    : "h-[42px] w-full rounded-[8px] bg-gradient-to-r from-[#0a6925] via-[#0c7b2c] to-[#0f8d33] text-[16px] font-medium text-white hover:opacity-95";
 
   return (
     <aside className={["xl:sticky xl:top-7", className].filter(Boolean).join(" ")}>
@@ -67,14 +70,14 @@ export function Sidebar({
         <div className="space-y-3">
           {(canJoin || isParticipant) && (
             <Button
-              className="h-[42px] w-full rounded-[8px] bg-gradient-to-r from-[#0a6925] via-[#0c7b2c] to-[#0f8d33] text-[16px] font-medium text-white hover:opacity-95"
-              onClick={onJoin}
-              disabled={isJoinPending || !canJoin || isParticipant}
+              className={participationButtonClass}
+              onClick={onParticipationAction}
+              disabled={isParticipationPending}
             >
-              {isJoinPending
+              {isParticipationPending
                 ? t("common.loading")
                 : isParticipant
-                  ? t("tournaments.alreadyJoined")
+                  ? t("tournaments.leaveMatch")
                   : t("tournaments.joinThisMatch")}
             </Button>
           )}

@@ -51,7 +51,6 @@ export function mapTournamentDetailToForm(tournament: TournamentDetail): CreateT
     maxMember: tournament.maxMember,
     duration: tournament.duration ?? DEFAULT_TOURNAMENT_DURATION,
     breakDuration: tournament.breakDuration ?? DEFAULT_TOURNAMENT_BREAK_DURATION,
-    courts: tournament.courts?.map((court) => court.id) ?? [],
     foodInfo: tournament.foodInfo ?? "",
     descriptionInfo: tournament.descriptionInfo ?? "",
   };
@@ -97,7 +96,6 @@ export function buildDraftUpdatePayload(form: CreateTournamentInput): Omit<Creat
     maxMember: payload.maxMember,
     duration: payload.duration,
     breakDuration: payload.breakDuration,
-    courts: payload.courts,
     foodInfo: payload.foodInfo,
     descriptionInfo: payload.descriptionInfo,
   };

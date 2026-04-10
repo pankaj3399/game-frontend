@@ -137,7 +137,6 @@ const tournamentInputBaseSchema = z.object({
   maxMember: memberCountSchema,
   duration: z.string(),
   breakDuration: z.string(),
-  courts: z.array(z.string()).optional(),
   foodInfo: foodInfoSchema.nullable().optional(),
   descriptionInfo: z.string().nullable().optional(),
 });
@@ -183,7 +182,6 @@ export const backendCreateTournamentInputSchema = z.object({
   maxMember: memberCountSchema,
   duration: z.string(),
   breakDuration: z.string(),
-  courts: z.array(z.string()).optional(),
   foodInfo: foodInfoSchema.nullable().optional(),
   descriptionInfo: z.string().nullable().optional(),
 }).transform(normalizeMemberRange);
@@ -203,7 +201,6 @@ export const backendUpdateTournamentInputSchema = z
     maxMember: memberCountSchema,
     duration: z.string().nullable(),
     breakDuration: z.string().nullable(),
-    courts: z.array(z.string()),
     foodInfo: foodInfoSchema.nullable(),
     descriptionInfo: z.string().nullable(),
   })
@@ -248,11 +245,13 @@ const publishTournamentSummarySchema = z
   })
   .passthrough();
 
-const joinTournamentSummarySchema = z.object({
+const tournamentParticipationSummarySchema = z.object({
   id: z.string(),
   spotsFilled: z.number(),
   spotsTotal: z.number(),
   isParticipant: z.boolean(),
+  participants: z.array(tournamentParticipantSchema).optional(),
+  permissions: tournamentPermissionsSchema.partial().optional(),
 });
 
 export const publishTournamentPayloadSchema = updateTournamentInputSchema;
@@ -274,7 +273,12 @@ export const publishTournamentResponseSchema = z.object({
 
 export const joinTournamentResponseSchema = z.object({
   message: z.string(),
-  tournament: joinTournamentSummarySchema,
+  tournament: tournamentParticipationSummarySchema,
+});
+
+export const leaveTournamentResponseSchema = z.object({
+  message: z.string(),
+  tournament: tournamentParticipationSummarySchema,
 });
 
 export const tournamentDetailResponseSchema = z.object({
@@ -303,6 +307,7 @@ export type CreateTournamentResponse = z.infer<typeof createTournamentResponseSc
 export type UpdateTournamentResponse = z.infer<typeof updateTournamentResponseSchema>;
 export type PublishTournamentResponse = z.infer<typeof publishTournamentResponseSchema>;
 export type JoinTournamentResponse = z.infer<typeof joinTournamentResponseSchema>;
+export type LeaveTournamentResponse = z.infer<typeof leaveTournamentResponseSchema>;
 
 export function isTournamentWhenFilter(value: string): value is TournamentWhenFilter {
   return value === "future" || value === "past";

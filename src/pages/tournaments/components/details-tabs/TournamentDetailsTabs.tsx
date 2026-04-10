@@ -11,15 +11,15 @@ import { getTournamentDetailsTabOptions } from "./tabConfig";
 interface TournamentDetailsTabsProps {
   tournament: TournamentDetail;
   currentUserId: string | null;
-  onJoin: () => Promise<void>;
-  isJoinPending: boolean;
+  onParticipationAction: () => Promise<void>;
+  isParticipationPending: boolean;
 }
 
 export function TournamentDetailsTabs({
   tournament,
   currentUserId,
-  onJoin,
-  isJoinPending,
+  onParticipationAction,
+  isParticipationPending,
 }: TournamentDetailsTabsProps) {
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState("info");
@@ -49,8 +49,8 @@ export function TournamentDetailsTabs({
       <InfoTab
         key={tournament.id}
         tournament={tournament}
-        isJoinPending={isJoinPending}
-        onJoin={onJoin}
+        isParticipationPending={isParticipationPending}
+        onParticipationAction={onParticipationAction}
       />
       <MatchesTab tournament={tournament} currentUserId={currentUserId} />
       <ResultsTab tournament={tournament} currentUserId={currentUserId} />

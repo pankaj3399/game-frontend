@@ -5,4 +5,5 @@ export {
   useUpdateTournament,
   usePublishTournament,
   useJoinTournament,
+  useLeaveTournament,
 } from "./useTournamentMutations";
