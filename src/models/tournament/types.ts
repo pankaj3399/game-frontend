@@ -53,6 +53,7 @@ export const tournamentPermissionsSchema = z.object({
 });
 
 export const tournamentMatchStatusSchema = z.enum(["completed", "inProgress", "scheduled"]);
+export const tournamentScheduleModeSchema = z.enum(["singles", "doubles"]);
 
 export const tournamentMatchPlayerSchema = tournamentParticipantSchema.pick({
   id: true,
@@ -91,6 +92,86 @@ export const tournamentScheduleInfoSchema = z.object({
 export const tournamentMatchesResponseSchema = z.object({
   schedule: tournamentScheduleInfoSchema,
   matches: z.array(tournamentScheduleMatchSchema),
+});
+
+export const tournamentScheduleInputSchema = z.object({
+  matchDurationMinutes: z.number().int().min(5),
+  breakTimeMinutes: z.number().int().min(0),
+  gamesPerPlayer: z.number().int().min(1),
+  startTime: z.string(),
+  mode: tournamentScheduleModeSchema,
+  availableCourts: z.array(
+    z.object({
+      id: z.string(),
+      name: z.string(),
+      selected: z.boolean(),
+    })
+  ),
+});
+
+export const tournamentScheduleParticipantSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  alias: z.string().nullable(),
+  skillLabel: z.string(),
+  rating: z.number(),
+  order: z.number().int().min(1),
+});
+
+export const tournamentScheduleResponseSchema = z.object({
+  tournament: z.object({
+    id: z.string(),
+    name: z.string(),
+  }),
+  scheduleInput: tournamentScheduleInputSchema,
+  participants: z.array(tournamentScheduleParticipantSchema),
+  scheduleSummary: z.object({
+    currentRound: z.number().int().min(0),
+    totalRounds: z.number().int().min(0),
+  }),
+});
+
+export const generateTournamentScheduleInputSchema = z.object({
+  round: z.number().int().min(1),
+  mode: tournamentScheduleModeSchema,
+  matchDurationMinutes: z.number().int().min(5).max(240),
+  breakTimeMinutes: z.number().int().min(0).max(120),
+  gamesPerPlayer: z.number().int().min(1).max(20),
+  startTime: z.string(),
+  courtIds: z.array(z.string()).min(1),
+  participantOrder: z.array(z.string()).min(2),
+});
+
+export const generateTournamentScheduleResponseSchema = z.object({
+  message: z.string(),
+  schedule: z.object({
+    id: z.string(),
+    round: z.number().int().min(1),
+    currentRound: z.number().int().min(1),
+    generatedMatches: z.number().int().min(1),
+  }),
+});
+
+export const generateTournamentDoublesPairsInputSchema = z.object({
+  participantOrder: z.array(z.string()).min(2),
+});
+
+export const tournamentSchedulePairPlayerSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  alias: z.string().nullable(),
+  skillLabel: z.string(),
+  rating: z.number(),
+});
+
+export const generateTournamentDoublesPairsResponseSchema = z.object({
+  teams: z.array(
+    z.object({
+      team: z.number().int().min(1),
+      players: z.array(tournamentSchedulePairPlayerSchema).length(2),
+    })
+  ),
+  unpaired: z.array(tournamentSchedulePairPlayerSchema),
 });
 
 const memberCountSchema = z.coerce.number().int().min(1);
@@ -279,15 +360,6 @@ const updateTournamentSummarySchema = z
   })
   .passthrough();
 
-const publishTournamentSummarySchema = z
-  .object({
-    id: z.string(),
-    name: z.string().optional(),
-    club: z.string().optional(),
-    status: z.string().optional(),
-  })
-  .passthrough();
-
 const tournamentParticipationSummarySchema = z.object({
   id: z.string(),
   spotsFilled: z.number(),
@@ -297,8 +369,6 @@ const tournamentParticipationSummarySchema = z.object({
   permissions: tournamentPermissionsSchema.partial().optional(),
 });
 
-export const publishTournamentPayloadSchema = updateTournamentInputSchema;
-
 export const createTournamentResponseSchema = z.object({
   message: z.string(),
   tournament: createTournamentSummarySchema,
@@ -307,11 +377,6 @@ export const createTournamentResponseSchema = z.object({
 export const updateTournamentResponseSchema = z.object({
   message: z.string(),
   tournament: updateTournamentSummarySchema,
-});
-
-export const publishTournamentResponseSchema = z.object({
-  message: z.string(),
-  tournament: publishTournamentSummarySchema,
 });
 
 export const joinTournamentResponseSchema = z.object({
@@ -340,21 +405,28 @@ export type TournamentsResponse = z.infer<typeof tournamentsResponseSchema>;
 export type TournamentDetail = z.infer<typeof backendTournamentDetailSchema>;
 export type TournamentDetailResponse = z.infer<typeof tournamentDetailResponseSchema>;
 export type TournamentMatchStatus = z.infer<typeof tournamentMatchStatusSchema>;
+export type TournamentScheduleMode = z.infer<typeof tournamentScheduleModeSchema>;
 export type TournamentMatchPlayer = z.infer<typeof tournamentMatchPlayerSchema>;
 export type TournamentMatchCourt = z.infer<typeof tournamentMatchCourtSchema>;
 export type TournamentScheduleMatch = z.infer<typeof tournamentScheduleMatchSchema>;
 export type TournamentScheduleInfo = z.infer<typeof tournamentScheduleInfoSchema>;
 export type TournamentMatchesResponse = z.infer<typeof tournamentMatchesResponseSchema>;
+export type TournamentScheduleInput = z.infer<typeof tournamentScheduleInputSchema>;
+export type TournamentScheduleParticipant = z.infer<typeof tournamentScheduleParticipantSchema>;
+export type TournamentScheduleResponse = z.infer<typeof tournamentScheduleResponseSchema>;
+export type GenerateTournamentScheduleInput = z.infer<typeof generateTournamentScheduleInputSchema>;
+export type GenerateTournamentScheduleResponse = z.infer<typeof generateTournamentScheduleResponseSchema>;
+export type GenerateTournamentDoublesPairsInput = z.infer<typeof generateTournamentDoublesPairsInputSchema>;
+export type TournamentSchedulePairPlayer = z.infer<typeof tournamentSchedulePairPlayerSchema>;
+export type GenerateTournamentDoublesPairsResponse = z.infer<typeof generateTournamentDoublesPairsResponseSchema>;
 export type BackendTournamentDetail = z.infer<typeof backendTournamentDetailSchema>;
 export type BackendTournamentDetailResponse = z.infer<typeof backendTournamentDetailResponseSchema>;
 export type CreateTournamentInput = z.infer<typeof createTournamentInputSchema>;
 export type UpdateTournamentInput = z.infer<typeof updateTournamentInputSchema>;
 export type BackendCreateTournamentInput = z.infer<typeof backendCreateTournamentInputSchema>;
 export type BackendUpdateTournamentInput = z.infer<typeof backendUpdateTournamentInputSchema>;
-export type PublishTournamentPayload = z.infer<typeof publishTournamentPayloadSchema>;
 export type CreateTournamentResponse = z.infer<typeof createTournamentResponseSchema>;
 export type UpdateTournamentResponse = z.infer<typeof updateTournamentResponseSchema>;
-export type PublishTournamentResponse = z.infer<typeof publishTournamentResponseSchema>;
 export type JoinTournamentResponse = z.infer<typeof joinTournamentResponseSchema>;
 export type LeaveTournamentResponse = z.infer<typeof leaveTournamentResponseSchema>;
 
