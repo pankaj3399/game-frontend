@@ -64,5 +64,6 @@ export const queryKeys = {
       return [...queryKeys.tournament.all, "list", normalizedFilters] as const;
     },
     detail: (id: string | null) => [...queryKeys.tournament.all, "detail", id] as const,
+    matches: (id: string | null) => [...queryKeys.tournament.all, "matches", id] as const,
   },
 } as const;

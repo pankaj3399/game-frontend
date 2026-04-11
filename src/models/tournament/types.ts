@@ -52,6 +52,41 @@ export const tournamentPermissionsSchema = z.object({
   isParticipant: z.boolean(),
 });
 
+export const tournamentMatchStatusSchema = z.enum(["completed", "inProgress", "scheduled"]);
+
+export const tournamentMatchPlayerSchema = z.object({
+  id: z.string(),
+  name: z.string().nullable(),
+  alias: z.string().nullable(),
+});
+
+export const tournamentMatchCourtSchema = z.object({
+  id: z.string().nullable(),
+  name: z.string().nullable(),
+});
+
+export const tournamentScheduleMatchSchema = z.object({
+  id: z.string(),
+  round: z.number().int().min(1),
+  slot: z.number().int().min(1),
+  status: tournamentMatchStatusSchema,
+  startTime: z.string().nullable(),
+  court: tournamentMatchCourtSchema,
+  players: z.tuple([tournamentMatchPlayerSchema, tournamentMatchPlayerSchema]),
+});
+
+export const tournamentScheduleInfoSchema = z.object({
+  id: z.string().nullable(),
+  status: z.string().nullable(),
+  currentRound: z.number().int().min(0),
+  totalRounds: z.number().int().min(0),
+});
+
+export const tournamentMatchesResponseSchema = z.object({
+  schedule: tournamentScheduleInfoSchema,
+  matches: z.array(tournamentScheduleMatchSchema),
+});
+
 const memberCountSchema = z.coerce.number().int().min(1);
 const foodInfoSchema = z
   .string()
@@ -298,6 +333,12 @@ export type TournamentPagination = z.infer<typeof tournamentPaginationSchema>;
 export type TournamentsResponse = z.infer<typeof tournamentsResponseSchema>;
 export type TournamentDetail = z.infer<typeof backendTournamentDetailSchema>;
 export type TournamentDetailResponse = z.infer<typeof tournamentDetailResponseSchema>;
+export type TournamentMatchStatus = z.infer<typeof tournamentMatchStatusSchema>;
+export type TournamentMatchPlayer = z.infer<typeof tournamentMatchPlayerSchema>;
+export type TournamentMatchCourt = z.infer<typeof tournamentMatchCourtSchema>;
+export type TournamentScheduleMatch = z.infer<typeof tournamentScheduleMatchSchema>;
+export type TournamentScheduleInfo = z.infer<typeof tournamentScheduleInfoSchema>;
+export type TournamentMatchesResponse = z.infer<typeof tournamentMatchesResponseSchema>;
 export type BackendTournamentDetail = z.infer<typeof backendTournamentDetailSchema>;
 export type BackendTournamentDetailResponse = z.infer<typeof backendTournamentDetailResponseSchema>;
 export type CreateTournamentInput = z.infer<typeof createTournamentInputSchema>;

@@ -9,7 +9,7 @@ interface MatchCardProps {
 
 export function MatchCard({ match, t }: MatchCardProps) {
   return (
-    <div className="rounded-xl border border-[#e5e7eb] bg-white p-4">
+    <div className="rounded-xl bg-[#f2f4f3] p-4">
       <div className="flex items-start gap-3">
         <div className="mt-0.5 flex gap-1.5">
           <span className="size-5 rounded-full bg-[#e5e7eb]" />

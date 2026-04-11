@@ -1,6 +1,6 @@
-import type { MatchStatus, TournamentMatchOutcome } from "../shared/types";
+import type { TournamentMatchStatus } from "@/models/tournament/types";
 
-export type { MatchStatus, TournamentMatchOutcome };
+export type MatchStatus = TournamentMatchStatus;
 
 export interface DerivedMatch {
   id: string;
