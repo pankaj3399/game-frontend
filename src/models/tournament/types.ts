@@ -75,7 +75,10 @@ export const tournamentScheduleMatchSchema = z.object({
   status: tournamentMatchStatusSchema,
   startTime: z.string().nullable(),
   court: tournamentMatchCourtSchema,
-  players: z.tuple([tournamentMatchPlayerSchema, tournamentMatchPlayerSchema]),
+  players: z.tuple([
+    tournamentMatchPlayerSchema.nullable(),
+    tournamentMatchPlayerSchema.nullable(),
+  ]),
 });
 
 export const tournamentScheduleInfoSchema = z.object({

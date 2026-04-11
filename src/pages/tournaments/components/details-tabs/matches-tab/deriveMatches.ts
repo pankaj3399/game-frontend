@@ -31,11 +31,8 @@ function scheduleText(
   if (!time && date && dateStringHasTimeComponent(date)) {
     const parsed = new Date(date);
     if (!Number.isNaN(parsed.getTime())) {
-      const hours = parsed.getHours();
-      const minutes = String(parsed.getMinutes()).padStart(2, "0");
-      const suffix = hours >= 12 ? "PM" : "AM";
-      const displayHour = hours % 12 || 12;
-      time = `${displayHour}:${minutes} ${suffix}`;
+      const localeTag = locale?.code ?? "en-US";
+      time = parsed.toLocaleTimeString(localeTag, { hour: "numeric", minute: "2-digit" });
       effectiveDate = parsed.toISOString();
     }
   }
@@ -72,7 +69,9 @@ export function deriveMatches(
   for (const match of scheduleMatches) {
     const first = match.players[0];
     const second = match.players[1];
-    const isMine = !!currentUserId && (first.id === currentUserId || second.id === currentUserId);
+    const isMine =
+      !!currentUserId &&
+      (first?.id === currentUserId || second?.id === currentUserId);
 
     const scheduleLabel = scheduleText(
       match.startTime ?? fallbackDate,
@@ -92,8 +91,12 @@ export function deriveMatches(
 
     pairs.push({
       id: match.id,
-      playerA: participantName(first.name, first.alias, t("tournaments.playerAFallback")),
-      playerB: participantName(second.name, second.alias, t("tournaments.playerBFallback")),
+      playerA: first
+        ? participantName(first.name, first.alias, t("tournaments.playerAFallback"))
+        : t("tournaments.playerAFallback"),
+      playerB: second
+        ? participantName(second.name, second.alias, t("tournaments.playerBFallback"))
+        : t("tournaments.playerBFallback"),
       courtName,
       status: match.status,
       round: match.round,
