@@ -2,7 +2,7 @@ import { useCallback, useState } from "react";
 import type { TFunction } from "i18next";
 import { toast } from "sonner";
 import { getErrorMessage } from "@/lib/errors";
-import { buildDraftUpdatePayload, buildTournamentPayload } from "@/lib/tournament/form";
+import { buildTournamentPayload, buildUpdatePayload } from "@/lib/tournament/form";
 import type {
   CreateTournamentInput,
   UpdateTournamentInput,
@@ -81,7 +81,7 @@ export function useTournamentActions({
     try {
       if (validTournamentId) {
         await performUpdate(validTournamentId, "draft", {
-          ...buildDraftUpdatePayload(form),
+          ...buildUpdatePayload(form),
           status: "draft",
         });
       } else {
@@ -118,7 +118,7 @@ export function useTournamentActions({
     try {
       if (validTournamentId) {
         await performUpdate(validTournamentId, "publish", {
-          ...buildDraftUpdatePayload(form),
+          ...buildUpdatePayload(form),
           status: "active",
         });
       } else {

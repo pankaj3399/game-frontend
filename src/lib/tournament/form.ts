@@ -80,7 +80,7 @@ export function buildTournamentPayload(
   };
 }
 
-export function buildDraftUpdatePayload(form: CreateTournamentInput): Omit<CreateTournamentInput, "status"> {
+export function buildUpdatePayload(form: CreateTournamentInput): Omit<CreateTournamentInput, "status"> {
   const payload = buildTournamentPayload(form, "draft");
   return {
     club: payload.club,
