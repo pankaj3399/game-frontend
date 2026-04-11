@@ -32,14 +32,17 @@ export function useTournamentActions({
   const [creationAction, setCreationAction] = useState<
     "draft" | "publish" | null
   >(null);
+  const [updateAction, setUpdateAction] = useState<
+    "draft" | "publish" | null
+  >(null);
 
   const isPublishing =
     (creationAction === "publish" && createTournament.isPending) ||
-    updateTournament.isPending;
+    (updateAction === "publish" && updateTournament.isPending);
 
   const isSavingDraft =
     (creationAction === "draft" && createTournament.isPending) ||
-    updateTournament.isPending;
+    (updateAction === "draft" && updateTournament.isPending);
 
   const isMutating = isSavingDraft || isPublishing;
 
@@ -59,13 +62,18 @@ export function useTournamentActions({
     try {
       if (validTournamentId) {
         const updatePayload = buildDraftUpdatePayload(form);
-        await updateTournament.mutateAsync({
-          id: validTournamentId,
-          data: {
-            ...updatePayload,
-            status: "draft",
-          },
-        });
+        setUpdateAction("draft");
+        try {
+          await updateTournament.mutateAsync({
+            id: validTournamentId,
+            data: {
+              ...updatePayload,
+              status: "draft",
+            },
+          });
+        } finally {
+          setUpdateAction(null);
+        }
       } else {
         setCreationAction("draft");
         try {
@@ -99,13 +107,18 @@ export function useTournamentActions({
 
     try {
       if (validTournamentId) {
-        await updateTournament.mutateAsync({
-          id: validTournamentId,
-          data: {
-            ...buildDraftUpdatePayload(form),
-            status: "active",
-          },
-        });
+        setUpdateAction("publish");
+        try {
+          await updateTournament.mutateAsync({
+            id: validTournamentId,
+            data: {
+              ...buildDraftUpdatePayload(form),
+              status: "active",
+            },
+          });
+        } finally {
+          setUpdateAction(null);
+        }
       } else {
         setCreationAction("publish");
         try {
