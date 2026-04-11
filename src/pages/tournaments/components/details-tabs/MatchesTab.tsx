@@ -40,7 +40,7 @@ export function MatchesTab({ tournament, currentUserId }: MatchesTabProps) {
     );
   }
 
-  if (matchesQuery.isError) {
+  if (matchesQuery.isLoadingError) {
     return (
       <TabsContent value="matches" className="mt-5 sm:mt-6">
         <div className="rounded-xl border border-[#f1b3b3] bg-[#fff7f7] p-5 text-sm text-[#a02626]">

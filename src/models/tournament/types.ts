@@ -54,16 +54,19 @@ export const tournamentPermissionsSchema = z.object({
 
 export const tournamentMatchStatusSchema = z.enum(["completed", "inProgress", "scheduled"]);
 
-export const tournamentMatchPlayerSchema = z.object({
-  id: z.string(),
-  name: z.string().nullable(),
-  alias: z.string().nullable(),
+export const tournamentMatchPlayerSchema = tournamentParticipantSchema.pick({
+  id: true,
+  name: true,
+  alias: true,
 });
 
-export const tournamentMatchCourtSchema = z.object({
-  id: z.string().nullable(),
-  name: z.string().nullable(),
-});
+export const tournamentMatchCourtSchema = tournamentCourtSchema
+  .pick({ id: true, name: true })
+  .extend({
+    id: tournamentCourtSchema.shape.id.nullable(),
+    name: tournamentCourtSchema.shape.name.nullable(),
+    number: z.number().int().optional(),
+  });
 
 export const tournamentScheduleMatchSchema = z.object({
   id: z.string(),

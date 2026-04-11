@@ -605,6 +605,7 @@
     "scheduledTbd": "TBA",
     "court": "Platz",
     "courtFallback": "Platz {{number}}",
+    "courtTBD": "Platz offen",
     "roundNumber": "Runde {{round}}",
     "allMatches": "Alle Matches",
     "matchesCompletedCount": "{{completed}} von {{total}} Matches abgeschlossen",

@@ -606,6 +606,7 @@
     "scheduledTbd": "TBD",
     "court": "Court",
     "courtFallback": "Court {{number}}",
+    "courtTBD": "Court TBD",
     "roundNumber": "Round {{round}}",
     "allMatches": "All Matches",
     "matchesCompletedCount": "{{completed}} of {{total}} matches completed",

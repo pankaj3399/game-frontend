@@ -54,6 +54,7 @@
   --color-brand-black: var(--brand-black);
   --color-brand-accent: var(--brand-accent);
   --color-brand-accent-hover: var(--brand-accent-hover);
+  --color-card-surface: var(--card-surface);
 }
 
 :root {
@@ -96,6 +97,7 @@
   --brand-accent-hover: #e0b94d;
   --brand-secondary: oklch(0.97 0 0);
   --brand-black: oklch(0.145 0 0);
+  --card-surface: #f2f4f3;
 }
 
 .dark {
@@ -137,6 +139,7 @@
   --brand-accent-hover: #e0b94d;
   --brand-secondary: oklch(0.269 0 0);
   --brand-black: oklch(0.985 0 0);
+  --card-surface: oklch(0.28 0.004 160);
 }
 
 @layer base {

@@ -8,6 +8,17 @@ function participantName(name: string | null, alias: string | null, fallback: st
   return name || alias || fallback;
 }
 
+/** True when the string is not date-only (avoids local-midnight drift from `new Date("YYYY-MM-DD")`). */
+function dateStringHasTimeComponent(value: string): boolean {
+  const trimmed = value.trim();
+  if (trimmed.includes("T")) return true;
+  if (trimmed.includes(":")) return true;
+  if (/z$/i.test(trimmed)) return true;
+  if (/[+-]\d{2}:?\d{2}$/.test(trimmed)) return true;
+  if (/[+-]\d{4}$/.test(trimmed)) return true;
+  return false;
+}
+
 function scheduleText(
   date: string | null,
   startTime: string | null,
@@ -17,7 +28,7 @@ function scheduleText(
   let effectiveDate = date;
   let time = formatTimeTo12Hour(startTime);
 
-  if (!time && date) {
+  if (!time && date && dateStringHasTimeComponent(date)) {
     const parsed = new Date(date);
     if (!Number.isNaN(parsed.getTime())) {
       const hours = parsed.getHours();
@@ -70,9 +81,14 @@ export function deriveMatches(
       locale
     );
 
+    const court = match.court;
     const courtName =
-      match.court.name?.trim() ||
-      t("tournaments.courtFallback", { number: match.slot });
+      court.name?.trim() ||
+      (typeof court.number === "number" && Number.isFinite(court.number)
+        ? t("tournaments.courtFallback", { number: court.number })
+        : "") ||
+      court.id?.trim() ||
+      t("tournaments.courtTBD");
 
     pairs.push({
       id: match.id,
