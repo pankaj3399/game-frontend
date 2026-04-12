@@ -2,7 +2,12 @@ import { useCallback, useState } from "react";
 import type { TFunction } from "i18next";
 import { toast } from "sonner";
 import { getErrorMessage } from "@/lib/errors";
-import { buildTournamentPayload, buildUpdatePayload } from "@/lib/tournament/form";
+import {
+  buildTournamentPayload,
+  buildUpdatePayload,
+  getDraftValidationError,
+  getPublishValidationError,
+} from "@/lib/tournament/form";
 import type {
   CreateTournamentInput,
   UpdateTournamentInput,
@@ -17,8 +22,8 @@ interface UseTournamentActionsArgs {
   validTournamentId: string | null;
   onOpenChange: (open: boolean) => void;
   t: TFunction;
-  draftValidationError: string | null;
-  publishValidationError: string | null;
+  /** Commits Details tab draft inputs; merged into form for this submit tick. */
+  commitDetailsDrafts?: () => Partial<CreateTournamentInput>;
 }
 
 export function useTournamentActions({
@@ -26,8 +31,7 @@ export function useTournamentActions({
   validTournamentId,
   onOpenChange,
   t,
-  draftValidationError,
-  publishValidationError,
+  commitDetailsDrafts,
 }: UseTournamentActionsArgs) {
   const createTournament = useCreateTournament();
   const updateTournament = useUpdateTournament();
@@ -73,21 +77,24 @@ export function useTournamentActions({
   );
 
   const handleSaveDraft = useCallback(async () => {
-    if (draftValidationError) {
-      toast.error(t(draftValidationError));
+    const detailsPatch = commitDetailsDrafts?.() ?? {};
+    const mergedForm = { ...form, ...detailsPatch };
+    const mergedDraftError = getDraftValidationError(mergedForm);
+    if (mergedDraftError) {
+      toast.error(t(mergedDraftError));
       return;
     }
 
     try {
       if (validTournamentId) {
         await performUpdate(validTournamentId, "draft", {
-          ...buildUpdatePayload(form),
+          ...buildUpdatePayload(mergedForm),
           status: "draft",
         });
       } else {
         setCreationAction("draft");
         try {
-          const createPayload = buildTournamentPayload(form, "draft");
+          const createPayload = buildTournamentPayload(mergedForm, "draft");
           await createTournament.mutateAsync(createPayload);
         } finally {
           setCreationAction(null);
@@ -100,8 +107,8 @@ export function useTournamentActions({
       toast.error(getErrorMessage(err) ?? t("tournaments.saveError"));
     }
   }, [
+    commitDetailsDrafts,
     createTournament,
-    draftValidationError,
     form,
     handleClose,
     performUpdate,
@@ -110,22 +117,25 @@ export function useTournamentActions({
   ]);
 
   const handlePublish = useCallback(async () => {
-    if (publishValidationError) {
-      toast.error(t(publishValidationError));
+    const detailsPatch = commitDetailsDrafts?.() ?? {};
+    const mergedForm = { ...form, ...detailsPatch };
+    const mergedPublishError = getPublishValidationError(mergedForm);
+    if (mergedPublishError) {
+      toast.error(t(mergedPublishError));
       return;
     }
 
     try {
       if (validTournamentId) {
         await performUpdate(validTournamentId, "publish", {
-          ...buildUpdatePayload(form),
+          ...buildUpdatePayload(mergedForm),
           status: "active",
         });
       } else {
         setCreationAction("publish");
         try {
           await createTournament.mutateAsync(
-            buildTournamentPayload(form, "active")
+            buildTournamentPayload(mergedForm, "active")
           );
         } finally {
           setCreationAction(null);
@@ -138,11 +148,11 @@ export function useTournamentActions({
       toast.error(getErrorMessage(err) ?? t("tournaments.publishError"));
     }
   }, [
+    commitDetailsDrafts,
     createTournament,
     form,
     handleClose,
     performUpdate,
-    publishValidationError,
     t,
     validTournamentId,
   ]);
