@@ -8,6 +8,9 @@ interface SponsorCardProps {
 }
 
 export function SponsorCard({ sponsor, t }: SponsorCardProps) {
+  const nameForInitial = sponsor.name?.trim() ?? "";
+  const nameInitial = nameForInitial.charAt(0) || "?";
+
   const safeSponsorLink = (() => {
     const rawLink = sponsor.link?.trim();
     if (!rawLink) return null;
@@ -33,7 +36,7 @@ export function SponsorCard({ sponsor, t }: SponsorCardProps) {
           />
         ) : (
           <div className="flex h-full w-full items-center justify-center rounded-t-xl bg-[#e5e7eb]">
-            <span className="text-sm font-medium text-[#9ca3af]">{sponsor.name.charAt(0) || "?"}</span>
+            <span className="text-sm font-medium text-[#9ca3af]">{nameInitial}</span>
           </div>
         )}
       </div>
