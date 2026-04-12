@@ -1,7 +1,11 @@
+import { useCallback, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { useAdminClubs } from "@/pages/clubs/hooks";
 import { BasicInfoTab } from "@/pages/tournaments/components/create-modal/BasicInfoTab";
-import { DetailsTab } from "@/pages/tournaments/components/create-modal/DetailsTab";
+import {
+  DetailsTab,
+  type DetailsTabHandle,
+} from "@/pages/tournaments/components/create-modal/DetailsTab";
 import { SponsorTab } from "@/pages/tournaments/components/create-modal/SponsorTab";
 import { useTournamentActions } from "@/pages/tournaments/components/create-modal/hooks/useTournamentActions";
 import { useTournamentForm } from "@/pages/tournaments/components/create-modal/hooks/useTournamentForm";
@@ -29,6 +33,11 @@ export function CreateTournamentModal({
   tournamentId = null,
 }: CreateTournamentModalProps) {
   const { t } = useTranslation();
+  const detailsTabRef = useRef<DetailsTabHandle>(null);
+  const commitDetailsDrafts = useCallback(
+    () => detailsTabRef.current?.commitPlayerDrafts() ?? {},
+    []
+  );
   const { data: adminClubsData } = useAdminClubs();
   const clubs = adminClubsData?.clubs ?? [];
 
@@ -61,8 +70,7 @@ export function CreateTournamentModal({
       validTournamentId,
       onOpenChange,
       t,
-      draftValidationError,
-      publishValidationError,
+      commitDetailsDrafts,
     });
 
   if (isEditMode && isTournamentLoading) {
@@ -113,7 +121,7 @@ export function CreateTournamentModal({
               />
             </TabsContent>
             <TabsContent value="details">
-              <DetailsTab form={form} update={update} />
+              <DetailsTab ref={detailsTabRef} form={form} update={update} />
             </TabsContent>
             <TabsContent value="sponsor">
               <SponsorTab
