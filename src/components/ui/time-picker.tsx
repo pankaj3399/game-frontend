@@ -57,6 +57,8 @@ interface TimePickerProps {
   id?: string;
   "aria-labelledby"?: string;
   "aria-describedby"?: string;
+  /** When false, hides Clear so the value cannot be emptied (e.g. required API fields). Default true. */
+  allowClear?: boolean;
 }
 
 type Meridian = "AM" | "PM";
@@ -85,6 +87,7 @@ export function TimePicker({
   id,
   "aria-labelledby": ariaLabelledBy,
   "aria-describedby": ariaDescribedBy,
+  allowClear = true,
 }: TimePickerProps) {
   const { t } = useTranslation();
 
@@ -306,12 +309,12 @@ export function TimePicker({
           aria-labelledby={ariaLabelledBy}
           aria-describedby={ariaDescribedBy}
           className={cn(
-            "h-[38px] w-full min-w-0 max-w-full justify-between overflow-hidden rounded-[10px] border-[#e1e3e8] bg-[#f9fafc] px-3 text-left text-[13px] font-normal text-[#010a04] sm:h-[46px] sm:rounded-[12px] sm:px-[15px] sm:text-[14px]",
+            "h-[38px] w-full min-w-0 max-w-full justify-between gap-2 overflow-hidden rounded-[8px] border border-[#e1e3e8] bg-[#f9fafc] px-3 text-left text-[14px] font-normal text-[#010a04] shadow-none hover:bg-[#f9fafc]",
             !formatted && "text-[#010a04]/50"
           )}
         >
           <span className="min-w-0 truncate">{formatted || effectivePlaceholder}</span>
-          <Clock className="h-4 w-4 shrink-0 text-[#010a04]/65 sm:h-5 sm:w-5" />
+          <Clock className="h-4 w-4 shrink-0 text-[#010a04]/50" />
         </Button>
       </PopoverTrigger>
       <PopoverContent
@@ -424,17 +427,19 @@ export function TimePicker({
         </div>
 
         <div className="flex items-center gap-2 border-t border-[#e5e7eb] p-3">
-          <Button
-            type="button"
-            variant="outline"
-            className="h-8 flex-1 rounded-md text-[12px]"
-            onClick={() => {
-              const ok = proposeTime(null);
-              if (!ok) rejectAndSyncInputs();
-            }}
-          >
-            {effectiveClearLabel}
-          </Button>
+          {allowClear ? (
+            <Button
+              type="button"
+              variant="outline"
+              className="h-8 flex-1 rounded-md text-[12px]"
+              onClick={() => {
+                const ok = proposeTime(null);
+                if (!ok) rejectAndSyncInputs();
+              }}
+            >
+              {effectiveClearLabel}
+            </Button>
+          ) : null}
           <Button
             type="button"
             variant="outline"

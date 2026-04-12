@@ -2,8 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, Navigate, useParams, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
+import InlineLoader from "@/components/shared/InlineLoader";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft } from "@/icons/figma-icons";
 import {
   Select,
   SelectContent,
@@ -11,12 +11,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { TimePicker } from "@/components/ui/time-picker";
+import { ChevronLeft } from "@/icons/figma-icons";
 import { getErrorMessage } from "@/lib/errors";
 import {
   useGenerateTournamentDoublesPairs,
   useGenerateTournamentSchedule,
+  useTournamentById,
   useTournamentSchedule,
 } from "@/pages/tournaments/hooks";
+import { clampTime24ToBounds, resolveTournamentScheduleTimeBounds } from "@/utils/time";
 import type {
   GenerateTournamentDoublesPairsResponse,
   TournamentScheduleMode,
@@ -35,33 +39,29 @@ const MATCH_DURATION_OPTIONS = [30, 45, 60, 75, 90];
 const BREAK_DURATION_OPTIONS = [0, 5, 10, 15, 20, 30];
 const GAMES_PER_PLAYER_OPTIONS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
-function buildStartTimeOptions() {
-  const options: string[] = [];
-
-  for (let hour = 6; hour <= 22; hour += 1) {
-    for (const minute of [0, 15, 30, 45]) {
-      options.push(`${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`);
-    }
-  }
-
-  return options;
-}
-
-const START_TIME_OPTIONS = buildStartTimeOptions();
-
 export default function TournamentSchedulePage() {
   const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const [searchParams] = useSearchParams();
 
   const scheduleQuery = useTournamentSchedule(id ?? null, Boolean(id));
+  const tournamentDetailQuery = useTournamentById(id ?? null, Boolean(id));
   const generateScheduleMutation = useGenerateTournamentSchedule();
   const generateDoublesPairsMutation = useGenerateTournamentDoublesPairs();
+
+  const scheduleTimeBounds = useMemo(
+    () =>
+      resolveTournamentScheduleTimeBounds(
+        tournamentDetailQuery.data?.tournament.startTime,
+        tournamentDetailQuery.data?.tournament.endTime
+      ),
+    [tournamentDetailQuery.data?.tournament.startTime, tournamentDetailQuery.data?.tournament.endTime]
+  );
 
   const [matchDurationMinutes, setMatchDurationMinutes] = useState(60);
   const [breakTimeMinutes, setBreakTimeMinutes] = useState(5);
   const [gamesPerPlayer, setGamesPerPlayer] = useState(5);
-  const [startTime, setStartTime] = useState("13:40");
+  const [startTime, setStartTime] = useState("09:00");
   const [mode, setMode] = useState<TournamentScheduleMode>("singles");
   const [participants, setParticipants] = useState<ScheduleParticipantRow[]>([]);
   const [selectedCourtIds, setSelectedCourtIds] = useState<string[]>([]);
@@ -84,6 +84,10 @@ export default function TournamentSchedulePage() {
     );
     setDoublesPairs(null);
   }, [scheduleQuery.data]);
+
+  useEffect(() => {
+    setStartTime((prev) => clampTime24ToBounds(prev, scheduleTimeBounds));
+  }, [scheduleTimeBounds]);
 
   if (!id) {
     return <Navigate to="/tournaments" replace />;
@@ -111,7 +115,21 @@ export default function TournamentSchedulePage() {
     );
   };
 
-  const onGenerateDoublesPairs = async () => {
+  const onSelectSingles = () => {
+    setMode("singles");
+  };
+
+  const onSelectDoubles = async () => {
+    if (participants.length < 2 || generateDoublesPairsMutation.isPending) {
+      return;
+    }
+
+    if (doublesPairs) {
+      setMode("doubles");
+      return;
+    }
+
+    setMode("doubles");
     try {
       const response = await generateDoublesPairsMutation.mutateAsync({
         id,
@@ -120,9 +138,8 @@ export default function TournamentSchedulePage() {
         },
       });
       setDoublesPairs(response);
-      setMode("doubles");
-      toast.success(t("tournaments.schedulePairsGenerated"));
     } catch (err) {
+      setMode("singles");
       toast.error(getErrorMessage(err) ?? t("tournaments.schedulePairsError"));
     }
   };
@@ -200,14 +217,6 @@ export default function TournamentSchedulePage() {
               {scheduleQuery.data.tournament.name}
             </h1>
           </div>
-          <Button
-            type="button"
-            onClick={onGenerateDoublesPairs}
-            disabled={generateDoublesPairsMutation.isPending || participants.length < 2}
-            className="h-8 rounded-[8px] bg-[#010a04] px-4 text-xs font-medium text-white hover:bg-black"
-          >
-            {t("tournaments.scheduleGenerateDoublesPairs")}
-          </Button>
         </div>
 
         <h2 className="mb-4 text-[22px] font-medium text-[#010a04]">{t("tournaments.scheduleInputTitle")}</h2>
@@ -271,24 +280,30 @@ export default function TournamentSchedulePage() {
           </div>
 
           <div className="space-y-2">
-            <p className="text-[12px] font-medium uppercase text-[#010a04]/70">{t("tournaments.time")}</p>
-            <Select value={startTime} onValueChange={setStartTime}>
-              <SelectTrigger className="h-[38px] w-full rounded-[8px] border-[#e1e3e8] bg-[#f9fafc] text-[14px]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {START_TIME_OPTIONS.map((option) => (
-                  <SelectItem key={option} value={option}>
-                    {option}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <p
+              id="tournament-schedule-start-time-label"
+              className="text-[12px] font-medium uppercase text-[#010a04]/70"
+            >
+              {t("tournaments.time")}
+            </p>
+            <TimePicker
+              id="tournament-schedule-start-time"
+              aria-labelledby="tournament-schedule-start-time-label"
+              value={startTime}
+              onChange={(next) => {
+                if (next) setStartTime(next);
+              }}
+              minTime={scheduleTimeBounds.minTime}
+              maxTime={scheduleTimeBounds.maxTime}
+              stepMinutes={1}
+              allowClear={false}
+              popoverAlign="end"
+            />
           </div>
         </div>
 
         <div className="mt-4">
-          <p className="mb-2 text-[12px] font-medium uppercase text-[#010a04]">
+          <p className="mb-2 text-[12px] font-medium uppercase text-[#010a04]/70">
             {t("tournaments.scheduleAvailableCourts")}
           </p>
           <div className="grid gap-2 sm:grid-cols-3 lg:grid-cols-6">
@@ -299,10 +314,10 @@ export default function TournamentSchedulePage() {
                   key={court.id}
                   type="button"
                   onClick={() => toggleCourt(court.id)}
-                  className={`h-[38px] rounded-[8px] border px-3 text-[14px] transition-colors ${
+                  className={`h-[38px] rounded-[8px] border px-3 text-[14px] font-normal transition-colors ${
                     selected
-                      ? "border-[#067429] bg-[#0a6925]/10 text-[#067429]"
-                      : "border-[#010a04]/15 text-[#010a04]/70 hover:bg-[#010a04]/[0.03]"
+                      ? "border-[#1b8135] bg-[#e8f5ec] text-[#1b8135]"
+                      : "border-[#e1e3e8] bg-[#f9fafc] text-[#010a04] hover:border-[#010a04]/20 hover:bg-[#f3f4f6]"
                   }`}
                 >
                   {court.name}
@@ -310,7 +325,7 @@ export default function TournamentSchedulePage() {
               );
             })}
           </div>
-          <p className="mt-2 text-[12px] uppercase text-[#010a04]/60">
+          <p className="mt-2 text-[12px] font-medium uppercase text-[#010a04]/60">
             {t("tournaments.scheduleSelectedCourts", { count: selectedCourtIds.length })}
           </p>
         </div>
@@ -320,7 +335,7 @@ export default function TournamentSchedulePage() {
             type="button"
             onClick={onGenerateSchedule}
             disabled={!canSubmit}
-            className="h-[38px] w-full rounded-[8px] bg-gradient-to-r from-[#0a6925] via-[#0c7b2c] to-[#0f8d33] text-[16px] font-medium text-white hover:opacity-95"
+            className="h-[38px] w-full rounded-[8px] bg-[#1b8135] text-[16px] font-medium text-white hover:bg-[#166b2d]"
           >
             {generateScheduleMutation.isPending
               ? t("tournaments.scheduleGenerating")
@@ -336,24 +351,28 @@ export default function TournamentSchedulePage() {
           <div className="rounded-[10px] bg-[#010a04]/[0.05] p-1">
             <button
               type="button"
-              onClick={() => setMode("singles")}
-              className={`h-[30px] rounded-[8px] px-4 text-[14px] font-medium ${
+              onClick={onSelectSingles}
+              className={`h-[30px] rounded-[8px] px-4 text-[14px] font-medium transition-colors ${
                 mode === "singles"
                   ? "bg-white text-[#010a04] shadow-[0_0_4px_rgba(0,0,0,0.04),0_4px_8px_rgba(0,0,0,0.06)]"
-                  : "text-[#010a04]/70"
+                  : "text-[#010a04]/70 hover:text-[#010a04]"
               }`}
             >
               {t("tournaments.scheduleSingles")}
             </button>
             <button
               type="button"
-              onClick={() => setMode("doubles")}
-              className={`h-[30px] rounded-[8px] px-4 text-[14px] font-medium ${
+              onClick={onSelectDoubles}
+              disabled={participants.length < 2 || generateDoublesPairsMutation.isPending}
+              className={`inline-flex h-[30px] items-center justify-center gap-2 rounded-[8px] px-4 text-[14px] font-medium transition-colors ${
                 mode === "doubles"
                   ? "bg-white text-[#010a04] shadow-[0_0_4px_rgba(0,0,0,0.04),0_4px_8px_rgba(0,0,0,0.06)]"
-                  : "text-[#010a04]/70"
-              }`}
+                  : "text-[#010a04]/70 hover:text-[#010a04]"
+              } disabled:opacity-60`}
             >
+              {generateDoublesPairsMutation.isPending && mode === "doubles" ? (
+                <InlineLoader size="sm" className="border-t-[#1b8135] border-muted-foreground/20" />
+              ) : null}
               {t("tournaments.scheduleDoubles")}
             </button>
           </div>
@@ -363,6 +382,7 @@ export default function TournamentSchedulePage() {
           mode={mode}
           participants={participants}
           doublesPairs={doublesPairs}
+          doublesPairsLoading={generateDoublesPairsMutation.isPending && mode === "doubles"}
           onEditParticipant={() => toast.info(t("common.comingSoon"))}
           onRemoveParticipant={(participantId) => setParticipants((prev) => removeParticipant(prev, participantId))}
           onMoveParticipant={(index, direction) =>
