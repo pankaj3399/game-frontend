@@ -657,6 +657,32 @@
     "entryFeeFree": "Free",
     "entryFeeFormat": "${{amount}}"
   },
+  "myScorePage": {
+    "title": "My Score",
+    "loading": "Loading score history...",
+    "loadError": "Failed to load score history.",
+    "totalMatches": "Total Matches",
+    "totalWins": "Total Wins",
+    "glicko2": "Glicko2",
+    "share": "Share",
+    "shareSuccess": "Score view link copied to clipboard.",
+    "shareError": "Unable to copy score view link.",
+    "empty": "No matches found for the selected filters.",
+    "filters": {
+      "all": "All",
+      "singles": "Singles",
+      "doubles": "Doubles",
+      "last30Days": "Last 30 days",
+      "allTime": "All time"
+    },
+    "table": {
+      "date": "Date",
+      "tournament": "Tournament",
+      "opponent": "Opponent",
+      "myScore": "My Score",
+      "opponentScore": "Opponent Score"
+    }
+  },
   "about": {
     "title": "About",
     "allowsYouTo": "TB10 allows you to",

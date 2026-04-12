@@ -655,6 +655,32 @@
     "entryFeeFree": "Kostenlos",
     "entryFeeFormat": "{{amount}} €"
   },
+  "myScorePage": {
+    "title": "Meine Punktzahl",
+    "loading": "Punktverlauf wird geladen...",
+    "loadError": "Punktverlauf konnte nicht geladen werden.",
+    "totalMatches": "Spiele insgesamt",
+    "totalWins": "Siege insgesamt",
+    "glicko2": "Glicko2",
+    "share": "Teilen",
+    "shareSuccess": "Link zur Punkteansicht wurde kopiert.",
+    "shareError": "Link zur Punkteansicht konnte nicht kopiert werden.",
+    "empty": "Keine Spiele fur die ausgewahlten Filter gefunden.",
+    "filters": {
+      "all": "Alle",
+      "singles": "Einzel",
+      "doubles": "Doppel",
+      "last30Days": "Letzte 30 Tage",
+      "allTime": "Gesamter Zeitraum"
+    },
+    "table": {
+      "date": "Datum",
+      "tournament": "Turnier",
+      "opponent": "Gegner",
+      "myScore": "Meine Punktzahl",
+      "opponentScore": "Punktzahl Gegner"
+    }
+  },
   "about": {
     "title": "Über uns",
     "allowsYouTo": "TB10 ermöglicht Ihnen",
