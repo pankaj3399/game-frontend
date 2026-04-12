@@ -1,4 +1,4 @@
-import type { Locale } from "date-fns";
+import { isValid, parseISO, type Locale } from "date-fns";
 import type { TournamentScheduleMatch } from "@/models/tournament/types";
 import { formatDateOrFallback } from "@/utils/date";
 import { formatTimeTo12Hour } from "@/utils/time";
@@ -8,7 +8,7 @@ function participantName(name: string | null, alias: string | null, fallback: st
   return name || alias || fallback;
 }
 
-/** True when the string is not date-only (avoids local-midnight drift from `new Date("YYYY-MM-DD")`). */
+/** True when the string is not date-only (avoids local-midnight drift from parsing a calendar date as UTC midnight). */
 function dateStringHasTimeComponent(value: string): boolean {
   const trimmed = value.trim();
   if (trimmed.includes("T")) return true;
@@ -29,8 +29,9 @@ function scheduleText(
   let time = formatTimeTo12Hour(startTime);
 
   if (!time && date && dateStringHasTimeComponent(date)) {
-    const parsed = new Date(date);
-    if (!Number.isNaN(parsed.getTime())) {
+    const normalized = date.replace(" ", "T");
+    const parsed = parseISO(normalized);
+    if (isValid(parsed)) {
       const localeTag = locale?.code ?? "en-US";
       time = parsed.toLocaleTimeString(localeTag, { hour: "numeric", minute: "2-digit" });
       effectiveDate = parsed.toISOString();
