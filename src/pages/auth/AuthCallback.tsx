@@ -70,8 +70,8 @@ export default function AuthCallback() {
           navigate("/login", { replace: true });
           return;
         }
-        // Navigate directly to final destination to avoid extra redirect via Home
-        const dest = user.alias?.trim() && user.name?.trim() ? "/profile" : "/information";
+        // Sign-in: complete profile → tournaments; otherwise complete signup on /information
+        const dest = user.alias?.trim() && user.name?.trim() ? "/tournaments" : "/information";
         navigate(dest, { replace: true });
       });
       return;

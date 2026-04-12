@@ -472,6 +472,7 @@
     "allClubs": "Alle Vereine",
     "tournamentName": "Turnier",
     "openTournamentRow": "Turnier öffnen: {{name}}",
+    "openTournamentRowWithStatus": "Turnier öffnen: {{name}}, {{status}}",
     "club": "Verein",
     "date": "Datum",
     "action": "Aktion",

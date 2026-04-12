@@ -30,7 +30,7 @@ export function UserInformationContent({ pendingToken }: UserInformationContentP
     displayEmail,
     onSuccess: async () => {
       await checkAuth();
-      navigate("/profile", { replace: true });
+      navigate("/tournaments", { replace: true });
     },
   });
 

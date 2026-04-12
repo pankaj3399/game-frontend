@@ -43,7 +43,7 @@ function Home() {
 
   if (!isAuthenticated) return <Navigate to="/login" replace />;
   if (!isProfileComplete) return <Navigate to="/information" replace />;
-  return <Navigate to="/profile" replace />;
+  return <Navigate to="/tournaments" replace />;
 }
 
 function App() {
