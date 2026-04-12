@@ -1,4 +1,4 @@
-import { useId } from "react";
+import { useId, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type {
   CreateTournamentInput,
@@ -28,6 +28,9 @@ interface DetailsTabProps {
 export function DetailsTab({ form, update }: DetailsTabProps) {
   const { t } = useTranslation();
   const uid = useId();
+  /** Draft text while focused so values like "7" are not merged/clamped mid-typing (e.g. "1"+"7" → 17 → 8). */
+  const [minPlayersDraft, setMinPlayersDraft] = useState<string | null>(null);
+  const [maxPlayersDraft, setMaxPlayersDraft] = useState<string | null>(null);
   const playModeLabelId = `${uid}-play-mode-label`;
   const playModeTriggerId = `${uid}-play-mode-trigger`;
   const durationLabelId = `${uid}-duration-label`;
@@ -177,18 +180,28 @@ export function DetailsTab({ form, update }: DetailsTabProps) {
             id={minPlayersId}
             type="number"
             min={1}
-            value={form.minMember}
-            onChange={(e) => {
-              const v = e.target.value;
-              const n = v === "" ? 1 : parseInt(v, 10);
-              const parsed = Number.isFinite(n) ? n : 1;
-              const atLeastOne = Math.max(1, parsed);
-              const validMaxRaw =
-                Number.isFinite(form.maxMember) && form.maxMember >= 1
+            value={
+              minPlayersDraft !== null
+                ? minPlayersDraft
+                : String(form.minMember)
+            }
+            onFocus={() =>
+              setMinPlayersDraft(String(form.minMember))
+            }
+            onChange={(e) => setMinPlayersDraft(e.target.value)}
+            onBlur={(e) => {
+              const raw = e.target.value.trim();
+              let n = raw === "" ? 1 : parseInt(raw, 10);
+              if (!Number.isFinite(n)) n = 1;
+              n = Math.max(1, Math.floor(n));
+              const cap = Math.max(
+                1,
+                Number.isFinite(form.maxMember)
                   ? Math.floor(form.maxMember)
-                  : atLeastOne;
-              const validMax = Math.max(1, validMaxRaw);
-              update({ minMember: Math.min(atLeastOne, validMax) });
+                  : n
+              );
+              update({ minMember: Math.min(n, cap) });
+              setMinPlayersDraft(null);
             }}
             className="h-[38px] rounded-[10px] border-[#e1e3e8] bg-[#f9fafc] px-3 text-[13px] font-normal text-[#010a04] sm:h-[46px] sm:rounded-[12px] sm:px-[15px] sm:text-[16px]"
           />
@@ -207,17 +220,28 @@ export function DetailsTab({ form, update }: DetailsTabProps) {
             id={maxPlayersId}
             type="number"
             min={1}
-            value={form.maxMember}
-            onChange={(e) => {
-              const v = e.target.value;
-              const n = v === "" ? 1 : parseInt(v, 10);
-              const parsed = Number.isFinite(n) ? n : 1;
-              const atLeastOne = Math.max(1, parsed);
-              const safeMin = Math.max(
+            value={
+              maxPlayersDraft !== null
+                ? maxPlayersDraft
+                : String(form.maxMember)
+            }
+            onFocus={() =>
+              setMaxPlayersDraft(String(form.maxMember))
+            }
+            onChange={(e) => setMaxPlayersDraft(e.target.value)}
+            onBlur={(e) => {
+              const raw = e.target.value.trim();
+              let n = raw === "" ? 1 : parseInt(raw, 10);
+              if (!Number.isFinite(n)) n = 1;
+              n = Math.max(1, Math.floor(n));
+              const floor = Math.max(
                 1,
-                Number.isFinite(form.minMember) ? Math.floor(form.minMember) : 1
+                Number.isFinite(form.minMember)
+                  ? Math.floor(form.minMember)
+                  : 1
               );
-              update({ maxMember: Math.max(atLeastOne, safeMin) });
+              update({ maxMember: Math.max(n, floor) });
+              setMaxPlayersDraft(null);
             }}
             className="h-[38px] rounded-[10px] border-[#e1e3e8] bg-[#f9fafc] px-3 text-[13px] font-normal text-[#010a04] sm:h-[46px] sm:rounded-[12px] sm:px-[15px] sm:text-[16px]"
           />
