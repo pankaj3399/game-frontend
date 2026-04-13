@@ -561,6 +561,7 @@
     "publishError": "Failed to publish tournament.",
     "share": "Share",
     "sponsoredBy": "Sponsored by",
+    "openSponsorWebsite": "Open {{name}} website (new tab)",
     "info": "Info",
     "matches": "Matches",
     "results": "Results",

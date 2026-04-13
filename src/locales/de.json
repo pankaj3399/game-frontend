@@ -560,6 +560,7 @@
     "publishError": "Turnier konnte nicht veröffentlicht werden.",
     "share": "Teilen",
     "sponsoredBy": "Gesponsert von",
+    "openSponsorWebsite": "Website von {{name}} öffnen (neuer Tab)",
     "info": "Info",
     "matches": "Spiele",
     "results": "Ergebnisse",
