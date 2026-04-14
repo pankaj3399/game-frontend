@@ -10,10 +10,16 @@ export interface ScheduleParticipantRow extends TournamentScheduleParticipant {
 export function normalizeParticipantRows(
   participants: TournamentScheduleParticipant[]
 ): ScheduleParticipantRow[] {
-  return participants.map((participant, index) => ({
-    ...participant,
-    order: Number.isFinite(participant.order) ? participant.order : index + 1,
-  }));
+  return [...participants]
+    .sort((a, b) => {
+      const aOrder = Number.isFinite(a.order) ? a.order : Number.POSITIVE_INFINITY;
+      const bOrder = Number.isFinite(b.order) ? b.order : Number.POSITIVE_INFINITY;
+      return aOrder - bOrder;
+    })
+    .map((participant, index) => ({
+      ...participant,
+      order: Number.isFinite(participant.order) ? participant.order : index + 1,
+    }));
 }
 
 export function moveParticipant(
