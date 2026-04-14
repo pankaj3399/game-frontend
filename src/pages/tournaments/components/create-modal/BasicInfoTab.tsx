@@ -145,53 +145,53 @@ export function BasicInfoTab({
 
       {form.tournamentMode === "singleDay" && (
         <>
-          <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-[14px]">
-            <div className="min-w-0">
-              <Label
-                id="create-tournament-basic-date-label"
-                className="text-[13px] font-medium text-[#010a04] sm:text-[15px]"
-              >
-                {t("tournaments.date")} *
-              </Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    id="create-tournament-basic-date"
-                    type="button"
-                    aria-labelledby="create-tournament-basic-date-label"
-                    variant="outline"
-                    className={cn(
-                      "mt-2 h-[38px] w-full min-w-0 max-w-full justify-between overflow-hidden rounded-[10px] border-[#e1e3e8] bg-[#f9fafc] px-3 text-left text-[13px] font-normal text-[#010a04] sm:mt-[10px] sm:h-[46px] sm:rounded-[12px] sm:px-[15px] sm:text-[14px]",
-                      !selectedDate && "text-[#010a04]/50",
-                    )}
-                  >
-                    <span className="min-w-0 truncate">
-                      {selectedDate
-                        ? format(selectedDate, "dd/MM/yyyy")
-                        : t("tournaments.datePlaceholder")}
-                    </span>
-                    <CalendarIcon className="h-4 w-4 shrink-0 text-[#010a04]/65 sm:h-5 sm:w-5" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={selectedDate}
-                    onSelect={(date) => {
-                      if (!date) return;
-                      update({ date: format(date, "yyyy-MM-dd") });
-                    }}
-                    disabled={
-                      allowPastDates
-                        ? undefined
-                        : (date) => startOfDay(date) < startOfDay(new Date())
-                    }
-                    autoFocus
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
+          <div className="min-w-0">
+            <Label
+              id="create-tournament-basic-date-label"
+              className="text-[13px] font-medium text-[#010a04] sm:text-[15px]"
+            >
+              {t("tournaments.date")} *
+            </Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  id="create-tournament-basic-date"
+                  type="button"
+                  aria-labelledby="create-tournament-basic-date-label"
+                  variant="outline"
+                  className={cn(
+                    "mt-2 h-[38px] w-full min-w-0 max-w-full justify-between overflow-hidden rounded-[10px] border-[#e1e3e8] bg-[#f9fafc] px-3 text-left text-[13px] font-normal text-[#010a04] sm:mt-[10px] sm:h-[46px] sm:rounded-[12px] sm:px-[15px] sm:text-[14px]",
+                    !selectedDate && "text-[#010a04]/50",
+                  )}
+                >
+                  <span className="min-w-0 truncate">
+                    {selectedDate
+                      ? format(selectedDate, "dd/MM/yyyy")
+                      : t("tournaments.datePlaceholder")}
+                  </span>
+                  <CalendarIcon className="h-4 w-4 shrink-0 text-[#010a04]/65 sm:h-5 sm:w-5" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={(date) => {
+                    if (!date) return;
+                    update({ date: format(date, "yyyy-MM-dd") });
+                  }}
+                  disabled={
+                    allowPastDates
+                      ? undefined
+                      : (date) => startOfDay(date) < startOfDay(new Date())
+                  }
+                  autoFocus
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
 
+          <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-[14px]">
             <div className="min-w-0">
               <Label
                 id="create-tournament-basic-start-label"
@@ -212,9 +212,7 @@ export function BasicInfoTab({
                 />
               </div>
             </div>
-          </div>
 
-          <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-[14px]">
             <div className="min-w-0">
               <Label
                 id="create-tournament-basic-end-label"
@@ -236,8 +234,6 @@ export function BasicInfoTab({
                 />
               </div>
             </div>
-
-            <div aria-hidden="true" className="hidden sm:block" />
           </div>
 
           {scheduledErrorKey ? (
