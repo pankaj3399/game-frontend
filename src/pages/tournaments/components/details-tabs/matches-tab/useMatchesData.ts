@@ -1,11 +1,12 @@
 import { useMemo } from "react";
 import type { TFunction } from "i18next";
 import { getDateFnsLocale } from "@/lib/dateFnsLocale";
-import type { TournamentDetail } from "@/models/tournament/types";
+import type { TournamentDetail, TournamentScheduleMatch } from "@/models/tournament/types";
 import { deriveMatches, getCurrentRound, getMatchCounts } from "./deriveMatches";
 
 interface UseMatchesDataArgs {
   tournament: TournamentDetail;
+  scheduleMatches: TournamentScheduleMatch[];
   currentUserId: string | null;
   onlyMyMatches: boolean;
   language: string;
@@ -14,6 +15,7 @@ interface UseMatchesDataArgs {
 
 export function useMatchesData({
   tournament,
+  scheduleMatches,
   currentUserId,
   onlyMyMatches,
   language,
@@ -22,8 +24,8 @@ export function useMatchesData({
   const locale = getDateFnsLocale(language);
 
   const matches = useMemo(
-    () => deriveMatches(tournament, currentUserId, t, locale),
-    [tournament, currentUserId, t, locale]
+    () => deriveMatches(scheduleMatches, currentUserId, t, locale, tournament.date, tournament.startTime),
+    [scheduleMatches, currentUserId, t, locale, tournament.date, tournament.startTime]
   );
 
   const filteredMatches = useMemo(

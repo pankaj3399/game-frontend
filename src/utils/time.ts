@@ -1,4 +1,7 @@
-export function formatTimeTo12Hour(time: string | null | undefined): string | null {
+export function formatTimeTo12Hour(
+  time: string | null | undefined,
+  locale?: string
+): string | null {
   if (!time) return null;
 
   const normalized = time.trim();
@@ -14,10 +17,12 @@ export function formatTimeTo12Hour(time: string | null | undefined): string | nu
     return normalized;
   }
 
-  const period = hours >= 12 ? "PM" : "AM";
-  const displayHour = hours % 12 || 12;
-
-  return `${displayHour}:${minutes} ${period}`;
+  const date = new Date(Date.UTC(2000, 0, 1, hours, Number(minutes)));
+  return new Intl.DateTimeFormat(locale ?? "en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+    timeZone: "UTC",
+  }).format(date);
 }
 
 export function normalizeTimeTo24Hour(value: string | null | undefined): string | null {

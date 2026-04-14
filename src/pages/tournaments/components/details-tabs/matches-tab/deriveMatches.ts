@@ -1,12 +1,22 @@
-import type { Locale } from "date-fns";
-import type { TournamentDetail } from "@/models/tournament/types";
+import { isValid, parseISO, type Locale } from "date-fns";
+import type { TournamentScheduleMatch } from "@/models/tournament/types";
 import { formatDateOrFallback } from "@/utils/date";
 import { formatTimeTo12Hour } from "@/utils/time";
-import { getMockMatchOutcomes } from "../shared/mockMatchOutcomes";
 import type { DerivedMatch, MatchCounts, MatchStatus } from "./types";
 
 function participantName(name: string | null, alias: string | null, fallback: string) {
   return name || alias || fallback;
+}
+
+/** True when the string is not date-only (avoids local-midnight drift from parsing a calendar date as UTC midnight). */
+function dateStringHasTimeComponent(value: string): boolean {
+  const trimmed = value.trim();
+  if (trimmed.includes("T")) return true;
+  if (trimmed.includes(":")) return true;
+  if (/z$/i.test(trimmed)) return true;
+  if (/[+-]\d{2}:?\d{2}$/.test(trimmed)) return true;
+  if (/[+-]\d{4}$/.test(trimmed)) return true;
+  return false;
 }
 
 function scheduleText(
@@ -15,11 +25,22 @@ function scheduleText(
   tbdLabel: string,
   locale: Locale | undefined
 ) {
-  const time = formatTimeTo12Hour(startTime);
+  let effectiveDate = date;
+  let time = formatTimeTo12Hour(startTime, locale?.code);
 
-  if (!date) return time ?? tbdLabel;
+  if (!time && date && dateStringHasTimeComponent(date)) {
+    const normalized = date.replace(" ", "T");
+    const parsed = parseISO(normalized);
+    if (isValid(parsed)) {
+      const localeTag = locale?.code ?? "en-US";
+      time = parsed.toLocaleTimeString(localeTag, { hour: "numeric", minute: "2-digit" });
+      effectiveDate = parsed.toISOString();
+    }
+  }
 
-  const dateLabel = formatDateOrFallback(date, tbdLabel, "P", locale);
+  if (!effectiveDate) return time ?? tbdLabel;
+
+  const dateLabel = formatDateOrFallback(effectiveDate, tbdLabel, "P", locale);
   return `${time ?? tbdLabel} (${dateLabel})`;
 }
 
@@ -36,38 +57,54 @@ export function statusClassName(status: MatchStatus) {
 }
 
 export function deriveMatches(
-  tournament: TournamentDetail,
+  scheduleMatches: TournamentScheduleMatch[],
   currentUserId: string | null,
   t: (key: string, options?: Record<string, unknown>) => string,
-  locale: Locale | undefined
+  locale: Locale | undefined,
+  fallbackDate: string | null,
+  fallbackStartTime: string | null
 ): DerivedMatch[] {
-  const outcomes = getMockMatchOutcomes(tournament);
-  const participants = tournament.participants;
-  const byId = new Map(participants.map((p) => [p.id, p]));
   const pairs: DerivedMatch[] = [];
   const tbdLabel = t("tournaments.scheduledTbd");
 
-  for (let i = 0; i < outcomes.length; i++) {
-    const o = outcomes[i];
-    const first = byId.get(o.playerAId);
-    if (!first) continue;
-    const second = o.playerBId ? byId.get(o.playerBId) : null;
-
-    const round = Math.floor(i / 3) + 1;
-    const court = tournament.courts[i % Math.max(1, tournament.courts.length)];
-
+  for (const match of scheduleMatches) {
+    const first = match.players[0];
+    const second = match.players[1];
     const isMine =
-      !!currentUserId && (first.id === currentUserId || second?.id === currentUserId);
+      !!currentUserId &&
+      (first?.id === currentUserId || second?.id === currentUserId);
+
+    const scheduleLabel = scheduleText(
+      match.startTime ?? fallbackDate,
+      match.startTime && dateStringHasTimeComponent(match.startTime)
+        ? null
+        : fallbackStartTime,
+      tbdLabel,
+      locale
+    );
+
+    const court = match.court;
+    const courtName =
+      court.name?.trim() ||
+      (typeof court.number === "number" && Number.isFinite(court.number)
+        ? t("tournaments.courtFallback", { number: court.number })
+        : "") ||
+      court.id?.trim() ||
+      t("tournaments.courtTBD");
 
     pairs.push({
-      id: `${first.id}-${second?.id ?? "bye"}`,
-      playerA: participantName(first.name, first.alias, t("tournaments.playerAFallback")),
-      playerB: participantName(second?.name ?? null, second?.alias ?? null, t("tournaments.playerBFallback")),
-      courtName: court?.name || t("tournaments.courtFallback", { number: i + 1 }),
-      status: o.status,
-      round,
+      id: match.id,
+      playerA: first
+        ? participantName(first.name, first.alias, t("tournaments.playerAFallback"))
+        : t("tournaments.playerAFallback"),
+      playerB: second
+        ? participantName(second.name, second.alias, t("tournaments.playerBFallback"))
+        : t("tournaments.playerBFallback"),
+      courtName,
+      status: match.status,
+      round: match.round,
       isMine,
-      scheduledText: scheduleText(tournament.date, tournament.startTime, tbdLabel, locale),
+      scheduledText: scheduleLabel,
     });
   }
 
