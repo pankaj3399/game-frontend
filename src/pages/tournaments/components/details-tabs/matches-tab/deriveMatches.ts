@@ -26,7 +26,7 @@ function scheduleText(
   locale: Locale | undefined
 ) {
   let effectiveDate = date;
-  let time = formatTimeTo12Hour(startTime);
+  let time = formatTimeTo12Hour(startTime, locale?.code);
 
   if (!time && date && dateStringHasTimeComponent(date)) {
     const normalized = date.replace(" ", "T");
