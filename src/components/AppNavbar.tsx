@@ -115,13 +115,13 @@ function NavLinks({
             onClick={onNavigate}
             className={cn(
               "flex items-center leading-none whitespace-nowrap transition-opacity",
-              isInline ? "gap-1.5 text-[14px] 2xl:gap-2 2xl:text-[15px]" : "gap-1.5 text-[14px]",
+              isInline ? "gap-1 text-[12px] 2xl:gap-1.5 2xl:text-[14px]" : "gap-1.5 text-[14px]",
               isActive
                 ? "font-medium text-white opacity-100"
                 : "font-medium text-white opacity-80 hover:opacity-100",
             )}
           >
-            <Icon size={17} className="shrink-0 text-white" />
+            <Icon className="h-[15px] w-[15px] shrink-0 text-white 2xl:h-[17px] 2xl:w-[17px]" />
             {t(labelKey)}
           </Link>
         );
@@ -272,7 +272,7 @@ export function AppNavbar() {
           </Link>
         </div>
 
-        <nav className="hidden min-w-0 flex-1 items-center justify-center gap-x-5 gap-y-1 xl:flex 2xl:gap-x-7">
+        <nav className="hidden min-w-0 flex-1 items-center justify-center gap-x-3 gap-y-1 xl:flex 2xl:gap-x-6">
           <NavLinks variant="inline" location={location} t={t} />
         </nav>
 
