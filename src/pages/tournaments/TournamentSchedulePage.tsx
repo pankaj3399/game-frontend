@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, Navigate, useParams, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
@@ -49,14 +49,13 @@ export default function TournamentSchedulePage() {
   const generateScheduleMutation = useGenerateTournamentSchedule();
   const generateDoublesPairsMutation = useGenerateTournamentDoublesPairs();
 
-  const scheduleTimeBounds = useMemo(
-    () =>
-      resolveTournamentScheduleTimeBounds(
-        tournamentDetailQuery.data?.tournament.startTime,
-        tournamentDetailQuery.data?.tournament.endTime
-      ),
-    [tournamentDetailQuery.data?.tournament.startTime, tournamentDetailQuery.data?.tournament.endTime]
+  const scheduleTimeBounds = resolveTournamentScheduleTimeBounds(
+    tournamentDetailQuery.data?.tournament.startTime,
+    tournamentDetailQuery.data?.tournament.endTime
   );
+  const defaultsLoadedForIdRef = useRef<string | null>(null);
+  const loadedDefaultsRef = useRef(false);
+  const isDirtyRef = useRef(false);
 
   const [matchDurationMinutes, setMatchDurationMinutes] = useState(60);
   const [breakTimeMinutes, setBreakTimeMinutes] = useState(5);
@@ -68,11 +67,22 @@ export default function TournamentSchedulePage() {
   const [doublesPairs, setDoublesPairs] = useState<GenerateTournamentDoublesPairsResponse | null>(null);
 
   useEffect(() => {
-    if (!scheduleQuery.data) {
+    if (!id || !scheduleQuery.data) {
+      return;
+    }
+
+    if (defaultsLoadedForIdRef.current !== id) {
+      defaultsLoadedForIdRef.current = id;
+      loadedDefaultsRef.current = false;
+      isDirtyRef.current = false;
+    }
+
+    if (loadedDefaultsRef.current && isDirtyRef.current) {
       return;
     }
 
     const defaults = scheduleQuery.data.scheduleInput;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMatchDurationMinutes(defaults.matchDurationMinutes);
     setBreakTimeMinutes(defaults.breakTimeMinutes);
     setGamesPerPlayer(defaults.gamesPerPlayer);
@@ -83,31 +93,27 @@ export default function TournamentSchedulePage() {
       defaults.availableCourts.filter((court) => court.selected).map((court) => court.id)
     );
     setDoublesPairs(null);
-  }, [scheduleQuery.data]);
-
-  useEffect(() => {
-    setStartTime((prev) => clampTime24ToBounds(prev, scheduleTimeBounds));
-  }, [scheduleTimeBounds]);
+    loadedDefaultsRef.current = true;
+  }, [id, scheduleQuery.data]);
 
   if (!id) {
     return <Navigate to="/tournaments" replace />;
   }
 
   const roundFromQuery = Number.parseInt(searchParams.get("round") ?? "", 10);
-  const defaultRound = scheduleQuery.data?.scheduleSummary.currentRound || 1;
+  const defaultRound = scheduleQuery.data?.scheduleSummary.currentRound ?? 1;
   const round = Number.isFinite(roundFromQuery) && roundFromQuery >= 1 ? roundFromQuery : Math.max(1, defaultRound);
+  const clampedStartTime = clampTime24ToBounds(startTime, scheduleTimeBounds);
 
   const availableCourts = scheduleQuery.data?.scheduleInput.availableCourts ?? [];
 
-  const canSubmit = useMemo(
-    () =>
-      selectedCourtIds.length > 0 &&
-      canGenerateSchedule(mode, participants.length) &&
-      !generateScheduleMutation.isPending,
-    [selectedCourtIds.length, mode, participants.length, generateScheduleMutation.isPending]
-  );
+  const canSubmit =
+    selectedCourtIds.length > 0 &&
+    canGenerateSchedule(mode, participants.length) &&
+    !generateScheduleMutation.isPending;
 
   const toggleCourt = (courtId: string) => {
+    isDirtyRef.current = true;
     setSelectedCourtIds((prev) =>
       prev.includes(courtId)
         ? prev.filter((idValue) => idValue !== courtId)
@@ -116,6 +122,7 @@ export default function TournamentSchedulePage() {
   };
 
   const onSelectSingles = () => {
+    isDirtyRef.current = true;
     setMode("singles");
   };
 
@@ -123,6 +130,8 @@ export default function TournamentSchedulePage() {
     if (participants.length < 2 || generateDoublesPairsMutation.isPending) {
       return;
     }
+
+    isDirtyRef.current = true;
 
     if (doublesPairs) {
       setMode("doubles");
@@ -154,7 +163,7 @@ export default function TournamentSchedulePage() {
           matchDurationMinutes,
           breakTimeMinutes,
           gamesPerPlayer,
-          startTime,
+          startTime: clampedStartTime,
           courtIds: selectedCourtIds,
           participantOrder: participantOrderIds(participants),
         },
@@ -226,7 +235,10 @@ export default function TournamentSchedulePage() {
             <p className="text-[12px] font-medium uppercase text-[#010a04]/70">{t("tournaments.matchDuration")}</p>
             <Select
               value={String(matchDurationMinutes)}
-              onValueChange={(value) => setMatchDurationMinutes(Number.parseInt(value, 10))}
+              onValueChange={(value) => {
+                isDirtyRef.current = true;
+                setMatchDurationMinutes(Number.parseInt(value, 10));
+              }}
             >
               <SelectTrigger className="h-[38px] w-full rounded-[8px] border-[#e1e3e8] bg-[#f9fafc] text-[14px]">
                 <SelectValue />
@@ -245,7 +257,10 @@ export default function TournamentSchedulePage() {
             <p className="text-[12px] font-medium uppercase text-[#010a04]/70">{t("tournaments.breakTime")}</p>
             <Select
               value={String(breakTimeMinutes)}
-              onValueChange={(value) => setBreakTimeMinutes(Number.parseInt(value, 10))}
+              onValueChange={(value) => {
+                isDirtyRef.current = true;
+                setBreakTimeMinutes(Number.parseInt(value, 10));
+              }}
             >
               <SelectTrigger className="h-[38px] w-full rounded-[8px] border-[#e1e3e8] bg-[#f9fafc] text-[14px]">
                 <SelectValue />
@@ -264,7 +279,10 @@ export default function TournamentSchedulePage() {
             <p className="text-[12px] font-medium uppercase text-[#010a04]/70">{t("tournaments.scheduleGamesPerPlayer")}</p>
             <Select
               value={String(gamesPerPlayer)}
-              onValueChange={(value) => setGamesPerPlayer(Number.parseInt(value, 10))}
+              onValueChange={(value) => {
+                isDirtyRef.current = true;
+                setGamesPerPlayer(Number.parseInt(value, 10));
+              }}
             >
               <SelectTrigger className="h-[38px] w-full rounded-[8px] border-[#e1e3e8] bg-[#f9fafc] text-[14px]">
                 <SelectValue />
@@ -289,9 +307,12 @@ export default function TournamentSchedulePage() {
             <TimePicker
               id="tournament-schedule-start-time"
               aria-labelledby="tournament-schedule-start-time-label"
-              value={startTime}
+              value={clampedStartTime}
               onChange={(next) => {
-                if (next) setStartTime(next);
+                if (next) {
+                  isDirtyRef.current = true;
+                  setStartTime(next);
+                }
               }}
               minTime={scheduleTimeBounds.minTime}
               maxTime={scheduleTimeBounds.maxTime}
@@ -384,10 +405,14 @@ export default function TournamentSchedulePage() {
           doublesPairs={doublesPairs}
           doublesPairsLoading={generateDoublesPairsMutation.isPending && mode === "doubles"}
           onEditParticipant={() => toast.info(t("common.comingSoon"))}
-          onRemoveParticipant={(participantId) => setParticipants((prev) => removeParticipant(prev, participantId))}
-          onMoveParticipant={(index, direction) =>
-            setParticipants((prev) => moveParticipant(prev, index, direction))
-          }
+          onRemoveParticipant={(participantId) => {
+            isDirtyRef.current = true;
+            setParticipants((prev) => removeParticipant(prev, participantId));
+          }}
+          onMoveParticipant={(index, direction) => {
+            isDirtyRef.current = true;
+            setParticipants((prev) => moveParticipant(prev, index, direction));
+          }}
         />
       </div>
     </div>

@@ -12,7 +12,7 @@ export function normalizeParticipantRows(
 ): ScheduleParticipantRow[] {
   return participants.map((participant, index) => ({
     ...participant,
-    order: index + 1,
+    order: Number.isFinite(participant.order) ? participant.order : index + 1,
   }));
 }
 
@@ -21,7 +21,7 @@ export function moveParticipant(
   index: number,
   direction: "up" | "down"
 ): ScheduleParticipantRow[] {
-  if (rows.length < 2) {
+  if (rows.length < 2 || index < 0 || index >= rows.length) {
     return rows;
   }
 

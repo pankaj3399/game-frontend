@@ -111,7 +111,7 @@ export const tournamentScheduleInputSchema = z.object({
 
 export const tournamentScheduleParticipantSchema = z.object({
   id: z.string(),
-  name: z.string(),
+  name: z.string().nullable(),
   alias: z.string().nullable(),
   skillLabel: z.string(),
   rating: z.number(),
@@ -158,7 +158,7 @@ export const generateTournamentDoublesPairsInputSchema = z.object({
 
 export const tournamentSchedulePairPlayerSchema = z.object({
   id: z.string(),
-  name: z.string(),
+  name: z.string().nullable(),
   alias: z.string().nullable(),
   skillLabel: z.string(),
   rating: z.number(),

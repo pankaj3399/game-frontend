@@ -45,9 +45,9 @@ const AVATAR_TONES = [
 function hashSeed(value: string): number {
   let hash = 0;
   for (let index = 0; index < value.length; index += 1) {
-    hash = (hash * 31 + value.charCodeAt(index)) % 2147483647;
+    hash = (Math.imul(hash, 31) + value.charCodeAt(index)) | 0;
   }
-  return hash;
+  return (hash >>> 0) % 2147483647;
 }
 
 function initialsFromName(name: string): string {
@@ -66,15 +66,18 @@ function initialsFromName(name: string): string {
 }
 
 function playerToneClass(player: TournamentSchedulePairPlayer): string {
-  const seed = hashSeed(`${player.id}:${player.name}`);
+  const seed = hashSeed(`${player.id}:${player.name ?? ""}`);
   return AVATAR_TONES[seed % AVATAR_TONES.length] ?? AVATAR_TONES[0];
 }
 
 interface DoublesPlayerChipProps {
   player: TournamentSchedulePairPlayer;
+  fallbackName: string;
 }
 
-function DoublesPlayerChip({ player }: DoublesPlayerChipProps) {
+function DoublesPlayerChip({ player, fallbackName }: DoublesPlayerChipProps) {
+  const displayName = player.name ?? fallbackName;
+
   return (
     <div className="flex min-w-0 flex-1 items-center gap-3">
       <span
@@ -82,9 +85,9 @@ function DoublesPlayerChip({ player }: DoublesPlayerChipProps) {
           player
         )} text-[11px] font-semibold text-[#010a04]/80`}
       >
-        {initialsFromName(player.name)}
+        {initialsFromName(displayName)}
       </span>
-      <span className="truncate text-[14px] font-medium text-[#010a04]">{player.name}</span>
+      <span className="truncate text-[14px] font-medium text-[#010a04]">{displayName}</span>
     </div>
   );
 }
@@ -169,7 +172,10 @@ export function ScheduleParticipantsTable({
                 </p>
                 <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3.5">
                   {firstPlayer ? (
-                    <DoublesPlayerChip player={firstPlayer} />
+                    <DoublesPlayerChip
+                      player={firstPlayer}
+                      fallbackName={t("tournaments.unknownPlayer")}
+                    />
                   ) : (
                     <span className="truncate text-[14px] font-medium text-[#010a04]/55">
                       {t("tournaments.unknownPlayer")}
@@ -177,7 +183,10 @@ export function ScheduleParticipantsTable({
                   )}
                   <IconPlus size={15} className="text-[#010a04]/60" />
                   {secondPlayer ? (
-                    <DoublesPlayerChip player={secondPlayer} />
+                    <DoublesPlayerChip
+                      player={secondPlayer}
+                      fallbackName={t("tournaments.unknownPlayer")}
+                    />
                   ) : (
                     <span className="truncate text-[14px] font-medium text-[#010a04]/55">
                       {t("tournaments.unknownPlayer")}
@@ -192,7 +201,9 @@ export function ScheduleParticipantsTable({
         {doublesPairs.unpaired.length > 0 ? (
           <div className="rounded-[10px] border border-dashed border-[#010a04]/20 bg-[#010a04]/[0.02] px-4 py-3 text-[13px] text-[#010a04]/75">
             {t("tournaments.scheduleUnpairedList", {
-              names: doublesPairs.unpaired.map((player) => player.name).join(", "),
+              names: doublesPairs.unpaired
+                .map((player) => player.name ?? t("tournaments.unknownPlayer"))
+                .join(", "),
             })}
           </div>
         ) : null}
@@ -218,7 +229,9 @@ export function ScheduleParticipantsTable({
             <TableCell>
               <div className="flex items-center gap-2.5">
                 <span className="h-[18px] w-[18px] rounded-full bg-[#d9d9d9]" />
-                <span className="text-[14px] text-[#010a04]">{participant.name}</span>
+                <span className="text-[14px] text-[#010a04]">
+                  {participant.name ?? t("tournaments.unknownPlayer")}
+                </span>
               </div>
             </TableCell>
             <TableCell className="text-[14px] text-[#010a04]/85">{participant.skillLabel}</TableCell>
