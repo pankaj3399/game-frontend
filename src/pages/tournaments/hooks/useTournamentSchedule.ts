@@ -65,8 +65,15 @@ export function useGenerateTournamentSchedule() {
 }
 
 export function useGenerateTournamentDoublesPairs() {
+  const queryClient = useQueryClient();
+
   return useMutation({
     mutationFn: ({ id, payload }: { id: string; payload: GenerateTournamentDoublesPairsInput }) =>
       generateDoublesPairs(id, payload),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.tournament.schedule(variables.id) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.tournament.matches(variables.id) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.tournament.detail(variables.id) });
+    },
   });
 }

@@ -154,21 +154,39 @@ export function ScheduleParticipantsTable({
     return (
       <div className="space-y-3.5">
         <div className="grid gap-3.5 md:grid-cols-2 xl:grid-cols-3">
-          {doublesRows.map((teamRow) => (
-            <article
-              key={teamRow.id}
-              className="animate-in fade-in zoom-in-95 rounded-[10px] border border-[rgba(0,0,0,0.12)] px-[15px] py-[15px] duration-300 fill-mode-both"
-            >
-              <p className="mb-3.5 text-[12px] font-medium uppercase text-[#010a04]/70">
-                {t("tournaments.schedulePairLabel", { n: teamRow.teamNumber })}
-              </p>
-              <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3.5">
-                <DoublesPlayerChip player={teamRow.players[0]} />
-                <IconPlus size={15} className="text-[#010a04]/60" />
-                <DoublesPlayerChip player={teamRow.players[1]} />
-              </div>
-            </article>
-          ))}
+          {doublesRows.map((teamRow) => {
+            const hasCompletePair = Array.isArray(teamRow.players) && teamRow.players.length >= 2;
+            const firstPlayer = hasCompletePair ? teamRow.players[0] : null;
+            const secondPlayer = hasCompletePair ? teamRow.players[1] : null;
+
+            return (
+              <article
+                key={teamRow.id}
+                className="animate-in fade-in zoom-in-95 rounded-[10px] border border-[rgba(0,0,0,0.12)] px-[15px] py-[15px] duration-300 fill-mode-both"
+              >
+                <p className="mb-3.5 text-[12px] font-medium uppercase text-[#010a04]/70">
+                  {t("tournaments.schedulePairLabel", { n: teamRow.teamNumber })}
+                </p>
+                <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3.5">
+                  {firstPlayer ? (
+                    <DoublesPlayerChip player={firstPlayer} />
+                  ) : (
+                    <span className="truncate text-[14px] font-medium text-[#010a04]/55">
+                      {t("tournaments.unknownPlayer")}
+                    </span>
+                  )}
+                  <IconPlus size={15} className="text-[#010a04]/60" />
+                  {secondPlayer ? (
+                    <DoublesPlayerChip player={secondPlayer} />
+                  ) : (
+                    <span className="truncate text-[14px] font-medium text-[#010a04]/55">
+                      {t("tournaments.unknownPlayer")}
+                    </span>
+                  )}
+                </div>
+              </article>
+            );
+          })}
         </div>
 
         {doublesPairs.unpaired.length > 0 ? (
@@ -187,9 +205,9 @@ export function ScheduleParticipantsTable({
       <TableHeader>
         <TableRow className="bg-[#010a04]/[0.04] hover:bg-[#010a04]/[0.04]">
           <TableHead className="w-10 text-[12px] font-normal text-[#010a04]/70">#</TableHead>
-          <TableHead className="text-[12px] font-normal text-[#010a04]/70">Players</TableHead>
-          <TableHead className="w-[180px] text-[12px] font-normal text-[#010a04]/70">Skill Level</TableHead>
-          <TableHead className="w-[220px] text-[12px] font-normal text-[#010a04]/70">Actions</TableHead>
+          <TableHead className="text-[12px] font-normal text-[#010a04]/70">{t("tournaments.players")}</TableHead>
+          <TableHead className="w-[180px] text-[12px] font-normal text-[#010a04]/70">{t("tournaments.skillLevel")}</TableHead>
+          <TableHead className="w-[220px] text-[12px] font-normal text-[#010a04]/70">{t("tournaments.actions")}</TableHead>
         </TableRow>
       </TableHeader>
 
@@ -214,7 +232,7 @@ export function ScheduleParticipantsTable({
                   className="h-7 px-2 text-[12px] text-[#067429] hover:bg-[#067429]/10"
                 >
                   <PencilEdit01Icon size={14} className="mr-1" />
-                  Edit
+                  {t("tournaments.edit")}
                 </Button>
                 <Button
                   type="button"
@@ -224,7 +242,7 @@ export function ScheduleParticipantsTable({
                   className="h-7 px-2 text-[12px] text-[#d92100] hover:bg-[#d92100]/10"
                 >
                   <Delete01Icon size={14} className="mr-1" />
-                  Remove
+                  {t("tournaments.remove")}
                 </Button>
                 <Button
                   type="button"
