@@ -65,5 +65,6 @@ export const queryKeys = {
     },
     detail: (id: string | null) => [...queryKeys.tournament.all, "detail", id] as const,
     matches: (id: string | null) => [...queryKeys.tournament.all, "matches", id] as const,
+    schedule: (id: string | null) => [...queryKeys.tournament.all, "schedule", id] as const,
   },
 } as const;

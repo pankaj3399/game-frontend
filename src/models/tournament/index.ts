@@ -3,8 +3,6 @@ export type {
   CreateTournamentInput,
   JoinTournamentResponse,
   LeaveTournamentResponse,
-  PublishTournamentPayload,
-  PublishTournamentResponse,
   TournamentDetail,
   TournamentClub,
   TournamentListFilters,

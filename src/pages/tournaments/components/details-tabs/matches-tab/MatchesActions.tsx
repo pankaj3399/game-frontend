@@ -1,14 +1,17 @@
 import { Button } from "@/components/ui/button";
 import type { TFunction } from "i18next";
-import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 
 interface MatchesActionsProps {
   t: TFunction;
   round: number;
   canSchedule: boolean;
+  tournamentId: string;
 }
 
-export function MatchesActions({ t, round, canSchedule }: MatchesActionsProps) {
+export function MatchesActions({ t, round, canSchedule, tournamentId }: MatchesActionsProps) {
+  const navigate = useNavigate();
+
   if (!canSchedule) {
     return null;
   }
@@ -16,7 +19,7 @@ export function MatchesActions({ t, round, canSchedule }: MatchesActionsProps) {
   return (
     <div className="flex items-center justify-end">
       <Button
-        onClick={() => toast.info(t("common.comingSoon"))}
+        onClick={() => navigate(`/tournaments/${tournamentId}/schedule?round=${round}`)}
         className="h-9 rounded-md bg-[#111827] px-4 text-sm font-medium text-white hover:bg-black"
       >
         {t("tournaments.scheduleGamesRound", { round })}

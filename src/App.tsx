@@ -1,5 +1,5 @@
 import { Suspense, lazy } from "react";
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate, useParams } from "react-router-dom";
 import { AuthProvider } from "./contexts/auth";
 import { useAuth } from "./pages/auth/hooks";
 import { Toaster } from "@/components/ui/sonner";
@@ -7,6 +7,7 @@ import { MainLayout } from "@/layouts/MainLayout";
 import { ProtectedRoute } from "@/components/auth";
 import Loader from "@/components/shared/Loader";
 import { ROLES } from "./constants/roles";
+import { useTournamentById } from "./pages/tournaments/hooks";
 
 const Login = lazy(() => import("./pages/auth/Login"));
 const UserInformation = lazy(() => import("./pages/user/UserInformation"));
@@ -14,6 +15,7 @@ const AuthCallback = lazy(() => import("./pages/auth/AuthCallback"));
 const SettingsPage = lazy(() => import("./pages/profile/SettingsPage"));
 const TournamentListPage = lazy(() => import('./pages/tournaments/TournamentListPage'))
 const TournamentDetailsPage = lazy(() => import('./pages/tournaments/TournamentDetailsPage'))
+const TournamentSchedulePage = lazy(() => import('./pages/tournaments/TournamentSchedulePage'))
 const PlaceholderPage = lazy(() => import("./pages/PlaceholderPage"));
 const ClubsListPage = lazy(() => import("./pages/clubs/ClubsListPage"));
 const ClubDetailPage = lazy(() => import("./pages/clubs/ClubDetailPage"));
@@ -46,6 +48,26 @@ function Home() {
   return <Navigate to="/tournaments" replace />;
 }
 
+function TournamentScheduleRoute() {
+  const { id } = useParams<{ id: string }>();
+  const tournamentDetailQuery = useTournamentById(id ?? null, Boolean(id));
+
+  if (!id) {
+    return <Navigate to="/tournaments" replace />;
+  }
+
+  if (tournamentDetailQuery.isLoading) {
+    return <Loader />;
+  }
+
+  const canEdit = tournamentDetailQuery.data?.tournament.permissions?.canEdit;
+  if (!canEdit) {
+    return <Navigate to={`/tournaments/${id}`} replace />;
+  }
+
+  return <TournamentSchedulePage />;
+}
+
 function App() {
   return (
     <div className="w-screen h-screen bg-gray-50 overflow-x-hidden">
@@ -69,6 +91,7 @@ function App() {
               
               <Route path="/tournaments" element={<TournamentListPage />} />
               <Route path="/tournaments/:id" element={<TournamentDetailsPage />} />
+              <Route path="/tournaments/:id/schedule" element={<TournamentScheduleRoute />} />
               <Route path="/my-score" element={<PlaceholderPage />} />
               <Route path="/record-score" element={<PlaceholderPage />} />
               <Route path="/clubs/manage" element={<ManageClubPage />} />

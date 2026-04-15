@@ -56,6 +56,7 @@ export function MatchesTab({ tournament, currentUserId }: MatchesTabProps) {
         t={t}
         round={Math.max(1, currentRound)}
         canSchedule={tournament.permissions.canEdit}
+        tournamentId={tournament.id}
       />
       <MatchesProgress counts={counts} total={matches.length} currentRound={currentRound} t={t} />
       <MatchesList
