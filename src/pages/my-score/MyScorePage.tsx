@@ -137,6 +137,7 @@ export default function MyScorePage() {
                     <button
                       key={value}
                       type="button"
+                      aria-pressed={selected}
                       onClick={() => setMode(value)}
                       className={`h-full rounded-[5px] px-3 text-[12px] font-medium transition-colors ${
                         selected
@@ -181,19 +182,18 @@ export default function MyScorePage() {
             </div>
           </header>
 
-          <div className="border-b border-[rgba(0,0,0,0.06)] bg-[#010a04]/[0.04] px-[16px] py-2 sm:px-[18px]">
-            <div className="grid min-w-[760px] grid-cols-[128px_1.6fr_1.6fr_1fr_1fr] gap-4 text-[12px] font-normal text-[#010a04]/80">
-              <p>{t("myScorePage.table.date")}</p>
-              <p>{t("myScorePage.table.tournament")}</p>
-              <p>{t("myScorePage.table.opponent")}</p>
-              <p>{t("myScorePage.table.myScore")}</p>
-              <p>{t("myScorePage.table.opponentScore")}</p>
-            </div>
-          </div>
-
           <div className="overflow-x-auto">
             {entries.length > 0 ? (
               <div className="min-w-[760px]">
+                <div className="border-b border-[rgba(0,0,0,0.06)] bg-[#010a04]/[0.04] px-[16px] py-2 sm:px-[18px]">
+                  <div className="grid grid-cols-[128px_1.6fr_1.6fr_1fr_1fr] gap-4 text-[12px] font-normal text-[#010a04]/80">
+                    <p>{t("myScorePage.table.date")}</p>
+                    <p>{t("myScorePage.table.tournament")}</p>
+                    <p>{t("myScorePage.table.opponent")}</p>
+                    <p>{t("myScorePage.table.myScore")}</p>
+                    <p>{t("myScorePage.table.opponentScore")}</p>
+                  </div>
+                </div>
                 {entries.map((entry) => (
                   <div
                     key={entry.id}
