@@ -7,6 +7,7 @@ import { getErrorMessage } from "@/lib/errors";
 import { MatchesActions } from "./matches-tab/MatchesActions";
 import { MatchesList } from "./matches-tab/MatchesList";
 import { MatchesProgress } from "./matches-tab/MatchesProgress";
+import { PlayerMatchesBoard } from "./matches-tab/PlayerMatchesBoard";
 import { useMatchesData } from "./matches-tab/useMatchesData";
 
 interface MatchesTabProps {
@@ -20,6 +21,36 @@ export function MatchesTab({ tournament, currentUserId }: MatchesTabProps) {
 
   const matchesQuery = useTournamentMatches(tournament.id, true);
   const scheduleMatches = matchesQuery.data?.matches ?? [];
+  const scheduleInfo = matchesQuery.data?.schedule ?? null;
+  const hasGeneratedSchedule =
+    scheduleMatches.length > 0 ||
+    (scheduleInfo != null && scheduleInfo.currentRound > 0);
+  const latestGeneratedRound = scheduleMatches.reduce(
+    (maxRound, match) => Math.max(maxRound, match.round),
+    scheduleInfo?.currentRound ?? 0
+  );
+  const configuredTotalRounds = Math.max(
+    1,
+    tournament.totalRounds,
+    scheduleInfo?.totalRounds ?? 0
+  );
+  const latestRoundMatches =
+    latestGeneratedRound >= 1
+      ? scheduleMatches.filter((match) => match.round === latestGeneratedRound)
+      : [];
+  const latestRoundCompleted =
+    latestGeneratedRound >= 1 &&
+    latestRoundMatches.length > 0 &&
+    latestRoundMatches.every((match) => match.status === "completed");
+  const finalRoundReached =
+    hasGeneratedSchedule && latestGeneratedRound >= configuredTotalRounds;
+  const nextRoundToGenerate =
+    tournament.permissions.canEdit &&
+    hasGeneratedSchedule &&
+    !finalRoundReached &&
+    latestRoundCompleted
+      ? latestGeneratedRound + 1
+      : null;
 
   const { matches, filteredMatches, counts, currentRound } = useMatchesData({
     tournament,
@@ -50,13 +81,28 @@ export function MatchesTab({ tournament, currentUserId }: MatchesTabProps) {
     );
   }
 
+  if (!tournament.permissions.canEdit) {
+    return (
+      <TabsContent value="matches" className="mt-5 space-y-4 sm:mt-6 sm:space-y-5">
+        <PlayerMatchesBoard
+          matches={scheduleMatches}
+          currentUserId={currentUserId}
+          language={i18n.language}
+          t={t}
+        />
+      </TabsContent>
+    );
+  }
+
   return (
     <TabsContent value="matches" className="mt-5 space-y-4 sm:mt-6 sm:space-y-5">
       <MatchesActions
         t={t}
         round={Math.max(1, currentRound)}
-        canSchedule={tournament.permissions.canEdit}
         tournamentId={tournament.id}
+        canEdit={tournament.permissions.canEdit}
+        hasGeneratedSchedule={hasGeneratedSchedule}
+        nextRoundToGenerate={nextRoundToGenerate}
       />
       <MatchesProgress counts={counts} total={matches.length} currentRound={currentRound} t={t} />
       <MatchesList

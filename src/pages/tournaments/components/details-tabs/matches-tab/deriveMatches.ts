@@ -96,6 +96,7 @@ export function deriveMatches(
 
     pairs.push({
       id: match.id,
+      mode: match.mode ?? "singles",
       playerA: first
         ? participantName(first.name, first.alias, t("tournaments.playerAFallback"))
         : t("tournaments.playerAFallback"),
