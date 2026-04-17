@@ -1,5 +1,6 @@
 import { Outlet } from "react-router-dom";
 import { AppNavbar } from "@/components/AppNavbar";
+import { LiveMatchModal } from "@/components/live/LiveMatchModal";
 
 export function MainLayout() {
   return (
@@ -8,6 +9,7 @@ export function MainLayout() {
       <main className="flex flex-1 min-w-0 flex-col overflow-x-hidden">
         <Outlet />
       </main>
+      <LiveMatchModal />
     </div>
   );
 }
