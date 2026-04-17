@@ -14,7 +14,8 @@ export type TournamentValidationErrorKey =
   | "tournaments.requiredNameAndClub"
   | "tournaments.requiredDateAndTime"
   | "tournaments.invalidTimeRange"
-  | "tournaments.invalidMemberRange";
+  | "tournaments.invalidMemberRange"
+  | "tournaments.invalidTotalRoundsRange";
 
 export const DEFAULT_CREATE_TOURNAMENT_FORM: CreateTournamentInput = {
   club: "",
@@ -29,6 +30,7 @@ export const DEFAULT_CREATE_TOURNAMENT_FORM: CreateTournamentInput = {
   entryFee: 0,
   minMember: 5,
   maxMember: 8,
+  totalRounds: 1,
   duration: DEFAULT_TOURNAMENT_DURATION,
   breakDuration: DEFAULT_TOURNAMENT_BREAK_DURATION,
   foodInfo: "",
@@ -49,6 +51,7 @@ export function mapTournamentDetailToForm(tournament: TournamentDetail): CreateT
     entryFee: tournament.entryFee,
     minMember: tournament.minMember,
     maxMember: tournament.maxMember,
+    totalRounds: tournament.totalRounds,
     duration: tournament.duration ?? DEFAULT_TOURNAMENT_DURATION,
     breakDuration: tournament.breakDuration ?? DEFAULT_TOURNAMENT_BREAK_DURATION,
     foodInfo: tournament.foodInfo ?? "",
@@ -62,6 +65,10 @@ export function buildTournamentPayload(
 ): CreateTournamentInput {
   const minMember = Math.max(1, Math.floor(Number(form.minMember) || 1));
   const maxMember = Math.max(1, Math.floor(Number(form.maxMember) || 1));
+  const totalRounds = Math.max(
+    1,
+    Math.min(100, Math.floor(Number(form.totalRounds) || 1))
+  );
 
   return {
     ...form,
@@ -77,6 +84,7 @@ export function buildTournamentPayload(
     entryFee: Number(form.entryFee) || 0,
     minMember: Math.min(minMember, maxMember),
     maxMember: Math.max(minMember, maxMember),
+    totalRounds,
   };
 }
 
@@ -94,6 +102,7 @@ export function buildUpdatePayload(form: CreateTournamentInput): Omit<CreateTour
     entryFee: payload.entryFee,
     minMember: payload.minMember,
     maxMember: payload.maxMember,
+    totalRounds: payload.totalRounds,
     duration: payload.duration,
     breakDuration: payload.breakDuration,
     foodInfo: payload.foodInfo,
@@ -111,6 +120,21 @@ export function getMemberRangeErrorKey(
   ) {
     return "tournaments.invalidMemberRange";
   }
+  return null;
+}
+
+export function getTotalRoundsErrorKey(
+  form: CreateTournamentInput
+): "tournaments.invalidTotalRoundsRange" | null {
+  if (!Number.isFinite(form.totalRounds)) {
+    return "tournaments.invalidTotalRoundsRange";
+  }
+
+  const rounds = Math.floor(form.totalRounds);
+  if (rounds < 1 || rounds > 100) {
+    return "tournaments.invalidTotalRoundsRange";
+  }
+
   return null;
 }
 
@@ -132,6 +156,8 @@ export function getDraftValidationError(form: CreateTournamentInput): Tournament
   if (!form.club || !form.name.trim()) {
     return "tournaments.requiredNameAndClub";
   }
+  const roundsErr = getTotalRoundsErrorKey(form);
+  if (roundsErr) return roundsErr;
   const timeRangeErr = getScheduledTimeRangeErrorKey(form);
   if (timeRangeErr) return timeRangeErr;
   return getMemberRangeErrorKey(form);
@@ -141,6 +167,8 @@ export function getPublishValidationError(form: CreateTournamentInput): Tourname
   if (!form.club || !form.name.trim()) {
     return "tournaments.requiredNameAndClub";
   }
+  const roundsErr = getTotalRoundsErrorKey(form);
+  if (roundsErr) return roundsErr;
   if (form.tournamentMode === "singleDay" && (!form.date || !form.startTime || !form.endTime)) {
     return "tournaments.requiredDateAndTime";
   }

@@ -1,8 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import { Link, Navigate, useParams, useSearchParams } from "react-router-dom";
+import { Link, Navigate, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import InlineLoader from "@/components/shared/InlineLoader";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -18,6 +17,7 @@ import {
   useGenerateTournamentDoublesPairs,
   useGenerateTournamentSchedule,
   useTournamentById,
+  useTournamentMatches,
   useTournamentSchedule,
 } from "@/pages/tournaments/hooks";
 import { clampTime24ToBounds, resolveTournamentScheduleTimeBounds } from "@/utils/time";
@@ -25,6 +25,7 @@ import type {
   GenerateTournamentDoublesPairsResponse,
   TournamentScheduleMode,
 } from "@/models/tournament/types";
+import { SchedulePlayingModeControl } from "./schedule/SchedulePlayingModeControl";
 import { ScheduleParticipantsTable } from "./schedule/ScheduleParticipantsTable";
 import {
   canGenerateSchedule,
@@ -42,10 +43,12 @@ const GAMES_PER_PLAYER_OPTIONS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 export default function TournamentSchedulePage() {
   const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
   const scheduleQuery = useTournamentSchedule(id ?? null, Boolean(id));
   const tournamentDetailQuery = useTournamentById(id ?? null, Boolean(id));
+  const matchesQuery = useTournamentMatches(id ?? null, Boolean(id));
   const generateScheduleMutation = useGenerateTournamentSchedule();
   const generateDoublesPairsMutation = useGenerateTournamentDoublesPairs();
 
@@ -53,13 +56,15 @@ export default function TournamentSchedulePage() {
     tournamentDetailQuery.data?.tournament.startTime,
     tournamentDetailQuery.data?.tournament.endTime
   );
+  const isScheduledTournament =
+    tournamentDetailQuery.data?.tournament.tournamentMode === "singleDay";
   const defaultsLoadedForIdRef = useRef<string | null>(null);
   const loadedDefaultsRef = useRef(false);
   const isDirtyRef = useRef(false);
 
   const [matchDurationMinutes, setMatchDurationMinutes] = useState(60);
   const [breakTimeMinutes, setBreakTimeMinutes] = useState(5);
-  const [gamesPerPlayer, setGamesPerPlayer] = useState(5);
+  const [matchesPerPlayer, setMatchesPerPlayer] = useState(5);
   const [startTime, setStartTime] = useState("09:00");
   const [mode, setMode] = useState<TournamentScheduleMode>("singles");
   const [participants, setParticipants] = useState<ScheduleParticipantRow[]>([]);
@@ -83,9 +88,9 @@ export default function TournamentSchedulePage() {
 
     const defaults = scheduleQuery.data.scheduleInput;
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setMatchDurationMinutes(defaults.matchDurationMinutes);
-    setBreakTimeMinutes(defaults.breakTimeMinutes);
-    setGamesPerPlayer(defaults.gamesPerPlayer);
+    setMatchDurationMinutes(defaults.matchDurationMinutes ?? 60);
+    setBreakTimeMinutes(defaults.breakTimeMinutes ?? 5);
+    setMatchesPerPlayer(defaults.matchesPerPlayer);
     setStartTime(defaults.startTime);
     setMode(defaults.mode);
     setParticipants(normalizeParticipantRows(scheduleQuery.data.participants));
@@ -106,10 +111,29 @@ export default function TournamentSchedulePage() {
   const clampedStartTime = clampTime24ToBounds(startTime, scheduleTimeBounds);
 
   const availableCourts = scheduleQuery.data?.scheduleInput.availableCourts ?? [];
+  const tournamentMinimumParticipants =
+    tournamentDetailQuery.data?.tournament.minMember ?? 1;
+  const enrolledParticipants = participants.length;
+  const meetsTournamentMinimum =
+    enrolledParticipants >= tournamentMinimumParticipants;
+
+  const previousRound = round - 1;
+  const previousRoundMatches =
+    previousRound >= 1
+      ? (matchesQuery.data?.matches ?? []).filter((match) => match.round === previousRound)
+      : [];
+  const previousRoundGenerated = previousRound < 1 || previousRoundMatches.length > 0;
+  const previousRoundFinished =
+    previousRound < 1 || previousRoundMatches.every((match) => match.status === "completed");
+  const blockedByPreviousRound =
+    round > 1 && (!previousRoundGenerated || !previousRoundFinished);
 
   const canSubmit =
     selectedCourtIds.length > 0 &&
+    meetsTournamentMinimum &&
     canGenerateSchedule(mode, participants.length) &&
+    !blockedByPreviousRound &&
+    !matchesQuery.isLoading &&
     !generateScheduleMutation.isPending;
 
   const toggleCourt = (courtId: string) => {
@@ -121,17 +145,21 @@ export default function TournamentSchedulePage() {
     );
   };
 
-  const onSelectSingles = () => {
-    isDirtyRef.current = true;
-    setMode("singles");
-  };
-
-  const onSelectDoubles = async () => {
-    if (participants.length < 2 || generateDoublesPairsMutation.isPending) {
+  const onPlayingModeChange = async (nextMode: TournamentScheduleMode) => {
+    if (nextMode === mode) {
       return;
     }
 
     isDirtyRef.current = true;
+
+    if (nextMode === "singles") {
+      setMode("singles");
+      return;
+    }
+
+    if (generateDoublesPairsMutation.isPending || participants.length < 2) {
+      return;
+    }
 
     if (doublesPairs) {
       setMode("doubles");
@@ -154,22 +182,38 @@ export default function TournamentSchedulePage() {
   };
 
   const onGenerateSchedule = async () => {
+    if (blockedByPreviousRound) {
+      toast.error(
+        !previousRoundGenerated
+          ? t("tournaments.schedulePreviousRoundMissing", { round: previousRound })
+          : t("tournaments.schedulePreviousRoundIncomplete", { round: previousRound })
+      );
+      return;
+    }
+
     try {
-      await generateScheduleMutation.mutateAsync({
+      const payload = {
+        round,
+        mode,
+        matchesPerPlayer,
+        startTime: clampedStartTime,
+        courtIds: selectedCourtIds,
+        participantOrder: participantOrderIds(participants),
+        ...(isScheduledTournament
+          ? {
+              matchDurationMinutes,
+              breakTimeMinutes,
+            }
+          : {}),
+      };
+
+      const response = await generateScheduleMutation.mutateAsync({
         id,
-        payload: {
-          round,
-          mode,
-          matchDurationMinutes,
-          breakTimeMinutes,
-          gamesPerPlayer,
-          startTime: clampedStartTime,
-          courtIds: selectedCourtIds,
-          participantOrder: participantOrderIds(participants),
-        },
+        payload,
       });
 
       toast.success(t("tournaments.scheduleGenerated", { round }));
+      navigate(`/tournaments/${id}/match-schedule?round=${response.schedule.round}`);
     } catch (err) {
       toast.error(getErrorMessage(err) ?? t("tournaments.scheduleGenerateError"));
     }
@@ -201,7 +245,7 @@ export default function TournamentSchedulePage() {
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-6xl flex-col gap-4 px-5 pb-10 pt-8 sm:px-6">
+    <div className="mx-auto flex w-full max-w-[430px] flex-col gap-4 bg-[#f8fbf8] px-4 pb-10 pt-6 sm:max-w-6xl sm:bg-transparent sm:px-6 sm:pt-8">
       <div>
         <Button
           asChild
@@ -216,72 +260,78 @@ export default function TournamentSchedulePage() {
         </Button>
       </div>
 
-      <div className="rounded-[12px] border border-[rgba(1,10,4,0.08)] bg-white px-5 py-5 shadow-[0_3px_15px_rgba(0,0,0,0.06)]">
-        <div className="mb-4 flex flex-wrap items-center justify-between gap-3 border-b border-[#e5e7eb] pb-4">
-          <div className="flex min-w-0 items-center gap-4">
-            <div className="flex h-10 w-10 shrink-0 overflow-hidden rounded-[10px] bg-[#e4dbcc]">
+      <div className="rounded-[12px] border border-[rgba(1,10,4,0.08)] bg-white px-[15px] py-5 shadow-[0_3px_15px_rgba(0,0,0,0.06)] sm:px-5">
+        <div className="mb-5 border-b border-[#e5e7eb] pb-5">
+          <div className="flex min-w-0 items-center gap-3 sm:gap-4">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-[#e4dbcc] ring-1 ring-[#010a04]/[0.06] sm:h-12 sm:w-12">
               <img src="/tennis-ball.png" alt="" className="h-full w-full object-cover" />
             </div>
-            <h1 className="truncate text-[24px] font-semibold text-[#010a04]">
+            <h1 className="min-w-0 flex-1 break-words text-balance text-[22px] font-bold leading-[1.15] tracking-tight text-[#010a04] sm:text-[26px] lg:text-[28px]">
               {scheduleQuery.data.tournament.name}
             </h1>
           </div>
         </div>
 
-        <h2 className="mb-4 text-[22px] font-medium text-[#010a04]">{t("tournaments.scheduleInputTitle")}</h2>
+        <h2 className="mb-[18px] text-[18px] font-medium text-[#010a04] sm:text-[22px]">
+          {t("tournaments.scheduleInputTitle")}
+        </h2>
 
-        <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-[10px] md:grid-cols-2 lg:grid-cols-4">
+          {isScheduledTournament ? (
+            <div className="space-y-2">
+              <p className="text-[12px] font-medium uppercase text-[#010a04]/70">{t("tournaments.matchDuration")}</p>
+              <Select
+                value={String(matchDurationMinutes)}
+                onValueChange={(value) => {
+                  isDirtyRef.current = true;
+                  setMatchDurationMinutes(Number.parseInt(value, 10));
+                }}
+              >
+                <SelectTrigger className="h-[38px] w-full rounded-[8px] border-[#e1e3e8] bg-[#f9fafc] text-[14px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {MATCH_DURATION_OPTIONS.map((option) => (
+                    <SelectItem key={option} value={String(option)}>
+                      {option} min
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          ) : null}
+
+          {isScheduledTournament ? (
+            <div className="space-y-2">
+              <p className="text-[12px] font-medium uppercase text-[#010a04]/70">{t("tournaments.breakTime")}</p>
+              <Select
+                value={String(breakTimeMinutes)}
+                onValueChange={(value) => {
+                  isDirtyRef.current = true;
+                  setBreakTimeMinutes(Number.parseInt(value, 10));
+                }}
+              >
+                <SelectTrigger className="h-[38px] w-full rounded-[8px] border-[#e1e3e8] bg-[#f9fafc] text-[14px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {BREAK_DURATION_OPTIONS.map((option) => (
+                    <SelectItem key={option} value={String(option)}>
+                      {option} min
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          ) : null}
+
           <div className="space-y-2">
-            <p className="text-[12px] font-medium uppercase text-[#010a04]/70">{t("tournaments.matchDuration")}</p>
+            <p className="text-[12px] font-medium uppercase text-[#010a04]/70">{t("tournaments.scheduleMatchesPerPlayer")}</p>
             <Select
-              value={String(matchDurationMinutes)}
+              value={String(matchesPerPlayer)}
               onValueChange={(value) => {
                 isDirtyRef.current = true;
-                setMatchDurationMinutes(Number.parseInt(value, 10));
-              }}
-            >
-              <SelectTrigger className="h-[38px] w-full rounded-[8px] border-[#e1e3e8] bg-[#f9fafc] text-[14px]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {MATCH_DURATION_OPTIONS.map((option) => (
-                  <SelectItem key={option} value={String(option)}>
-                    {option} min
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-2">
-            <p className="text-[12px] font-medium uppercase text-[#010a04]/70">{t("tournaments.breakTime")}</p>
-            <Select
-              value={String(breakTimeMinutes)}
-              onValueChange={(value) => {
-                isDirtyRef.current = true;
-                setBreakTimeMinutes(Number.parseInt(value, 10));
-              }}
-            >
-              <SelectTrigger className="h-[38px] w-full rounded-[8px] border-[#e1e3e8] bg-[#f9fafc] text-[14px]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {BREAK_DURATION_OPTIONS.map((option) => (
-                  <SelectItem key={option} value={String(option)}>
-                    {option} min
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-2">
-            <p className="text-[12px] font-medium uppercase text-[#010a04]/70">{t("tournaments.scheduleGamesPerPlayer")}</p>
-            <Select
-              value={String(gamesPerPlayer)}
-              onValueChange={(value) => {
-                isDirtyRef.current = true;
-                setGamesPerPlayer(Number.parseInt(value, 10));
+                setMatchesPerPlayer(Number.parseInt(value, 10));
               }}
             >
               <SelectTrigger className="h-[38px] w-full rounded-[8px] border-[#e1e3e8] bg-[#f9fafc] text-[14px]">
@@ -319,15 +369,21 @@ export default function TournamentSchedulePage() {
               stepMinutes={1}
               allowClear={false}
               popoverAlign="end"
+              triggerClassName="h-[38px] rounded-[8px] border-[#e1e3e8] bg-[#f9fafc] text-[14px] shadow-none hover:bg-[#f9fafc] hover:text-[#010a04] sm:h-[38px] sm:rounded-[8px] sm:px-3 sm:text-[14px] [&_svg]:opacity-50"
             />
           </div>
         </div>
 
-        <div className="mt-4">
-          <p className="mb-2 text-[12px] font-medium uppercase text-[#010a04]/70">
-            {t("tournaments.scheduleAvailableCourts")}
-          </p>
-          <div className="grid gap-2 sm:grid-cols-3 lg:grid-cols-6">
+        <div className="mt-[15px]">
+          <div className="mb-[10px] flex items-center justify-between gap-3">
+            <p className="text-[12px] font-medium uppercase text-[#010a04]/70">
+              {t("tournaments.scheduleAvailableCourts")}
+            </p>
+            <p className="text-[12px] uppercase text-[#010a04]/55">
+              {t("tournaments.scheduleSelectedCourts", { count: selectedCourtIds.length })}
+            </p>
+          </div>
+          <div className="grid grid-cols-2 gap-[10px] sm:grid-cols-3 lg:grid-cols-6">
             {availableCourts.map((court) => {
               const selected = selectedCourtIds.includes(court.id);
               return (
@@ -335,10 +391,10 @@ export default function TournamentSchedulePage() {
                   key={court.id}
                   type="button"
                   onClick={() => toggleCourt(court.id)}
-                  className={`h-[38px] rounded-[8px] border px-3 text-[14px] font-normal transition-colors ${
+                  className={`h-[38px] rounded-[8px] border px-3 text-[14px] font-medium transition-colors ${
                     selected
-                      ? "border-[#1b8135] bg-[#e8f5ec] text-[#1b8135]"
-                      : "border-[#e1e3e8] bg-[#f9fafc] text-[#010a04] hover:border-[#010a04]/20 hover:bg-[#f3f4f6]"
+                      ? "border-[1.5px] border-[#067429] bg-[#0a6925]/10 text-[#067429]"
+                      : "border border-[#010a04]/[0.12] bg-transparent text-[#010a04]/70 hover:border-[#010a04]/20 hover:bg-[#f3f4f6]"
                   }`}
                 >
                   {court.name}
@@ -346,57 +402,57 @@ export default function TournamentSchedulePage() {
               );
             })}
           </div>
-          <p className="mt-2 text-[12px] font-medium uppercase text-[#010a04]/60">
-            {t("tournaments.scheduleSelectedCourts", { count: selectedCourtIds.length })}
-          </p>
         </div>
 
-        <div className="mt-4">
+        <div className="mt-[25px]">
           <Button
             type="button"
             onClick={onGenerateSchedule}
             disabled={!canSubmit}
-            className="h-[38px] w-full rounded-[8px] bg-[#1b8135] text-[16px] font-medium text-white hover:bg-[#166b2d]"
+            className="h-[38px] w-full rounded-[8px] bg-gradient-to-r from-[#0a6925] via-[#0c7b2c] to-[#0f8d33] text-[16px] font-medium text-white hover:from-[#0a5f22] hover:via-[#0b7028] hover:to-[#0e812f]"
           >
             {generateScheduleMutation.isPending
               ? t("tournaments.scheduleGenerating")
               : t("tournaments.scheduleGenerateButton")}
           </Button>
+          {!meetsTournamentMinimum ? (
+            <p className="mt-2 text-[12px] text-[#a02626]">
+              {t("tournaments.scheduleMinPlayersNotMet", {
+                min: tournamentMinimumParticipants,
+                current: enrolledParticipants,
+              })}
+            </p>
+          ) : null}
+          {blockedByPreviousRound ? (
+            <p className="mt-2 text-[12px] text-[#a02626]">
+              {!previousRoundGenerated
+                ? t("tournaments.schedulePreviousRoundMissing", { round: previousRound })
+                : t("tournaments.schedulePreviousRoundIncomplete", { round: previousRound })}
+            </p>
+          ) : null}
         </div>
       </div>
 
-      <div className="rounded-[12px] border border-[rgba(1,10,4,0.08)] bg-white px-5 py-5 shadow-[0_3px_15px_rgba(0,0,0,0.06)]">
-        <div className="mb-3 flex items-center justify-between">
-          <h3 className="text-[20px] font-medium text-[#010a04]">{t("tournaments.scheduleParticipantsTitle")}</h3>
-
-          <div className="rounded-[10px] bg-[#010a04]/[0.05] p-1">
-            <button
-              type="button"
-              onClick={onSelectSingles}
-              className={`h-[30px] rounded-[8px] px-4 text-[14px] font-medium transition-colors ${
-                mode === "singles"
-                  ? "bg-white text-[#010a04] shadow-[0_0_4px_rgba(0,0,0,0.04),0_4px_8px_rgba(0,0,0,0.06)]"
-                  : "text-[#010a04]/70 hover:text-[#010a04]"
-              }`}
-            >
-              {t("tournaments.scheduleSingles")}
-            </button>
-            <button
-              type="button"
-              onClick={onSelectDoubles}
-              disabled={participants.length < 2 || generateDoublesPairsMutation.isPending}
-              className={`inline-flex h-[30px] items-center justify-center gap-2 rounded-[8px] px-4 text-[14px] font-medium transition-colors ${
-                mode === "doubles"
-                  ? "bg-white text-[#010a04] shadow-[0_0_4px_rgba(0,0,0,0.04),0_4px_8px_rgba(0,0,0,0.06)]"
-                  : "text-[#010a04]/70 hover:text-[#010a04]"
-              } disabled:opacity-60`}
-            >
-              {generateDoublesPairsMutation.isPending && mode === "doubles" ? (
-                <InlineLoader size="sm" className="border-t-[#1b8135] border-muted-foreground/20" />
-              ) : null}
-              {t("tournaments.scheduleDoubles")}
-            </button>
+      <div className="rounded-[12px] border border-[rgba(1,10,4,0.08)] bg-white px-[15px] py-5 shadow-[0_3px_15px_rgba(0,0,0,0.06)] sm:px-5">
+        <div className="mb-4 flex flex-col gap-3 sm:mb-3">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
+            <h3 className="text-[20px] font-medium text-[#010a04]">{t("tournaments.scheduleParticipantsTitle")}</h3>
+            <SchedulePlayingModeControl
+              mode={mode}
+              doublesLocked={participants.length < 2 && mode !== "doubles"}
+              pairingPending={generateDoublesPairsMutation.isPending && mode === "doubles"}
+              onChange={(next) => {
+                void onPlayingModeChange(next);
+              }}
+              t={t}
+              className="shrink-0"
+            />
           </div>
+          {participants.length < 2 && mode === "singles" ? (
+            <p className="text-[12px] leading-relaxed text-[#010a04]/55 sm:text-left">
+              {t("tournaments.schedulePlayingModeDoublesHint")}
+            </p>
+          ) : null}
         </div>
 
         <ScheduleParticipantsTable
@@ -407,10 +463,12 @@ export default function TournamentSchedulePage() {
           onEditParticipant={() => toast.info(t("common.comingSoon"))}
           onRemoveParticipant={(participantId) => {
             isDirtyRef.current = true;
+            setDoublesPairs(null);
             setParticipants((prev) => removeParticipant(prev, participantId));
           }}
           onMoveParticipant={(index, direction) => {
             isDirtyRef.current = true;
+            setDoublesPairs(null);
             setParticipants((prev) => moveParticipant(prev, index, direction));
           }}
         />

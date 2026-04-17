@@ -59,6 +59,8 @@ interface TimePickerProps {
   "aria-describedby"?: string;
   /** When false, hides Clear so the value cannot be emptied (e.g. required API fields). Default true. */
   allowClear?: boolean;
+  /** Merged onto the trigger button after default styles (e.g. match a {@link SelectTrigger} on the same row). */
+  triggerClassName?: string;
 }
 
 type Meridian = "AM" | "PM";
@@ -88,6 +90,7 @@ export function TimePicker({
   "aria-labelledby": ariaLabelledBy,
   "aria-describedby": ariaDescribedBy,
   allowClear = true,
+  triggerClassName,
 }: TimePickerProps) {
   const { t } = useTranslation();
 
@@ -309,12 +312,13 @@ export function TimePicker({
           aria-labelledby={ariaLabelledBy}
           aria-describedby={ariaDescribedBy}
           className={cn(
-            "h-[38px] w-full min-w-0 max-w-full justify-between gap-2 overflow-hidden rounded-[8px] border border-[#e1e3e8] bg-[#f9fafc] px-3 text-left text-[14px] font-normal text-[#010a04] shadow-none hover:bg-[#f9fafc]",
-            !formatted && "text-[#010a04]/50"
+            "h-[38px] w-full min-w-0 max-w-full justify-between gap-2 overflow-hidden rounded-[10px] border border-[#e1e3e8] bg-[#f9fafc] px-3 py-0 text-left text-[13px] font-normal leading-normal text-[#010a04] shadow-none hover:bg-[#f9fafc] sm:h-[46px] sm:rounded-[12px] sm:px-[15px] sm:text-[14px]",
+            !formatted && "text-[#010a04]/50",
+            triggerClassName
           )}
         >
-          <span className="min-w-0 truncate">{formatted || effectivePlaceholder}</span>
-          <Clock className="h-4 w-4 shrink-0 text-[#010a04]/50" />
+          <span className="min-w-0 truncate leading-normal">{formatted || effectivePlaceholder}</span>
+          <Clock className="h-4 w-4 shrink-0 text-[#010a04]/65 sm:h-5 sm:w-5" />
         </Button>
       </PopoverTrigger>
       <PopoverContent
