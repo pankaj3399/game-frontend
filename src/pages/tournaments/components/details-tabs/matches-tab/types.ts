@@ -17,5 +17,6 @@ export interface MatchCounts {
   completedCount: number;
   inProgressCount: number;
   scheduledCount: number;
+  cancelledCount: number;
   progressPct: number;
 }

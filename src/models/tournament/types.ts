@@ -49,10 +49,11 @@ export const tournamentProgressSchema = z.object({
 export const tournamentPermissionsSchema = z.object({
   canEdit: z.boolean(),
   canJoin: z.boolean(),
+  canLeave: z.boolean(),
   isParticipant: z.boolean(),
 });
 
-export const tournamentMatchStatusSchema = z.enum(["completed", "inProgress", "scheduled"]);
+export const tournamentMatchStatusSchema = z.enum(["completed", "inProgress", "scheduled", "cancelled"]);
 export const tournamentScheduleModeSchema = z.enum(["singles", "doubles"]);
 
 export const tournamentMatchPlayerSchema = tournamentParticipantSchema.pick({
@@ -60,6 +61,11 @@ export const tournamentMatchPlayerSchema = tournamentParticipantSchema.pick({
   name: true,
   alias: true,
 });
+
+export const tournamentMatchTeamSchema = z.tuple([
+  tournamentMatchPlayerSchema.nullable(),
+  tournamentMatchPlayerSchema.nullable(),
+]);
 
 export const tournamentMatchCourtSchema = tournamentCourtSchema
   .pick({ id: true, name: true })
@@ -69,17 +75,80 @@ export const tournamentMatchCourtSchema = tournamentCourtSchema
     number: z.number().int().optional(),
   });
 
+export const tournamentMatchScoreValueSchema = z.union([
+  z.number().int().min(0),
+  z.literal("wo"),
+]);
+
+export const tournamentMatchScoreSchema = z.object({
+  playerOneScores: z.array(tournamentMatchScoreValueSchema),
+  playerTwoScores: z.array(tournamentMatchScoreValueSchema),
+});
+
+export const tournamentLiveMatchItemSchema = z.object({
+  id: z.string(),
+  mode: tournamentScheduleModeSchema,
+  status: tournamentMatchStatusSchema,
+  startTime: z.string().nullable(),
+  tournament: z.object({
+    id: z.string(),
+    name: z.string(),
+  }),
+  court: tournamentMatchCourtSchema,
+  myTeam: z.array(tournamentMatchPlayerSchema),
+  opponentTeam: z.array(tournamentMatchPlayerSchema),
+});
+
+export const tournamentLiveMatchResponseSchema = z.object({
+  liveMatch: tournamentLiveMatchItemSchema.nullable(),
+  nextMatch: tournamentLiveMatchItemSchema.nullable(),
+});
+
+export const recordTournamentMatchScoreInputSchema = z
+  .object({
+    playerOneScores: z.array(tournamentMatchScoreValueSchema).min(1).max(25),
+    playerTwoScores: z.array(tournamentMatchScoreValueSchema).min(1).max(25),
+  })
+  .refine((value) => value.playerOneScores.length === value.playerTwoScores.length, {
+    message: "playerOneScores and playerTwoScores must have the same number of sets",
+    path: ["playerTwoScores"],
+  });
+
+export const recordTournamentMatchScoreResponseSchema = z.object({
+  message: z.string(),
+  match: z.object({
+    id: z.string(),
+    tournamentId: z.string(),
+    status: z.literal("completed"),
+  }),
+  tournamentCompleted: z.boolean(),
+  ratings: z.array(
+    z.object({
+      userId: z.string(),
+      rating: z.number(),
+      rd: z.number(),
+      vol: z.number(),
+    })
+  ),
+});
+
 export const tournamentScheduleMatchSchema = z.object({
   id: z.string(),
   round: z.number().int().min(1),
   slot: z.number().int().min(1),
+  mode: tournamentScheduleModeSchema.optional(),
   status: tournamentMatchStatusSchema,
   startTime: z.string().nullable(),
+  score: tournamentMatchScoreSchema,
   court: tournamentMatchCourtSchema,
   players: z.tuple([
     tournamentMatchPlayerSchema.nullable(),
     tournamentMatchPlayerSchema.nullable(),
   ]),
+  teams: z.tuple([
+    tournamentMatchTeamSchema,
+    tournamentMatchTeamSchema,
+  ]).optional(),
 });
 
 export const tournamentScheduleInfoSchema = z.object({
@@ -94,20 +163,21 @@ export const tournamentMatchesResponseSchema = z.object({
   matches: z.array(tournamentScheduleMatchSchema),
 });
 
-export const tournamentScheduleInputSchema = z.object({
-  matchDurationMinutes: z.number().int().min(5),
-  breakTimeMinutes: z.number().int().min(0),
-  gamesPerPlayer: z.number().int().min(1),
-  startTime: z.string(),
-  mode: tournamentScheduleModeSchema,
-  availableCourts: z.array(
-    z.object({
-      id: z.string(),
-      name: z.string(),
-      selected: z.boolean(),
-    })
-  ),
-});
+export const tournamentScheduleInputSchema = z
+  .object({
+    matchDurationMinutes: z.number().int().min(5).optional(),
+    breakTimeMinutes: z.number().int().min(0).optional(),
+    matchesPerPlayer: z.number().int().min(1).max(20),
+    startTime: z.string(),
+    mode: tournamentScheduleModeSchema,
+    availableCourts: z.array(
+      z.object({
+        id: z.string(),
+        name: z.string(),
+        selected: z.boolean(),
+      })
+    ),
+  });
 
 export const tournamentScheduleParticipantSchema = z.object({
   id: z.string(),
@@ -134,9 +204,9 @@ export const tournamentScheduleResponseSchema = z.object({
 export const generateTournamentScheduleInputSchema = z.object({
   round: z.number().int().min(1),
   mode: tournamentScheduleModeSchema,
-  matchDurationMinutes: z.number().int().min(5).max(240),
-  breakTimeMinutes: z.number().int().min(0).max(120),
-  gamesPerPlayer: z.number().int().min(1).max(20),
+  matchDurationMinutes: z.number().int().min(5).max(240).optional(),
+  breakTimeMinutes: z.number().int().min(0).max(120).optional(),
+  matchesPerPlayer: z.number().int().min(1).max(20),
   startTime: z.string(),
   courtIds: z.array(z.string()).min(1),
   participantOrder: z.array(z.string()).min(2),
@@ -175,6 +245,7 @@ export const generateTournamentDoublesPairsResponseSchema = z.object({
 });
 
 const memberCountSchema = z.coerce.number().int().min(1);
+const totalRoundsSchema = z.coerce.number().int().min(1).max(100);
 const foodInfoSchema = z
   .string()
   .max(500, { message: "foodInfo must be at most 500 characters" });
@@ -230,6 +301,7 @@ export const backendTournamentDetailSchema = z.object({
   entryFee: z.number(),
   minMember: memberCountSchema,
   maxMember: memberCountSchema,
+  totalRounds: totalRoundsSchema,
   duration: z.string().nullable(),
   breakDuration: z.string().nullable(),
   courts: z.array(tournamentCourtSchema),
@@ -257,6 +329,7 @@ const tournamentInputBaseSchema = z.object({
   entryFee: z.number(),
   minMember: memberCountSchema,
   maxMember: memberCountSchema,
+  totalRounds: totalRoundsSchema,
   duration: z.string(),
   breakDuration: z.string(),
   foodInfo: foodInfoSchema.nullable().optional(),
@@ -303,6 +376,7 @@ export const backendCreateTournamentInputSchema = z.object({
   entryFee: z.number(),
   minMember: memberCountSchema,
   maxMember: memberCountSchema,
+  totalRounds: totalRoundsSchema,
   duration: z.string(),
   breakDuration: z.string(),
   foodInfo: foodInfoSchema.nullable().optional(),
@@ -323,6 +397,7 @@ export const backendUpdateTournamentInputSchema = z
     entryFee: z.number(),
     minMember: memberCountSchema,
     maxMember: memberCountSchema,
+    totalRounds: totalRoundsSchema,
     duration: z.string().nullable(),
     breakDuration: z.string().nullable(),
     foodInfo: foodInfoSchema.nullable(),
@@ -411,6 +486,10 @@ export type TournamentMatchCourt = z.infer<typeof tournamentMatchCourtSchema>;
 export type TournamentScheduleMatch = z.infer<typeof tournamentScheduleMatchSchema>;
 export type TournamentScheduleInfo = z.infer<typeof tournamentScheduleInfoSchema>;
 export type TournamentMatchesResponse = z.infer<typeof tournamentMatchesResponseSchema>;
+export type TournamentLiveMatchItem = z.infer<typeof tournamentLiveMatchItemSchema>;
+export type TournamentLiveMatchResponse = z.infer<typeof tournamentLiveMatchResponseSchema>;
+export type RecordTournamentMatchScoreInput = z.infer<typeof recordTournamentMatchScoreInputSchema>;
+export type RecordTournamentMatchScoreResponse = z.infer<typeof recordTournamentMatchScoreResponseSchema>;
 export type TournamentScheduleInput = z.infer<typeof tournamentScheduleInputSchema>;
 export type TournamentScheduleParticipant = z.infer<typeof tournamentScheduleParticipantSchema>;
 export type TournamentScheduleResponse = z.infer<typeof tournamentScheduleResponseSchema>;

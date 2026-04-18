@@ -45,6 +45,8 @@ export function CreateTournamentModal({
     update,
   } = useTournamentForm({ mode, tournamentId, open });
 
+  const basicInfoFormScopeKey = validTournamentId ?? "create";
+
   const isEditingPublishedTournament =
     isEditMode && originalTournamentStatus === "active";
 
@@ -110,10 +112,11 @@ export function CreateTournamentModal({
                 clubs={clubs}
                 update={update}
                 allowPastDates={isEditMode}
+                formScopeKey={basicInfoFormScopeKey}
               />
             </TabsContent>
             <TabsContent value="details">
-              <DetailsTab form={form} update={update} />
+              <DetailsTab form={form} update={update} formScopeKey={basicInfoFormScopeKey} />
             </TabsContent>
             <TabsContent value="sponsor">
               <SponsorTab

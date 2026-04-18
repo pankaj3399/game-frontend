@@ -70,6 +70,11 @@ function playerToneClass(player: TournamentSchedulePairPlayer): string {
   return AVATAR_TONES[seed % AVATAR_TONES.length] ?? AVATAR_TONES[0];
 }
 
+function participantToneClass(participant: ScheduleParticipantRow): string {
+  const seed = hashSeed(`${participant.id}:${participant.name ?? participant.alias ?? ""}`);
+  return AVATAR_TONES[seed % AVATAR_TONES.length] ?? AVATAR_TONES[0];
+}
+
 interface DoublesPlayerChipProps {
   player: TournamentSchedulePairPlayer;
   fallbackName: string;
@@ -211,79 +216,163 @@ export function ScheduleParticipantsTable({
     );
   }
 
-  return (
-    <Table>
-      <TableHeader>
-        <TableRow className="bg-[#010a04]/[0.04] hover:bg-[#010a04]/[0.04]">
-          <TableHead className="w-10 text-[12px] font-normal text-[#010a04]/70">#</TableHead>
-          <TableHead className="text-[12px] font-normal text-[#010a04]/70">{t("tournaments.players")}</TableHead>
-          <TableHead className="w-[180px] text-[12px] font-normal text-[#010a04]/70">{t("tournaments.skillLevel")}</TableHead>
-          <TableHead className="w-[220px] text-[12px] font-normal text-[#010a04]/70">{t("tournaments.actions")}</TableHead>
-        </TableRow>
-      </TableHeader>
+  const mobileSinglesRows = (
+    <div className="overflow-hidden rounded-[10px] border border-[rgba(0,0,0,0.08)] md:hidden">
+      {participants.map((participant, index) => {
+        const displayName = participant.name ?? t("tournaments.unknownPlayer");
+        const canMoveUp = index > 0;
+        const canMoveDown = index < participants.length - 1;
 
-      <TableBody>
-        {participants.map((participant, index) => (
-          <TableRow key={participant.id}>
-            <TableCell className="text-[13px] text-[#010a04]/75">{index + 1}</TableCell>
-            <TableCell>
-              <div className="flex items-center gap-2.5">
-                <span className="h-[18px] w-[18px] rounded-full bg-[#d9d9d9]" />
-                <span className="text-[14px] text-[#010a04]">
-                  {participant.name ?? t("tournaments.unknownPlayer")}
-                </span>
+        return (
+          <div
+            key={participant.id}
+            className="flex items-center justify-between gap-3 border-b border-[#010a04]/10 bg-[#010a04]/[0.04] px-[15px] py-3 last:border-b-0"
+          >
+            <div className="flex min-w-0 flex-1 items-center gap-3">
+              <span
+                className={`flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-full bg-gradient-to-br ${participantToneClass(
+                  participant
+                )} text-[11px] font-semibold text-[#010a04]/80`}
+              >
+                {initialsFromName(displayName)}
+              </span>
+              <div className="min-w-0">
+                <p className="truncate text-[14px] font-medium text-[#010a04]">{displayName}</p>
+                <div className="mt-0.5 flex items-center gap-2 text-[12px]">
+                  <span className="truncate text-[#010a04]/60">{participant.skillLabel}</span>
+                  <span className="text-[#010a04]/25">•</span>
+                  <button
+                    type="button"
+                    onClick={() => onRemoveParticipant(participant.id)}
+                    className="text-[#d92100] hover:underline"
+                  >
+                    {t("tournaments.remove")}
+                  </button>
+                </div>
               </div>
-            </TableCell>
-            <TableCell className="text-[14px] text-[#010a04]/85">{participant.skillLabel}</TableCell>
-            <TableCell>
-              <div className="flex items-center gap-1">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={onEditParticipant}
-                  className="h-7 px-2 text-[12px] text-[#067429] hover:bg-[#067429]/10"
-                >
-                  <PencilEdit01Icon size={14} className="mr-1" />
-                  {t("tournaments.edit")}
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => onRemoveParticipant(participant.id)}
-                  className="h-7 px-2 text-[12px] text-[#d92100] hover:bg-[#d92100]/10"
-                >
-                  <Delete01Icon size={14} className="mr-1" />
-                  {t("tournaments.remove")}
-                </Button>
+            </div>
+
+            <div className="flex items-center gap-1.5">
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={onEditParticipant}
+                className="h-7 w-7 px-0 text-[#067429] hover:bg-[#067429]/10"
+                aria-label={t("tournaments.edit")}
+              >
+                <PencilEdit01Icon size={15} />
+              </Button>
+              <div className="flex flex-col items-center">
                 <Button
                   type="button"
                   variant="ghost"
                   size="sm"
                   onClick={() => onMoveParticipant(index, "up")}
-                  className="h-7 px-1.5 text-[#6a6a6a] hover:bg-[#010a04]/5"
-                  disabled={index === 0}
+                  className="h-4 w-5 p-0 text-[#010a04]/55 hover:bg-transparent"
+                  disabled={!canMoveUp}
                   aria-label="Move participant up"
                 >
-                  <ChevronUp size={14} />
+                  <ChevronUp size={12} />
                 </Button>
                 <Button
                   type="button"
                   variant="ghost"
                   size="sm"
                   onClick={() => onMoveParticipant(index, "down")}
-                  className="h-7 px-1.5 text-[#6a6a6a] hover:bg-[#010a04]/5"
-                  disabled={index === participants.length - 1}
+                  className="h-4 w-5 p-0 text-[#010a04]/55 hover:bg-transparent"
+                  disabled={!canMoveDown}
                   aria-label="Move participant down"
                 >
-                  <IconChevronDown size={14} />
+                  <IconChevronDown size={12} />
                 </Button>
               </div>
-            </TableCell>
-          </TableRow>
-        ))}
-      </TableBody>
-    </Table>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+
+  return (
+    <>
+      {mobileSinglesRows}
+
+      <div className="hidden md:block">
+        <Table>
+          <TableHeader>
+            <TableRow className="bg-[#010a04]/[0.04] hover:bg-[#010a04]/[0.04]">
+              <TableHead className="w-10 text-[12px] font-normal text-[#010a04]/70">#</TableHead>
+              <TableHead className="text-[12px] font-normal text-[#010a04]/70">{t("tournaments.players")}</TableHead>
+              <TableHead className="w-[180px] text-[12px] font-normal text-[#010a04]/70">{t("tournaments.skillLevel")}</TableHead>
+              <TableHead className="w-[220px] text-[12px] font-normal text-[#010a04]/70">{t("tournaments.actions")}</TableHead>
+            </TableRow>
+          </TableHeader>
+
+          <TableBody>
+            {participants.map((participant, index) => (
+              <TableRow key={participant.id}>
+                <TableCell className="text-[13px] text-[#010a04]/75">{index + 1}</TableCell>
+                <TableCell>
+                  <div className="flex items-center gap-2.5">
+                    <span className="h-[18px] w-[18px] rounded-full bg-[#d9d9d9]" />
+                    <span className="text-[14px] text-[#010a04]">
+                      {participant.name ?? t("tournaments.unknownPlayer")}
+                    </span>
+                  </div>
+                </TableCell>
+                <TableCell className="text-[14px] text-[#010a04]/85">{participant.skillLabel}</TableCell>
+                <TableCell>
+                  <div className="flex items-center gap-1">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={onEditParticipant}
+                      className="h-7 px-2 text-[12px] text-[#067429] hover:bg-[#067429]/10"
+                    >
+                      <PencilEdit01Icon size={14} className="mr-1" />
+                      {t("tournaments.edit")}
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => onRemoveParticipant(participant.id)}
+                      className="h-7 px-2 text-[12px] text-[#d92100] hover:bg-[#d92100]/10"
+                    >
+                      <Delete01Icon size={14} className="mr-1" />
+                      {t("tournaments.remove")}
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => onMoveParticipant(index, "up")}
+                      className="h-7 px-1.5 text-[#6a6a6a] hover:bg-[#010a04]/5"
+                      disabled={index === 0}
+                      aria-label="Move participant up"
+                    >
+                      <ChevronUp size={14} />
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => onMoveParticipant(index, "down")}
+                      className="h-7 px-1.5 text-[#6a6a6a] hover:bg-[#010a04]/5"
+                      disabled={index === participants.length - 1}
+                      aria-label="Move participant down"
+                    >
+                      <IconChevronDown size={14} />
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+    </>
   );
 }

@@ -38,6 +38,12 @@ export function MatchesProgress({ counts, total, currentRound, t }: MatchesProgr
           <span className="size-2 rounded-full bg-[#9ca3af]" />
           {t("tournaments.scheduledCount", { scheduled: counts.scheduledCount })}
         </span>
+        {counts.cancelledCount > 0 ? (
+          <span className="inline-flex items-center gap-1.5 font-medium text-[#be123c]">
+            <span className="size-2 rounded-full bg-[#f43f5e]" />
+            {t("tournaments.cancelledCount", { cancelled: counts.cancelledCount })}
+          </span>
+        ) : null}
       </div>
     </div>
   );
