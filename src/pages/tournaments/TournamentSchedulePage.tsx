@@ -35,6 +35,11 @@ import {
   removeParticipant,
   type ScheduleParticipantRow,
 } from "./schedule/helpers";
+import {
+  getPreviousRoundGate,
+  parseRoundQueryParam,
+  resolveScheduleInputRound,
+} from "./schedule/tournamentRoundWorkflow";
 
 const MATCH_DURATION_OPTIONS = [30, 45, 60, 75, 90];
 const BREAK_DURATION_OPTIONS = [0, 5, 10, 15, 20, 30];
@@ -105,9 +110,9 @@ export default function TournamentSchedulePage() {
     return <Navigate to="/tournaments" replace />;
   }
 
-  const roundFromQuery = Number.parseInt(searchParams.get("round") ?? "", 10);
-  const defaultRound = scheduleQuery.data?.scheduleSummary.currentRound ?? 1;
-  const round = Number.isFinite(roundFromQuery) && roundFromQuery >= 1 ? roundFromQuery : Math.max(1, defaultRound);
+  const queryRound = parseRoundQueryParam(searchParams);
+  const summaryCurrentRound = scheduleQuery.data?.scheduleSummary.currentRound ?? 0;
+  const round = resolveScheduleInputRound(queryRound, summaryCurrentRound);
   const clampedStartTime = clampTime24ToBounds(startTime, scheduleTimeBounds);
 
   const availableCourts = scheduleQuery.data?.scheduleInput.availableCourts ?? [];
@@ -117,16 +122,8 @@ export default function TournamentSchedulePage() {
   const meetsTournamentMinimum =
     enrolledParticipants >= tournamentMinimumParticipants;
 
-  const previousRound = round - 1;
-  const previousRoundMatches =
-    previousRound >= 1
-      ? (matchesQuery.data?.matches ?? []).filter((match) => match.round === previousRound)
-      : [];
-  const previousRoundGenerated = previousRound < 1 || previousRoundMatches.length > 0;
-  const previousRoundFinished =
-    previousRound < 1 || previousRoundMatches.every((match) => match.status === "completed");
-  const blockedByPreviousRound =
-    round > 1 && (!previousRoundGenerated || !previousRoundFinished);
+  const scheduleRoundGate = getPreviousRoundGate(round, matchesQuery.data?.matches ?? []);
+  const blockedByPreviousRound = scheduleRoundGate.blocked;
 
   const canSubmit =
     selectedCourtIds.length > 0 &&
@@ -182,11 +179,11 @@ export default function TournamentSchedulePage() {
   };
 
   const onGenerateSchedule = async () => {
-    if (blockedByPreviousRound) {
+    if (scheduleRoundGate.blocked) {
       toast.error(
-        !previousRoundGenerated
-          ? t("tournaments.schedulePreviousRoundMissing", { round: previousRound })
-          : t("tournaments.schedulePreviousRoundIncomplete", { round: previousRound })
+        scheduleRoundGate.reason === "missing"
+          ? t("tournaments.schedulePreviousRoundMissing", { round: scheduleRoundGate.previousRound })
+          : t("tournaments.schedulePreviousRoundIncomplete", { round: scheduleRoundGate.previousRound })
       );
       return;
     }
@@ -423,11 +420,11 @@ export default function TournamentSchedulePage() {
               })}
             </p>
           ) : null}
-          {blockedByPreviousRound ? (
+          {scheduleRoundGate.blocked ? (
             <p className="mt-2 text-[12px] text-[#a02626]">
-              {!previousRoundGenerated
-                ? t("tournaments.schedulePreviousRoundMissing", { round: previousRound })
-                : t("tournaments.schedulePreviousRoundIncomplete", { round: previousRound })}
+              {scheduleRoundGate.reason === "missing"
+                ? t("tournaments.schedulePreviousRoundMissing", { round: scheduleRoundGate.previousRound })
+                : t("tournaments.schedulePreviousRoundIncomplete", { round: scheduleRoundGate.previousRound })}
             </p>
           ) : null}
         </div>

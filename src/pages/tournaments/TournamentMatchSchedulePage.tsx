@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, Navigate, useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { isValid, format, parseISO } from "date-fns";
+import type { Locale } from "date-fns";
+import { enUS } from "date-fns/locale";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -22,6 +23,22 @@ import {
   useTournamentMatches,
 } from "@/pages/tournaments/hooks";
 import type { TournamentMatchPlayer, TournamentScheduleMatch } from "@/models/tournament/types";
+import { matchScheduleDateTimeLabels } from "@/pages/tournaments/schedule/matchScheduleLabels";
+import {
+  buildScorePayload,
+  createScoreEditorRows,
+  formatScoreCellValue,
+  scoreCellClass,
+  scoreColumns,
+  type ScoreEditorRow,
+} from "@/pages/tournaments/schedule/matchScheduleScore";
+import {
+  canCreateNextScheduleRound,
+  computeScheduleProgressBounds,
+  maxRoundFromMatches,
+  parseRoundQueryParam,
+  resolveMatchViewSelectedRound,
+} from "@/pages/tournaments/schedule/tournamentRoundWorkflow";
 
 const AVATAR_TONES = [
   "from-[#f7d4bf] to-[#efb598]",
@@ -63,225 +80,6 @@ function playerName(player: TournamentMatchPlayer | null, fallback: string): str
   return player.name ?? player.alias ?? fallback;
 }
 
-function matchDateLabel(startTime: string | null, fallback: string, localeCode: string): string {
-  if (!startTime) {
-    return fallback;
-  }
-
-  const parsed = parseISO(startTime);
-  if (!isValid(parsed)) {
-    return fallback;
-  }
-
-  return format(parsed, "EEE, MMM d", { locale: getDateFnsLocale(localeCode) });
-}
-
-function matchTimeLabel(startTime: string | null, fallback: string, localeCode: string): string {
-  if (!startTime) {
-    return fallback;
-  }
-
-  const parsed = parseISO(startTime);
-  if (!isValid(parsed)) {
-    return fallback;
-  }
-
-  return format(parsed, "HH:mm", { locale: getDateFnsLocale(localeCode) });
-}
-
-type ScoreWinnerSide = "one" | "two" | null;
-type MatchScoreValue = number | "wo";
-
-interface ScoreEditorRow {
-  id: string;
-  playerOne: string;
-  playerTwo: string;
-}
-
-interface ScoreColumn {
-  playerOne: number | "wo" | null;
-  playerTwo: number | "wo" | null;
-  winner: ScoreWinnerSide;
-}
-
-function scoreColumns(match: TournamentScheduleMatch): ScoreColumn[] {
-  const playerOneScores = match.score.playerOneScores;
-  const playerTwoScores = match.score.playerTwoScores;
-  const totalColumns = Math.max(3, playerOneScores.length, playerTwoScores.length);
-
-  const columns: ScoreColumn[] = [];
-  for (let index = 0; index < totalColumns; index += 1) {
-    const playerOne = playerOneScores[index] ?? null;
-    const playerTwo = playerTwoScores[index] ?? null;
-
-    let winner: ScoreWinnerSide = null;
-    if (typeof playerOne === "number" && typeof playerTwo === "number") {
-      if (playerOne > playerTwo) {
-        winner = "one";
-      } else if (playerTwo > playerOne) {
-        winner = "two";
-      }
-    } else if (playerOne === "wo" && playerTwo !== null) {
-      winner = "two";
-    } else if (playerTwo === "wo" && playerOne !== null) {
-      winner = "one";
-    }
-
-    columns.push({ playerOne, playerTwo, winner });
-  }
-
-  return columns;
-}
-
-function formatScoreCellValue(value: number | "wo" | null): string {
-  if (value == null) {
-    return "-";
-  }
-  if (value === "wo") {
-    return "WO";
-  }
-  return String(value);
-}
-
-function scoreCellClass(
-  winner: ScoreWinnerSide,
-  side: "one" | "two",
-  hasValue: boolean
-): string {
-  if (!hasValue) {
-    return "border border-dashed border-[#010a04]/20 bg-[#f8fbfa] text-[#9aa6a0]";
-  }
-
-  if (winner === side) {
-    return "bg-gradient-to-b from-[#0d7a2f] to-[#076126] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.15)]";
-  }
-
-  return "border border-[#010a04]/[0.16] bg-[#f2f7f4] text-[#010a04]";
-}
-
-function serializeScoreValue(value: MatchScoreValue | null): string {
-  if (value == null) {
-    return "";
-  }
-  if (value === "wo") {
-    return "WO";
-  }
-  return String(value);
-}
-
-function parseScoreInputValue(raw: string): MatchScoreValue | null {
-  const normalized = raw.trim();
-  if (normalized === "") {
-    return null;
-  }
-
-  if (normalized.toLowerCase() === "wo") {
-    return "wo";
-  }
-
-  if (!/^\d+$/.test(normalized)) {
-    return null;
-  }
-
-  const parsed = Number.parseInt(normalized, 10);
-  if (!Number.isFinite(parsed) || parsed < 0) {
-    return null;
-  }
-
-  return parsed;
-}
-
-function createScoreEditorRows(match: TournamentScheduleMatch): ScoreEditorRow[] {
-  const columnCount = Math.max(
-    3,
-    match.score.playerOneScores.length,
-    match.score.playerTwoScores.length
-  );
-
-  const rows: ScoreEditorRow[] = [];
-  for (let index = 0; index < columnCount; index += 1) {
-    rows.push({
-      id: `${match.id}-set-${index + 1}`,
-      playerOne: serializeScoreValue(match.score.playerOneScores[index] ?? null),
-      playerTwo: serializeScoreValue(match.score.playerTwoScores[index] ?? null),
-    });
-  }
-
-  return rows;
-}
-
-interface ScorePayloadBuildResult {
-  ok: boolean;
-  playerOneScores: MatchScoreValue[];
-  playerTwoScores: MatchScoreValue[];
-  message: string | null;
-}
-
-function buildScorePayload(
-  rows: ScoreEditorRow[],
-  t: (key: string, options?: Record<string, unknown>) => string
-): ScorePayloadBuildResult {
-  if (rows.length === 0) {
-    return {
-      ok: false,
-      playerOneScores: [],
-      playerTwoScores: [],
-      message: t("tournaments.scoreEditorNoSets"),
-    };
-  }
-
-  const playerOneScores: MatchScoreValue[] = [];
-  const playerTwoScores: MatchScoreValue[] = [];
-
-  for (const row of rows) {
-    const firstRaw = row.playerOne.trim();
-    const secondRaw = row.playerTwo.trim();
-    const rowCompletelyEmpty = firstRaw === "" && secondRaw === "";
-    if (rowCompletelyEmpty) {
-      continue;
-    }
-
-    const first = parseScoreInputValue(firstRaw);
-    const second = parseScoreInputValue(secondRaw);
-    if (first == null || second == null) {
-      return {
-        ok: false,
-        playerOneScores: [],
-        playerTwoScores: [],
-        message: t("tournaments.scoreEditorIncomplete"),
-      };
-    }
-
-    if (first === "wo" && second === "wo") {
-      return {
-        ok: false,
-        playerOneScores: [],
-        playerTwoScores: [],
-        message: t("tournaments.scoreEditorBothWalkover"),
-      };
-    }
-
-    playerOneScores.push(first);
-    playerTwoScores.push(second);
-  }
-
-  if (playerOneScores.length === 0 || playerTwoScores.length === 0) {
-    return {
-      ok: false,
-      playerOneScores: [],
-      playerTwoScores: [],
-      message: t("tournaments.scoreEditorNoSets"),
-    };
-  }
-
-  return {
-    ok: true,
-    playerOneScores,
-    playerTwoScores,
-    message: null,
-  };
-}
-
 function MatchScheduleSkeleton() {
   return (
     <div className="mx-auto w-full max-w-6xl px-5 pb-10 pt-8 sm:px-6">
@@ -317,7 +115,7 @@ function MatchScheduleSkeleton() {
 
 interface MatchScheduleCardProps {
   match: TournamentScheduleMatch;
-  language: string;
+  locale: Locale;
   t: (key: string, options?: Record<string, unknown>) => string;
   canEdit: boolean;
   isEditing: boolean;
@@ -333,7 +131,7 @@ interface MatchScheduleCardProps {
 
 function MatchScheduleCard({
   match,
-  language,
+  locale,
   t,
   canEdit,
   isEditing,
@@ -346,8 +144,8 @@ function MatchScheduleCard({
   const secondPlayer = playerName(match.players[1], t("tournaments.playerBFallback"));
   const courtName = match.court.name ?? t("tournaments.courtTBD");
   const tone = AVATAR_TONES[hashSeed(match.id) % AVATAR_TONES.length] ?? AVATAR_TONES[0];
-  const dateLabel = matchDateLabel(match.startTime, t("tournaments.scheduledTbd"), language);
-  const timeLabel = matchTimeLabel(match.startTime, t("tournaments.scheduledTbd"), language);
+  const tbd = t("tournaments.scheduledTbd");
+  const { date: dateLabel, time: timeLabel } = matchScheduleDateTimeLabels(match.startTime, locale, tbd);
   const columns = scoreColumns(match);
 
   const isLive = match.status === "inProgress";
@@ -538,42 +336,32 @@ export default function TournamentMatchSchedulePage() {
 
   const tournament = tournamentQuery.data.tournament;
   const allMatches = matchesQuery.data.matches;
+  const scheduleMeta = matchesQuery.data.schedule;
 
-  const maxRound = allMatches.reduce((maxValue, match) => Math.max(maxValue, match.round), 0);
-  const latestGeneratedRound = Math.max(maxRound, matchesQuery.data.schedule.currentRound);
-  const configuredTotalRounds = Math.max(
-    1,
-    tournament.totalRounds,
-    matchesQuery.data.schedule.totalRounds
+  const queryRound = parseRoundQueryParam(searchParams);
+  const maxRound = maxRoundFromMatches(allMatches);
+  const selectedRound = resolveMatchViewSelectedRound(
+    queryRound,
+    scheduleMeta.currentRound,
+    maxRound
   );
-  const hasReachedFinalRound = latestGeneratedRound >= configuredTotalRounds;
-  const requestedRound = Number.parseInt(searchParams.get("round") ?? "", 10);
-  const fallbackRound =
-    matchesQuery.data.schedule.currentRound > 0
-      ? matchesQuery.data.schedule.currentRound
-      : maxRound > 0
-        ? maxRound
-        : 1;
 
-  const selectedRound =
-    Number.isFinite(requestedRound) && requestedRound >= 1 ? requestedRound : fallbackRound;
+  const { latestGeneratedRound, hasReachedFinalRound } = computeScheduleProgressBounds(
+    allMatches,
+    scheduleMeta.currentRound,
+    tournament.totalRounds,
+    scheduleMeta.totalRounds
+  );
 
   const roundMatches = allMatches
     .filter((match) => match.round === selectedRound)
     .sort((left, right) => left.slot - right.slot);
 
   const nextRound = Math.max(1, latestGeneratedRound + 1);
-  const previousRoundForNext = nextRound - 1;
-  const previousRoundForNextMatches =
-    previousRoundForNext >= 1
-      ? allMatches.filter((match) => match.round === previousRoundForNext)
-      : [];
-  const canCreateNextRound =
-    !hasReachedFinalRound &&
-    (nextRound <= 1 ||
-      (previousRoundForNextMatches.length > 0 &&
-        previousRoundForNextMatches.every((match) => match.status === "completed")));
+  const canCreateNextRound = canCreateNextScheduleRound(hasReachedFinalRound, nextRound, allMatches);
+  const previousRoundBeforeNext = nextRound - 1;
   const showRoundLoadingSkeleton = matchesQuery.isFetching && roundMatches.length === 0;
+  const dateLocale: Locale = getDateFnsLocale(i18n.language) ?? enUS;
 
   const closeEditor = () => {
     setEditingMatch(null);
@@ -703,7 +491,7 @@ export default function TournamentMatchSchedulePage() {
                 title={
                   !canCreateNextRound
                     ? t("tournaments.schedulePreviousRoundIncomplete", {
-                        round: previousRoundForNext,
+                        round: previousRoundBeforeNext,
                       })
                     : undefined
                 }
@@ -747,7 +535,7 @@ export default function TournamentMatchSchedulePage() {
               <MatchScheduleCard
                 key={match.id}
                 match={match}
-                language={i18n.language}
+                locale={dateLocale}
                 t={t}
                 canEdit={tournament.permissions.canEdit}
                 isEditing={editingMatch?.id === match.id}
