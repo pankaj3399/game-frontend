@@ -602,6 +602,7 @@
     "shareError": "Unable to share this tournament.",
     "scheduleGamesRound": "Schedule Games for Round {{round}}",
     "viewSchedule": "View Schedule",
+    "viewMatchAria": "View match {{id}} on schedule",
     "viewResults": "View Results",
     "matchScheduleTitle": "Match Schedule",
     "newRound": "New Round",

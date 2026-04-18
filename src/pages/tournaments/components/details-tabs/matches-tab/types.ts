@@ -1,9 +1,10 @@
-import type { TournamentMatchStatus } from "@/models/tournament/types";
+import type { TournamentMatchStatus, TournamentScheduleMode } from "@/models/tournament/types";
 
 export type MatchStatus = TournamentMatchStatus;
 
 export interface DerivedMatch {
   id: string;
+  mode: TournamentScheduleMode;
   playerA: string;
   playerB: string;
   courtName: string;

@@ -1,5 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Pencil } from "@/icons/figma-icons";
+import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 import type { TournamentDetail } from "@/models/tournament/types";
 import type { TFunction } from "i18next";
 
@@ -23,7 +25,10 @@ export function Sidebar({
   t,
 }: SidebarProps) {
   const canJoin = tournament.permissions.canJoin;
+  const canLeave = tournament.permissions.canLeave;
   const isParticipant = tournament.permissions.isParticipant;
+  const participationDisabled = isParticipant && !canLeave;
+  const showParticipationButton = canJoin || isParticipant;
   const participationButtonClass = isParticipant
     ? "h-[42px] w-full rounded-[12px] bg-[#e8c15a] text-[16px] font-medium text-[#111111] hover:bg-[#ddb44c]"
     : "h-[42px] w-full rounded-[8px] bg-gradient-to-r from-[#0a6925] via-[#0c7b2c] to-[#0f8d33] text-[16px] font-medium text-white hover:opacity-95";
@@ -68,19 +73,29 @@ export function Sidebar({
         <div className="my-6 h-px w-full bg-[#dddddd]" />
 
         <div className="space-y-3">
-          {(canJoin || isParticipant) && (
-            <Button
-              className={participationButtonClass}
-              onClick={onParticipationAction}
-              disabled={isParticipationPending}
-            >
-              {isParticipationPending
-                ? t("common.loading")
-                : isParticipant
-                  ? t("tournaments.leaveMatch")
-                  : t("tournaments.joinThisMatch")}
-            </Button>
-          )}
+          {showParticipationButton &&
+            (participationDisabled ? (
+              <Button
+                type="button"
+                className={cn(participationButtonClass, "cursor-not-allowed opacity-80")}
+                aria-disabled
+                onClick={() => toast.warning(t("tournaments.leaveLockedAfterSchedule"))}
+              >
+                {t("tournaments.leaveMatch")}
+              </Button>
+            ) : (
+              <Button
+                className={participationButtonClass}
+                onClick={onParticipationAction}
+                disabled={isParticipationPending}
+              >
+                {isParticipationPending
+                  ? t("common.loading")
+                  : isParticipant
+                    ? t("tournaments.leaveMatch")
+                    : t("tournaments.joinThisMatch")}
+              </Button>
+            ))}
 
           {tournament.permissions.canEdit && (
             <Button

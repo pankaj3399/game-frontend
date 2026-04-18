@@ -601,6 +601,7 @@
       "shareError": "Dieses Turnier kann nicht geteilt werden.",
     "scheduleGamesRound": "Spiele für Runde {{round}} planen",
     "viewSchedule": "Spielplan ansehen",
+    "viewMatchAria": "Spielplan für Match {{id}} öffnen",
     "viewResults": "Ergebnisse ansehen",
     "matchScheduleTitle": "Spielplan",
     "newRound": "Neue Runde",

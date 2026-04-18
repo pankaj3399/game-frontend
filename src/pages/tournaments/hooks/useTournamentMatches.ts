@@ -21,5 +21,6 @@ export function useTournamentMatches(id: string | null, enabled = true) {
       return fetchTournamentMatches(id);
     },
     enabled: Boolean(id) && enabled,
+    refetchInterval: 60_000,
   });
 }
