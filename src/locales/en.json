@@ -627,6 +627,7 @@
     "scoreEditorSaveSuccess": "Score updated successfully.",
     "scoreEditorNoSets": "Add at least one set before saving.",
     "scoreEditorIncomplete": "Please provide valid values for both players in every set. Use a non-negative number or WO.",
+    "scoreEditorBothWalkover": "Both sides cannot be walkover (WO) in the same set. Enter a numeric score for one side.",
     "scheduleMinPlayersNotMet": "You need at least {{min}} players before scheduling games. Currently {{current}} joined.",
     "scheduleLoadError": "Failed to load schedule page.",
     "scheduleInputTitle": "Schedule Input",

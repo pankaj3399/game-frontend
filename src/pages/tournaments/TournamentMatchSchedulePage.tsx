@@ -252,6 +252,15 @@ function buildScorePayload(
       };
     }
 
+    if (first === "wo" && second === "wo") {
+      return {
+        ok: false,
+        playerOneScores: [],
+        playerTwoScores: [],
+        message: t("tournaments.scoreEditorBothWalkover"),
+      };
+    }
+
     playerOneScores.push(first);
     playerTwoScores.push(second);
   }
@@ -433,7 +442,7 @@ function MatchScheduleCard({
                     <input
                       key={`${row.id}-${side}-input`}
                       type="text"
-                      inputMode="numeric"
+                      inputMode="text"
                       value={value}
                       onChange={(event) =>
                         onScoreInputChange(

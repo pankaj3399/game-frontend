@@ -626,6 +626,7 @@
     "scoreEditorSaveSuccess": "Score erfolgreich aktualisiert.",
     "scoreEditorNoSets": "Fügen Sie vor dem Speichern mindestens einen Satz hinzu.",
     "scoreEditorIncomplete": "Bitte geben Sie für beide Spieler in jedem Satz gültige Werte ein. Erlaubt sind nicht-negative Zahlen oder WO.",
+    "scoreEditorBothWalkover": "Beide Seiten können im selben Satz nicht Walkover (WO) sein. Geben Sie für eine Seite eine Zahl ein.",
     "scheduleMinPlayersNotMet": "Zum Planen der Spiele sind mindestens {{min}} Spieler nötig. Derzeit {{current}} angemeldet.",
     "scheduleLoadError": "Planungsseite konnte nicht geladen werden.",
     "scheduleInputTitle": "Planungseingabe",

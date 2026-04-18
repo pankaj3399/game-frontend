@@ -1,4 +1,3 @@
-import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useSearchParams } from "react-router-dom";
 import type { TournamentDetail } from "@/models/tournament/types";
@@ -25,19 +24,12 @@ export function TournamentDetailsTabs({
   const { t } = useTranslation();
   const [searchParams, setSearchParams] = useSearchParams();
   const tabOptions = getTournamentDetailsTabOptions(t);
-  const tabValues = useMemo(() => tabOptions.map((tab) => tab.value), [tabOptions]);
   const requestedTab = searchParams.get("tab");
+  const tabValues = tabOptions.map((tab) => tab.value);
   const resolvedTab =
     requestedTab && tabValues.includes(requestedTab) ? requestedTab : "info";
-  const [activeTab, setActiveTab] = useState(resolvedTab);
-
-  useEffect(() => {
-    setActiveTab(resolvedTab);
-  }, [resolvedTab]);
 
   const onTabChange = (nextTab: string) => {
-    setActiveTab(nextTab);
-
     const nextSearchParams = new URLSearchParams(searchParams);
     if (nextTab === "info") {
       nextSearchParams.delete("tab");
@@ -48,7 +40,7 @@ export function TournamentDetailsTabs({
   };
 
   return (
-    <Tabs value={activeTab} onValueChange={onTabChange} className="w-full">
+    <Tabs value={resolvedTab} onValueChange={onTabChange} className="w-full">
       <div className="mt-0.5 w-full border-b border-[#dddddd] pb-6 sm:mt-1 sm:pb-7">
         <TabsList
           className="grid h-auto w-full max-w-full rounded-[10px] bg-[rgba(1,10,4,0.05)] p-1 sm:inline-flex sm:w-fit"

@@ -299,7 +299,7 @@ export function AppNavbar() {
           />
         </nav>
 
-        <div className={cn("flex shrink-0 items-center justify-end gap-2 sm:gap-3", isGermanUi ? "xl:gap-2.5" : "xl:gap-[14px]")}>
+        <div className="flex shrink-0 items-center justify-end gap-2 sm:gap-3">
           <div className={cn("hidden min-w-0 items-center gap-3 xl:flex", isGermanUi ? "xl:gap-2.5" : "xl:gap-[14px]")}>
             {!isAuthenticated && (
               <DropdownMenu>

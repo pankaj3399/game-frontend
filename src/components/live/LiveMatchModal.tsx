@@ -141,8 +141,17 @@ export function LiveMatchModal() {
   };
 
   const handleScoreSubmit = async () => {
-    const myScoreValue = Number.parseInt(myTeamScore, 10);
-    const opponentScoreValue = Number.parseInt(opponentTeamScore, 10);
+    const myRaw = myTeamScore.trim();
+    const opponentRaw = opponentTeamScore.trim();
+    const digitsOnly = /^\d+$/;
+
+    if (!digitsOnly.test(myRaw) || !digitsOnly.test(opponentRaw)) {
+      toast.error(t("tournaments.liveModalInvalidScore"));
+      return;
+    }
+
+    const myScoreValue = Number.parseInt(myRaw, 10);
+    const opponentScoreValue = Number.parseInt(opponentRaw, 10);
 
     if (!Number.isInteger(myScoreValue) || myScoreValue < 0) {
       toast.error(t("tournaments.liveModalInvalidScore"));
