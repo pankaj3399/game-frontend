@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { format, isValid, parseISO } from "date-fns";
 import { toast } from "sonner";
@@ -17,7 +17,6 @@ import {
   useRecordTournamentMatchScore,
   useTournamentLiveMatch,
 } from "@/pages/tournaments/hooks";
-
 function playerDisplayName(
   player: { name: string | null; alias: string | null },
   fallback: string
@@ -71,13 +70,126 @@ function matchTeamNames(match: TournamentLiveMatchItem, fallback: string) {
   };
 }
 
-export function LiveMatchModal() {
-  const { t, i18n } = useTranslation();
-  const [open, setOpen] = useState(false);
-  const [dismissedMatchId, setDismissedMatchId] = useState<string | null>(null);
+type RecordScoreMutation = ReturnType<typeof useRecordTournamentMatchScore>;
+
+function LiveMatchScoringBlock({
+  liveMatch,
+  t,
+  recordScoreMutation,
+  onScoreSaved,
+}: {
+  liveMatch: TournamentLiveMatchItem;
+  t: (key: string) => string;
+  recordScoreMutation: RecordScoreMutation;
+  onScoreSaved: () => void;
+}) {
   const [isScoring, setIsScoring] = useState(false);
   const [myTeamScore, setMyTeamScore] = useState("");
   const [opponentTeamScore, setOpponentTeamScore] = useState("");
+
+  const handleScoreSubmit = async () => {
+    const myRaw = myTeamScore.trim();
+    const opponentRaw = opponentTeamScore.trim();
+    const digitsOnly = /^\d+$/;
+
+    if (!digitsOnly.test(myRaw) || !digitsOnly.test(opponentRaw)) {
+      toast.error(t("tournaments.liveModalInvalidScore"));
+      return;
+    }
+
+    const myScoreValue = Number.parseInt(myRaw, 10);
+    const opponentScoreValue = Number.parseInt(opponentRaw, 10);
+
+    try {
+      await recordScoreMutation.mutateAsync({
+        tournamentId: liveMatch.tournament.id,
+        matchId: liveMatch.id,
+        input: {
+          playerOneScores: [myScoreValue],
+          playerTwoScores: [opponentScoreValue],
+        },
+      });
+
+      toast.success(t("tournaments.liveModalScoreSaved"));
+      onScoreSaved();
+    } catch (error: unknown) {
+      toast.error(
+        getErrorMessage(error) ?? t("tournaments.liveModalScoreSaveError")
+      );
+    }
+  };
+
+  const isSubmitting = recordScoreMutation.isPending;
+
+  return (
+    <>
+      {isScoring ? (
+        <div className="rounded-[12px] border border-[#067429]/30 bg-[#f4fbf6] p-3">
+          <p className="text-[14px] font-semibold text-[#010a04]">
+            {t("tournaments.liveModalScoreTitle")}
+          </p>
+          <div className="mt-3 grid grid-cols-2 gap-2">
+            <label className="grid gap-1 text-[12px] text-[#4f5a53]">
+              {t("tournaments.liveModalMyTeam")}
+              <input
+                type="number"
+                min={0}
+                step={1}
+                value={myTeamScore}
+                onChange={(event) => setMyTeamScore(event.target.value)}
+                className="h-9 rounded-md border border-[#cfd8d2] bg-white px-2 text-[14px] text-[#010a04] outline-none transition focus:border-[#067429]"
+              />
+            </label>
+            <label className="grid gap-1 text-[12px] text-[#4f5a53]">
+              {t("tournaments.liveModalOpponent")}
+              <input
+                type="number"
+                min={0}
+                step={1}
+                value={opponentTeamScore}
+                onChange={(event) => setOpponentTeamScore(event.target.value)}
+                className="h-9 rounded-md border border-[#cfd8d2] bg-white px-2 text-[14px] text-[#010a04] outline-none transition focus:border-[#067429]"
+              />
+            </label>
+          </div>
+          <div className="mt-3 flex items-center justify-end gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setIsScoring(false)}
+              disabled={isSubmitting}
+              className="h-9"
+            >
+              {t("common.cancel")}
+            </Button>
+            <Button
+              type="button"
+              onClick={() => void handleScoreSubmit()}
+              disabled={isSubmitting}
+              className="h-9 bg-[#067429] text-white hover:bg-[#055c21]"
+            >
+              {isSubmitting
+                ? t("tournaments.liveModalSaving")
+                : t("tournaments.liveModalSaveScore")}
+            </Button>
+          </div>
+        </div>
+      ) : (
+        <Button
+          type="button"
+          onClick={() => setIsScoring(true)}
+          className="h-10 w-full bg-[#067429] text-[14px] font-semibold text-white hover:bg-[#055c21]"
+        >
+          {t("tournaments.liveModalEnterScore")}
+        </Button>
+      )}
+    </>
+  );
+}
+
+export function LiveMatchModal() {
+  const { t, i18n } = useTranslation();
+  const [dismissedMatchId, setDismissedMatchId] = useState<string | null>(null);
 
   const liveMatchQuery = useTournamentLiveMatch(true);
   const recordScoreMutation = useRecordTournamentMatchScore();
@@ -85,23 +197,8 @@ export function LiveMatchModal() {
   const liveMatch = liveMatchQuery.data?.liveMatch ?? null;
   const nextMatch = liveMatchQuery.data?.nextMatch ?? null;
 
-  useEffect(() => {
-    if (!liveMatch) {
-      setOpen(false);
-      setIsScoring(false);
-      return;
-    }
-
-    if (dismissedMatchId !== liveMatch.id) {
-      setOpen(true);
-    }
-  }, [liveMatch, dismissedMatchId]);
-
-  useEffect(() => {
-    setMyTeamScore("");
-    setOpponentTeamScore("");
-    setIsScoring(false);
-  }, [liveMatch?.id]);
+  const dialogOpen =
+    liveMatch != null && dismissedMatchId !== liveMatch.id;
 
   const liveTimeLabel = useMemo(
     () =>
@@ -135,58 +232,15 @@ export function LiveMatchModal() {
   const handleOpenChange = (nextOpen: boolean) => {
     if (!nextOpen) {
       setDismissedMatchId(liveMatch.id);
-      setIsScoring(false);
-    }
-    setOpen(nextOpen);
-  };
-
-  const handleScoreSubmit = async () => {
-    const myRaw = myTeamScore.trim();
-    const opponentRaw = opponentTeamScore.trim();
-    const digitsOnly = /^\d+$/;
-
-    if (!digitsOnly.test(myRaw) || !digitsOnly.test(opponentRaw)) {
-      toast.error(t("tournaments.liveModalInvalidScore"));
-      return;
-    }
-
-    const myScoreValue = Number.parseInt(myRaw, 10);
-    const opponentScoreValue = Number.parseInt(opponentRaw, 10);
-
-    if (!Number.isInteger(myScoreValue) || myScoreValue < 0) {
-      toast.error(t("tournaments.liveModalInvalidScore"));
-      return;
-    }
-
-    if (!Number.isInteger(opponentScoreValue) || opponentScoreValue < 0) {
-      toast.error(t("tournaments.liveModalInvalidScore"));
-      return;
-    }
-
-    try {
-      await recordScoreMutation.mutateAsync({
-        tournamentId: liveMatch.tournament.id,
-        matchId: liveMatch.id,
-        input: {
-          playerOneScores: [myScoreValue],
-          playerTwoScores: [opponentScoreValue],
-        },
-      });
-
-      toast.success(t("tournaments.liveModalScoreSaved"));
-      setDismissedMatchId(liveMatch.id);
-      setOpen(false);
-    } catch (error: unknown) {
-      toast.error(
-        getErrorMessage(error) ?? t("tournaments.liveModalScoreSaveError")
-      );
     }
   };
 
-  const isSubmitting = recordScoreMutation.isPending;
+  const handleScoreSaved = () => {
+    setDismissedMatchId(liveMatch.id);
+  };
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
+    <Dialog open={dialogOpen} onOpenChange={handleOpenChange}>
       <DialogContent
         showCloseButton={false}
         className="w-[92vw] max-w-[460px] gap-0 overflow-hidden rounded-[14px] border border-[#010a04]/10 p-0"
@@ -248,66 +302,13 @@ export function LiveMatchModal() {
             </div>
           </div>
 
-          {isScoring ? (
-            <div className="rounded-[12px] border border-[#067429]/30 bg-[#f4fbf6] p-3">
-              <p className="text-[14px] font-semibold text-[#010a04]">
-                {t("tournaments.liveModalScoreTitle")}
-              </p>
-              <div className="mt-3 grid grid-cols-2 gap-2">
-                <label className="grid gap-1 text-[12px] text-[#4f5a53]">
-                  {t("tournaments.liveModalMyTeam")}
-                  <input
-                    type="number"
-                    min={0}
-                    step={1}
-                    value={myTeamScore}
-                    onChange={(event) => setMyTeamScore(event.target.value)}
-                    className="h-9 rounded-md border border-[#cfd8d2] bg-white px-2 text-[14px] text-[#010a04] outline-none transition focus:border-[#067429]"
-                  />
-                </label>
-                <label className="grid gap-1 text-[12px] text-[#4f5a53]">
-                  {t("tournaments.liveModalOpponent")}
-                  <input
-                    type="number"
-                    min={0}
-                    step={1}
-                    value={opponentTeamScore}
-                    onChange={(event) => setOpponentTeamScore(event.target.value)}
-                    className="h-9 rounded-md border border-[#cfd8d2] bg-white px-2 text-[14px] text-[#010a04] outline-none transition focus:border-[#067429]"
-                  />
-                </label>
-              </div>
-              <div className="mt-3 flex items-center justify-end gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setIsScoring(false)}
-                  disabled={isSubmitting}
-                  className="h-9"
-                >
-                  {t("common.cancel")}
-                </Button>
-                <Button
-                  type="button"
-                  onClick={handleScoreSubmit}
-                  disabled={isSubmitting}
-                  className="h-9 bg-[#067429] text-white hover:bg-[#055c21]"
-                >
-                  {isSubmitting
-                    ? t("tournaments.liveModalSaving")
-                    : t("tournaments.liveModalSaveScore")}
-                </Button>
-              </div>
-            </div>
-          ) : (
-            <Button
-              type="button"
-              onClick={() => setIsScoring(true)}
-              className="h-10 w-full bg-[#067429] text-[14px] font-semibold text-white hover:bg-[#055c21]"
-            >
-              {t("tournaments.liveModalEnterScore")}
-            </Button>
-          )}
+          <LiveMatchScoringBlock
+            key={liveMatch.id}
+            liveMatch={liveMatch}
+            t={t}
+            recordScoreMutation={recordScoreMutation}
+            onScoreSaved={handleScoreSaved}
+          />
 
           {nextMatch && nextTeams ? (
             <div className="rounded-[12px] border border-[#010a04]/10 bg-[#f7f8fa] p-3">

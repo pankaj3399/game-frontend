@@ -322,8 +322,8 @@ interface MatchScheduleCardProps {
   canEdit: boolean;
   isEditing: boolean;
   editableRows: ScoreEditorRow[];
-  isSavingEdit: boolean;
-  onToggleEdit: (match: TournamentScheduleMatch) => void;
+  isMutationPending: boolean;
+  onToggleEdit: (match: TournamentScheduleMatch) => void | Promise<void>;
   onScoreInputChange: (
     rowId: string,
     side: "playerOne" | "playerTwo",
@@ -338,7 +338,7 @@ function MatchScheduleCard({
   canEdit,
   isEditing,
   editableRows,
-  isSavingEdit,
+  isMutationPending,
   onToggleEdit,
   onScoreInputChange,
 }: MatchScheduleCardProps) {
@@ -392,8 +392,8 @@ function MatchScheduleCard({
               type="button"
               variant="ghost"
               size="sm"
-              onClick={() => onToggleEdit(match)}
-              disabled={isSavingEdit}
+              onClick={() => void onToggleEdit(match)}
+              disabled={isMutationPending}
               className="h-8 w-8 rounded-md border border-[#010a04]/10 p-0 text-[#010a04] hover:bg-[#010a04]/5"
               title={isEditing ? t("tournaments.liveModalSaveScore") : t("tournaments.editScore")}
               aria-label={isEditing ? t("tournaments.liveModalSaveScore") : t("tournaments.editScore")}
@@ -602,15 +602,15 @@ export default function TournamentMatchSchedulePage() {
     );
   };
 
-  const saveEditedScore = async () => {
+  const persistEditedScore = async (): Promise<boolean> => {
     if (!editingMatch) {
-      return;
+      return true;
     }
 
     const payload = buildScorePayload(scoreRows, t);
     if (!payload.ok) {
       toast.error(payload.message ?? t("tournaments.scoreEditorIncomplete"));
-      return;
+      return false;
     }
 
     try {
@@ -624,15 +624,35 @@ export default function TournamentMatchSchedulePage() {
       });
 
       toast.success(t("tournaments.scoreEditorSaveSuccess"));
-      closeEditor();
+      return true;
     } catch (error: unknown) {
       toast.error(getErrorMessage(error) ?? t("tournaments.liveModalScoreSaveError"));
+      return false;
     }
   };
 
-  const handleToggleInlineEdit = (match: TournamentScheduleMatch) => {
+  const saveEditedScore = async () => {
+    const ok = await persistEditedScore();
+    if (ok) {
+      closeEditor();
+    }
+  };
+
+  const handleToggleInlineEdit = async (match: TournamentScheduleMatch) => {
     if (editingMatch?.id === match.id) {
-      void saveEditedScore();
+      await saveEditedScore();
+      return;
+    }
+
+    if (editingMatch && editingMatch.id !== match.id) {
+      if (recordScoreMutation.isPending) {
+        return;
+      }
+      const ok = await persistEditedScore();
+      if (!ok) {
+        return;
+      }
+      openEditor(match);
       return;
     }
 
@@ -732,7 +752,7 @@ export default function TournamentMatchSchedulePage() {
                 canEdit={tournament.permissions.canEdit}
                 isEditing={editingMatch?.id === match.id}
                 editableRows={editingMatch?.id === match.id ? scoreRows : []}
-                isSavingEdit={recordScoreMutation.isPending && editingMatch?.id === match.id}
+                isMutationPending={recordScoreMutation.isPending}
                 onToggleEdit={handleToggleInlineEdit}
                 onScoreInputChange={updateScoreSetRow}
               />
