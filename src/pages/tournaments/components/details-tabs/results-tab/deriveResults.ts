@@ -39,9 +39,45 @@ function compareSetScore(
   return playerOne > playerTwo ? 1 : -1;
 }
 
-function resolveWinnerId(match: TournamentScheduleMatch): string | null {
-  const [playerOne, playerTwo] = match.players;
-  if (!playerOne?.id || !playerTwo?.id) {
+/** Player ids for schedule side 0 / 1 (doubles teams or singles slot). */
+function getSidePlayerIds(match: TournamentScheduleMatch, side: 0 | 1): string[] {
+  const team = match.teams?.[side];
+  if (team && team.length > 0) {
+    const ids = team.map((p) => p?.id).filter((id): id is string => Boolean(id));
+    if (ids.length > 0) {
+      return ids;
+    }
+  }
+
+  const slot = match.players[side];
+  return slot?.id ? [slot.id] : [];
+}
+
+function applyScoreAdvantageBySide(match: TournamentScheduleMatch, scoreAdvantageById: Map<string, number>) {
+  const playerOneTotal = getNumericScoreTotal(match.score.playerOneScores);
+  const playerTwoTotal = getNumericScoreTotal(match.score.playerTwoScores);
+  const scoreDelta = playerOneTotal - playerTwoTotal;
+
+  const sideOneIds = getSidePlayerIds(match, 0);
+  const sideTwoIds = getSidePlayerIds(match, 1);
+
+  if (sideOneIds.length === 0 || sideTwoIds.length === 0) {
+    return;
+  }
+
+  for (const id of sideOneIds) {
+    scoreAdvantageById.set(id, (scoreAdvantageById.get(id) ?? 0) + scoreDelta);
+  }
+  for (const id of sideTwoIds) {
+    scoreAdvantageById.set(id, (scoreAdvantageById.get(id) ?? 0) - scoreDelta);
+  }
+}
+
+/** Winning side's player ids, or `null` on tie / indeterminate. */
+function resolveWinnerIds(match: TournamentScheduleMatch): string[] | null {
+  const sideOneIds = getSidePlayerIds(match, 0);
+  const sideTwoIds = getSidePlayerIds(match, 1);
+  if (sideOneIds.length === 0 || sideTwoIds.length === 0) {
     return null;
   }
 
@@ -61,7 +97,7 @@ function resolveWinnerId(match: TournamentScheduleMatch): string | null {
   }
 
   if (playerOneSetWins !== playerTwoSetWins) {
-    return playerOneSetWins > playerTwoSetWins ? playerOne.id : playerTwo.id;
+    return playerOneSetWins > playerTwoSetWins ? sideOneIds : sideTwoIds;
   }
 
   const playerOneTotal = getNumericScoreTotal(playerOneScores);
@@ -71,7 +107,7 @@ function resolveWinnerId(match: TournamentScheduleMatch): string | null {
     return null;
   }
 
-  return playerOneTotal > playerTwoTotal ? playerOne.id : playerTwo.id;
+  return playerOneTotal > playerTwoTotal ? sideOneIds : sideTwoIds;
 }
 
 /**
@@ -100,30 +136,16 @@ export function deriveResults(
       return;
     }
 
-    const [playerOne, playerTwo] = match.players;
-    if (!playerOne?.id || !playerTwo?.id) {
+    applyScoreAdvantageBySide(match, scoreAdvantageById);
+
+    const winnerIds = resolveWinnerIds(match);
+    if (!winnerIds || winnerIds.length === 0) {
       return;
     }
 
-    const playerOneTotal = getNumericScoreTotal(match.score.playerOneScores);
-    const playerTwoTotal = getNumericScoreTotal(match.score.playerTwoScores);
-    const scoreDelta = playerOneTotal - playerTwoTotal;
-
-    scoreAdvantageById.set(
-      playerOne.id,
-      (scoreAdvantageById.get(playerOne.id) ?? 0) + scoreDelta
-    );
-    scoreAdvantageById.set(
-      playerTwo.id,
-      (scoreAdvantageById.get(playerTwo.id) ?? 0) - scoreDelta
-    );
-
-    const winnerId = resolveWinnerId(match);
-    if (!winnerId) {
-      return;
+    for (const id of winnerIds) {
+      winsById.set(id, (winsById.get(id) ?? 0) + 1);
     }
-
-    winsById.set(winnerId, (winsById.get(winnerId) ?? 0) + 1);
   });
 
   const withScores: ParticipantResult[] = participants.map((participant) => ({

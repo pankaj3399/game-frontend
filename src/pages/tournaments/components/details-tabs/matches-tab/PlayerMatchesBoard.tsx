@@ -311,19 +311,22 @@ export function PlayerMatchesBoard({
     }
     return matches.some((m) => (m.mode ?? "singles") === "singles") ? "singles" : "doubles";
   });
-  const [onlyMyMatches, setOnlyMyMatches] = useState(Boolean(currentUserId));
+  /** User preference; the filter and switch only apply when signed in (see `onlyMyMatchesActive`). */
+  const [wantOnlyMyMatches, setWantOnlyMyMatches] = useState(false);
 
   const modeFilteredMatches = useMemo(
     () => matches.filter((match) => (match.mode ?? "singles") === selectedMode),
     [matches, selectedMode]
   );
 
+  const onlyMyMatchesActive = Boolean(currentUserId) && wantOnlyMyMatches;
+
   const filteredMatches = useMemo(
     () =>
-      onlyMyMatches
+      onlyMyMatchesActive
         ? modeFilteredMatches.filter((match) => isCurrentUserInMatch(match, currentUserId))
         : modeFilteredMatches,
-    [modeFilteredMatches, onlyMyMatches, currentUserId]
+    [modeFilteredMatches, onlyMyMatchesActive, currentUserId]
   );
 
   const emptyText =
@@ -366,8 +369,9 @@ export function PlayerMatchesBoard({
           </div>
 
           <SwitchToggle
-            checked={onlyMyMatches}
-            onCheckedChange={setOnlyMyMatches}
+            checked={onlyMyMatchesActive}
+            onCheckedChange={setWantOnlyMyMatches}
+            disabled={!currentUserId}
             className="text-[14px] font-normal text-[#010a04]"
             switchClassName="data-[state=checked]:bg-[#067429]"
           >
