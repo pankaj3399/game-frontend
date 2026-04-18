@@ -64,14 +64,8 @@ function resolveWinnerId(match: TournamentScheduleMatch): string | null {
     return playerOneSetWins > playerTwoSetWins ? playerOne.id : playerTwo.id;
   }
 
-  const playerOneTotal = playerOneScores.reduce<number>(
-    (sum, value) => (typeof value === "number" ? sum + value : sum),
-    0
-  );
-  const playerTwoTotal = playerTwoScores.reduce<number>(
-    (sum, value) => (typeof value === "number" ? sum + value : sum),
-    0
-  );
+  const playerOneTotal = getNumericScoreTotal(playerOneScores);
+  const playerTwoTotal = getNumericScoreTotal(playerTwoScores);
 
   if (playerOneTotal === playerTwoTotal) {
     return null;

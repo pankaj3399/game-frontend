@@ -1,4 +1,5 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, type KeyboardEvent } from "react";
+import { useNavigate } from "react-router-dom";
 import { format, isValid, parseISO } from "date-fns";
 import type { TFunction } from "i18next";
 import { SwitchToggle } from "@/components/ui/switch-toggle";
@@ -24,6 +25,7 @@ type ScoreValue = number | "wo";
 type WinnerSide = "one" | "two" | null;
 
 interface PlayerMatchesBoardProps {
+  tournamentId: string;
   matches: TournamentScheduleMatch[];
   currentUserId: string | null;
   language: string;
@@ -182,15 +184,19 @@ function scoreCellClass(winner: WinnerSide, side: "one" | "two", hasValue: boole
 function PlayerMatchCard({
   match,
   language,
+  tournamentId,
   t,
 }: {
   match: TournamentScheduleMatch;
   language: string;
+  tournamentId: string;
   t: TFunction;
 }) {
+  const navigate = useNavigate();
   const teamOne = getTeamDisplayName(match, 0, t);
   const teamTwo = getTeamDisplayName(match, 1, t);
-  const tone = AVATAR_TONES[hashSeed(match.id) % AVATAR_TONES.length] ?? AVATAR_TONES[0];
+  const toneIndex = hashSeed(match.id) % AVATAR_TONES.length;
+  const tone = AVATAR_TONES[toneIndex]!;
   const dateLabel = matchDateLabel(match.startTime, t("tournaments.scheduledTbd"), language);
   const courtLabel = match.court.name ?? t("tournaments.courtTBD");
 
@@ -208,10 +214,27 @@ function PlayerMatchCard({
     (column) => column.playerOne != null || column.playerTwo != null
   );
 
+  const round = Math.max(1, match.round);
+  const goToSchedule = () => {
+    navigate(`/tournaments/${tournamentId}/schedule?round=${round}`);
+  };
+
+  const onCardKeyDown = (event: KeyboardEvent<HTMLElement>) => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      goToSchedule();
+    }
+  };
+
   return (
     <article
+      role="button"
+      tabIndex={0}
+      aria-label={t("tournaments.viewMatchAria", { id: match.id })}
+      onClick={goToSchedule}
+      onKeyDown={onCardKeyDown}
       className={cn(
-        "rounded-[12px] bg-[rgba(1,10,4,0.04)] px-[15px] py-[15px]",
+        "cursor-pointer rounded-[12px] bg-[rgba(1,10,4,0.04)] px-[15px] py-[15px] outline-none transition-shadow focus-visible:ring-2 focus-visible:ring-[#010a04]/25",
         match.status === "inProgress" && "border border-[#16a34a]"
       )}
     >
@@ -276,12 +299,18 @@ function PlayerMatchCard({
 }
 
 export function PlayerMatchesBoard({
+  tournamentId,
   matches,
   currentUserId,
   language,
   t,
 }: PlayerMatchesBoardProps) {
-  const [selectedMode, setSelectedMode] = useState<TournamentScheduleMode>("singles");
+  const [selectedMode, setSelectedMode] = useState<TournamentScheduleMode>(() => {
+    if (matches.length === 0) {
+      return "singles";
+    }
+    return matches.some((m) => (m.mode ?? "singles") === "singles") ? "singles" : "doubles";
+  });
   const [onlyMyMatches, setOnlyMyMatches] = useState(Boolean(currentUserId));
 
   const modeFilteredMatches = useMemo(
@@ -354,7 +383,13 @@ export function PlayerMatchesBoard({
       ) : (
         <div className="grid gap-3 sm:grid-cols-2">
           {filteredMatches.map((match) => (
-            <PlayerMatchCard key={match.id} match={match} language={language} t={t} />
+            <PlayerMatchCard
+              key={match.id}
+              match={match}
+              language={language}
+              tournamentId={tournamentId}
+              t={t}
+            />
           ))}
         </div>
       )}

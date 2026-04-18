@@ -85,6 +85,7 @@ export function MatchesTab({ tournament, currentUserId }: MatchesTabProps) {
     return (
       <TabsContent value="matches" className="mt-5 space-y-4 sm:mt-6 sm:space-y-5">
         <PlayerMatchesBoard
+          tournamentId={tournament.id}
           matches={scheduleMatches}
           currentUserId={currentUserId}
           language={i18n.language}

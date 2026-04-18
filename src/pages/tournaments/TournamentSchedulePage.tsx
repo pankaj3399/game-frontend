@@ -213,7 +213,7 @@ export default function TournamentSchedulePage() {
       });
 
       toast.success(t("tournaments.scheduleGenerated", { round }));
-      navigate(`/tournaments/${id}/match-schedule?round=${response.schedule.round}`);
+      navigate(`/tournaments/${id}/schedule?round=${response.schedule.round}`);
     } catch (err) {
       toast.error(getErrorMessage(err) ?? t("tournaments.scheduleGenerateError"));
     }

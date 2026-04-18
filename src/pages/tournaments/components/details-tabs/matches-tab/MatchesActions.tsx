@@ -28,7 +28,7 @@ export function MatchesActions({
   const shouldCreateFirstRound = !hasGeneratedSchedule && canEdit;
   const shouldCreateNextRound = nextRoundToGenerate != null && canEdit;
 
-  let targetPath = `/tournaments/${tournamentId}/match-schedule?round=${Math.max(1, round)}`;
+  let targetPath = `/tournaments/${tournamentId}/schedule?round=${Math.max(1, round)}`;
   let label = t("tournaments.viewSchedule");
 
   if (shouldCreateNextRound) {
