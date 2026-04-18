@@ -1,5 +1,23 @@
 import { z } from "zod";
 
+/**
+ * JSON often omits keys where we want a single absent representation. After parse,
+ * optional omission becomes `null` (never `undefined` on inferred types).
+ */
+export function wireJsonNullableString() {
+  return z.preprocess(
+    (val: unknown) => (val === undefined ? null : val),
+    z.union([z.string(), z.null()])
+  );
+}
+
+export function wireJsonNullable<T extends z.ZodTypeAny>(schema: T) {
+  return z.preprocess(
+    (val: unknown) => (val === undefined ? null : val),
+    z.union([schema, z.null()])
+  );
+}
+
 export const tournamentStatusSchema = z.enum(["active", "draft"]);
 export const tournamentModeSchema = z.enum(["singleDay", "unscheduled"]);
 export const tournamentPlayModeSchema = z.enum(["TieBreak10", "1set", "3setTieBreak10", "3set", "5set"]);
@@ -17,14 +35,14 @@ export type TournamentDistanceFilter = z.infer<typeof tournamentDistanceFilterSc
 export const tournamentClubSchema = z.object({
   id: z.string(),
   name: z.string(),
-  address: z.string().nullable().optional(),
+  address: wireJsonNullableString(),
 });
 
 export const tournamentSponsorSchema = z.object({
   id: z.string(),
   name: z.string(),
-  logoUrl: z.string().nullable(),
-  link: z.string().nullable(),
+  logoUrl: wireJsonNullableString(),
+  link: wireJsonNullableString(),
 });
 
 export const tournamentCourtSchema = z.object({
@@ -36,8 +54,8 @@ export const tournamentCourtSchema = z.object({
 
 export const tournamentParticipantSchema = z.object({
   id: z.string(),
-  name: z.string().nullable(),
-  alias: z.string().nullable(),
+  name: wireJsonNullableString(),
+  alias: wireJsonNullableString(),
 });
 
 export const tournamentProgressSchema = z.object({
@@ -67,13 +85,11 @@ export const tournamentMatchTeamSchema = z.tuple([
   tournamentMatchPlayerSchema.nullable(),
 ]);
 
-export const tournamentMatchCourtSchema = tournamentCourtSchema
-  .pick({ id: true, name: true })
-  .extend({
-    id: tournamentCourtSchema.shape.id.nullable(),
-    name: tournamentCourtSchema.shape.name.nullable(),
-    number: z.number().int().optional(),
-  });
+export const tournamentMatchCourtSchema = z.object({
+  id: wireJsonNullableString(),
+  name: wireJsonNullableString(),
+  number: z.number().int().optional(),
+});
 
 export const tournamentMatchScoreValueSchema = z.union([
   z.number().int().min(0),
@@ -152,8 +168,8 @@ export const tournamentScheduleMatchSchema = z.object({
 });
 
 export const tournamentScheduleInfoSchema = z.object({
-  id: z.string().nullable(),
-  status: z.string().nullable(),
+  id: wireJsonNullableString(),
+  status: wireJsonNullableString(),
   currentRound: z.number().int().min(0),
   totalRounds: z.number().int().min(0),
 });
@@ -181,8 +197,8 @@ export const tournamentScheduleInputSchema = z
 
 export const tournamentScheduleParticipantSchema = z.object({
   id: z.string(),
-  name: z.string().nullable(),
-  alias: z.string().nullable(),
+  name: wireJsonNullableString(),
+  alias: wireJsonNullableString(),
   skillLabel: z.string(),
   rating: z.number(),
   order: z.number().int().min(1),
@@ -228,8 +244,8 @@ export const generateTournamentDoublesPairsInputSchema = z.object({
 
 export const tournamentSchedulePairPlayerSchema = z.object({
   id: z.string(),
-  name: z.string().nullable(),
-  alias: z.string().nullable(),
+  name: wireJsonNullableString(),
+  alias: wireJsonNullableString(),
   skillLabel: z.string(),
   rating: z.number(),
 });
@@ -259,10 +275,10 @@ function normalizeMemberRange<T extends { minMember: number; maxMember: number }
 export const tournamentListItemSchema = z.object({
   id: z.string(),
   name: z.string(),
-  club: tournamentClubSchema.nullable(),
-  date: z.string().nullable(),
+  club: wireJsonNullable(tournamentClubSchema),
+  date: wireJsonNullableString(),
   status: tournamentStatusSchema,
-  sponsor: tournamentSponsorSchema.nullable(),
+  sponsor: wireJsonNullable(tournamentSponsorSchema),
 });
 
 export const tournamentListFiltersSchema = z.object({
@@ -290,20 +306,20 @@ export const tournamentsResponseSchema = z.object({
 export const backendTournamentDetailSchema = z.object({
   id: z.string(),
   name: z.string(),
-  club: tournamentClubSchema.nullable(),
-  sponsor: tournamentSponsorSchema.nullable(),
+  club: wireJsonNullable(tournamentClubSchema),
+  sponsor: wireJsonNullable(tournamentSponsorSchema),
   clubSponsors: z.array(tournamentSponsorSchema),
-  date: z.string().nullable(),
-  startTime: z.string().nullable(),
-  endTime: z.string().nullable(),
+  date: wireJsonNullableString(),
+  startTime: wireJsonNullableString(),
+  endTime: wireJsonNullableString(),
   playMode: tournamentPlayModeSchema,
   tournamentMode: tournamentModeSchema,
   entryFee: z.number(),
   minMember: memberCountSchema,
   maxMember: memberCountSchema,
   totalRounds: totalRoundsSchema,
-  duration: z.string().nullable(),
-  breakDuration: z.string().nullable(),
+  duration: wireJsonNullableString(),
+  breakDuration: wireJsonNullableString(),
   courts: z.array(tournamentCourtSchema),
   foodInfo: z.string(),
   descriptionInfo: z.string(),
@@ -311,8 +327,8 @@ export const backendTournamentDetailSchema = z.object({
   participants: z.array(tournamentParticipantSchema),
   progress: tournamentProgressSchema,
   permissions: tournamentPermissionsSchema,
-  createdAt: z.string().nullable(),
-  updatedAt: z.string().nullable(),
+  createdAt: wireJsonNullableString(),
+  updatedAt: wireJsonNullableString(),
 }).transform(normalizeMemberRange);
 
 export const backendTournamentDetailResponseSchema = z.object({

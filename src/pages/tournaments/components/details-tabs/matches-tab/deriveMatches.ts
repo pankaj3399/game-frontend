@@ -1,12 +1,9 @@
 import { isValid, parseISO, type Locale } from "date-fns";
 import type { TournamentScheduleMatch } from "@/models/tournament/types";
+import { displayTournamentNameAlias } from "@/pages/tournaments/schedule/tournamentPlayerDisplay";
 import { formatDateOrFallback } from "@/utils/date";
 import { formatTimeTo12Hour } from "@/utils/time";
 import type { DerivedMatch, MatchCounts, MatchStatus } from "./types";
-
-function participantName(name: string | null, alias: string | null, fallback: string) {
-  return name || alias || fallback;
-}
 
 /** True when the string is not date-only (avoids local-midnight drift from parsing a calendar date as UTC midnight). */
 function dateStringHasTimeComponent(value: string): boolean {
@@ -97,12 +94,8 @@ export function deriveMatches(
     pairs.push({
       id: match.id,
       mode: match.mode ?? "singles",
-      playerA: first
-        ? participantName(first.name, first.alias, t("tournaments.playerAFallback"))
-        : t("tournaments.playerAFallback"),
-      playerB: second
-        ? participantName(second.name, second.alias, t("tournaments.playerBFallback"))
-        : t("tournaments.playerBFallback"),
+      playerA: displayTournamentNameAlias(first, t("tournaments.playerAFallback")),
+      playerB: displayTournamentNameAlias(second, t("tournaments.playerBFallback")),
       courtName,
       status: match.status,
       round: match.round,

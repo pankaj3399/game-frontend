@@ -77,21 +77,30 @@ export function getPreviousRoundGate(
   return { blocked: false };
 }
 
-export function computeScheduleProgressBounds(
+export interface MatchScheduleRoundModel {
+  maxRoundFromMatches: number;
+  latestGeneratedRound: number;
+  configuredTotalRounds: number;
+  hasReachedFinalRound: boolean;
+}
+
+/** Single pass over matches: avoids recomputing max round in multiple places. */
+export function deriveMatchScheduleRoundModel(
   matches: readonly TournamentScheduleMatch[],
   scheduleCurrentRound: number,
   tournamentTotalRounds: number,
   scheduleTotalRounds: number
-): {
-  latestGeneratedRound: number;
-  configuredTotalRounds: number;
-  hasReachedFinalRound: boolean;
-} {
-  const maxRound = maxRoundFromMatches(matches);
-  const latestGeneratedRound = Math.max(maxRound, scheduleCurrentRound);
+): MatchScheduleRoundModel {
+  const peakRound = maxRoundFromMatches(matches);
+  const latestGeneratedRound = Math.max(peakRound, scheduleCurrentRound);
   const configuredTotalRounds = Math.max(1, tournamentTotalRounds, scheduleTotalRounds);
   const hasReachedFinalRound = latestGeneratedRound >= configuredTotalRounds;
-  return { latestGeneratedRound, configuredTotalRounds, hasReachedFinalRound };
+  return {
+    maxRoundFromMatches: peakRound,
+    latestGeneratedRound,
+    configuredTotalRounds,
+    hasReachedFinalRound,
+  };
 }
 
 export function canCreateNextScheduleRound(
