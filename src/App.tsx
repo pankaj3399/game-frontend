@@ -16,6 +16,7 @@ const SettingsPage = lazy(() => import("./pages/profile/SettingsPage"));
 const TournamentListPage = lazy(() => import('./pages/tournaments/TournamentListPage'))
 const TournamentDetailsPage = lazy(() => import('./pages/tournaments/TournamentDetailsPage'))
 const TournamentSchedulePage = lazy(() => import('./pages/tournaments/TournamentSchedulePage'))
+const TournamentMatchSchedulePage = lazy(() => import('./pages/tournaments/TournamentMatchSchedulePage'))
 const MyScorePage = lazy(() => import("./pages/my-score/MyScorePage"));
 const PlaceholderPage = lazy(() => import("./pages/PlaceholderPage"));
 const ClubsListPage = lazy(() => import("./pages/clubs/ClubsListPage"));
@@ -93,6 +94,7 @@ function App() {
               <Route path="/tournaments" element={<TournamentListPage />} />
               <Route path="/tournaments/:id" element={<TournamentDetailsPage />} />
               <Route path="/tournaments/:id/schedule" element={<TournamentScheduleRoute />} />
+              <Route path="/tournaments/:id/match-schedule" element={<TournamentMatchSchedulePage />} />
               <Route path="/my-score" element={<MyScorePage />} />
               <Route path="/record-score" element={<PlaceholderPage />} />
               <Route path="/clubs/manage" element={<ManageClubPage />} />

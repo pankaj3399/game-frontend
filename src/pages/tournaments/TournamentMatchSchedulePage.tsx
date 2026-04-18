@@ -1,0 +1,765 @@
+import { useState } from "react";
+import { useTranslation } from "react-i18next";
+import { Link, Navigate, useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { isValid, format, parseISO } from "date-fns";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import { getErrorMessage } from "@/lib/errors";
+import { getDateFnsLocale } from "@/lib/dateFnsLocale";
+import {
+  CheckIcon,
+  ChevronLeft,
+  IconCalendarDays,
+  IconClock,
+  IconMap,
+  IconPenLine,
+  IconPlus,
+} from "@/icons/figma-icons";
+import {
+  useRecordTournamentMatchScore,
+  useTournamentById,
+  useTournamentMatches,
+} from "@/pages/tournaments/hooks";
+import type { TournamentMatchPlayer, TournamentScheduleMatch } from "@/models/tournament/types";
+
+const AVATAR_TONES = [
+  "from-[#f7d4bf] to-[#efb598]",
+  "from-[#d5e5f6] to-[#acc8e7]",
+  "from-[#d9efdd] to-[#b9dfc4]",
+  "from-[#f7e5bb] to-[#efd587]",
+  "from-[#e8ddfb] to-[#cab6ef]",
+  "from-[#ffd8e0] to-[#f4b3c2]",
+];
+
+function hashSeed(value: string): number {
+  let hash = 0;
+  for (let index = 0; index < value.length; index += 1) {
+    hash = (Math.imul(hash, 31) + value.charCodeAt(index)) | 0;
+  }
+  return (hash >>> 0) % 2147483647;
+}
+
+function initialsFromName(name: string): string {
+  const tokens = name
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
+
+  if (tokens.length === 0) {
+    return "?";
+  }
+
+  const first = tokens[0][0] ?? "";
+  const second = tokens.length > 1 ? tokens[tokens.length - 1][0] ?? "" : "";
+  return `${first}${second}`.toUpperCase();
+}
+
+function playerName(player: TournamentMatchPlayer | null, fallback: string): string {
+  if (!player) {
+    return fallback;
+  }
+
+  return player.name ?? player.alias ?? fallback;
+}
+
+function matchDateLabel(startTime: string | null, fallback: string, localeCode: string): string {
+  if (!startTime) {
+    return fallback;
+  }
+
+  const parsed = parseISO(startTime);
+  if (!isValid(parsed)) {
+    return fallback;
+  }
+
+  return format(parsed, "EEE, MMM d", { locale: getDateFnsLocale(localeCode) });
+}
+
+function matchTimeLabel(startTime: string | null, fallback: string, localeCode: string): string {
+  if (!startTime) {
+    return fallback;
+  }
+
+  const parsed = parseISO(startTime);
+  if (!isValid(parsed)) {
+    return fallback;
+  }
+
+  return format(parsed, "HH:mm", { locale: getDateFnsLocale(localeCode) });
+}
+
+type ScoreWinnerSide = "one" | "two" | null;
+type MatchScoreValue = number | "wo";
+
+interface ScoreEditorRow {
+  id: string;
+  playerOne: string;
+  playerTwo: string;
+}
+
+interface ScoreColumn {
+  playerOne: number | "wo" | null;
+  playerTwo: number | "wo" | null;
+  winner: ScoreWinnerSide;
+}
+
+function scoreColumns(match: TournamentScheduleMatch): ScoreColumn[] {
+  const playerOneScores = match.score.playerOneScores;
+  const playerTwoScores = match.score.playerTwoScores;
+  const totalColumns = Math.max(3, playerOneScores.length, playerTwoScores.length);
+
+  const columns: ScoreColumn[] = [];
+  for (let index = 0; index < totalColumns; index += 1) {
+    const playerOne = playerOneScores[index] ?? null;
+    const playerTwo = playerTwoScores[index] ?? null;
+
+    let winner: ScoreWinnerSide = null;
+    if (typeof playerOne === "number" && typeof playerTwo === "number") {
+      if (playerOne > playerTwo) {
+        winner = "one";
+      } else if (playerTwo > playerOne) {
+        winner = "two";
+      }
+    } else if (playerOne === "wo" && playerTwo !== null) {
+      winner = "two";
+    } else if (playerTwo === "wo" && playerOne !== null) {
+      winner = "one";
+    }
+
+    columns.push({ playerOne, playerTwo, winner });
+  }
+
+  return columns;
+}
+
+function formatScoreCellValue(value: number | "wo" | null): string {
+  if (value == null) {
+    return "-";
+  }
+  if (value === "wo") {
+    return "WO";
+  }
+  return String(value);
+}
+
+function scoreCellClass(
+  winner: ScoreWinnerSide,
+  side: "one" | "two",
+  hasValue: boolean
+): string {
+  if (!hasValue) {
+    return "border border-dashed border-[#010a04]/20 bg-[#f8fbfa] text-[#9aa6a0]";
+  }
+
+  if (winner === side) {
+    return "bg-gradient-to-b from-[#0d7a2f] to-[#076126] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.15)]";
+  }
+
+  return "border border-[#010a04]/[0.16] bg-[#f2f7f4] text-[#010a04]";
+}
+
+function serializeScoreValue(value: MatchScoreValue | null): string {
+  if (value == null) {
+    return "";
+  }
+  if (value === "wo") {
+    return "WO";
+  }
+  return String(value);
+}
+
+function parseScoreInputValue(raw: string): MatchScoreValue | null {
+  const normalized = raw.trim();
+  if (normalized === "") {
+    return null;
+  }
+
+  if (normalized.toLowerCase() === "wo") {
+    return "wo";
+  }
+
+  if (!/^\d+$/.test(normalized)) {
+    return null;
+  }
+
+  const parsed = Number.parseInt(normalized, 10);
+  if (!Number.isFinite(parsed) || parsed < 0) {
+    return null;
+  }
+
+  return parsed;
+}
+
+function createScoreEditorRows(match: TournamentScheduleMatch): ScoreEditorRow[] {
+  const columnCount = Math.max(
+    3,
+    match.score.playerOneScores.length,
+    match.score.playerTwoScores.length
+  );
+
+  const rows: ScoreEditorRow[] = [];
+  for (let index = 0; index < columnCount; index += 1) {
+    rows.push({
+      id: `${match.id}-set-${index + 1}`,
+      playerOne: serializeScoreValue(match.score.playerOneScores[index] ?? null),
+      playerTwo: serializeScoreValue(match.score.playerTwoScores[index] ?? null),
+    });
+  }
+
+  return rows;
+}
+
+interface ScorePayloadBuildResult {
+  ok: boolean;
+  playerOneScores: MatchScoreValue[];
+  playerTwoScores: MatchScoreValue[];
+  message: string | null;
+}
+
+function buildScorePayload(
+  rows: ScoreEditorRow[],
+  t: (key: string, options?: Record<string, unknown>) => string
+): ScorePayloadBuildResult {
+  if (rows.length === 0) {
+    return {
+      ok: false,
+      playerOneScores: [],
+      playerTwoScores: [],
+      message: t("tournaments.scoreEditorNoSets"),
+    };
+  }
+
+  const playerOneScores: MatchScoreValue[] = [];
+  const playerTwoScores: MatchScoreValue[] = [];
+
+  for (const row of rows) {
+    const firstRaw = row.playerOne.trim();
+    const secondRaw = row.playerTwo.trim();
+    const rowCompletelyEmpty = firstRaw === "" && secondRaw === "";
+    if (rowCompletelyEmpty) {
+      continue;
+    }
+
+    const first = parseScoreInputValue(firstRaw);
+    const second = parseScoreInputValue(secondRaw);
+    if (first == null || second == null) {
+      return {
+        ok: false,
+        playerOneScores: [],
+        playerTwoScores: [],
+        message: t("tournaments.scoreEditorIncomplete"),
+      };
+    }
+
+    if (first === "wo" && second === "wo") {
+      return {
+        ok: false,
+        playerOneScores: [],
+        playerTwoScores: [],
+        message: t("tournaments.scoreEditorBothWalkover"),
+      };
+    }
+
+    playerOneScores.push(first);
+    playerTwoScores.push(second);
+  }
+
+  if (playerOneScores.length === 0 || playerTwoScores.length === 0) {
+    return {
+      ok: false,
+      playerOneScores: [],
+      playerTwoScores: [],
+      message: t("tournaments.scoreEditorNoSets"),
+    };
+  }
+
+  return {
+    ok: true,
+    playerOneScores,
+    playerTwoScores,
+    message: null,
+  };
+}
+
+function MatchScheduleSkeleton() {
+  return (
+    <div className="mx-auto w-full max-w-6xl px-5 pb-10 pt-8 sm:px-6">
+      <div className="rounded-[12px] border border-[rgba(1,10,4,0.08)] bg-white px-4 py-5 shadow-[0_3px_15px_rgba(0,0,0,0.06)] sm:px-5">
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+          <div className="h-8 w-56 animate-pulse rounded-md bg-[#010a04]/10" />
+          <div className="h-9 w-32 animate-pulse rounded-md bg-[#010a04]/10" />
+        </div>
+        <div className="grid gap-3 lg:grid-cols-2">
+          {Array.from({ length: 4 }, (_, index) => (
+            <article
+              key={`match-schedule-skeleton-${index}`}
+              className="animate-pulse rounded-[12px] border border-[#010a04]/10 bg-[#f8faf9] p-4"
+            >
+              <div className="mb-4 h-4 w-2/3 rounded bg-[#010a04]/10" />
+              <div className="space-y-3">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="h-5 w-32 rounded bg-[#010a04]/10" />
+                  <div className="h-8 w-40 rounded bg-[#010a04]/10" />
+                </div>
+                <div className="flex items-center justify-between gap-3">
+                  <div className="h-5 w-28 rounded bg-[#010a04]/10" />
+                  <div className="h-8 w-40 rounded bg-[#010a04]/10" />
+                </div>
+              </div>
+            </article>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+interface MatchScheduleCardProps {
+  match: TournamentScheduleMatch;
+  language: string;
+  t: (key: string, options?: Record<string, unknown>) => string;
+  canEdit: boolean;
+  isEditing: boolean;
+  editableRows: ScoreEditorRow[];
+  isMutationPending: boolean;
+  onToggleEdit: (match: TournamentScheduleMatch) => void | Promise<void>;
+  onScoreInputChange: (
+    rowId: string,
+    side: "playerOne" | "playerTwo",
+    value: string
+  ) => void;
+}
+
+function MatchScheduleCard({
+  match,
+  language,
+  t,
+  canEdit,
+  isEditing,
+  editableRows,
+  isMutationPending,
+  onToggleEdit,
+  onScoreInputChange,
+}: MatchScheduleCardProps) {
+  const firstPlayer = playerName(match.players[0], t("tournaments.playerAFallback"));
+  const secondPlayer = playerName(match.players[1], t("tournaments.playerBFallback"));
+  const courtName = match.court.name ?? t("tournaments.courtTBD");
+  const tone = AVATAR_TONES[hashSeed(match.id) % AVATAR_TONES.length] ?? AVATAR_TONES[0];
+  const dateLabel = matchDateLabel(match.startTime, t("tournaments.scheduledTbd"), language);
+  const timeLabel = matchTimeLabel(match.startTime, t("tournaments.scheduledTbd"), language);
+  const columns = scoreColumns(match);
+
+  const isLive = match.status === "inProgress";
+  const isCancelled = match.status === "cancelled";
+
+  return (
+    <article
+      className={cn(
+        "rounded-[12px] border px-[15px] py-[15px]",
+        isLive
+          ? "border-[#067429] bg-[#eef8f1]"
+          : "border-transparent bg-[#010a04]/[0.04]"
+      )}
+    >
+      <div className="mb-[14px] flex items-start justify-between gap-3">
+        <div className="flex min-w-0 items-center gap-3 text-[13px] text-[#6a6a6a]">
+          <span className="flex items-center gap-1.5">
+            <IconCalendarDays size={14} className="shrink-0 text-[#6a6a6a]" />
+            <span className="truncate">{dateLabel}</span>
+          </span>
+          <span className="flex items-center gap-1.5">
+            <IconClock size={14} className="shrink-0 text-[#6a6a6a]" />
+            <span className="truncate">{timeLabel}</span>
+          </span>
+          <span className="flex items-center gap-1.5">
+            <IconMap size={14} className="shrink-0 text-[#6a6a6a]" />
+            <span className="truncate">{courtName}</span>
+          </span>
+        </div>
+
+        <div className="flex items-center gap-2">
+          {isLive ? (
+            <span className="inline-flex items-center gap-1 text-[12px] font-medium text-[#d92100]">
+              <span className="inline-block h-[6px] w-[6px] rounded-full bg-[#d92100]" />
+              {t("tournaments.liveLabel")}
+            </span>
+          ) : isCancelled ? (
+            <span className="text-[12px] font-medium text-[#d92100]">{t("tournaments.matchStatusCancelled")}</span>
+          ) : null}
+          {canEdit ? (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => void onToggleEdit(match)}
+              disabled={isMutationPending}
+              className="h-8 w-8 rounded-md border border-[#010a04]/10 p-0 text-[#010a04] hover:bg-[#010a04]/5"
+              title={isEditing ? t("tournaments.liveModalSaveScore") : t("tournaments.editScore")}
+              aria-label={isEditing ? t("tournaments.liveModalSaveScore") : t("tournaments.editScore")}
+            >
+              {isEditing ? (
+                <CheckIcon size={14} className="text-[#067429]" />
+              ) : (
+                <IconPenLine size={14} className="text-[#010a04]/80" />
+              )}
+            </Button>
+          ) : null}
+        </div>
+      </div>
+
+      {isEditing ? (
+        <div className="mb-2 flex justify-end gap-1.5">
+          {editableRows.map((row, columnIndex) => (
+            <span
+              key={`${row.id}-set-label`}
+              className="inline-flex min-w-[64px] items-center justify-center rounded-[4px] px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.06em] text-[#010a04]/45"
+            >
+              S{columnIndex + 1}
+            </span>
+          ))}
+        </div>
+      ) : null}
+
+      <div className="space-y-[10px]">
+        {[firstPlayer, secondPlayer].map((name, index) => {
+          const side = index === 0 ? "one" : "two";
+          return (
+          <div key={`${match.id}-${index}`} className="flex items-center justify-between gap-3">
+            <div className="flex min-w-0 items-center gap-3">
+              <span
+                className={`flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-full bg-gradient-to-br ${tone} text-[11px] font-semibold text-[#010a04]/80`}
+              >
+                {initialsFromName(name)}
+              </span>
+              <span className="truncate text-[16px] font-medium leading-[20px] text-[#010a04]">{name}</span>
+            </div>
+            {isEditing ? (
+              <div className="flex items-center gap-1.5 rounded-[8px] bg-white/80 px-1 py-1">
+                {editableRows.map((row) => {
+                  const value = side === "one" ? row.playerOne : row.playerTwo;
+                  return (
+                    <input
+                      key={`${row.id}-${side}-input`}
+                      type="text"
+                      inputMode="text"
+                      value={value}
+                      onChange={(event) =>
+                        onScoreInputChange(
+                          row.id,
+                          side === "one" ? "playerOne" : "playerTwo",
+                          event.target.value
+                        )
+                      }
+                      placeholder="0 / WO"
+                      className="h-[34px] w-[64px] rounded-[7px] border border-[#010a04]/20 bg-white px-2 text-center text-[13px] font-semibold text-[#010a04] outline-none transition focus:border-[#067429]"
+                    />
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="flex flex-col items-end gap-1">
+                <div className="flex items-center gap-1">
+                  {columns.map((_, columnIndex) => (
+                    <span
+                      key={`${match.id}-${side}-set-${columnIndex + 1}`}
+                      className="inline-flex min-w-[42px] items-center justify-center rounded-[4px] px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.06em] text-[#010a04]/45"
+                    >
+                      S{columnIndex + 1}
+                    </span>
+                  ))}
+                </div>
+                <div className="flex items-center gap-1.5 rounded-[8px] bg-white/70 px-1 py-1">
+                  {columns.map((column, columnIndex) => {
+                    const value = side === "one" ? column.playerOne : column.playerTwo;
+                    const hasValue = value != null;
+                    return (
+                      <span
+                        key={`${match.id}-${side}-${columnIndex}`}
+                        className={cn(
+                          "inline-flex h-[34px] min-w-[42px] items-center justify-center rounded-[7px] px-2 text-[13px] font-semibold",
+                          scoreCellClass(column.winner, side, hasValue)
+                        )}
+                      >
+                        {formatScoreCellValue(value)}
+                      </span>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+          );
+        })}
+      </div>
+    </article>
+  );
+}
+
+export default function TournamentMatchSchedulePage() {
+  const { t, i18n } = useTranslation();
+  const navigate = useNavigate();
+  const { id } = useParams<{ id: string }>();
+  const [searchParams] = useSearchParams();
+  const [editingMatch, setEditingMatch] = useState<TournamentScheduleMatch | null>(null);
+  const [scoreRows, setScoreRows] = useState<ScoreEditorRow[]>([]);
+
+  const tournamentQuery = useTournamentById(id ?? null, Boolean(id));
+  const matchesQuery = useTournamentMatches(id ?? null, Boolean(id));
+  const recordScoreMutation = useRecordTournamentMatchScore();
+
+  if (!id) {
+    return <Navigate to="/tournaments" replace />;
+  }
+
+  if (tournamentQuery.isLoading || matchesQuery.isLoading) {
+    return <MatchScheduleSkeleton />;
+  }
+
+  if (
+    tournamentQuery.isError ||
+    matchesQuery.isError ||
+    !tournamentQuery.data?.tournament ||
+    !matchesQuery.data
+  ) {
+    return (
+      <div className="mx-auto w-full max-w-6xl px-5 pb-10 pt-8 sm:px-6">
+        <div className="rounded-xl border border-[#f1b3b3] bg-[#fff7f7] p-6 text-sm text-[#a02626]">
+          {getErrorMessage(tournamentQuery.error ?? matchesQuery.error) ?? t("tournaments.matchesLoadError")}
+        </div>
+        <div className="mt-4">
+          <Button asChild variant="outline">
+            <Link to={`/tournaments/${id}?tab=matches`}>{t("tournaments.goBack")}</Link>
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  const tournament = tournamentQuery.data.tournament;
+  const allMatches = matchesQuery.data.matches;
+
+  const maxRound = allMatches.reduce((maxValue, match) => Math.max(maxValue, match.round), 0);
+  const latestGeneratedRound = Math.max(maxRound, matchesQuery.data.schedule.currentRound);
+  const configuredTotalRounds = Math.max(
+    1,
+    tournament.totalRounds,
+    matchesQuery.data.schedule.totalRounds
+  );
+  const hasReachedFinalRound = latestGeneratedRound >= configuredTotalRounds;
+  const requestedRound = Number.parseInt(searchParams.get("round") ?? "", 10);
+  const fallbackRound =
+    matchesQuery.data.schedule.currentRound > 0
+      ? matchesQuery.data.schedule.currentRound
+      : maxRound > 0
+        ? maxRound
+        : 1;
+
+  const selectedRound =
+    Number.isFinite(requestedRound) && requestedRound >= 1 ? requestedRound : fallbackRound;
+
+  const roundMatches = allMatches
+    .filter((match) => match.round === selectedRound)
+    .sort((left, right) => left.slot - right.slot);
+
+  const nextRound = Math.max(1, latestGeneratedRound + 1);
+  const previousRoundForNext = nextRound - 1;
+  const previousRoundForNextMatches =
+    previousRoundForNext >= 1
+      ? allMatches.filter((match) => match.round === previousRoundForNext)
+      : [];
+  const canCreateNextRound =
+    !hasReachedFinalRound &&
+    (nextRound <= 1 ||
+      (previousRoundForNextMatches.length > 0 &&
+        previousRoundForNextMatches.every((match) => match.status === "completed")));
+  const showRoundLoadingSkeleton = matchesQuery.isFetching && roundMatches.length === 0;
+
+  const closeEditor = () => {
+    setEditingMatch(null);
+    setScoreRows([]);
+  };
+
+  const openEditor = (match: TournamentScheduleMatch) => {
+    setEditingMatch(match);
+    setScoreRows(createScoreEditorRows(match));
+  };
+
+  const updateScoreSetRow = (
+    rowId: string,
+    side: "playerOne" | "playerTwo",
+    value: string
+  ) => {
+    setScoreRows((prev) =>
+      prev.map((row) =>
+        row.id === rowId
+          ? {
+              ...row,
+              [side]: value,
+            }
+          : row
+      )
+    );
+  };
+
+  const persistEditedScore = async (): Promise<boolean> => {
+    if (!editingMatch) {
+      return true;
+    }
+
+    const payload = buildScorePayload(scoreRows, t);
+    if (!payload.ok) {
+      toast.error(payload.message ?? t("tournaments.scoreEditorIncomplete"));
+      return false;
+    }
+
+    try {
+      await recordScoreMutation.mutateAsync({
+        tournamentId: tournament.id,
+        matchId: editingMatch.id,
+        input: {
+          playerOneScores: payload.playerOneScores,
+          playerTwoScores: payload.playerTwoScores,
+        },
+      });
+
+      toast.success(t("tournaments.scoreEditorSaveSuccess"));
+      return true;
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error) ?? t("tournaments.liveModalScoreSaveError"));
+      return false;
+    }
+  };
+
+  const saveEditedScore = async () => {
+    const ok = await persistEditedScore();
+    if (ok) {
+      closeEditor();
+    }
+  };
+
+  const handleToggleInlineEdit = async (match: TournamentScheduleMatch) => {
+    if (editingMatch?.id === match.id) {
+      await saveEditedScore();
+      return;
+    }
+
+    if (editingMatch && editingMatch.id !== match.id) {
+      if (recordScoreMutation.isPending) {
+        return;
+      }
+      const ok = await persistEditedScore();
+      if (!ok) {
+        return;
+      }
+      openEditor(match);
+      return;
+    }
+
+    openEditor(match);
+  };
+
+  return (
+    <div className="mx-auto w-full max-w-6xl px-5 pb-10 pt-8 sm:px-6">
+      <div className="rounded-[12px] border border-[rgba(1,10,4,0.08)] bg-white px-4 py-5 shadow-[0_3px_15px_rgba(0,0,0,0.06)] sm:px-5">
+        <div className="mb-5 flex flex-wrap items-center justify-between gap-x-3 gap-y-3">
+          <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate(`/tournaments/${id}?tab=matches`)}
+              className="h-auto w-auto shrink-0 p-0 text-[#010a04] hover:bg-transparent"
+            >
+              <ChevronLeft size={20} className="text-[#010a04]" />
+            </Button>
+            <div className="flex min-w-0 flex-wrap items-center gap-2">
+              <h1 className="min-w-0 text-[20px] font-semibold leading-tight tracking-tight text-[#010a04] sm:text-[22px] lg:text-[24px]">
+                {t("tournaments.matchScheduleTitle")}
+              </h1>
+              <span
+                className="inline-flex shrink-0 items-center rounded-md border border-[#010a04]/10 bg-[#f4f6f8] px-2 py-0.5 text-[12px] font-semibold tabular-nums text-[#010a04]/80"
+                title={t("tournaments.roundNumber", { round: selectedRound })}
+                aria-label={t("tournaments.roundNumber", { round: selectedRound })}
+              >
+                R{selectedRound}
+              </span>
+            </div>
+          </div>
+          {tournament.permissions.canEdit ? (
+            hasReachedFinalRound ? (
+              <Button
+                type="button"
+                onClick={() => navigate(`/tournaments/${id}?tab=results`)}
+                className="h-[34px] shrink-0 rounded-[8px] bg-[#111827] px-3 text-[13px] font-medium text-white hover:bg-black sm:px-4"
+              >
+                {t("tournaments.viewResults")}
+              </Button>
+            ) : (
+              <Button
+                type="button"
+                onClick={() => navigate(`/tournaments/${id}/schedule?round=${nextRound}`)}
+                disabled={!canCreateNextRound}
+                title={
+                  !canCreateNextRound
+                    ? t("tournaments.schedulePreviousRoundIncomplete", {
+                        round: previousRoundForNext,
+                      })
+                    : undefined
+                }
+                className="h-[34px] shrink-0 gap-1.5 rounded-[8px] bg-[#067429] px-3 text-[13px] font-medium text-white hover:bg-[#055d21] sm:px-4"
+              >
+                <IconPlus size={16} className="text-white" aria-hidden />
+                {t("tournaments.newRound")}
+              </Button>
+            )
+          ) : null}
+        </div>
+
+        {showRoundLoadingSkeleton ? (
+          <div className="grid gap-3 lg:grid-cols-2">
+            {Array.from({ length: 4 }, (_, index) => (
+              <article
+                key={`round-loading-skeleton-${index}`}
+                className="animate-pulse rounded-[12px] border border-[#010a04]/10 bg-[#f8faf9] p-4"
+              >
+                <div className="mb-4 h-4 w-2/3 rounded bg-[#010a04]/10" />
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="h-5 w-32 rounded bg-[#010a04]/10" />
+                    <div className="h-8 w-40 rounded bg-[#010a04]/10" />
+                  </div>
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="h-5 w-28 rounded bg-[#010a04]/10" />
+                    <div className="h-8 w-40 rounded bg-[#010a04]/10" />
+                  </div>
+                </div>
+              </article>
+            ))}
+          </div>
+        ) : roundMatches.length === 0 ? (
+          <div className="rounded-[12px] border border-dashed border-[#d1d5db] bg-[#f9fafc] p-8 text-sm text-[#6b7280]">
+            {t("tournaments.noMatchesAvailable")}
+          </div>
+        ) : (
+          <div className="grid gap-3 lg:grid-cols-2">
+            {roundMatches.map((match) => (
+              <MatchScheduleCard
+                key={match.id}
+                match={match}
+                language={i18n.language}
+                t={t}
+                canEdit={tournament.permissions.canEdit}
+                isEditing={editingMatch?.id === match.id}
+                editableRows={editingMatch?.id === match.id ? scoreRows : []}
+                isMutationPending={recordScoreMutation.isPending}
+                onToggleEdit={handleToggleInlineEdit}
+                onScoreInputChange={updateScoreSetRow}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

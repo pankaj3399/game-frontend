@@ -87,14 +87,19 @@ function NavLinks({
   t,
   onNavigate,
   variant = "menu",
+  compact = false,
 }: {
   location: ReturnType<typeof useLocation>;
   t: (key: string) => string;
   onNavigate?: () => void;
   /** Header row: responsive type scale; sheet/menu uses default 14px. */
   variant?: "menu" | "inline";
+  /** Compact typography for locales with longer labels. */
+  compact?: boolean;
 }) {
   const isInline = variant === "inline";
+  const iconSize = isInline && compact ? 16 : 17;
+
   return (
     <>
       {navItems.map(({ path, labelKey, icon: Icon }) => {
@@ -115,13 +120,17 @@ function NavLinks({
             onClick={onNavigate}
             className={cn(
               "flex items-center leading-none whitespace-nowrap transition-opacity",
-              isInline ? "gap-1.5 text-[14px] 2xl:gap-2 2xl:text-[15px]" : "gap-1.5 text-[14px]",
+              isInline
+                ? compact
+                  ? "gap-1 text-[12px] tracking-tight 2xl:gap-1.5 2xl:text-[13px]"
+                  : "gap-1.5 text-[14px] 2xl:gap-2 2xl:text-[15px]"
+                : "gap-1.5 text-[14px]",
               isActive
                 ? "font-medium text-white opacity-100"
                 : "font-medium text-white opacity-80 hover:opacity-100",
             )}
           >
-            <Icon size={17} className="shrink-0 text-white" />
+            <Icon size={iconSize} className="shrink-0 text-white" />
             {t(labelKey)}
           </Link>
         );
@@ -142,6 +151,7 @@ export function AppNavbar() {
     .startsWith("de")
     ? "de"
     : "en";
+  const isGermanUi = normalizedLanguage === "de";
   const languageLabel = normalizedLanguage === "de" ? "DEU" : "ENG";
 
   const handleLanguageChange = (language: "en" | "de") => {
@@ -169,10 +179,13 @@ export function AppNavbar() {
           <DropdownMenuTrigger asChild>
             <button
               type="button"
-              className="flex h-[34px] items-center justify-center gap-[7px] rounded-[8px] bg-white/25 px-[10px] text-[14px] font-medium text-white transition-colors hover:bg-white/30"
+              className={cn(
+                "flex h-[34px] items-center justify-center gap-[7px] rounded-[8px] bg-white/25 px-[10px] font-medium text-white transition-colors hover:bg-white/30",
+                isGermanUi ? "text-[13px]" : "text-[14px]"
+              )}
             >
               <UserIcon size={17} className="shrink-0 text-white" />
-              <span className="max-w-[120px] truncate">
+              <span className={cn("truncate", isGermanUi ? "max-w-[102px]" : "max-w-[120px]")}>
                 {user?.alias?.trim() ||
                   user?.name?.trim() ||
                   t("profile.title")}
@@ -272,12 +285,22 @@ export function AppNavbar() {
           </Link>
         </div>
 
-        <nav className="hidden min-w-0 flex-1 items-center justify-center gap-x-5 gap-y-1 xl:flex 2xl:gap-x-7">
-          <NavLinks variant="inline" location={location} t={t} />
+        <nav
+          className={cn(
+            "hidden min-w-0 flex-1 items-center justify-center gap-y-1 overflow-hidden xl:flex",
+            isGermanUi ? "gap-x-3 2xl:gap-x-5" : "gap-x-5 2xl:gap-x-7"
+          )}
+        >
+          <NavLinks
+            variant="inline"
+            location={location}
+            t={t}
+            compact={isGermanUi}
+          />
         </nav>
 
-        <div className="flex shrink-0 items-center justify-end gap-2 sm:gap-3 xl:gap-[14px]">
-          <div className="hidden min-w-0 items-center gap-3 xl:flex xl:gap-[14px]">
+        <div className="flex shrink-0 items-center justify-end gap-2 sm:gap-3">
+          <div className={cn("hidden min-w-0 items-center gap-3 xl:flex", isGermanUi ? "xl:gap-2.5" : "xl:gap-[14px]")}>
             {!isAuthenticated && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
