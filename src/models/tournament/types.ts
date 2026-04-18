@@ -76,7 +76,7 @@ export const tournamentMatchCourtSchema = tournamentCourtSchema
   });
 
 export const tournamentMatchScoreValueSchema = z.union([
-  z.number(),
+  z.number().int().min(0),
   z.literal("wo"),
 ]);
 
@@ -104,10 +104,15 @@ export const tournamentLiveMatchResponseSchema = z.object({
   nextMatch: tournamentLiveMatchItemSchema.nullable(),
 });
 
-export const recordTournamentMatchScoreInputSchema = z.object({
-  playerOneScores: z.array(tournamentMatchScoreValueSchema).min(1).max(25),
-  playerTwoScores: z.array(tournamentMatchScoreValueSchema).min(1).max(25),
-});
+export const recordTournamentMatchScoreInputSchema = z
+  .object({
+    playerOneScores: z.array(tournamentMatchScoreValueSchema).min(1).max(25),
+    playerTwoScores: z.array(tournamentMatchScoreValueSchema).min(1).max(25),
+  })
+  .refine((value) => value.playerOneScores.length === value.playerTwoScores.length, {
+    message: "playerOneScores and playerTwoScores must have the same number of sets",
+    path: ["playerTwoScores"],
+  });
 
 export const recordTournamentMatchScoreResponseSchema = z.object({
   message: z.string(),
@@ -196,21 +201,16 @@ export const tournamentScheduleResponseSchema = z.object({
   }),
 });
 
-export const generateTournamentScheduleInputSchema = z
-  .object({
-    round: z.number().int().min(1),
-    mode: tournamentScheduleModeSchema,
-    matchDurationMinutes: z.number().int().min(5).max(240).optional(),
-    breakTimeMinutes: z.number().int().min(0).max(120).optional(),
-    matchesPerPlayer: z.number().int().min(1).max(20),
-    startTime: z.string(),
-    courtIds: z.array(z.string()).min(1),
-    participantOrder: z.array(z.string()).min(2),
-  })
-  .refine((value) => value.matchesPerPlayer >= 1 && value.matchesPerPlayer <= 20, {
-    message: "matchesPerPlayer must be between 1 and 20",
-    path: ["matchesPerPlayer"],
-  });
+export const generateTournamentScheduleInputSchema = z.object({
+  round: z.number().int().min(1),
+  mode: tournamentScheduleModeSchema,
+  matchDurationMinutes: z.number().int().min(5).max(240).optional(),
+  breakTimeMinutes: z.number().int().min(0).max(120).optional(),
+  matchesPerPlayer: z.number().int().min(1).max(20),
+  startTime: z.string(),
+  courtIds: z.array(z.string()).min(1),
+  participantOrder: z.array(z.string()).min(2),
+});
 
 export const generateTournamentScheduleResponseSchema = z.object({
   message: z.string(),

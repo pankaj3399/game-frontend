@@ -1,3 +1,4 @@
+import { useId } from "react";
 import type { TFunction } from "i18next";
 import type { TournamentScheduleMode } from "@/models/tournament/types";
 import { Switch } from "@/components/ui/switch";
@@ -12,6 +13,8 @@ export interface SchedulePlayingModeControlProps {
   onChange: (next: TournamentScheduleMode) => void;
   t: TFunction;
   className?: string;
+  /** Optional DOM id for the desktop switch; defaults to a unique id per mount. */
+  id?: string;
 }
 
 /**
@@ -24,7 +27,10 @@ export function SchedulePlayingModeControl({
   onChange,
   t,
   className,
+  id: idProp,
 }: SchedulePlayingModeControlProps) {
+  const generatedId = useId();
+  const switchId = idProp ?? generatedId;
   const hint = t("tournaments.schedulePlayingModeDoublesHint");
   const disabled = pairingPending || (doublesLocked && mode === "singles");
   const doublesDisabled = pairingPending || doublesLocked;
@@ -81,7 +87,7 @@ export function SchedulePlayingModeControl({
           {t("tournaments.scheduleSingles")}
         </span>
         <Switch
-          id="tournament-schedule-playing-mode"
+          id={switchId}
           checked={mode === "doubles"}
           onCheckedChange={(checked) => {
             onChange(checked ? "doubles" : "singles");

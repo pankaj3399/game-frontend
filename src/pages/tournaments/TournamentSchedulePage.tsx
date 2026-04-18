@@ -38,7 +38,7 @@ import {
 
 const MATCH_DURATION_OPTIONS = [30, 45, 60, 75, 90];
 const BREAK_DURATION_OPTIONS = [0, 5, 10, 15, 20, 30];
-const GAMES_PER_PLAYER_OPTIONS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+const MATCHES_PER_PLAYER_OPTIONS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
 export default function TournamentSchedulePage() {
   const { t } = useTranslation();
@@ -338,7 +338,7 @@ export default function TournamentSchedulePage() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {GAMES_PER_PLAYER_OPTIONS.map((option) => (
+                {MATCHES_PER_PLAYER_OPTIONS.map((option) => (
                   <SelectItem key={option} value={String(option)}>
                     {option}
                   </SelectItem>

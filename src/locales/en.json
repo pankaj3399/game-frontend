@@ -673,6 +673,7 @@
     "completedCount": "{{completed}} Completed",
     "inProgressCount": "{{inProgress}} In Progress",
     "scheduledCount": "{{scheduled}} Scheduled",
+    "cancelledCount": "{{cancelled}} Cancelled",
     "noResultsYet": "No results yet.",
     "noMyResults": "You are not in this tournament's results.",
     "allResults": "All Results",

@@ -48,11 +48,13 @@ export const MATCH_STATUS_KEYS: Record<MatchStatus, string> = {
   completed: "tournaments.matchStatusCompleted",
   inProgress: "tournaments.matchStatusInProgress",
   scheduled: "tournaments.matchStatusScheduled",
+  cancelled: "tournaments.matchStatusCancelled",
 };
 
 export function statusClassName(status: MatchStatus) {
   if (status === "completed") return "bg-green-100 text-green-700";
   if (status === "inProgress") return "bg-blue-100 text-blue-700";
+  if (status === "cancelled") return "bg-rose-100 text-rose-700";
   return "bg-gray-100 text-gray-500";
 }
 
@@ -114,7 +116,7 @@ export function deriveMatches(
 /** Round where play is still open (min among incomplete); if all finished, last round. */
 export function getCurrentRound(matches: DerivedMatch[]): number {
   if (matches.length === 0) return 1;
-  const active = matches.filter((m) => m.status !== "completed");
+  const active = matches.filter((m) => m.status !== "completed" && m.status !== "cancelled");
   if (active.length > 0) {
     return active.reduce((minRound, match) => Math.min(minRound, match.round), active[0].round);
   }
@@ -125,12 +127,15 @@ export function getMatchCounts(matches: DerivedMatch[]): MatchCounts {
   let completedCount = 0;
   let inProgressCount = 0;
   let scheduledCount = 0;
+  let cancelledCount = 0;
 
   for (const match of matches) {
     if (match.status === "completed") {
       completedCount += 1;
     } else if (match.status === "inProgress") {
       inProgressCount += 1;
+    } else if (match.status === "cancelled") {
+      cancelledCount += 1;
     } else {
       scheduledCount += 1;
     }
@@ -142,6 +147,7 @@ export function getMatchCounts(matches: DerivedMatch[]): MatchCounts {
     completedCount,
     inProgressCount,
     scheduledCount,
+    cancelledCount,
     progressPct,
   };
 }
