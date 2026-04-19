@@ -5,12 +5,10 @@ import type { TFunction } from "i18next";
 import { SwitchToggle } from "@/components/ui/switch-toggle";
 import { getDateFnsLocale } from "@/lib/dateFnsLocale";
 import { cn } from "@/lib/utils";
-import type {
-  TournamentMatchPlayer,
-  TournamentScheduleMatch,
-  TournamentScheduleMode,
-} from "@/models/tournament/types";
+import type { TournamentScheduleMatch, TournamentScheduleMode } from "@/models/tournament/types";
 import { IconCalendarDays, IconChevronRight, IconMap } from "@/icons/figma-icons";
+import { initialsFromName } from "@/pages/tournaments/schedule/matchDisplayUtils";
+import { teamSideDisplayName } from "@/pages/tournaments/schedule/matchTeamDisplay";
 
 const AVATAR_TONES = [
   "from-[#f7d4bf] to-[#efb598]",
@@ -38,29 +36,6 @@ function hashSeed(value: string): number {
     hash = (Math.imul(hash, 31) + value.charCodeAt(index)) | 0;
   }
   return (hash >>> 0) % 2147483647;
-}
-
-function initialsFromName(name: string): string {
-  const tokens = name
-    .trim()
-    .split(/\s+/)
-    .filter(Boolean);
-
-  if (tokens.length === 0) {
-    return "?";
-  }
-
-  const first = tokens[0][0] ?? "";
-  const second = tokens.length > 1 ? tokens[tokens.length - 1][0] ?? "" : "";
-  return `${first}${second}`.toUpperCase();
-}
-
-function matchPlayerName(player: TournamentMatchPlayer | null, fallback: string): string {
-  if (!player) {
-    return fallback;
-  }
-
-  return player.name ?? player.alias ?? fallback;
 }
 
 function matchDateLabel(startTime: string | null, fallback: string, language: string): string {
@@ -115,48 +90,8 @@ function isCurrentUserInMatch(match: TournamentScheduleMatch, currentUserId: str
     return true;
   }
 
-  if (!match.teams) {
-    return false;
-  }
-
-  for (const team of match.teams) {
-    for (const player of team) {
-      if (player?.id === currentUserId) {
-        return true;
-      }
-    }
-  }
-
-  return false;
-}
-
-function getTeamDisplayName(
-  match: TournamentScheduleMatch,
-  teamIndex: 0 | 1,
-  t: TFunction
-): string {
-  const teamPlayers = match.teams?.[teamIndex];
-  if (teamPlayers) {
-    const names = teamPlayers
-      .map((player, index) =>
-        matchPlayerName(
-          player,
-          index === 0 ? t("tournaments.playerAFallback") : t("tournaments.playerBFallback")
-        )
-      )
-      .filter((name) => name.trim().length > 0);
-
-    if (names.length >= 2) {
-      return `${names[0]} / ${names[1]}`;
-    }
-
-    if (names.length === 1) {
-      return names[0];
-    }
-  }
-
-  const fallback = teamIndex === 0 ? t("tournaments.playerAFallback") : t("tournaments.playerBFallback");
-  return matchPlayerName(match.players[teamIndex], fallback);
+  const fromSides = [...match.side1, ...match.side2];
+  return fromSides.some((player) => player?.id === currentUserId);
 }
 
 function scoreText(value: ScoreValue | undefined): string {
@@ -193,8 +128,8 @@ function PlayerMatchCard({
   t: TFunction;
 }) {
   const navigate = useNavigate();
-  const teamOne = getTeamDisplayName(match, 0, t);
-  const teamTwo = getTeamDisplayName(match, 1, t);
+  const teamOne = teamSideDisplayName(match, 0, t);
+  const teamTwo = teamSideDisplayName(match, 1, t);
   const toneIndex = hashSeed(match.id) % AVATAR_TONES.length;
   const tone = AVATAR_TONES[toneIndex]!;
   const dateLabel = matchDateLabel(match.startTime, t("tournaments.scheduledTbd"), language);

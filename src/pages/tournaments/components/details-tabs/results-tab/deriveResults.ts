@@ -41,12 +41,10 @@ function compareSetScore(
 
 /** Player ids for schedule side 0 / 1 (doubles teams or singles slot). */
 function getSidePlayerIds(match: TournamentScheduleMatch, side: 0 | 1): string[] {
-  const team = match.teams?.[side];
-  if (team && team.length > 0) {
-    const ids = team.map((p) => p?.id).filter((id): id is string => Boolean(id));
-    if (ids.length > 0) {
-      return ids;
-    }
+  const team = side === 0 ? match.side1 : match.side2;
+  const ids = team.map((p) => p?.id).filter((id): id is string => Boolean(id));
+  if (ids.length > 0) {
+    return ids;
   }
 
   const slot = match.players[side];
