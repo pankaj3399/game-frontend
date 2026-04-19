@@ -1,21 +1,13 @@
 import type {
   BackendCreateTournamentInput,
-  BackendTournamentDetail,
   BackendUpdateTournamentInput,
   CreateTournamentInput,
-  TournamentDetail,
   UpdateTournamentInput,
 } from "@/models/tournament/types";
 import {
   backendCreateTournamentInputSchema,
   backendUpdateTournamentInputSchema,
-  backendTournamentDetailSchema,
 } from "@/models/tournament/types";
-export function mapBackendTournamentDetail(data: BackendTournamentDetail): TournamentDetail {
-  return backendTournamentDetailSchema.parse({
-    ...data,
-  });
-}
 
 export function toBackendCreateInput(data: CreateTournamentInput): BackendCreateTournamentInput {
   const sponsorTrimmed = data.sponsor?.trim();
@@ -33,7 +25,7 @@ export function toBackendCreateInput(data: CreateTournamentInput): BackendCreate
     minMember: data.minMember,
     maxMember: data.maxMember,
     totalRounds: data.totalRounds,
-    duration: data.duration ?? undefined,
+    duration: data.duration,
     breakDuration: data.breakDuration ?? undefined,
     foodInfo: data.foodInfo,
     descriptionInfo: data.descriptionInfo,
