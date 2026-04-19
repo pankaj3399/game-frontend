@@ -215,7 +215,8 @@ export function TimePicker({
     }
 
     const now = new Date();
-    const minute = Math.floor(now.getMinutes() / stepMinutes) * stepMinutes;
+    const effectiveStep = Math.max(1, stepMinutes);
+    const minute = Math.floor(now.getMinutes() / effectiveStep) * effectiveStep;
     let m = now.getHours() * 60 + minute;
     if (!isMinutesWithinTimeBounds(m, bounds)) {
       if (bounds.minMinutes !== null && m < bounds.minMinutes) m = bounds.minMinutes;
@@ -275,35 +276,31 @@ export function TimePicker({
     setOpen(nextOpen);
   };
 
-  /** Normalize draft hour (1–12) only; bounds are checked on Done. */
+  /** Draft hour: pad only when 1–12; empty/invalid stays for confirmDraft to reject. */
   const commitHourInput = (raw: string) => {
-    if (!raw) {
-      setHourInput(hourDisplay);
+    if (raw === "") {
+      setHourInput("");
       return;
     }
-    let next = Number(raw);
-    if (Number.isNaN(next)) {
-      setHourInput(hourDisplay);
+    const next = Number(raw);
+    if (Number.isNaN(next) || next < 1 || next > 12) {
+      setHourInput(raw);
       return;
     }
-    if (next < 1) next = 1;
-    if (next > 12) next = 12;
     setHourInput(String(next).padStart(2, "0"));
   };
 
-  /** Normalize draft minute (0–59) only; bounds are checked on Done. */
+  /** Draft minute: pad only when 0–59; empty/invalid stays for confirmDraft to reject. */
   const commitMinuteInput = (raw: string) => {
-    if (!raw) {
-      setMinuteInput(minuteDisplay);
+    if (raw === "") {
+      setMinuteInput("");
       return;
     }
-    let next = Number(raw);
-    if (Number.isNaN(next)) {
-      setMinuteInput(minuteDisplay);
+    const next = Number(raw);
+    if (Number.isNaN(next) || next < 0 || next > 59) {
+      setMinuteInput(raw);
       return;
     }
-    if (next < 0) next = 0;
-    if (next > 59) next = 59;
     setMinuteInput(String(next).padStart(2, "0"));
   };
 

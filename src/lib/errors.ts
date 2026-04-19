@@ -49,5 +49,10 @@ export function getErrorMessage(err: unknown): string | null {
 export function getHttpStatus(err: unknown): number | undefined {
   if (err === null || typeof err !== "object") return undefined;
   const status = (err as { response?: { status?: unknown } }).response?.status;
-  return typeof status === "number" && Number.isFinite(status) ? status : undefined;
+  return typeof status === "number" &&
+    Number.isInteger(status) &&
+    status >= 100 &&
+    status <= 599
+    ? status
+    : undefined;
 }
