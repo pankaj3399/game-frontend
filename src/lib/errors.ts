@@ -2,8 +2,15 @@
  * Safely extracts a user-facing error message from unknown error types.
  * Handles axios-like errors (response.data.message) and standard Error instances.
  */
+
+function trimmedNonEmptyString(value: unknown): string | undefined {
+  if (typeof value !== "string") return undefined;
+  const t = value.trim();
+  return t.length > 0 ? t : undefined;
+}
+
 export function getErrorMessage(err: unknown): string | null {
-  if (!err || typeof err !== "object") return null;
+  if (err === null || typeof err !== "object") return null;
   const withResponse = err as {
     response?: {
       data?: {
@@ -16,18 +23,15 @@ export function getErrorMessage(err: unknown): string | null {
     };
   };
 
-  const apiData = withResponse?.response?.data;
-  if (typeof apiData?.message === "string" && apiData.message.trim()) {
-    return apiData.message;
-  }
-  if (typeof apiData?.error === "string" && apiData.error.trim()) {
-    return apiData.error;
-  }
-  if (typeof apiData?.details === "string" && apiData.details.trim()) {
-    return apiData.details;
-  }
+  const apiData = withResponse.response?.data;
+  const fromField =
+    trimmedNonEmptyString(apiData?.message) ??
+    trimmedNonEmptyString(apiData?.error) ??
+    trimmedNonEmptyString(apiData?.details);
+  if (fromField) return fromField;
+
   if (Array.isArray(apiData?.errors) && apiData.errors.length > 0) {
-    const first = apiData.errors.find((value) => typeof value === "string" && value.trim().length > 0);
+    const first = apiData.errors.find((value) => trimmedNonEmptyString(value));
     if (first) return first;
   }
 
@@ -40,9 +44,7 @@ export function getErrorMessage(err: unknown): string | null {
  * Returns the numeric status code or `undefined` if not available.
  */
 export function getHttpStatus(err: unknown): number | undefined {
-  if (!err || typeof err !== "object") return undefined;
-  const maybe = err as { response?: { status?: unknown } };
-  if (!maybe.response || typeof maybe.response !== "object") return undefined;
-  const status = maybe.response.status;
-  return typeof status === "number" ? status : undefined;
+  if (err === null || typeof err !== "object") return undefined;
+  const status = (err as { response?: { status?: unknown } }).response?.status;
+  return typeof status === "number" && Number.isFinite(status) ? status : undefined;
 }
