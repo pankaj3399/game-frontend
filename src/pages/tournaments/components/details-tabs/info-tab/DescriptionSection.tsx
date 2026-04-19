@@ -27,8 +27,11 @@ export function DescriptionSection({
 
   return (
     <div>
-      <div className="mb-[17px] flex items-center justify-between">
-        <h2 className="text-[20px] font-semibold text-[#010a04]" id={headingId}>
+      <div className="mb-3 flex items-center justify-between sm:mb-[17px]">
+        <h2
+          className="text-[17px] font-semibold leading-snug text-[#010a04] sm:text-[20px] sm:leading-normal"
+          id={headingId}
+        >
           {title}
         </h2>
         {isCollapsible ? (
@@ -49,7 +52,7 @@ export function DescriptionSection({
         ) : null}
       </div>
 
-      <div className="space-y-[18px] text-[16px] leading-5">
+      <div className="space-y-4 text-[14px] leading-snug sm:space-y-[18px] sm:text-[16px] sm:leading-5">
         <p
           id={descriptionId}
           className={`whitespace-pre-line ${hasDescription ? "text-[#010a04]" : "text-[#010a04]/60"}`}

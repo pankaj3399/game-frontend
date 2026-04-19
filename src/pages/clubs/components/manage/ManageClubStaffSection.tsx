@@ -156,7 +156,7 @@ export function ManageClubStaffSection({
             key={`staff-skeleton-${index}`}
             className="rounded-[12px] border border-black/8 bg-white px-[12px] py-[15px]"
           >
-            <div className="flex items-center gap-3 animate-pulse">
+            <div className="flex items-center gap-3 animate-skeleton-soft">
               <div className="h-5 w-5 rounded bg-[#e9edf3]" />
               <div className="h-10 w-10 rounded-full bg-[#e9edf3]" />
               <div className="min-w-0 flex-1 space-y-2">
