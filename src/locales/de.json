@@ -626,7 +626,7 @@
     "liveModalVersusOpponent": "gegen {{opponent}}",
     "liveModalNoNextMatch": "Noch kein Match geplant",
     "liveModalNoNextMatchCourt": "Platz wird noch zugewiesen",
-    "liveModalNoNextMatchTime": "TBA",
+    "liveModalNoNextMatchTime": "Noch offen",
     "liveModalNoNextMatchHeadline": "Kein weiteres Match geplant",
     "liveModalNoNextMatchBody": "Sobald Ihr nächstes Match feststeht, erscheinen hier Zeit, Platz und Gegner.",
     "editScore": "Score bearbeiten",
