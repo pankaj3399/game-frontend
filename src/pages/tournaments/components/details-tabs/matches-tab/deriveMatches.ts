@@ -1,12 +1,9 @@
 import { isValid, parseISO, type Locale } from "date-fns";
 import type { TournamentScheduleMatch } from "@/models/tournament/types";
+import { teamSideDisplayName } from "@/pages/tournaments/schedule/matchTeamDisplay";
 import { formatDateOrFallback } from "@/utils/date";
 import { formatTimeTo12Hour } from "@/utils/time";
 import type { DerivedMatch, MatchCounts, MatchStatus } from "./types";
-
-function participantName(name: string | null, alias: string | null, fallback: string) {
-  return name || alias || fallback;
-}
 
 /** True when the string is not date-only (avoids local-midnight drift from parsing a calendar date as UTC midnight). */
 function dateStringHasTimeComponent(value: string): boolean {
@@ -47,6 +44,7 @@ function scheduleText(
 export const MATCH_STATUS_KEYS: Record<MatchStatus, string> = {
   completed: "tournaments.matchStatusCompleted",
   inProgress: "tournaments.matchStatusInProgress",
+  pendingScore: "tournaments.matchStatusPendingScore",
   scheduled: "tournaments.matchStatusScheduled",
   cancelled: "tournaments.matchStatusCancelled",
 };
@@ -54,6 +52,7 @@ export const MATCH_STATUS_KEYS: Record<MatchStatus, string> = {
 export function statusClassName(status: MatchStatus) {
   if (status === "completed") return "bg-green-100 text-green-700";
   if (status === "inProgress") return "bg-blue-100 text-blue-700";
+  if (status === "pendingScore") return "bg-amber-100 text-amber-800";
   if (status === "cancelled") return "bg-rose-100 text-rose-700";
   return "bg-gray-100 text-gray-500";
 }
@@ -97,12 +96,8 @@ export function deriveMatches(
     pairs.push({
       id: match.id,
       mode: match.mode ?? "singles",
-      playerA: first
-        ? participantName(first.name, first.alias, t("tournaments.playerAFallback"))
-        : t("tournaments.playerAFallback"),
-      playerB: second
-        ? participantName(second.name, second.alias, t("tournaments.playerBFallback"))
-        : t("tournaments.playerBFallback"),
+      playerA: teamSideDisplayName(match, 0, t),
+      playerB: teamSideDisplayName(match, 1, t),
       courtName,
       status: match.status,
       round: match.round,
@@ -127,6 +122,7 @@ export function getCurrentRound(matches: DerivedMatch[]): number {
 export function getMatchCounts(matches: DerivedMatch[]): MatchCounts {
   let completedCount = 0;
   let inProgressCount = 0;
+  let pendingScoreCount = 0;
   let scheduledCount = 0;
   let cancelledCount = 0;
 
@@ -135,6 +131,8 @@ export function getMatchCounts(matches: DerivedMatch[]): MatchCounts {
       completedCount += 1;
     } else if (match.status === "inProgress") {
       inProgressCount += 1;
+    } else if (match.status === "pendingScore") {
+      pendingScoreCount += 1;
     } else if (match.status === "cancelled") {
       cancelledCount += 1;
     } else {
@@ -147,6 +145,7 @@ export function getMatchCounts(matches: DerivedMatch[]): MatchCounts {
   return {
     completedCount,
     inProgressCount,
+    pendingScoreCount,
     scheduledCount,
     cancelledCount,
     progressPct,
