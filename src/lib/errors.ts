@@ -31,11 +31,8 @@ export function getErrorMessage(err: unknown): string | null {
   if (fromField) return fromField;
 
   if (Array.isArray(apiData?.errors) && apiData.errors.length > 0) {
-    const first = apiData.errors.find((value) => trimmedNonEmptyString(value) !== undefined);
-    if (first !== undefined) {
-      const trimmed = trimmedNonEmptyString(first);
-      if (trimmed) return trimmed;
-    }
+    const first = apiData.errors.find((value) => trimmedNonEmptyString(value));
+    if (first) return first;
   }
 
   if (err instanceof Error && err.message) return err.message;

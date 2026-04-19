@@ -119,7 +119,9 @@ export function TimePicker({
   const minuteFieldId = useId();
 
   const focusMinuteField = useCallback(() => {
-    document.getElementById(minuteFieldId)?.focus();
+    requestAnimationFrame(() => {
+      document.getElementById(minuteFieldId)?.focus();
+    });
   }, [minuteFieldId]);
 
   let parsedValue: { hour: number; minute: number } | null = null;
@@ -233,24 +235,20 @@ export function TimePicker({
   const confirmDraft = (): boolean => {
     const rawH = hourInput.replace(/\D/g, "");
     const rawM = minuteInput.replace(/\D/g, "");
-    if (rawH === "" || rawM === "") {
+    if (!rawH || rawM === "") {
       notifyTimeConstraint(warningInvalidInputKey);
       return false;
     }
-    const h12 = Number(rawH);
-    const min = Number(rawM);
+    let h12 = Number(rawH);
+    let min = Number(rawM);
     if (Number.isNaN(h12) || Number.isNaN(min)) {
       notifyTimeConstraint(warningInvalidInputKey);
       return false;
     }
-    if (h12 < 1 || h12 > 12) {
-      notifyTimeConstraint(warningInvalidInputKey);
-      return false;
-    }
-    if (min < 0 || min > 59) {
-      notifyTimeConstraint(warningInvalidInputKey);
-      return false;
-    }
+    if (h12 < 1) h12 = 1;
+    if (h12 > 12) h12 = 12;
+    if (min < 0) min = 0;
+    if (min > 59) min = 59;
     const timeStr = formatTime(to24Hour(h12, draftMeridian), min);
     return proposeTime(timeStr);
   };
@@ -462,12 +460,6 @@ export function TimePicker({
                   flushSync(() => {
                     commitMinuteInput(raw);
                   });
-                  const ok = confirmDraft();
-                  if (ok) {
-                    handleOpenChange(false);
-                  } else {
-                    rejectAndSyncInputs();
-                  }
                 }
               }}
               className={cn(
