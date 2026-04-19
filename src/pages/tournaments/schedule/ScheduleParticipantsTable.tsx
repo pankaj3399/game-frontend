@@ -103,16 +103,16 @@ function DoublesPairSkeleton({ index }: { index: number }) {
       className="rounded-[10px] border border-[#e1e3e8] bg-[#fafbfc] px-[15px] py-[15px] shadow-[inset_0_0_0_1px_rgba(1,10,4,0.03)]"
       style={{ animationDelay: `${index * 60}ms` }}
     >
-      <div className="mb-3.5 h-3 w-14 animate-pulse rounded bg-[#010a04]/[0.08]" />
+      <div className="mb-3.5 h-3 w-14 animate-skeleton-soft rounded bg-[#010a04]/[0.08]" />
       <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3.5">
         <div className="flex min-w-0 flex-1 items-center gap-3">
-          <div className="h-[34px] w-[34px] shrink-0 animate-pulse rounded-full bg-[#010a04]/[0.08]" />
-          <div className="h-3.5 min-w-0 flex-1 animate-pulse rounded bg-[#010a04]/[0.08]" />
+          <div className="h-[34px] w-[34px] shrink-0 animate-skeleton-soft rounded-full bg-[#010a04]/[0.08]" />
+          <div className="h-3.5 min-w-0 flex-1 animate-skeleton-soft rounded bg-[#010a04]/[0.08]" />
         </div>
-        <div className="h-3 w-3 shrink-0 animate-pulse rounded bg-[#010a04]/[0.06]" />
+        <div className="h-3 w-3 shrink-0 animate-skeleton-soft rounded bg-[#010a04]/[0.06]" />
         <div className="flex min-w-0 flex-1 items-center gap-3">
-          <div className="h-[34px] w-[34px] shrink-0 animate-pulse rounded-full bg-[#010a04]/[0.08]" />
-          <div className="h-3.5 min-w-0 flex-1 animate-pulse rounded bg-[#010a04]/[0.08]" />
+          <div className="h-[34px] w-[34px] shrink-0 animate-skeleton-soft rounded-full bg-[#010a04]/[0.08]" />
+          <div className="h-3.5 min-w-0 flex-1 animate-skeleton-soft rounded bg-[#010a04]/[0.08]" />
         </div>
       </div>
     </div>
