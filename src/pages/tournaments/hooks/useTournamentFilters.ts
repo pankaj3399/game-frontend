@@ -1,10 +1,12 @@
-import { useCallback, useEffect, useReducer, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
+import { z } from "zod";
 import { useDebouncedValue } from "@/lib/hooks/useDebouncedValue";
 import {
   DEFAULT_TOURNAMENT_FILTERS_STATE,
   filtersReducer,
   isTournamentDistanceFilter,
   isTournamentWhenFilter,
+  resolveTournamentListTabFromSearchParams,
   shapeTournamentFilters,
   type TournamentListTab,
 } from "@/models/tournament";
@@ -13,6 +15,8 @@ interface UseTournamentFiltersOptions {
   isOrganiserOrAbove: boolean;
   userId?: string | null;
   isAuthLoading?: boolean;
+  /** `searchParams.get("view")` — when set for organisers, tab is derived from this (no useEffect sync). */
+  viewSearchParam?: string | null;
 }
 
 interface PersistedTournamentFiltersState {
@@ -30,63 +34,67 @@ const TOURNAMENT_FILTERS_STORAGE_PREFIX = "tournament:list:filters:";
 const ANONYMOUS_USER_STORAGE_ID = "anonymous";
 const QUERY_DEBOUNCE_MS = 200;
 
+const persistedRootSchema = z.object({
+  activeTab: z.enum(["published", "drafts"]).optional(),
+  updatedAt: z.preprocess(
+    (v: unknown) =>
+      typeof v === "number" && Number.isFinite(v) ? v : 0,
+    z.number().finite()
+  ),
+  filters: z.unknown().optional(),
+});
+
 function getStorageKey(userId: string) {
   return `${TOURNAMENT_FILTERS_STORAGE_PREFIX}${userId}`;
 }
 
+function getLocalStorage(): Storage | null {
+  return typeof window === "undefined" ? null : window.localStorage;
+}
+
+/** Plain object from JSON (not array / null). */
+function asFilterRecord(value: unknown): Record<string, unknown> | null {
+  if (value !== null && typeof value === "object" && !Array.isArray(value)) {
+    return value as Record<string, unknown>;
+  }
+  return null;
+}
+
+function trimmedNonEmpty(value: unknown): string | undefined {
+  if (typeof value !== "string") return undefined;
+  const t = value.trim();
+  return t.length > 0 ? t : undefined;
+}
+
+function parseEnumField<V extends string>(
+  value: unknown,
+  isMember: (s: string) => s is V
+): V | undefined {
+  return typeof value === "string" && isMember(value) ? value : undefined;
+}
+
+function parsePersistedFilters(filters: unknown) {
+  const raw = asFilterRecord(filters);
+  if (!raw) return {};
+  return {
+    q: trimmedNonEmpty(raw.q),
+    when: parseEnumField(raw.when, isTournamentWhenFilter),
+    distance: parseEnumField(raw.distance, isTournamentDistanceFilter),
+    clubId: trimmedNonEmpty(raw.clubId),
+  };
+}
+
 function parsePersistedState(rawValue: string) {
   try {
-    const parsed = JSON.parse(rawValue);
-    if (!parsed || typeof parsed !== "object") return null;
+    const root = persistedRootSchema.safeParse(JSON.parse(rawValue));
+    if (!root.success) return null;
 
-    const activeTabRaw = parsed.activeTab;
-    const activeTab: TournamentListTab =
-      activeTabRaw === "drafts" ? "drafts" : "published";
-
-    const updatedAt =
-      typeof parsed.updatedAt === "number" && Number.isFinite(parsed.updatedAt)
-        ? parsed.updatedAt
-        : 0;
-
-    const filtersRaw = parsed.filters;
-    if (!filtersRaw || typeof filtersRaw !== "object") {
-      return {
-        activeTab,
-        filters: {},
-        updatedAt,
-      };
-    }
-
-    const q =
-      typeof filtersRaw.q === "string" && filtersRaw.q.trim().length > 0
-        ? filtersRaw.q.trim()
-        : undefined;
-
-    const when =
-      typeof filtersRaw.when === "string" && isTournamentWhenFilter(filtersRaw.when)
-        ? filtersRaw.when
-        : undefined;
-
-    const distance =
-      typeof filtersRaw.distance === "string" &&
-      isTournamentDistanceFilter(filtersRaw.distance)
-        ? filtersRaw.distance
-        : undefined;
-
-    const clubId =
-      typeof filtersRaw.clubId === "string" &&
-      filtersRaw.clubId.trim().length > 0
-        ? filtersRaw.clubId
-        : undefined;
+    const { activeTab: tab, updatedAt, filters } = root.data;
+    const activeTab: TournamentListTab = tab === "drafts" ? "drafts" : "published";
 
     return {
       activeTab,
-      filters: {
-        q,
-        when,
-        distance,
-        clubId,
-      },
+      filters: parsePersistedFilters(filters),
       updatedAt,
     } satisfies PersistedTournamentFiltersState;
   } catch {
@@ -95,8 +103,9 @@ function parsePersistedState(rawValue: string) {
 }
 
 function readPersistedState(storageKey: string) {
-  if (typeof window === "undefined") return null;
-  const rawValue = window.localStorage.getItem(storageKey);
+  const storage = getLocalStorage();
+  if (!storage) return null;
+  const rawValue = storage.getItem(storageKey);
   if (!rawValue) return null;
   return parsePersistedState(rawValue);
 }
@@ -105,10 +114,21 @@ export function useTournamentFilters({
   isOrganiserOrAbove,
   userId,
   isAuthLoading = false,
+  viewSearchParam,
 }: UseTournamentFiltersOptions) {
   const [state, dispatch] = useReducer(
     filtersReducer,
     DEFAULT_TOURNAMENT_FILTERS_STATE
+  );
+
+  const activeTab = useMemo(
+    () =>
+      resolveTournamentListTabFromSearchParams(
+        isOrganiserOrAbove,
+        viewSearchParam ?? null,
+        state.activeTab
+      ),
+    [isOrganiserOrAbove, viewSearchParam, state.activeTab]
   );
 
   const [filtersOpen, setFiltersOpen] = useState(false);
@@ -128,23 +148,18 @@ export function useTournamentFilters({
       shapeTournamentFilters(
         {
           ...state,
+          activeTab,
           filters: {
             ...state.filters,
-            q:
-              typeof debouncedQ === "string" && debouncedQ.trim().length > 0
-                ? debouncedQ.trim()
-                : undefined,
+            q: debouncedQ?.trim() || undefined,
           },
         },
         isOrganiserOrAbove
       ),
-    [state, debouncedQ, isOrganiserOrAbove]
+    [state, activeTab, debouncedQ, isOrganiserOrAbove]
   );
 
-  const persistedQ =
-    typeof state.filters.q === "string" && state.filters.q.trim().length > 0
-      ? state.filters.q.trim()
-      : undefined;
+  const persistedQ = state.filters.q?.trim() || undefined;
 
   const setTab = useCallback((tab: TournamentListTab) => {
     dispatch({ type: "SET_TAB", payload: tab });
@@ -197,7 +212,8 @@ export function useTournamentFilters({
    * 🔄 Hydrate from localStorage
    */
   useEffect(() => {
-    if (typeof window === "undefined") {
+    const storage = getLocalStorage();
+    if (!storage) {
       return;
     }
     if (isAuthLoading) {
@@ -259,7 +275,7 @@ export function useTournamentFilters({
           },
           updatedAt: persisted.updatedAt,
         };
-        window.localStorage.setItem(storageKey, JSON.stringify(nextPayload));
+        storage.setItem(storageKey, JSON.stringify(nextPayload));
       }
     }
 
@@ -270,7 +286,8 @@ export function useTournamentFilters({
    * 💾 Persist to localStorage
    */
   useEffect(() => {
-    if (typeof window === "undefined") return;
+    const storage = getLocalStorage();
+    if (!storage) return;
     if (hydratedStorageKeyRef.current !== storageKey) return;
     if (skipNextPersistRef.current) {
       skipNextPersistRef.current = false;
@@ -278,7 +295,7 @@ export function useTournamentFilters({
     }
 
     const storagePayload = {
-      activeTab: state.activeTab,
+      activeTab,
       filters: {
         q: persistedQ,
         when: state.filters.when,
@@ -288,10 +305,10 @@ export function useTournamentFilters({
       updatedAt: Date.now(),
     };
 
-    window.localStorage.setItem(storageKey, JSON.stringify(storagePayload));
+    storage.setItem(storageKey, JSON.stringify(storagePayload));
   }, [
     storageKey,
-    state.activeTab,
+    activeTab,
     persistedQ,
     state.filters.when,
     state.filters.distance,
@@ -299,7 +316,7 @@ export function useTournamentFilters({
   ]);
 
   return {
-    activeTab: state.activeTab,
+    activeTab,
     filters: state.filters,
     effectiveFilters,
     filtersOpen,
