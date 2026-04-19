@@ -18,6 +18,7 @@ import ellipsisVerticalIcon from "@/assets/icons/figma/lucide/ellipsis-vertical.
 import gripVerticalIcon from "@/assets/icons/figma/lucide/grip-vertical.svg?react";
 import houseIcon from "@/assets/icons/figma/lucide/house.svg?react";
 import infoIcon from "@/assets/icons/figma/lucide/info.svg?react";
+import mapPinIcon from "@/assets/icons/figma/lucide/map-pin.svg?react";
 import penLine1Icon from "@/assets/icons/figma/lucide/pen-line-1.svg?react";
 import penLineIcon from "@/assets/icons/figma/lucide/pen-line.svg?react";
 import plusIcon from "@/assets/icons/figma/lucide/plus.svg?react";
@@ -39,7 +40,6 @@ import setting2BoldIcon from "@/assets/icons/figma/vuesax/bold/setting-2.svg?rea
 import shieldTickBoldIcon from "@/assets/icons/figma/vuesax/bold/shield-tick.svg?react";
 import calendarTickLinearIcon from "@/assets/icons/figma/vuesax/linear/calendar-tick.svg?react";
 import clockLinearIcon from "@/assets/icons/figma/vuesax/linear/clock.svg?react";
-import mapLinearIcon from "@/assets/icons/figma/vuesax/linear/map.svg?react";
 import tag2LinearIcon from "@/assets/icons/figma/vuesax/linear/tag-2.svg?react";
 import timerPauseLinearIcon from "@/assets/icons/figma/vuesax/linear/timer-pause.svg?react";
 import timerStartLinearIcon from "@/assets/icons/figma/vuesax/linear/timer-start.svg?react";
@@ -138,7 +138,7 @@ const ICONS = {
   calendarDays: defineSvgIcon(calendarDaysIcon, { defaultTone: "muted" }),
   calendarTickLinear: defineSvgIcon(calendarTickLinearIcon, { defaultTone: "muted" }),
   clockLinear: defineSvgIcon(clockLinearIcon, { defaultTone: "muted" }),
-  mapLinear: defineSvgIcon(mapLinearIcon, { defaultTone: "muted" }),
+  mapLinear: defineSvgIcon(mapPinIcon, { defaultTone: "muted" }),
   tag2Linear: defineSvgIcon(tag2LinearIcon, { defaultTone: "muted" }),
   timerPauseLinear: defineSvgIcon(timerPauseLinearIcon, { defaultTone: "muted" }),
   timerStartLinear: defineSvgIcon(timerStartLinearIcon, { defaultTone: "muted" }),
