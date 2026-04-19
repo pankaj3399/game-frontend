@@ -33,6 +33,7 @@ const DEFAULT_PAGINATION = {
 function TournamentListContent() {
   const { t, i18n } = useTranslation();
   const [searchParams, setSearchParams] = useSearchParams();
+  const viewParam = searchParams.get("view");
   const [isDesktop, setIsDesktop] = useState(() => {
     if (typeof window === "undefined") return false;
     return window.matchMedia("(min-width: 1024px)").matches;
@@ -55,18 +56,11 @@ function TournamentListContent() {
     isOrganiserOrAbove,
     userId: user?.id ?? undefined,
     isAuthLoading: authLoading,
+    viewSearchParam: viewParam,
   });
   const { isDraftTab } = useTournamentPermissions({
     activeTab,
   });
-
-  const viewParam = searchParams.get("view");
-
-  useEffect(() => {
-    if (!isOrganiserOrAbove) return;
-    if (viewParam === "drafts") setTab(TournamentTab.Drafts);
-    else if (viewParam === "published") setTab(TournamentTab.Published);
-  }, [isOrganiserOrAbove, viewParam, setTab]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;

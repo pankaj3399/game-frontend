@@ -28,33 +28,31 @@ export function teamSideDisplayName(
   const fallbackSide1Doubles = t("tournaments.playerBFallback");
   const emptySinglesOpponent = "";
 
-  if (teamPlayers) {
-    if (mode === "singles") {
-      const player = teamPlayers.find((p) => p != null) ?? null;
-      if (player) {
-        return matchPlayerName(
-          player,
-          teamIndex === 0 ? fallbackSide0 : emptySinglesOpponent
-        );
-      }
-    } else {
-      const names = teamPlayers
-        .map((player, index) => {
-          if (!player) {
-            return null;
-          }
-          const slotFallback = index === 0 ? fallbackSide0 : fallbackSide1Doubles;
-          const label = matchPlayerName(player, slotFallback).trim();
-          return label.length > 0 ? label : null;
-        })
-        .filter((n): n is string => n != null);
+  if (mode === "singles") {
+    const player = teamPlayers.find((p) => p != null) ?? null;
+    if (player) {
+      return matchPlayerName(
+        player,
+        teamIndex === 0 ? fallbackSide0 : emptySinglesOpponent
+      );
+    }
+  } else {
+    const names = teamPlayers
+      .map((player, index) => {
+        if (!player) {
+          return null;
+        }
+        const slotFallback = index === 0 ? fallbackSide0 : fallbackSide1Doubles;
+        const label = matchPlayerName(player, slotFallback).trim();
+        return label.length > 0 ? label : null;
+      })
+      .filter((n): n is string => n != null);
 
-      if (names.length >= 2) {
-        return `${names[0]} / ${names[1]}`;
-      }
-      if (names.length === 1) {
-        return names[0];
-      }
+    if (names.length >= 2) {
+      return `${names[0]} / ${names[1]}`;
+    }
+    if (names.length === 1) {
+      return names[0];
     }
   }
 

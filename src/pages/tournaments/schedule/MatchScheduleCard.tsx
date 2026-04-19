@@ -13,6 +13,7 @@ import { matchScheduleDateTimeLabels } from "@/pages/tournaments/schedule/matchS
 import { MatchCardReadOnlyRows } from "@/pages/tournaments/schedule/MatchCardReadOnlyRows";
 import { scoreColumns, type ScoreEditorRow } from "@/pages/tournaments/schedule/matchScheduleScore";
 import { teamSideDisplayName } from "@/pages/tournaments/schedule/matchTeamDisplay";
+import { initialsFromName } from "@/pages/tournaments/schedule/matchDisplayUtils";
 
 const AVATAR_TONES = [
   "from-[#f7d4bf] to-[#efb598]",
@@ -29,21 +30,6 @@ function hashSeed(value: string): number {
     hash = (Math.imul(hash, 31) + value.charCodeAt(index)) | 0;
   }
   return (hash >>> 0) % 2147483647;
-}
-
-function initialsFromName(name: string): string {
-  const tokens = name
-    .trim()
-    .split(/\s+/)
-    .filter(Boolean);
-
-  if (tokens.length === 0) {
-    return "?";
-  }
-
-  const first = tokens[0][0] ?? "";
-  const second = tokens.length > 1 ? tokens[tokens.length - 1][0] ?? "" : "";
-  return `${first}${second}`.toUpperCase();
 }
 
 export interface MatchScheduleCardProps {
@@ -149,9 +135,9 @@ export function MatchScheduleCard({
 
       {isEditing ? (
         <div className="mb-2 flex justify-end gap-1.5">
-          {editableRows.map((row, columnIndex) => (
+          {Array.from({ length: editableRows.length }, (_, columnIndex) => (
             <span
-              key={`${row.id}-set-label`}
+              key={`${match.id}-set-${columnIndex}`}
               className="inline-flex min-w-[64px] items-center justify-center rounded-[4px] px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.06em] text-[#010a04]/45"
             >
               S{columnIndex + 1}

@@ -5,21 +5,7 @@ import {
   scoreCellClass,
   type ScoreColumn,
 } from "./matchScheduleScore";
-
-function initialsFromName(name: string): string {
-  const tokens = name
-    .trim()
-    .split(/\s+/)
-    .filter(Boolean);
-
-  if (tokens.length === 0) {
-    return "?";
-  }
-
-  const first = tokens[0][0] ?? "";
-  const second = tokens.length > 1 ? tokens[tokens.length - 1][0] ?? "" : "";
-  return `${first}${second}`.toUpperCase();
-}
+import { initialsFromName } from "./matchDisplayUtils";
 
 export type MatchCardReadOnlyRow = {
   name: string;

@@ -15,8 +15,8 @@ interface UseTournamentFiltersOptions {
   isOrganiserOrAbove: boolean;
   userId?: string | null;
   isAuthLoading?: boolean;
-  /** `searchParams.get("view")` — when set for organisers, tab is derived from this (no useEffect sync). */
-  viewSearchParam?: string | null;
+  /** `searchParams.get("view")` — organisers: tab resolves from this on first render. */
+  viewSearchParam: string | null;
 }
 
 interface PersistedTournamentFiltersState {
@@ -49,7 +49,22 @@ function getStorageKey(userId: string) {
 }
 
 function getLocalStorage(): Storage | null {
-  return typeof window === "undefined" ? null : window.localStorage;
+  if (typeof window === "undefined") return null;
+  try {
+    return window.localStorage;
+  } catch {
+    return null;
+  }
+}
+
+function safeSetItem(key: string, value: string): void {
+  const storage = getLocalStorage();
+  if (!storage) return;
+  try {
+    storage.setItem(key, value);
+  } catch {
+    /* SecurityError, QuotaExceededError, private mode, etc. */
+  }
 }
 
 /** Plain object from JSON (not array / null). */
@@ -125,7 +140,7 @@ export function useTournamentFilters({
     () =>
       resolveTournamentListTabFromSearchParams(
         isOrganiserOrAbove,
-        viewSearchParam ?? null,
+        viewSearchParam,
         state.activeTab
       ),
     [isOrganiserOrAbove, viewSearchParam, state.activeTab]
@@ -275,7 +290,7 @@ export function useTournamentFilters({
           },
           updatedAt: persisted.updatedAt,
         };
-        storage.setItem(storageKey, JSON.stringify(nextPayload));
+        safeSetItem(storageKey, JSON.stringify(nextPayload));
       }
     }
 
@@ -305,7 +320,7 @@ export function useTournamentFilters({
       updatedAt: Date.now(),
     };
 
-    storage.setItem(storageKey, JSON.stringify(storagePayload));
+    safeSetItem(storageKey, JSON.stringify(storagePayload));
   }, [
     storageKey,
     activeTab,

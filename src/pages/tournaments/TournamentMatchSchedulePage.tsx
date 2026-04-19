@@ -21,7 +21,17 @@ import {
   useTournamentById,
   useTournamentMatches,
 } from "@/pages/tournaments/hooks";
-import type { TournamentMatchPlayer, TournamentScheduleMatch } from "@/models/tournament/types";
+import type { TournamentScheduleMatch } from "@/models/tournament/types";
+import { initialsFromName } from "@/pages/tournaments/schedule/matchDisplayUtils";
+import {
+  buildScorePayload,
+  createScoreEditorRows,
+  formatScoreCellValue,
+  scoreCellClass,
+  scoreColumns,
+  type ScoreEditorRow,
+} from "@/pages/tournaments/schedule/matchScheduleScore";
+import { teamSideDisplayName } from "@/pages/tournaments/schedule/matchTeamDisplay";
 
 const AVATAR_TONES = [
   "from-[#f7d4bf] to-[#efb598]",
@@ -38,29 +48,6 @@ function hashSeed(value: string): number {
     hash = (Math.imul(hash, 31) + value.charCodeAt(index)) | 0;
   }
   return (hash >>> 0) % 2147483647;
-}
-
-function initialsFromName(name: string): string {
-  const tokens = name
-    .trim()
-    .split(/\s+/)
-    .filter(Boolean);
-
-  if (tokens.length === 0) {
-    return "?";
-  }
-
-  const first = tokens[0][0] ?? "";
-  const second = tokens.length > 1 ? tokens[tokens.length - 1][0] ?? "" : "";
-  return `${first}${second}`.toUpperCase();
-}
-
-function playerName(player: TournamentMatchPlayer | null, fallback: string): string {
-  if (!player) {
-    return fallback;
-  }
-
-  return player.name ?? player.alias ?? fallback;
 }
 
 function matchDateLabel(startTime: string | null, fallback: string, localeCode: string): string {
@@ -87,199 +74,6 @@ function matchTimeLabel(startTime: string | null, fallback: string, localeCode: 
   }
 
   return format(parsed, "HH:mm", { locale: getDateFnsLocale(localeCode) });
-}
-
-type ScoreWinnerSide = "one" | "two" | null;
-type MatchScoreValue = number | "wo";
-
-interface ScoreEditorRow {
-  id: string;
-  playerOne: string;
-  playerTwo: string;
-}
-
-interface ScoreColumn {
-  playerOne: number | "wo" | null;
-  playerTwo: number | "wo" | null;
-  winner: ScoreWinnerSide;
-}
-
-function scoreColumns(match: TournamentScheduleMatch): ScoreColumn[] {
-  const playerOneScores = match.score.playerOneScores;
-  const playerTwoScores = match.score.playerTwoScores;
-  const totalColumns = Math.max(3, playerOneScores.length, playerTwoScores.length);
-
-  const columns: ScoreColumn[] = [];
-  for (let index = 0; index < totalColumns; index += 1) {
-    const playerOne = playerOneScores[index] ?? null;
-    const playerTwo = playerTwoScores[index] ?? null;
-
-    let winner: ScoreWinnerSide = null;
-    if (typeof playerOne === "number" && typeof playerTwo === "number") {
-      if (playerOne > playerTwo) {
-        winner = "one";
-      } else if (playerTwo > playerOne) {
-        winner = "two";
-      }
-    } else if (playerOne === "wo" && playerTwo !== null) {
-      winner = "two";
-    } else if (playerTwo === "wo" && playerOne !== null) {
-      winner = "one";
-    }
-
-    columns.push({ playerOne, playerTwo, winner });
-  }
-
-  return columns;
-}
-
-function formatScoreCellValue(value: number | "wo" | null): string {
-  if (value == null) {
-    return "-";
-  }
-  if (value === "wo") {
-    return "WO";
-  }
-  return String(value);
-}
-
-function scoreCellClass(
-  winner: ScoreWinnerSide,
-  side: "one" | "two",
-  hasValue: boolean
-): string {
-  if (!hasValue) {
-    return "border border-dashed border-[#010a04]/20 bg-[#f8fbfa] text-[#9aa6a0]";
-  }
-
-  if (winner === side) {
-    return "bg-gradient-to-b from-[#0d7a2f] to-[#076126] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.15)]";
-  }
-
-  return "border border-[#010a04]/[0.16] bg-[#f2f7f4] text-[#010a04]";
-}
-
-function serializeScoreValue(value: MatchScoreValue | null): string {
-  if (value == null) {
-    return "";
-  }
-  if (value === "wo") {
-    return "WO";
-  }
-  return String(value);
-}
-
-function parseScoreInputValue(raw: string): MatchScoreValue | null {
-  const normalized = raw.trim();
-  if (normalized === "") {
-    return null;
-  }
-
-  if (normalized.toLowerCase() === "wo") {
-    return "wo";
-  }
-
-  if (!/^\d+$/.test(normalized)) {
-    return null;
-  }
-
-  const parsed = Number.parseInt(normalized, 10);
-  if (!Number.isFinite(parsed) || parsed < 0) {
-    return null;
-  }
-
-  return parsed;
-}
-
-function createScoreEditorRows(match: TournamentScheduleMatch): ScoreEditorRow[] {
-  const columnCount = Math.max(
-    3,
-    match.score.playerOneScores.length,
-    match.score.playerTwoScores.length
-  );
-
-  const rows: ScoreEditorRow[] = [];
-  for (let index = 0; index < columnCount; index += 1) {
-    rows.push({
-      id: `${match.id}-set-${index + 1}`,
-      playerOne: serializeScoreValue(match.score.playerOneScores[index] ?? null),
-      playerTwo: serializeScoreValue(match.score.playerTwoScores[index] ?? null),
-    });
-  }
-
-  return rows;
-}
-
-interface ScorePayloadBuildResult {
-  ok: boolean;
-  playerOneScores: MatchScoreValue[];
-  playerTwoScores: MatchScoreValue[];
-  message: string | null;
-}
-
-function buildScorePayload(
-  rows: ScoreEditorRow[],
-  t: (key: string, options?: Record<string, unknown>) => string
-): ScorePayloadBuildResult {
-  if (rows.length === 0) {
-    return {
-      ok: false,
-      playerOneScores: [],
-      playerTwoScores: [],
-      message: t("tournaments.scoreEditorNoSets"),
-    };
-  }
-
-  const playerOneScores: MatchScoreValue[] = [];
-  const playerTwoScores: MatchScoreValue[] = [];
-
-  for (const row of rows) {
-    const firstRaw = row.playerOne.trim();
-    const secondRaw = row.playerTwo.trim();
-    const rowCompletelyEmpty = firstRaw === "" && secondRaw === "";
-    if (rowCompletelyEmpty) {
-      continue;
-    }
-
-    const first = parseScoreInputValue(firstRaw);
-    const second = parseScoreInputValue(secondRaw);
-    if (first == null || second == null) {
-      return {
-        ok: false,
-        playerOneScores: [],
-        playerTwoScores: [],
-        message: t("tournaments.scoreEditorIncomplete"),
-      };
-    }
-
-    if (first === "wo" && second === "wo") {
-      return {
-        ok: false,
-        playerOneScores: [],
-        playerTwoScores: [],
-        message: t("tournaments.scoreEditorBothWalkover"),
-      };
-    }
-
-    playerOneScores.push(first);
-    playerTwoScores.push(second);
-  }
-
-  if (playerOneScores.length === 0 || playerTwoScores.length === 0) {
-    return {
-      ok: false,
-      playerOneScores: [],
-      playerTwoScores: [],
-      message: t("tournaments.scoreEditorNoSets"),
-    };
-  }
-
-  return {
-    ok: true,
-    playerOneScores,
-    playerTwoScores,
-    message: null,
-  };
 }
 
 function MatchScheduleSkeleton() {
@@ -342,8 +136,9 @@ function MatchScheduleCard({
   onToggleEdit,
   onScoreInputChange,
 }: MatchScheduleCardProps) {
-  const firstPlayer = playerName(match.players[0], t("tournaments.playerAFallback"));
-  const secondPlayer = playerName(match.players[1], t("tournaments.playerBFallback"));
+  const unknown = t("tournaments.unknownPlayer");
+  const firstPlayer = teamSideDisplayName(match, 0, t) || unknown;
+  const secondPlayer = teamSideDisplayName(match, 1, t) || unknown;
   const courtName = match.court.name ?? t("tournaments.courtTBD");
   const tone = AVATAR_TONES[hashSeed(match.id) % AVATAR_TONES.length] ?? AVATAR_TONES[0];
   const dateLabel = matchDateLabel(match.startTime, t("tournaments.scheduledTbd"), language);
@@ -410,9 +205,9 @@ function MatchScheduleCard({
 
       {isEditing ? (
         <div className="mb-2 flex justify-end gap-1.5">
-          {editableRows.map((row, columnIndex) => (
+          {Array.from({ length: editableRows.length }, (_, columnIndex) => (
             <span
-              key={`${row.id}-set-label`}
+              key={`${match.id}-set-${columnIndex}`}
               className="inline-flex min-w-[64px] items-center justify-center rounded-[4px] px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.06em] text-[#010a04]/45"
             >
               S{columnIndex + 1}
@@ -607,7 +402,7 @@ export default function TournamentMatchSchedulePage() {
       return true;
     }
 
-    const payload = buildScorePayload(scoreRows, t);
+    const payload = buildScorePayload(scoreRows, editingMatch.playMode, t);
     if (!payload.ok) {
       toast.error(payload.message ?? t("tournaments.scoreEditorIncomplete"));
       return false;
