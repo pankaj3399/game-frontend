@@ -85,6 +85,8 @@ export function buildTournamentPayload(
     minMember: Math.min(minMember, maxMember),
     maxMember: Math.max(minMember, maxMember),
     totalRounds,
+    duration: form.duration,
+    breakDuration: form.breakDuration,
   };
 }
 

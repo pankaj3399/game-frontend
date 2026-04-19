@@ -29,3 +29,29 @@ export function normalizeTournamentMemberPair(
   const hi = Math.max(minMember, maxMember);
   return { minMember: lo, maxMember: hi };
 }
+
+/**
+ * Applies the same commit rules as blurring the min/max field (normalize pair, update form).
+ * Returns the display string this field should show after commit.
+ */
+export function applyTournamentMemberCountCommit(
+  rawText: string,
+  role: "min" | "max",
+  peerValue: number,
+  onCommitPair: (next: { minMember: number; maxMember: number }) => void,
+): string {
+  const self = parseCommittedMemberCount(rawText);
+  const raw =
+    role === "min"
+      ? { minMember: self, maxMember: peerValue }
+      : { minMember: peerValue, maxMember: self };
+
+  if (raw.minMember > raw.maxMember) {
+    onCommitPair(raw);
+    return takeDigits(rawText);
+  }
+
+  const pair = normalizeTournamentMemberPair(raw.minMember, raw.maxMember);
+  onCommitPair(pair);
+  return String(role === "min" ? pair.minMember : pair.maxMember);
+}

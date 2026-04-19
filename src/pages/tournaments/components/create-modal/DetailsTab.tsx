@@ -85,8 +85,10 @@ export function DetailsTab({ form, update, formScopeKey }: DetailsTabProps) {
             {t("tournaments.matchDuration")}
           </Label>
           <Select
-            value={form.duration}
-            onValueChange={(v) => update({ duration: v })}
+            value={String(form.duration)}
+            onValueChange={(v) => {
+              update({ duration: Number.parseInt(v, 10) });
+            }}
           >
             <SelectTrigger
               id={durationTriggerId}
@@ -97,7 +99,7 @@ export function DetailsTab({ form, update, formScopeKey }: DetailsTabProps) {
             </SelectTrigger>
             <SelectContent>
               {DURATION_OPTIONS.map((d) => (
-                <SelectItem key={d.value} value={d.value}>
+                <SelectItem key={d.value} value={String(d.value)}>
                   {t(d.labelKey)}
                 </SelectItem>
               ))}
@@ -116,8 +118,10 @@ export function DetailsTab({ form, update, formScopeKey }: DetailsTabProps) {
             {t("tournaments.breakTime")}
           </Label>
           <Select
-            value={form.breakDuration}
-            onValueChange={(v) => update({ breakDuration: v })}
+            value={String(form.breakDuration)}
+            onValueChange={(v) => {
+              update({ breakDuration: Number.parseInt(v, 10) });
+            }}
           >
             <SelectTrigger
               id={breakTriggerId}
@@ -128,7 +132,7 @@ export function DetailsTab({ form, update, formScopeKey }: DetailsTabProps) {
             </SelectTrigger>
             <SelectContent>
               {BREAK_OPTIONS.map((b) => (
-                <SelectItem key={b.value} value={b.value}>
+                <SelectItem key={b.value} value={String(b.value)}>
                   {t(b.labelKey)}
                 </SelectItem>
               ))}

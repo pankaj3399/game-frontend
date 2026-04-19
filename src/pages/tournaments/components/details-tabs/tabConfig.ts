@@ -13,3 +13,9 @@ export function getTournamentDetailsTabOptions(t: TFunction): TournamentDetailsT
     { value: "sponsors", label: t("tournaments.sponsorsTab") },
   ];
 }
+
+/** Resolve `?tab=` from the URL to a valid details tab (sync — no effects). */
+export function resolveTournamentDetailsTab(requestedTab: string | null, t: TFunction): string {
+  const tabValues = getTournamentDetailsTabOptions(t).map((tab) => tab.value);
+  return requestedTab && tabValues.includes(requestedTab) ? requestedTab : "info";
+}

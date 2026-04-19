@@ -35,6 +35,12 @@ import {
   removeParticipant,
   type ScheduleParticipantRow,
 } from "./schedule/helpers";
+import {
+  getPreviousRoundGate,
+  parseRoundQueryParam,
+  resolveScheduleInputRound,
+} from "./schedule/tournamentRoundWorkflow";
+import { TournamentSchedulePageSkeleton } from "./schedule/TournamentSchedulePageSkeleton";
 
 const MATCH_DURATION_OPTIONS = [30, 45, 60, 75, 90];
 const BREAK_DURATION_OPTIONS = [0, 5, 10, 15, 20, 30];
@@ -105,9 +111,9 @@ export default function TournamentSchedulePage() {
     return <Navigate to="/tournaments" replace />;
   }
 
-  const roundFromQuery = Number.parseInt(searchParams.get("round") ?? "", 10);
-  const defaultRound = scheduleQuery.data?.scheduleSummary.currentRound ?? 1;
-  const round = Number.isFinite(roundFromQuery) && roundFromQuery >= 1 ? roundFromQuery : Math.max(1, defaultRound);
+  const queryRound = parseRoundQueryParam(searchParams);
+  const summaryCurrentRound = scheduleQuery.data?.scheduleSummary.currentRound ?? 0;
+  const round = resolveScheduleInputRound(queryRound, summaryCurrentRound);
   const clampedStartTime = clampTime24ToBounds(startTime, scheduleTimeBounds);
 
   const availableCourts = scheduleQuery.data?.scheduleInput.availableCourts ?? [];
@@ -117,22 +123,13 @@ export default function TournamentSchedulePage() {
   const meetsTournamentMinimum =
     enrolledParticipants >= tournamentMinimumParticipants;
 
-  const previousRound = round - 1;
-  const previousRoundMatches =
-    previousRound >= 1
-      ? (matchesQuery.data?.matches ?? []).filter((match) => match.round === previousRound)
-      : [];
-  const previousRoundGenerated = previousRound < 1 || previousRoundMatches.length > 0;
-  const previousRoundFinished =
-    previousRound < 1 || previousRoundMatches.every((match) => match.status === "completed");
-  const blockedByPreviousRound =
-    round > 1 && (!previousRoundGenerated || !previousRoundFinished);
+  const scheduleRoundGate = getPreviousRoundGate(round, matchesQuery.data?.matches ?? []);
 
   const canSubmit =
     selectedCourtIds.length > 0 &&
     meetsTournamentMinimum &&
     canGenerateSchedule(mode, participants.length) &&
-    !blockedByPreviousRound &&
+    !scheduleRoundGate.blocked &&
     !matchesQuery.isLoading &&
     !generateScheduleMutation.isPending;
 
@@ -182,11 +179,11 @@ export default function TournamentSchedulePage() {
   };
 
   const onGenerateSchedule = async () => {
-    if (blockedByPreviousRound) {
+    if (scheduleRoundGate.blocked) {
       toast.error(
-        !previousRoundGenerated
-          ? t("tournaments.schedulePreviousRoundMissing", { round: previousRound })
-          : t("tournaments.schedulePreviousRoundIncomplete", { round: previousRound })
+        scheduleRoundGate.reason === "missing"
+          ? t("tournaments.schedulePreviousRoundMissing", { round: scheduleRoundGate.previousRound })
+          : t("tournaments.schedulePreviousRoundIncomplete", { round: scheduleRoundGate.previousRound })
       );
       return;
     }
@@ -213,20 +210,14 @@ export default function TournamentSchedulePage() {
       });
 
       toast.success(t("tournaments.scheduleGenerated", { round }));
-      navigate(`/tournaments/${id}/schedule?round=${response.schedule.round}`);
+      navigate(`/tournaments/${id}/match-schedule?round=${response.schedule.round}`);
     } catch (err) {
       toast.error(getErrorMessage(err) ?? t("tournaments.scheduleGenerateError"));
     }
   };
 
   if (scheduleQuery.isLoading) {
-    return (
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-4 px-6 py-8">
-        <div className="rounded-xl border border-[#e5e7eb] bg-white p-6 text-sm text-[#6b7280]">
-          {t("common.loading")}
-        </div>
-      </div>
-    );
+    return <TournamentSchedulePageSkeleton t={t} />;
   }
 
   if (scheduleQuery.isError || !scheduleQuery.data) {
@@ -237,7 +228,7 @@ export default function TournamentSchedulePage() {
         </div>
         <div>
           <Button asChild variant="outline">
-            <Link to={`/tournaments/${id}`}>{t("tournaments.goBack")}</Link>
+            <Link to={`/tournaments/${id}?tab=matches`}>{t("tournaments.goBack")}</Link>
           </Button>
         </div>
       </div>
@@ -253,7 +244,7 @@ export default function TournamentSchedulePage() {
           size="sm"
           className="group h-auto w-fit gap-1.5 px-1 text-[14px] font-medium text-[#010a04]/70 hover:bg-transparent hover:text-[#010a04]"
         >
-          <Link to={`/tournaments/${id}`}>
+          <Link to={`/tournaments/${id}?tab=matches`}>
             <ChevronLeft size={16} className="text-[#010a04]/70 group-hover:text-[#010a04]" />
             {t("tournaments.goBack")}
           </Link>
@@ -415,19 +406,11 @@ export default function TournamentSchedulePage() {
               ? t("tournaments.scheduleGenerating")
               : t("tournaments.scheduleGenerateButton")}
           </Button>
-          {!meetsTournamentMinimum ? (
+          {scheduleRoundGate.blocked ? (
             <p className="mt-2 text-[12px] text-[#a02626]">
-              {t("tournaments.scheduleMinPlayersNotMet", {
-                min: tournamentMinimumParticipants,
-                current: enrolledParticipants,
-              })}
-            </p>
-          ) : null}
-          {blockedByPreviousRound ? (
-            <p className="mt-2 text-[12px] text-[#a02626]">
-              {!previousRoundGenerated
-                ? t("tournaments.schedulePreviousRoundMissing", { round: previousRound })
-                : t("tournaments.schedulePreviousRoundIncomplete", { round: previousRound })}
+              {scheduleRoundGate.reason === "missing"
+                ? t("tournaments.schedulePreviousRoundMissing", { round: scheduleRoundGate.previousRound })
+                : t("tournaments.schedulePreviousRoundIncomplete", { round: scheduleRoundGate.previousRound })}
             </p>
           ) : null}
         </div>
