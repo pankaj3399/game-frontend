@@ -5,11 +5,7 @@ import { cn } from "@/lib/utils";
 import { parseIsoDateSafely } from "@/utils/date";
 import { TOURNAMENT_MODES } from "@/constants/tournament";
 import { getScheduledTimeRangeErrorKey } from "@/lib/tournament/form";
-import type {
-  CreateTournamentInput,
-  TournamentClub,
-  TournamentMode,
-} from "@/models/tournament/types";
+import type { CreateTournamentInput, TournamentMode } from "@/models/tournament/types";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -32,7 +28,8 @@ import { TournamentTotalRoundsInput } from "@/pages/tournaments/components/creat
 
 interface BasicInfoTabProps {
   form: CreateTournamentInput;
-  clubs: TournamentClub[];
+  /** Club picker only needs id + name (e.g. admin clubs list). */
+  clubs: readonly { id: string; name: string }[];
   update: (updates: Partial<CreateTournamentInput>) => void;
   /** When false (default), the date picker cannot select days before today. */
   allowPastDates?: boolean;

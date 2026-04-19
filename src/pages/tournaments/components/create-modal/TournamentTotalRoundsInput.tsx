@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Input } from "@/components/ui/input";
 import {
   parseCommittedTotalRounds,
@@ -27,6 +27,25 @@ export function TournamentTotalRoundsInput({
   className,
 }: TournamentTotalRoundsInputProps) {
   const [text, setText] = useState(() => String(value));
+  const textRef = useRef(text);
+  const valueRef = useRef(value);
+  const onCommitRef = useRef(onCommit);
+
+  useLayoutEffect(() => {
+    textRef.current = text;
+    valueRef.current = value;
+    onCommitRef.current = onCommit;
+  }, [text, value, onCommit]);
+
+  useEffect(() => {
+    return () => {
+      const next = parseCommittedTotalRounds(textRef.current);
+      if (next === valueRef.current) {
+        return;
+      }
+      onCommitRef.current(next);
+    };
+  }, []);
 
   return (
     <Input
