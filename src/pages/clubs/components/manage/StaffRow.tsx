@@ -113,7 +113,7 @@ export function StaffRow({
           <p className="truncate text-[12px] text-[#010a04]/60">{member.email}</p>
           <p className="truncate text-[12px] text-[#010a04]/60">{roleLabel}</p>
           {isMainAdminUpdatePending && (
-            <p className="truncate text-[12px] text-brand-primary/80 animate-pulse">
+            <p className="truncate text-[12px] text-brand-primary/80 animate-skeleton-soft">
               {t("manageClub.mainAdminUpdating")}
             </p>
           )}
