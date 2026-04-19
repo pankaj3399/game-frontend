@@ -35,7 +35,7 @@ function formatMatchTime(startTime: string | null, language: string, fallback: s
     return fallback;
   }
 
-  return format(parsed, "h:mm a", {
+  return format(parsed, "EEE, MMM d · h:mm a", {
     locale: getDateFnsLocale(language),
   });
 }
@@ -133,16 +133,28 @@ export function LiveMatchModal() {
   );
 
   const liveRound = useMemo(() => {
-    if (!liveMatch || !tournamentMatchesQuery.data) {
-      return 1;
+    if (!liveMatch) {
+      return null;
+    }
+    if (
+      tournamentMatchesQuery.isLoading ||
+      tournamentMatchesQuery.isError ||
+      !tournamentMatchesQuery.data
+    ) {
+      return null;
     }
 
     const scheduleMatch = tournamentMatchesQuery.data.matches.find(
       (match) => match.id === liveMatch.id
     );
 
-    return scheduleMatch?.round ?? 1;
-  }, [liveMatch, tournamentMatchesQuery.data]);
+    return scheduleMatch != null ? scheduleMatch.round : null;
+  }, [
+    liveMatch,
+    tournamentMatchesQuery.data,
+    tournamentMatchesQuery.isError,
+    tournamentMatchesQuery.isLoading,
+  ]);
 
   if (!liveMatch) {
     return null;
@@ -209,7 +221,9 @@ export function LiveMatchModal() {
           <div className="space-y-6">
             <div className="space-y-3">
               <p className="text-xl font-semibold leading-none tracking-tight text-[#0f172a]">
-                {t("tournaments.roundNumber", { round: liveRound })}
+                {liveRound != null
+                  ? t("tournaments.roundNumber", { round: liveRound })
+                  : t("tournaments.liveModalRoundPending")}
               </p>
               <div className="space-y-2.5">
                 <MatchMetaRow

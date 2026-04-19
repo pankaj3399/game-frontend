@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { TabsContent } from "@/components/ui/tabs";
 import type { TournamentDetail } from "@/models/tournament/types";
@@ -66,26 +66,18 @@ export function MatchesTab({ tournament, currentUserId }: MatchesTabProps) {
     t,
   });
 
-  const availableRounds = useMemo(
-    () =>
-      [...new Set(matches.map((m) => m.round))]
-        .filter((r) => Number.isFinite(r))
-        .sort((a, b) => a - b),
-    [matches]
-  );
+  const availableRounds = [...new Set(matches.map((m) => m.round))]
+    .filter((r) => Number.isFinite(r))
+    .sort((a, b) => a - b);
 
-  const matchesForRound = useMemo(() => {
-    if (roundFilter === "all") {
-      return matches;
-    }
-    return matches.filter((m) => m.round === roundFilter);
-  }, [matches, roundFilter]);
+  const matchesForRound =
+    roundFilter === "all" ? matches : matches.filter((m) => m.round === roundFilter);
 
-  const countsForRound = useMemo(() => getMatchCounts(matchesForRound), [matchesForRound]);
+  const countsForRound = getMatchCounts(matchesForRound);
 
-  const filteredMatches = useMemo(() => {
-    return onlyMyMatches ? matchesForRound.filter((m) => m.isMine) : matchesForRound;
-  }, [matchesForRound, onlyMyMatches]);
+  const filteredMatches = onlyMyMatches
+    ? matchesForRound.filter((m) => m.isMine)
+    : matchesForRound;
 
   if (matchesQuery.isLoading) {
     return <MatchesTabSkeleton t={t} />;

@@ -73,15 +73,12 @@ export function useTournamentActions({
   );
 
   const handleSaveDraft = useCallback(async () => {
-    console.log("aklusjhfkajshfnujkahsnfujoas")
     if (draftValidationError) {
-
       toast.error(t(draftValidationError));
       return;
     }
 
     try {
-      
       if (validTournamentId) {
         await performUpdate(validTournamentId, "draft", {
           ...buildUpdatePayload(form),

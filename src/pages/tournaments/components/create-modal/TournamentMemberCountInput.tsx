@@ -48,6 +48,10 @@ export function TournamentMemberCountInput({
   }, [text, value, peerValue, role, onCommitPair]);
 
   useEffect(() => {
+    valueRef.current = value;
+  }, [value]);
+
+  useEffect(() => {
     return () => {
       const draft = parseCommittedMemberCount(textRef.current);
       if (draft === valueRef.current) {

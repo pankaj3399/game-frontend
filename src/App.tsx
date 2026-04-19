@@ -62,7 +62,10 @@ function TournamentScheduleRoute() {
     return <Loader />;
   }
 
-  if (tournamentDetailQuery.isError || !tournamentDetailQuery.data) {
+  if (
+    tournamentDetailQuery.isError ||
+    !tournamentDetailQuery.data?.tournament
+  ) {
     return <Navigate to={`/tournaments/${id}`} replace />;
   }
 

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useId, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, Navigate, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import type { Locale } from "date-fns";
@@ -12,9 +12,11 @@ import {
   IconPlus,
 } from "@/icons/figma-icons";
 import {
+  useGenerateTournamentSchedule,
   useRecordTournamentMatchScore,
   useTournamentById,
   useTournamentMatches,
+  useTournamentSchedule,
 } from "@/pages/tournaments/hooks";
 import type { TournamentScheduleMatch } from "@/models/tournament/types";
 import { MatchScheduleCard } from "@/pages/tournaments/schedule/MatchScheduleCard";
@@ -24,6 +26,12 @@ import {
   createScoreEditorRows,
   type ScoreEditorRow,
 } from "@/pages/tournaments/schedule/matchScheduleScore";
+import {
+  canGenerateSchedule,
+  normalizeParticipantRows,
+  participantOrderIds,
+} from "@/pages/tournaments/schedule/helpers";
+import { clampTime24ToBounds, resolveTournamentScheduleTimeBounds } from "@/utils/time";
 
 function MatchScheduleSkeleton() {
   const { t } = useTranslation();
@@ -92,7 +100,10 @@ export default function TournamentMatchSchedulePage() {
 
   const tournamentQuery = useTournamentById(id ?? null, Boolean(id));
   const matchesQuery = useTournamentMatches(id ?? null, Boolean(id));
+  const scheduleQuery = useTournamentSchedule(id ?? null, Boolean(id));
+  const generateScheduleMutation = useGenerateTournamentSchedule();
   const recordScoreMutation = useRecordTournamentMatchScore();
+  const nextRoundHintId = useId();
 
   if (!id) {
     return <Navigate to="/tournaments" replace />;
@@ -222,6 +233,84 @@ export default function TournamentMatchSchedulePage() {
     openEditor(match);
   };
 
+  const handleCreateNextRound = useCallback(async () => {
+    if (!id || !view.canCreateNextRound) {
+      return;
+    }
+    if (scheduleQuery.isLoading) {
+      return;
+    }
+    if (!scheduleQuery.data) {
+      toast.error(getErrorMessage(scheduleQuery.error) ?? t("tournaments.scheduleLoadError"));
+      navigate(`/tournaments/${id}/schedule?round=${view.nextRound}`);
+      return;
+    }
+
+    const input = scheduleQuery.data.scheduleInput;
+    const participants = normalizeParticipantRows(scheduleQuery.data.participants);
+    const selectedCourtIds = input.availableCourts
+      .filter((court) => court.selected)
+      .map((court) => court.id);
+
+    if (
+      selectedCourtIds.length === 0 ||
+      !canGenerateSchedule(input.mode, participants.length)
+    ) {
+      navigate(`/tournaments/${id}/schedule?round=${view.nextRound}`);
+      return;
+    }
+
+    const bounds = resolveTournamentScheduleTimeBounds(tournament.startTime, tournament.endTime);
+    const clampedStartTime = clampTime24ToBounds(input.startTime, bounds);
+
+    try {
+      const response = await generateScheduleMutation.mutateAsync({
+        id,
+        payload: {
+          round: view.nextRound,
+          mode: input.mode,
+          matchesPerPlayer: input.matchesPerPlayer,
+          startTime: clampedStartTime,
+          courtIds: selectedCourtIds,
+          participantOrder: participantOrderIds(participants),
+          ...(tournament.tournamentMode === "singleDay"
+            ? {
+                matchDurationMinutes: input.matchDurationMinutes ?? 60,
+                breakTimeMinutes: input.breakTimeMinutes ?? 5,
+              }
+            : {}),
+        },
+      });
+
+      toast.success(t("tournaments.scheduleGenerated", { round: response.schedule.round }));
+      navigate(`/tournaments/${id}/match-schedule?round=${response.schedule.round}`);
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error) ?? t("tournaments.scheduleGenerateError"));
+    }
+  }, [
+    generateScheduleMutation,
+    id,
+    navigate,
+    scheduleQuery.data,
+    scheduleQuery.error,
+    scheduleQuery.isLoading,
+    t,
+    tournament,
+    view.canCreateNextRound,
+    view.nextRound,
+  ]);
+
+  const nextRoundDisabledMessage =
+    view.nextRoundDisabledHint != null
+      ? view.nextRoundDisabledHint.reason === "missing"
+        ? t("tournaments.schedulePreviousRoundMissing", {
+            round: view.nextRoundDisabledHint.round,
+          })
+        : t("tournaments.schedulePreviousRoundIncomplete", {
+            round: view.nextRoundDisabledHint.round,
+          })
+      : null;
+
   return (
     <div className="mx-auto w-full max-w-6xl px-5 pb-10 pt-8 sm:px-6">
       <div className="rounded-[12px] border border-[rgba(1,10,4,0.08)] bg-white px-4 py-5 shadow-[0_3px_15px_rgba(0,0,0,0.06)] sm:px-5">
@@ -259,32 +348,42 @@ export default function TournamentMatchSchedulePage() {
                 {t("tournaments.viewResults")}
               </Button>
             ) : (
-              <Button
-                type="button"
-                onClick={() => navigate(`/tournaments/${id}/schedule?round=${view.nextRound}`)}
-                disabled={!view.canCreateNextRound}
-                title={
-                  view.nextRoundDisabledHint
-                    ? view.nextRoundDisabledHint.reason === "missing"
-                      ? t("tournaments.schedulePreviousRoundMissing", {
-                          round: view.nextRoundDisabledHint.round,
-                        })
-                      : t("tournaments.schedulePreviousRoundIncomplete", {
-                          round: view.nextRoundDisabledHint.round,
-                        })
-                    : undefined
-                }
-                className="h-[34px] shrink-0 gap-1.5 rounded-[8px] bg-[#067429] px-3 text-[13px] font-medium text-white hover:bg-[#055d21] sm:px-4"
-              >
-                <IconPlus size={16} className="text-white" aria-hidden />
-                {t("tournaments.newRound")}
-              </Button>
+              <div className="flex max-w-[min(100%,18rem)] flex-col items-end gap-1">
+                <Button
+                  type="button"
+                  onClick={() => void handleCreateNextRound()}
+                  disabled={
+                    !view.canCreateNextRound ||
+                    generateScheduleMutation.isPending ||
+                    scheduleQuery.isLoading
+                  }
+                  aria-describedby={
+                    !view.canCreateNextRound && nextRoundDisabledMessage
+                      ? nextRoundHintId
+                      : undefined
+                  }
+                  className="h-[34px] shrink-0 gap-1.5 rounded-[8px] bg-[#067429] px-3 text-[13px] font-medium text-white hover:bg-[#055d21] sm:px-4"
+                >
+                  <IconPlus size={16} className="text-white" aria-hidden />
+                  {t("tournaments.newRound")}
+                </Button>
+                {!view.canCreateNextRound && nextRoundDisabledMessage ? (
+                  <p id={nextRoundHintId} className="text-right text-[11px] leading-snug text-[#6b7280]">
+                    {nextRoundDisabledMessage}
+                  </p>
+                ) : null}
+              </div>
             )
           ) : null}
         </div>
 
         {view.showRoundLoadingSkeleton ? (
-          <div className="grid gap-3 lg:grid-cols-2">
+          <div
+            className="grid gap-3 lg:grid-cols-2"
+            aria-busy="true"
+            aria-live="polite"
+          >
+            <span className="sr-only">{t("tournaments.matchScheduleLoadingRound")}</span>
             {Array.from({ length: 4 }, (_, index) => (
               <article
                 key={`round-loading-skeleton-${index}`}

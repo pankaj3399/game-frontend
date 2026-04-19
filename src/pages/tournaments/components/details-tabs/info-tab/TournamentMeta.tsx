@@ -36,7 +36,7 @@ export function TournamentMeta({ tournament, formattedDate, formattedTime, feeTe
         value={
           tournament.duration == null
             ? t("tournaments.notSpecified")
-            : `${tournament.duration} min`
+            : t("tournaments.durationMinutes", { minutes: tournament.duration })
         }
         valueClassName="capitalize"
         label={t("tournaments.matchDuration")}
@@ -47,7 +47,7 @@ export function TournamentMeta({ tournament, formattedDate, formattedTime, feeTe
         value={
           tournament.breakDuration == null
             ? t("tournaments.notSpecified")
-            : `${tournament.breakDuration} min`
+            : t("tournaments.durationMinutes", { minutes: tournament.breakDuration })
         }
         valueClassName="capitalize"
         label={t("tournaments.breakTime")}

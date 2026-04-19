@@ -30,6 +30,7 @@ export function TournamentTotalRoundsInput({
   const textRef = useRef(text);
   const valueRef = useRef(value);
   const onCommitRef = useRef(onCommit);
+  const committedRef = useRef(false);
 
   useLayoutEffect(() => {
     textRef.current = text;
@@ -38,7 +39,14 @@ export function TournamentTotalRoundsInput({
   }, [text, value, onCommit]);
 
   useEffect(() => {
+    committedRef.current = false;
+  }, [value]);
+
+  useEffect(() => {
     return () => {
+      if (committedRef.current) {
+        return;
+      }
       const next = parseCommittedTotalRounds(textRef.current);
       if (next === valueRef.current) {
         return;
@@ -64,6 +72,7 @@ export function TournamentTotalRoundsInput({
       onBlur={(e) => {
         const next = parseCommittedTotalRounds(e.currentTarget.value);
         setText(String(next));
+        committedRef.current = true;
         onCommit(next);
       }}
       className={className}

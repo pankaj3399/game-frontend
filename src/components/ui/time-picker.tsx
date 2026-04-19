@@ -235,20 +235,20 @@ export function TimePicker({
   const confirmDraft = (): boolean => {
     const rawH = hourInput.replace(/\D/g, "");
     const rawM = minuteInput.replace(/\D/g, "");
-    if (!rawH || rawM === "") {
+    if (rawH === "" || rawM === "") {
       notifyTimeConstraint(warningInvalidInputKey);
       return false;
     }
-    let h12 = Number(rawH);
-    let min = Number(rawM);
+    const h12 = Number(rawH);
+    const min = Number(rawM);
     if (Number.isNaN(h12) || Number.isNaN(min)) {
       notifyTimeConstraint(warningInvalidInputKey);
       return false;
     }
-    if (h12 < 1) h12 = 1;
-    if (h12 > 12) h12 = 12;
-    if (min < 0) min = 0;
-    if (min > 59) min = 59;
+    if (h12 < 1 || h12 > 12 || min < 0 || min > 59) {
+      notifyTimeConstraint(warningInvalidInputKey);
+      return false;
+    }
     const timeStr = formatTime(to24Hour(h12, draftMeridian), min);
     return proposeTime(timeStr);
   };
@@ -460,6 +460,12 @@ export function TimePicker({
                   flushSync(() => {
                     commitMinuteInput(raw);
                   });
+                  const ok = confirmDraft();
+                  if (ok) {
+                    handleOpenChange(false);
+                  } else {
+                    rejectAndSyncInputs();
+                  }
                 }
               }}
               className={cn(

@@ -282,6 +282,7 @@ export function TournamentDetailsPageSkeleton({ activeTab }: TournamentDetailsPa
                 <TabsTrigger
                   key={tab.value}
                   value={tab.value}
+                  disabled
                   className="h-[30px] rounded-[8px] px-2 text-[13px] font-medium text-[#010a04]/70 data-[state=active]:bg-white data-[state=active]:text-[#010a04] data-[state=active]:shadow-[0_0_4px_rgba(0,0,0,0.04),0_4px_8px_rgba(0,0,0,0.06)] sm:px-[15px] sm:text-[14px]"
                 >
                   {tab.label}
