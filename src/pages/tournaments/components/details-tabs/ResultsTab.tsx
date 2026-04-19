@@ -7,6 +7,7 @@ import { useTournamentMatches } from "@/pages/tournaments/hooks";
 import { deriveResults } from "./results-tab/deriveResults";
 import { getResultsContent } from "./results-tab/getResultsContent";
 import { ResultsHeader } from "./results-tab/ResultsHeader";
+import { ResultsTabSkeleton } from "@/pages/tournaments/components/TournamentDetailsLoadingSkeletons";
 
 interface ResultsTabProps {
   tournament: TournamentDetail;
@@ -19,19 +20,13 @@ export function ResultsTab({ tournament, currentUserId }: ResultsTabProps) {
   const matchesQuery = useTournamentMatches(tournament.id, true);
 
   if (matchesQuery.isLoading) {
-    return (
-      <TabsContent value="results" className="mt-5 sm:mt-6">
-        <div className="rounded-xl border border-[#e5e7eb] bg-white p-4 shadow-sm sm:p-6">
-          <p className="text-sm text-[#6b7280]">{t("common.loading")}</p>
-        </div>
-      </TabsContent>
-    );
+    return <ResultsTabSkeleton t={t} />;
   }
 
   if (matchesQuery.isLoadingError) {
     return (
       <TabsContent value="results" className="mt-5 sm:mt-6">
-        <div className="rounded-xl border border-[#e5e7eb] bg-white p-4 shadow-sm sm:p-6">
+        <div className="rounded-[12px] border border-[rgba(1,10,4,0.08)] bg-white px-[15px] py-5 shadow-[0_3px_15px_rgba(0,0,0,0.06)] sm:rounded-xl sm:border-[#e5e7eb] sm:px-6 sm:py-6 sm:shadow-sm">
           <p className="text-sm text-[#a02626]">
             {getErrorMessage(matchesQuery.error) ?? t("tournaments.matchesLoadError")}
           </p>
@@ -57,7 +52,7 @@ export function ResultsTab({ tournament, currentUserId }: ResultsTabProps) {
 
   return (
     <TabsContent value="results" className="mt-5 sm:mt-6">
-      <div className="rounded-xl border border-[#e5e7eb] bg-white p-4 shadow-sm sm:p-6">
+      <div className="rounded-[12px] border border-[rgba(1,10,4,0.08)] bg-white px-[15px] py-5 shadow-[0_3px_15px_rgba(0,0,0,0.06)] sm:rounded-xl sm:border-[#e5e7eb] sm:px-6 sm:py-6 sm:shadow-sm">
         <ResultsHeader
           myScoreOnly={myScoreOnly}
           onMyScoreOnlyChange={setMyScoreOnly}
