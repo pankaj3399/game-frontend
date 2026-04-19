@@ -62,9 +62,18 @@ function TournamentScheduleRoute() {
     return <Loader />;
   }
 
-  const canEdit = tournamentDetailQuery.data?.tournament.permissions?.canEdit;
-  if (!canEdit) {
+  if (tournamentDetailQuery.isError || !tournamentDetailQuery.data) {
     return <Navigate to={`/tournaments/${id}`} replace />;
+  }
+
+  const tournament = tournamentDetailQuery.data.tournament;
+  if (!tournament.permissions.canEdit) {
+    return <Navigate to={`/tournaments/${id}`} replace />;
+  }
+
+  const enrolled = tournament.participants.length;
+  if (enrolled < tournament.minMember) {
+    return <Navigate to={`/tournaments/${id}?tab=matches`} replace />;
   }
 
   return <TournamentSchedulePage />;

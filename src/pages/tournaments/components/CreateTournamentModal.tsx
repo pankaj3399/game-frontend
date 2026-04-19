@@ -106,7 +106,7 @@ export function CreateTournamentModal({
           </TabsList>
 
           <div className="min-w-0 max-w-full overflow-x-clip py-5">
-            <TabsContent value="basic">
+            <TabsContent value="basic" forceMount className="data-[state=inactive]:hidden">
               <BasicInfoTab
                 form={form}
                 clubs={clubs}
@@ -115,10 +115,10 @@ export function CreateTournamentModal({
                 formScopeKey={basicInfoFormScopeKey}
               />
             </TabsContent>
-            <TabsContent value="details">
+            <TabsContent value="details" forceMount className="data-[state=inactive]:hidden">
               <DetailsTab form={form} update={update} formScopeKey={basicInfoFormScopeKey} />
             </TabsContent>
-            <TabsContent value="sponsor">
+            <TabsContent value="sponsor" forceMount className="data-[state=inactive]:hidden">
               <SponsorTab
                 form={form}
                 sponsors={sponsors}

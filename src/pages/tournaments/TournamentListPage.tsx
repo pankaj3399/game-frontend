@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useTranslation } from "react-i18next";
@@ -33,10 +33,6 @@ const DEFAULT_PAGINATION = {
 function TournamentListContent() {
   const { t, i18n } = useTranslation();
   const [searchParams, setSearchParams] = useSearchParams();
-  const [isDesktop, setIsDesktop] = useState(() => {
-    if (typeof window === "undefined") return false;
-    return window.matchMedia("(min-width: 1024px)").matches;
-  });
   const isOrganiserOrAbove = useIsOrganiserOrAbove();
   const { user, loading: authLoading } = useAuth();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -55,33 +51,11 @@ function TournamentListContent() {
     isOrganiserOrAbove,
     userId: user?.id ?? undefined,
     isAuthLoading: authLoading,
+    viewSearchParam: searchParams.get("view"),
   });
   const { isDraftTab } = useTournamentPermissions({
     activeTab,
   });
-
-  const viewParam = searchParams.get("view");
-
-  useEffect(() => {
-    if (!isOrganiserOrAbove) return;
-    if (viewParam === "drafts") setTab(TournamentTab.Drafts);
-    else if (viewParam === "published") setTab(TournamentTab.Published);
-  }, [isOrganiserOrAbove, viewParam, setTab]);
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-
-    const media = window.matchMedia("(min-width: 1024px)");
-    const handleMediaChange = (event: MediaQueryListEvent) => {
-      setIsDesktop(event.matches);
-    };
-
-    media.addEventListener("change", handleMediaChange);
-
-    return () => {
-      media.removeEventListener("change", handleMediaChange);
-    };
-  }, []);
 
   const handleTabChange = useCallback(
     (tab: TournamentListTab) => {
@@ -162,39 +136,35 @@ function TournamentListContent() {
               </div>
             </div>
 
-            {!isDesktop ? (
-              <div className="mt-3 lg:hidden">
-                <TournamentFilters
-                  open={filtersOpen}
-                  onOpenChange={setFiltersOpen}
-                  filters={{
-                    when: filters.when,
-                    distance: filters.distance,
-                    clubId: filters.clubId,
-                  }}
-                  onFiltersChange={handleFiltersChange}
-                />
-              </div>
-            ) : null}
+            <div className="mt-3 lg:hidden">
+              <TournamentFilters
+                open={filtersOpen}
+                onOpenChange={setFiltersOpen}
+                filters={{
+                  when: filters.when,
+                  distance: filters.distance,
+                  clubId: filters.clubId,
+                }}
+                onFiltersChange={handleFiltersChange}
+              />
+            </div>
 
-            {isDesktop ? (
-              <div className="hidden flex-col gap-4 lg:flex lg:flex-row lg:items-start lg:justify-between lg:gap-6">
-                <h1 className="text-lg font-semibold leading-tight text-foreground sm:text-xl">
-                  {listHeading}
-                </h1>
-                <TournamentActions
-                  activeTab={activeTab}
-                  onTabChange={handleTabChange}
-                  filtersOpen={filtersOpen}
-                  onFiltersOpenChange={setFiltersOpen}
-                  when={filters.when}
-                  distance={filters.distance}
-                  clubId={filters.clubId}
-                  onFiltersChange={handleFiltersChange}
-                  onCreate={() => setIsCreateModalOpen(true)}
-                />
-              </div>
-            ) : null}
+            <div className="hidden flex-col gap-4 lg:flex lg:flex-row lg:items-start lg:justify-between lg:gap-6">
+              <h1 className="text-lg font-semibold leading-tight text-foreground sm:text-xl">
+                {listHeading}
+              </h1>
+              <TournamentActions
+                activeTab={activeTab}
+                onTabChange={handleTabChange}
+                filtersOpen={filtersOpen}
+                onFiltersOpenChange={setFiltersOpen}
+                when={filters.when}
+                distance={filters.distance}
+                clubId={filters.clubId}
+                onFiltersChange={handleFiltersChange}
+                onCreate={() => setIsCreateModalOpen(true)}
+              />
+            </div>
           </div>
 
           {isFetching && !isPending ? (

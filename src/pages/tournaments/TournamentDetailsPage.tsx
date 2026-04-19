@@ -1,11 +1,12 @@
-import { Link, Navigate, useParams } from "react-router-dom";
+import { Link, Navigate, useParams, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { ChevronLeft, Share2 } from "@/icons/figma-icons";
 import { Upload01Icon } from "@/icons/figma-icons";
 import { Button } from "@/components/ui/button";
-import InlineLoader from "@/components/shared/InlineLoader";
 import { useAuth } from "@/pages/auth/hooks";
+import { TournamentDetailsPageSkeleton } from "@/pages/tournaments/components/TournamentDetailsLoadingSkeletons";
 import { TournamentDetailsTabs } from "@/pages/tournaments/components/details-tabs/TournamentDetailsTabs";
+import { resolveTournamentDetailsTab } from "@/pages/tournaments/components/details-tabs/tabConfig";
 import {
   useTournamentById,
   useJoinTournament,
@@ -18,6 +19,7 @@ import { toast } from "sonner";
 export default function TournamentDetailsPage() {
   const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
+  const [searchParams] = useSearchParams();
   const { user } = useAuth();
   const joinTournament = useJoinTournament();
   const leaveTournament = useLeaveTournament();
@@ -29,9 +31,9 @@ export default function TournamentDetailsPage() {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-[50vh] items-center justify-center">
-        <InlineLoader />
-      </div>
+      <TournamentDetailsPageSkeleton
+        activeTab={resolveTournamentDetailsTab(searchParams.get("tab"), t)}
+      />
     );
   }
 
@@ -108,7 +110,7 @@ export default function TournamentDetailsPage() {
   return (
     <div className="flex min-h-[calc(100vh-4rem)] w-full flex-col items-center bg-[#f8fbf8]">
       <div className="w-full max-w-6xl px-5 pb-10 pt-7 sm:px-6 sm:pt-8 lg:px-6">
-        <div className="mb-6 flex flex-col gap-3 sm:mb-7 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mb-6 flex flex-row flex-wrap items-center justify-between gap-3 sm:mb-7">
           <Button
             asChild
             variant="ghost"
