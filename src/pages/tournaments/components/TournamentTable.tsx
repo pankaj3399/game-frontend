@@ -170,25 +170,37 @@ export function TournamentTable({
               const rowAriaLabel = t("tournaments.openTournamentRow", {
                 name: row.name,
               });
+              const desktopRowAriaLabel = row.statusLabel
+                ? t("tournaments.openTournamentRowWithStatus", {
+                    name: row.name,
+                    status: row.statusLabel,
+                  })
+                : rowAriaLabel;
+              const rowNumber =
+                (pagination.page - 1) * pagination.limit + idx + 1;
 
               return (
                 <TableRow
                   key={row.id}
-                  className="h-[45px] border-black/10 bg-card transition-colors hover:bg-black/[0.015] focus-within:bg-black/[0.02]"
+                  className="border-0 hover:bg-transparent data-[state=selected]:bg-transparent"
                 >
-                  <TableCell className="h-[45px] w-12 border-black/10 bg-card px-4 align-middle text-xs text-foreground/90">
-                    {(pagination.page - 1) * pagination.limit + idx + 1}
-                  </TableCell>
-                  <TableCell className="h-[45px] w-[42%] border-black/10 bg-card p-0 align-middle">
+                  <TableCell
+                    colSpan={4}
+                    className="h-[45px] border-b border-black/10 bg-card p-0"
+                  >
                     <Link
                       to={row.rowPath}
-                      aria-label={rowAriaLabel}
+                      aria-label={desktopRowAriaLabel}
                       className={cn(
-                        "flex h-full min-h-[45px] min-w-0 items-center px-3 py-0 text-inherit no-underline transition-colors",
+                        "grid min-h-[45px] w-full items-center text-inherit no-underline transition-colors",
+                        "grid-cols-[3rem_minmax(0,21fr)_minmax(0,19fr)_minmax(0,10fr)]",
                         "hover:bg-black/[0.015] focus-visible:bg-black/[0.02] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary/45 focus-visible:ring-inset"
                       )}
                     >
-                      <span className="flex min-w-0 items-center gap-2">
+                      <span className="flex h-full min-h-[45px] items-center px-4 text-xs text-foreground/90 tabular-nums">
+                        {rowNumber}
+                      </span>
+                      <span className="flex h-full min-h-[45px] min-w-0 items-center gap-2 px-3">
                         <span
                           className="h-[22px] w-[22px] shrink-0 rounded-[5px] bg-black/15"
                           aria-hidden="true"
@@ -196,28 +208,38 @@ export function TournamentTable({
                         <span className="truncate text-sm text-foreground">
                           {row.name}
                         </span>
+                        {row.statusLabel ? (
+                          <span
+                            role="img"
+                            className={cn(
+                              "h-2 w-2 shrink-0 rounded-full",
+                              row.statusDotClass
+                            )}
+                            aria-label={row.statusLabel}
+                          />
+                        ) : (
+                          <span
+                            className={cn(
+                              "h-2 w-2 shrink-0 rounded-full",
+                              row.statusDotClass
+                            )}
+                            aria-hidden="true"
+                          />
+                        )}
+                      </span>
+                      <span className="flex h-full min-h-[45px] min-w-0 items-center gap-2 px-3">
                         <span
-                          role="img"
-                          className={`h-2 w-2 shrink-0 rounded-full ${row.statusDotClass}`}
-                          aria-label={row.statusLabel}
-                          title={row.statusLabel}
+                          className="h-4 w-4 shrink-0 rounded-full bg-black/15"
+                          aria-hidden="true"
                         />
+                        <span className="truncate text-sm text-foreground">
+                          {row.clubName}
+                        </span>
+                      </span>
+                      <span className="flex h-full min-h-[45px] items-center px-3 text-sm text-foreground/90">
+                        {row.dateText}
                       </span>
                     </Link>
-                  </TableCell>
-                  <TableCell className="h-[45px] w-[38%] border-black/10 bg-card px-3 align-middle">
-                    <span className="flex min-w-0 items-center gap-2">
-                      <span
-                        className="h-4 w-4 shrink-0 rounded-full bg-black/15"
-                        aria-hidden="true"
-                      />
-                      <span className="truncate text-sm text-foreground">
-                        {row.clubName}
-                      </span>
-                    </span>
-                  </TableCell>
-                  <TableCell className="h-[45px] w-[20%] border-black/10 bg-card px-3 align-middle text-sm text-foreground/90">
-                    {row.dateText}
                   </TableCell>
                 </TableRow>
               );

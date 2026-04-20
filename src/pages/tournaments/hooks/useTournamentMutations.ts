@@ -7,15 +7,12 @@ import {
   createTournamentResponseSchema,
   joinTournamentResponseSchema,
   leaveTournamentResponseSchema,
-  publishTournamentPayloadSchema,
-  publishTournamentResponseSchema,
   updateTournamentResponseSchema,
   type CreateTournamentInput,
   type CreateTournamentResponse,
   type JoinTournamentResponse,
   type TournamentDetailResponse,
   type LeaveTournamentResponse,
-  type PublishTournamentPayload,
   type UpdateTournamentInput,
   type UpdateTournamentResponse,
   type TournamentParticipant,
@@ -113,13 +110,6 @@ async function updateTournament(id: string, data: UpdateTournamentInput): Promis
   return updateTournamentResponseSchema.parse(res.data);
 }
 
-async function publishTournament(id: string, data: PublishTournamentPayload = {}) {
-  const parsed = publishTournamentPayloadSchema.parse(data);
-  const payload = toBackendUpdateInput(parsed);
-  const res = await api.post(`/api/tournaments/${id}/publish`, payload);
-  return publishTournamentResponseSchema.parse(res.data);
-}
-
 async function joinTournament(id: string): Promise<JoinTournamentResponse> {
   const res = await api.post(`/api/tournaments/${id}/join`);
   return joinTournamentResponseSchema.parse(res.data);
@@ -144,17 +134,6 @@ export function useUpdateTournament() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: UpdateTournamentInput }) => updateTournament(id, data),
-    onSuccess: (_, { id }) => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.tournament.all });
-      queryClient.invalidateQueries({ queryKey: queryKeys.tournament.detail(id) });
-    },
-  });
-}
-
-export function usePublishTournament() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: ({ id, data }: { id: string; data?: PublishTournamentPayload }) => publishTournament(id, data ?? {}),
     onSuccess: (_, { id }) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.tournament.all });
       queryClient.invalidateQueries({ queryKey: queryKeys.tournament.detail(id) });

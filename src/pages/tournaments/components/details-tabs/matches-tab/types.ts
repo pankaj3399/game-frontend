@@ -1,9 +1,10 @@
-import type { MatchStatus, TournamentMatchOutcome } from "../shared/types";
+import type { TournamentMatchStatus, TournamentScheduleMode } from "@/models/tournament/types";
 
-export type { MatchStatus, TournamentMatchOutcome };
+export type MatchStatus = TournamentMatchStatus;
 
 export interface DerivedMatch {
   id: string;
+  mode: TournamentScheduleMode;
   playerA: string;
   playerB: string;
   courtName: string;
@@ -16,6 +17,8 @@ export interface DerivedMatch {
 export interface MatchCounts {
   completedCount: number;
   inProgressCount: number;
+  pendingScoreCount: number;
   scheduledCount: number;
+  cancelledCount: number;
   progressPct: number;
 }

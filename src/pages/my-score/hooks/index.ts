@@ -1,0 +1,1 @@
+export { useMyScore } from "./useMyScore";

@@ -1,12 +1,12 @@
-import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useSearchParams } from "react-router-dom";
 import type { TournamentDetail } from "@/models/tournament/types";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { InfoTab } from "./InfoTab";
 import { MatchesTab } from "./MatchesTab";
 import { ResultsTab } from "./ResultsTab";
 import { SponsorsTab } from "./SponsorsTab";
-import { getTournamentDetailsTabOptions } from "./tabConfig";
+import { getTournamentDetailsTabOptions, resolveTournamentDetailsTab } from "./tabConfig";
 
 interface TournamentDetailsTabsProps {
   tournament: TournamentDetail;
@@ -22,11 +22,22 @@ export function TournamentDetailsTabs({
   isParticipationPending,
 }: TournamentDetailsTabsProps) {
   const { t } = useTranslation();
-  const [activeTab, setActiveTab] = useState("info");
+  const [searchParams, setSearchParams] = useSearchParams();
   const tabOptions = getTournamentDetailsTabOptions(t);
+  const resolvedTab = resolveTournamentDetailsTab(searchParams.get("tab"), t);
+
+  const onTabChange = (nextTab: string) => {
+    const nextSearchParams = new URLSearchParams(searchParams);
+    if (nextTab === "info") {
+      nextSearchParams.delete("tab");
+    } else {
+      nextSearchParams.set("tab", nextTab);
+    }
+    setSearchParams(nextSearchParams, { replace: true });
+  };
 
   return (
-    <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+    <Tabs value={resolvedTab} onValueChange={onTabChange} className="w-full">
       <div className="mt-0.5 w-full border-b border-[#dddddd] pb-6 sm:mt-1 sm:pb-7">
         <TabsList
           className="grid h-auto w-full max-w-full rounded-[10px] bg-[rgba(1,10,4,0.05)] p-1 sm:inline-flex sm:w-fit"

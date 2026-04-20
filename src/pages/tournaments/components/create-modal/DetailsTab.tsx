@@ -19,13 +19,15 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { TournamentMemberCountInput } from "@/pages/tournaments/components/create-modal/TournamentMemberCountInput";
 
 interface DetailsTabProps {
   form: CreateTournamentInput;
   update: (updates: Partial<CreateTournamentInput>) => void;
+  formScopeKey: string;
 }
 
-export function DetailsTab({ form, update }: DetailsTabProps) {
+export function DetailsTab({ form, update, formScopeKey }: DetailsTabProps) {
   const { t } = useTranslation();
   const uid = useId();
   const playModeLabelId = `${uid}-play-mode-label`;
@@ -83,8 +85,10 @@ export function DetailsTab({ form, update }: DetailsTabProps) {
             {t("tournaments.matchDuration")}
           </Label>
           <Select
-            value={form.duration}
-            onValueChange={(v) => update({ duration: v })}
+            value={String(form.duration)}
+            onValueChange={(v) => {
+              update({ duration: Number.parseInt(v, 10) });
+            }}
           >
             <SelectTrigger
               id={durationTriggerId}
@@ -95,7 +99,7 @@ export function DetailsTab({ form, update }: DetailsTabProps) {
             </SelectTrigger>
             <SelectContent>
               {DURATION_OPTIONS.map((d) => (
-                <SelectItem key={d.value} value={d.value}>
+                <SelectItem key={d.value} value={String(d.value)}>
                   {t(d.labelKey)}
                 </SelectItem>
               ))}
@@ -114,8 +118,10 @@ export function DetailsTab({ form, update }: DetailsTabProps) {
             {t("tournaments.breakTime")}
           </Label>
           <Select
-            value={form.breakDuration}
-            onValueChange={(v) => update({ breakDuration: v })}
+            value={String(form.breakDuration)}
+            onValueChange={(v) => {
+              update({ breakDuration: Number.parseInt(v, 10) });
+            }}
           >
             <SelectTrigger
               id={breakTriggerId}
@@ -126,7 +132,7 @@ export function DetailsTab({ form, update }: DetailsTabProps) {
             </SelectTrigger>
             <SelectContent>
               {BREAK_OPTIONS.map((b) => (
-                <SelectItem key={b.value} value={b.value}>
+                <SelectItem key={b.value} value={String(b.value)}>
                   {t(b.labelKey)}
                 </SelectItem>
               ))}
@@ -173,23 +179,13 @@ export function DetailsTab({ form, update }: DetailsTabProps) {
           >
             {t("tournaments.minPlayers")}
           </Label>
-          <Input
+          <TournamentMemberCountInput
+            key={`${formScopeKey}-min-${form.minMember}`}
             id={minPlayersId}
-            type="number"
-            min={1}
             value={form.minMember}
-            onChange={(e) => {
-              const v = e.target.value;
-              const n = v === "" ? 1 : parseInt(v, 10);
-              const parsed = Number.isFinite(n) ? n : 1;
-              const atLeastOne = Math.max(1, parsed);
-              const validMaxRaw =
-                Number.isFinite(form.maxMember) && form.maxMember >= 1
-                  ? Math.floor(form.maxMember)
-                  : atLeastOne;
-              const validMax = Math.max(1, validMaxRaw);
-              update({ minMember: Math.min(atLeastOne, validMax) });
-            }}
+            peerValue={form.maxMember}
+            role="min"
+            onCommitPair={(next) => update(next)}
             className="h-[38px] rounded-[10px] border-[#e1e3e8] bg-[#f9fafc] px-3 text-[13px] font-normal text-[#010a04] sm:h-[46px] sm:rounded-[12px] sm:px-[15px] sm:text-[16px]"
           />
         </div>
@@ -203,22 +199,13 @@ export function DetailsTab({ form, update }: DetailsTabProps) {
           >
             {t("tournaments.maxPlayers")}
           </Label>
-          <Input
+          <TournamentMemberCountInput
+            key={`${formScopeKey}-max-${form.maxMember}`}
             id={maxPlayersId}
-            type="number"
-            min={1}
             value={form.maxMember}
-            onChange={(e) => {
-              const v = e.target.value;
-              const n = v === "" ? 1 : parseInt(v, 10);
-              const parsed = Number.isFinite(n) ? n : 1;
-              const atLeastOne = Math.max(1, parsed);
-              const safeMin = Math.max(
-                1,
-                Number.isFinite(form.minMember) ? Math.floor(form.minMember) : 1
-              );
-              update({ maxMember: Math.max(atLeastOne, safeMin) });
-            }}
+            peerValue={form.minMember}
+            role="max"
+            onCommitPair={(next) => update(next)}
             className="h-[38px] rounded-[10px] border-[#e1e3e8] bg-[#f9fafc] px-3 text-[13px] font-normal text-[#010a04] sm:h-[46px] sm:rounded-[12px] sm:px-[15px] sm:text-[16px]"
           />
         </div>

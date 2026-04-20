@@ -12,7 +12,7 @@ export function MainContentSkeleton({ className }: MainContentSkeletonProps) {
         className
       )}
     >
-      <div className="animate-pulse space-y-4">
+      <div className="animate-skeleton-soft space-y-4">
         <div className="flex items-start justify-between gap-4">
           <div className="space-y-2">
             <div className="h-6 w-52 rounded-md bg-[#edf2ed]" />

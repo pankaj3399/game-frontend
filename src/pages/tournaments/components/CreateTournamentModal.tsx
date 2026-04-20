@@ -45,6 +45,8 @@ export function CreateTournamentModal({
     update,
   } = useTournamentForm({ mode, tournamentId, open });
 
+  const basicInfoFormScopeKey = validTournamentId ?? "create";
+
   const isEditingPublishedTournament =
     isEditMode && originalTournamentStatus === "active";
 
@@ -104,18 +106,19 @@ export function CreateTournamentModal({
           </TabsList>
 
           <div className="min-w-0 max-w-full overflow-x-clip py-5">
-            <TabsContent value="basic">
+            <TabsContent value="basic" forceMount className="data-[state=inactive]:hidden">
               <BasicInfoTab
                 form={form}
                 clubs={clubs}
                 update={update}
                 allowPastDates={isEditMode}
+                formScopeKey={basicInfoFormScopeKey}
               />
             </TabsContent>
-            <TabsContent value="details">
-              <DetailsTab form={form} update={update} />
+            <TabsContent value="details" forceMount className="data-[state=inactive]:hidden">
+              <DetailsTab form={form} update={update} formScopeKey={basicInfoFormScopeKey} />
             </TabsContent>
-            <TabsContent value="sponsor">
+            <TabsContent value="sponsor" forceMount className="data-[state=inactive]:hidden">
               <SponsorTab
                 form={form}
                 sponsors={sponsors}

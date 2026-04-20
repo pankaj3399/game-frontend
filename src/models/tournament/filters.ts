@@ -3,9 +3,21 @@ import type {
   TournamentListFilters,
   TournamentWhenFilter,
 } from "./types";
-import type { TournamentTabValue } from "./tabs";
+import { TournamentTab, type TournamentTabValue } from "./tabs";
 
 export type TournamentListTab = TournamentTabValue;
+
+/** When `view` is set in the URL for organisers, it wins; otherwise `storedTab` (reducer / persistence) applies. */
+export function resolveTournamentListTabFromSearchParams(
+  isOrganiserOrAbove: boolean,
+  viewParam: string | null,
+  storedTab: TournamentListTab
+): TournamentListTab {
+  if (!isOrganiserOrAbove) return TournamentTab.Published;
+  if (viewParam === TournamentTab.Drafts) return TournamentTab.Drafts;
+  if (viewParam === TournamentTab.Published) return TournamentTab.Published;
+  return storedTab;
+}
 
 export interface TournamentListPageFilters {
   page: number;

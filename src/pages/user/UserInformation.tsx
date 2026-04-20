@@ -11,7 +11,7 @@ export default function UserInformation() {
     return null;
   }
 
-  if (isAuthenticated && isProfileComplete) return <Navigate to="/profile" replace />;
+  if (isAuthenticated && isProfileComplete) return <Navigate to="/tournaments" replace />;
   if (!isAuthenticated && !pendingToken) return <Navigate to="/login" replace />;
   return <UserInformationContent pendingToken={pendingToken} />;
 }

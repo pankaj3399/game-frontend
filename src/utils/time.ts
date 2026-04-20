@@ -1,4 +1,7 @@
-export function formatTimeTo12Hour(time: string | null | undefined): string | null {
+export function formatTimeTo12Hour(
+  time: string | null | undefined,
+  locale?: string
+): string | null {
   if (!time) return null;
 
   const normalized = time.trim();
@@ -14,10 +17,12 @@ export function formatTimeTo12Hour(time: string | null | undefined): string | nu
     return normalized;
   }
 
-  const period = hours >= 12 ? "PM" : "AM";
-  const displayHour = hours % 12 || 12;
-
-  return `${displayHour}:${minutes} ${period}`;
+  const date = new Date(Date.UTC(2000, 0, 1, hours, Number(minutes)));
+  return new Intl.DateTimeFormat(locale ?? "en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+    timeZone: "UTC",
+  }).format(date);
 }
 
 export function normalizeTimeTo24Hour(value: string | null | undefined): string | null {
@@ -96,4 +101,43 @@ export function isMinutesWithinTimeBounds(m: number, bounds: TimeBoundsMinutes):
 export function hasNonEmptyTimeBounds(bounds: TimeBoundsMinutes): boolean {
   if (bounds.minMinutes === null || bounds.maxMinutes === null) return true;
   return bounds.minMinutes <= bounds.maxMinutes;
+}
+
+/**
+ * Inclusive min/max for match schedule start time from a tournament's single-day window.
+ * Omits bounds when values are missing or when start is after end (invalid range).
+ */
+export function resolveTournamentScheduleTimeBounds(
+  tournamentStart: string | null | undefined,
+  tournamentEnd: string | null | undefined
+): { minTime?: string; maxTime?: string } {
+  const minNorm = normalizeTimeTo24Hour(tournamentStart);
+  const maxNorm = normalizeTimeTo24Hour(tournamentEnd);
+  const minM = minNorm != null ? time24ToMinutes(minNorm) : null;
+  const maxM = maxNorm != null ? time24ToMinutes(maxNorm) : null;
+  if (minM !== null && maxM !== null && minM > maxM) {
+    return {};
+  }
+  const out: { minTime?: string; maxTime?: string } = {};
+  if (minNorm != null) out.minTime = minNorm;
+  if (maxNorm != null) out.maxTime = maxNorm;
+  return out;
+}
+
+/** Clamps HH:MM into an inclusive window; missing min/max are ignored. */
+export function clampTime24ToBounds(
+  time: string,
+  bounds: { minTime?: string | null; maxTime?: string | null }
+): string {
+  const t = time24ToMinutes(time);
+  if (t === null) return time;
+  const minM = bounds.minTime != null ? time24ToMinutes(bounds.minTime) : null;
+  const maxM = bounds.maxTime != null ? time24ToMinutes(bounds.maxTime) : null;
+  if (minM !== null && maxM !== null && minM > maxM) {
+    return minutesToTime24(t);
+  }
+  let c = t;
+  if (minM !== null) c = Math.max(c, minM);
+  if (maxM !== null) c = Math.min(c, maxM);
+  return minutesToTime24(c);
 }

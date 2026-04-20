@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useMemo, useState } from "react";
+import { flushSync } from "react-dom";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { Clock } from "@/icons/figma-icons";
@@ -57,6 +58,10 @@ interface TimePickerProps {
   id?: string;
   "aria-labelledby"?: string;
   "aria-describedby"?: string;
+  /** When false, hides Clear so the value cannot be emptied (e.g. required API fields). Default true. */
+  allowClear?: boolean;
+  /** Merged onto the trigger button after default styles (e.g. match a {@link SelectTrigger} on the same row). */
+  triggerClassName?: string;
 }
 
 type Meridian = "AM" | "PM";
@@ -85,6 +90,8 @@ export function TimePicker({
   id,
   "aria-labelledby": ariaLabelledBy,
   "aria-describedby": ariaDescribedBy,
+  allowClear = true,
+  triggerClassName,
 }: TimePickerProps) {
   const { t } = useTranslation();
 
@@ -106,9 +113,16 @@ export function TimePicker({
   const warningOutOfBoundsKey = warningKeys?.outOfBounds ?? "timepicker.outOfBounds";
 
   const [open, setOpen] = useState(false);
-  const triggerRef = useRef<HTMLButtonElement | null>(null);
-  const hourInputRef = useRef<HTMLInputElement | null>(null);
-  const minuteInputRef = useRef<HTMLInputElement | null>(null);
+  /** 12h AM/PM while the popover is open; committed only on Done (with validation). */
+  const [draftMeridian, setDraftMeridian] = useState<Meridian>("AM");
+  const hourFieldId = useId();
+  const minuteFieldId = useId();
+
+  const focusMinuteField = useCallback(() => {
+    requestAnimationFrame(() => {
+      document.getElementById(minuteFieldId)?.focus();
+    });
+  }, [minuteFieldId]);
 
   let parsedValue: { hour: number; minute: number } | null = null;
   if (value) {
@@ -147,7 +161,8 @@ export function TimePicker({
   const rejectAndSyncInputs = useCallback(() => {
     setHourInput(String(selectedHour).padStart(2, "0"));
     setMinuteInput(String(selectedMinute).padStart(2, "0"));
-  }, [selectedHour, selectedMinute]);
+    setDraftMeridian(selectedMeridian);
+  }, [selectedHour, selectedMinute, selectedMeridian]);
 
   /** Sync hour/minute text inputs to a proposed total-minutes value (12h display). */
   const syncInputsToTotalMinutes = useCallback((totalMinutes: number) => {
@@ -167,10 +182,12 @@ export function TimePicker({
     });
   }, [t]);
 
+  /** Validates bounds / step window and writes to the parent — used for Clear and Done only. */
   const proposeTime = (next: string | null): boolean => {
     if (next === null) {
       onChange(null);
       syncInputsToTotalMinutes(0);
+      setDraftMeridian("AM");
       return true;
     }
     const m = time24ToMinutes(next);
@@ -188,109 +205,117 @@ export function TimePicker({
     }
     onChange(minutesToTime24(m));
     syncInputsToTotalMinutes(m);
+    setDraftMeridian(m >= 12 * 60 ? "PM" : "AM");
     return true;
   };
 
-  const setHour = (hour: number) => {
-    const ok = proposeTime(formatTime(to24Hour(hour, selectedMeridian), selectedMinute));
-    if (!ok) rejectAndSyncInputs();
-    return ok;
-  };
-  const setMinute = (minute: number) => {
-    const ok = proposeTime(formatTime(selectedHour24, minute));
-    if (!ok) rejectAndSyncInputs();
-    return ok;
-  };
-  const setMeridian = (meridian: Meridian) => {
-    const ok = proposeTime(formatTime(to24Hour(selectedHour, meridian), selectedMinute));
-    if (!ok) rejectAndSyncInputs();
-    return ok;
-  };
-
+  /** Fills draft fields from “now”, clamped into the allowed window when possible (commit on Done). */
   const setNow = () => {
     if (!hasSelectableTime) {
-      rejectAndSyncInputs();
+      notifyTimeConstraint(warningNoAvailableSlotsKey);
       return;
     }
 
     const now = new Date();
-    const minute = Math.floor(now.getMinutes() / stepMinutes) * stepMinutes;
+    const effectiveStep = Math.max(1, stepMinutes);
+    const minute = Math.floor(now.getMinutes() / effectiveStep) * effectiveStep;
     let m = now.getHours() * 60 + minute;
     if (!isMinutesWithinTimeBounds(m, bounds)) {
       if (bounds.minMinutes !== null && m < bounds.minMinutes) m = bounds.minMinutes;
       else if (bounds.maxMinutes !== null && m > bounds.maxMinutes) m = bounds.maxMinutes;
       if (!isMinutesWithinTimeBounds(m, bounds)) {
-        rejectAndSyncInputs();
+        notifyTimeConstraint(warningOutOfBoundsKey);
         return;
       }
     }
-    const ok = proposeTime(minutesToTime24(m));
-    if (!ok) rejectAndSyncInputs();
+    syncInputsToTotalMinutes(m);
+    setDraftMeridian(m >= 12 * 60 ? "PM" : "AM");
+  };
+
+  const confirmDraft = (): boolean => {
+    const rawH = hourInput.replace(/\D/g, "");
+    const rawM = minuteInput.replace(/\D/g, "");
+    if (rawH === "" || rawM === "") {
+      notifyTimeConstraint(warningInvalidInputKey);
+      return false;
+    }
+    const h12 = Number(rawH);
+    const min = Number(rawM);
+    if (Number.isNaN(h12) || Number.isNaN(min)) {
+      notifyTimeConstraint(warningInvalidInputKey);
+      return false;
+    }
+    if (h12 < 1 || h12 > 12 || min < 0 || min > 59) {
+      notifyTimeConstraint(warningInvalidInputKey);
+      return false;
+    }
+    const timeStr = formatTime(to24Hour(h12, draftMeridian), min);
+    return proposeTime(timeStr);
   };
 
   useEffect(() => {
     if (!open) return;
-    // Defer focus until after popover content has mounted
-    const id = window.setTimeout(() => {
-      if (hourInputRef.current) {
-        hourInputRef.current.focus();
-        hourInputRef.current.select();
+    const frame = requestAnimationFrame(() => {
+      const el = document.getElementById(hourFieldId);
+      if (el instanceof HTMLInputElement) {
+        el.focus();
+        el.select();
       }
-    }, 0);
-    return () => window.clearTimeout(id);
-  }, [open]);
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [open, hourFieldId]);
 
   const handleOpenChange = (nextOpen: boolean) => {
     if (nextOpen) {
       setHourInput(hourDisplay);
       setMinuteInput(minuteDisplay);
+      setDraftMeridian(selectedMeridian);
     }
     setOpen(nextOpen);
   };
 
+  /** Draft hour: pad only when 1–12; empty/invalid stays for confirmDraft to reject. */
   const commitHourInput = (raw: string) => {
-    if (!raw) {
-      setHourInput(hourDisplay);
+    if (raw === "") {
+      setHourInput("");
       return;
     }
-    let next = Number(raw);
-    if (Number.isNaN(next)) {
-      setHourInput(hourDisplay);
+    const next = Number(raw);
+    if (Number.isNaN(next) || next < 1 || next > 12) {
+      setHourInput(raw);
       return;
     }
-    if (next < 1) next = 1;
-    if (next > 12) next = 12;
-    if (!setHour(next)) return;
     setHourInput(String(next).padStart(2, "0"));
   };
 
+  /** Draft minute: pad only when 0–59; empty/invalid stays for confirmDraft to reject. */
   const commitMinuteInput = (raw: string) => {
-    if (!raw) {
-      setMinuteInput(minuteDisplay);
+    if (raw === "") {
+      setMinuteInput("");
       return;
     }
-    let next = Number(raw);
-    if (Number.isNaN(next)) {
-      setMinuteInput(minuteDisplay);
+    const next = Number(raw);
+    if (Number.isNaN(next) || next < 0 || next > 59) {
+      setMinuteInput(raw);
       return;
     }
-    if (next < 0) next = 0;
-    if (next > 59) next = 59;
-    if (!setMinute(next)) return;
     setMinuteInput(String(next).padStart(2, "0"));
   };
 
   const nudgeHour = (delta: 1 | -1) => {
-    const current = selectedHour;
+    let current = Number.parseInt(hourInput.replace(/\D/g, ""), 10);
+    if (Number.isNaN(current) || current < 1 || current > 12) {
+      current = selectedHour;
+    }
     const wrapped = current + delta < 1 ? 12 : current + delta > 12 ? 1 : current + delta;
-    if (!setHour(wrapped)) return;
     setHourInput(String(wrapped).padStart(2, "0"));
   };
 
   const nudgeMinute = (delta: 1 | -1) => {
     const increment = Math.max(1, stepMinutes);
-    const next = (selectedMinute + delta * increment + 60) % 60;
-    if (!setMinute(next)) return;
+    const sm = Number.parseInt(minuteInput.replace(/\D/g, ""), 10);
+    const base = Number.isNaN(sm) ? selectedMinute : sm;
+    const next = (base + delta * increment + 60) % 60;
     setMinuteInput(String(next).padStart(2, "0"));
   };
 
@@ -298,7 +323,6 @@ export function TimePicker({
     <Popover open={open} onOpenChange={handleOpenChange}>
       <PopoverTrigger asChild>
         <Button
-          ref={triggerRef}
           id={id}
           type="button"
           variant="outline"
@@ -306,11 +330,12 @@ export function TimePicker({
           aria-labelledby={ariaLabelledBy}
           aria-describedby={ariaDescribedBy}
           className={cn(
-            "h-[38px] w-full min-w-0 max-w-full justify-between overflow-hidden rounded-[10px] border-[#e1e3e8] bg-[#f9fafc] px-3 text-left text-[13px] font-normal text-[#010a04] sm:h-[46px] sm:rounded-[12px] sm:px-[15px] sm:text-[14px]",
-            !formatted && "text-[#010a04]/50"
+            "h-[38px] w-full min-w-0 max-w-full justify-between gap-2 overflow-hidden rounded-[10px] border border-[#e1e3e8] bg-[#f9fafc] px-3 py-0 text-left text-[13px] font-normal leading-normal text-[#010a04] shadow-none hover:bg-[#f9fafc] sm:h-[46px] sm:rounded-[12px] sm:px-[15px] sm:text-[14px]",
+            !formatted && "text-[#010a04]/50",
+            triggerClassName
           )}
         >
-          <span className="min-w-0 truncate">{formatted || effectivePlaceholder}</span>
+          <span className="min-w-0 truncate leading-normal">{formatted || effectivePlaceholder}</span>
           <Clock className="h-4 w-4 shrink-0 text-[#010a04]/65 sm:h-5 sm:w-5" />
         </Button>
       </PopoverTrigger>
@@ -327,13 +352,13 @@ export function TimePicker({
             <p className="text-[11px] font-medium uppercase tracking-wide text-[#6b7280]">{effectiveTitle}</p>
             <div className="inline-flex h-8 rounded-lg border border-[#d1d5db] bg-[#f3f4f6] p-0.5">
               {(["AM", "PM"] as const).map((meridian) => {
-                const isActive = meridian === selectedMeridian;
+                const isActive = meridian === draftMeridian;
                 return (
                   <button
                     key={meridian}
                     type="button"
                     aria-pressed={isActive}
-                    onClick={() => setMeridian(meridian)}
+                    onClick={() => setDraftMeridian(meridian)}
                     className={cn(
                       "min-w-[56px] rounded-md px-3 text-[12px] font-medium transition-colors",
                       isActive
@@ -350,22 +375,29 @@ export function TimePicker({
 
           <div className="flex items-center justify-center gap-2">
             <Input
-              ref={hourInputRef}
+              id={hourFieldId}
               type="text"
               inputMode="numeric"
+              autoComplete="off"
               aria-label={effectiveHourLabel}
               maxLength={2}
               value={hourInput}
               onChange={(event) => {
                 const raw = event.target.value.replace(/\D/g, "").slice(0, 2);
-                setHourInput(raw);
                 if (raw.length === 2) {
-                  commitHourInput(raw);
-                  minuteInputRef.current?.focus();
+                  flushSync(() => {
+                    commitHourInput(raw);
+                  });
+                  focusMinuteField();
+                } else {
+                  setHourInput(raw);
                 }
               }}
               onFocus={(event) => event.currentTarget.select()}
-              onBlur={() => commitHourInput(hourInput)}
+              onBlur={(event) => {
+                const raw = event.currentTarget.value.replace(/\D/g, "").slice(0, 2);
+                commitHourInput(raw);
+              }}
               onKeyDown={(event) => {
                 if (event.key === "ArrowUp") {
                   event.preventDefault();
@@ -377,8 +409,11 @@ export function TimePicker({
                 }
                 if (event.key === "Enter") {
                   event.preventDefault();
-                  commitHourInput(hourInput);
-                  minuteInputRef.current?.focus();
+                  const raw = event.currentTarget.value.replace(/\D/g, "").slice(0, 2);
+                  flushSync(() => {
+                    commitHourInput(raw);
+                  });
+                  focusMinuteField();
                 }
               }}
               className={cn(
@@ -388,19 +423,28 @@ export function TimePicker({
             />
             <span className="pb-1 text-[28px] font-semibold text-[#6b7280]">:</span>
             <Input
-              ref={minuteInputRef}
+              id={minuteFieldId}
               type="text"
               inputMode="numeric"
+              autoComplete="off"
               aria-label={effectiveMinuteLabel}
               maxLength={2}
               value={minuteInput}
               onChange={(event) => {
                 const raw = event.target.value.replace(/\D/g, "").slice(0, 2);
-                setMinuteInput(raw);
-                if (raw.length === 2) commitMinuteInput(raw);
+                if (raw.length === 2) {
+                  flushSync(() => {
+                    commitMinuteInput(raw);
+                  });
+                } else {
+                  setMinuteInput(raw);
+                }
               }}
               onFocus={(event) => event.currentTarget.select()}
-              onBlur={() => commitMinuteInput(minuteInput)}
+              onBlur={(event) => {
+                const raw = event.currentTarget.value.replace(/\D/g, "").slice(0, 2);
+                commitMinuteInput(raw);
+              }}
               onKeyDown={(event) => {
                 if (event.key === "ArrowUp") {
                   event.preventDefault();
@@ -412,7 +456,16 @@ export function TimePicker({
                 }
                 if (event.key === "Enter") {
                   event.preventDefault();
-                  commitMinuteInput(minuteInput);
+                  const raw = event.currentTarget.value.replace(/\D/g, "").slice(0, 2);
+                  flushSync(() => {
+                    commitMinuteInput(raw);
+                  });
+                  const ok = confirmDraft();
+                  if (ok) {
+                    handleOpenChange(false);
+                  } else {
+                    rejectAndSyncInputs();
+                  }
                 }
               }}
               className={cn(
@@ -424,17 +477,19 @@ export function TimePicker({
         </div>
 
         <div className="flex items-center gap-2 border-t border-[#e5e7eb] p-3">
-          <Button
-            type="button"
-            variant="outline"
-            className="h-8 flex-1 rounded-md text-[12px]"
-            onClick={() => {
-              const ok = proposeTime(null);
-              if (!ok) rejectAndSyncInputs();
-            }}
-          >
-            {effectiveClearLabel}
-          </Button>
+          {allowClear ? (
+            <Button
+              type="button"
+              variant="outline"
+              className="h-8 flex-1 rounded-md text-[12px]"
+              onClick={() => {
+                const ok = proposeTime(null);
+                if (!ok) rejectAndSyncInputs();
+              }}
+            >
+              {effectiveClearLabel}
+            </Button>
+          ) : null}
           <Button
             type="button"
             variant="outline"
@@ -446,7 +501,14 @@ export function TimePicker({
           <Button
             type="button"
             className="h-8 flex-1 rounded-md bg-[#0a9f43] text-[12px] text-white hover:bg-[#088a3a]"
-            onClick={() => handleOpenChange(false)}
+            onClick={() => {
+              const ok = confirmDraft();
+              if (ok) {
+                handleOpenChange(false);
+              } else {
+                rejectAndSyncInputs();
+              }
+            }}
           >
             {effectiveConfirmLabel}
           </Button>
