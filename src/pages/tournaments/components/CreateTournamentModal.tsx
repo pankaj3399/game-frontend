@@ -63,8 +63,6 @@ export function CreateTournamentModal({
       validTournamentId,
       onOpenChange,
       t,
-      draftValidationError,
-      publishValidationError,
     });
 
   if (isEditMode && isTournamentLoading) {
