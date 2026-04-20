@@ -90,11 +90,20 @@ export const tournamentPermissionsSchema = z.object({
 export const tournamentMatchStatusSchema = z.enum(["completed", "inProgress", "pendingScore", "scheduled", "cancelled"]);
 export const tournamentScheduleModeSchema = z.enum(["singles", "doubles"]);
 
-export const tournamentMatchPlayerSchema = tournamentParticipantSchema.pick({
-  id: true,
-  name: true,
-  alias: true,
-});
+export const tournamentMatchPlayerSchema = tournamentParticipantSchema
+  .pick({
+    id: true,
+    name: true,
+    alias: true,
+  })
+  .extend({
+    elo: wireJsonNullable(
+      z.object({
+        rating: wireJsonNullableNumber(),
+        rd: wireJsonNullableNumber(),
+      })
+    ),
+  });
 
 export const tournamentMatchSideSchema = z.tuple([
   tournamentMatchPlayerSchema.nullable(),
