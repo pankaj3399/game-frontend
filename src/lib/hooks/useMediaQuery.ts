@@ -50,9 +50,32 @@ export function useMediaQuery(query: string, options?: UseMediaQueryOptions): bo
  * `useMediaQuery(\`(min-width: ${minWidthPx}px)\`)` with a memoized query string.
  */
 export function useMinWidth(minWidthPx: number, options?: UseMediaQueryOptions): boolean {
-  const query = useMemo(
-    () => `(min-width: ${Number.isFinite(minWidthPx) ? minWidthPx : 0}px)`,
-    [minWidthPx]
-  );
-  return useMediaQuery(query, options);
+  const normalizedMinWidth = useMemo(() => {
+    if (!Number.isFinite(minWidthPx)) {
+      if (import.meta.env.DEV) {
+        console.warn("[useMinWidth] Expected a finite minWidthPx value.", { minWidthPx });
+      }
+      return null;
+    }
+    if (minWidthPx < 0) {
+      if (import.meta.env.DEV) {
+        console.warn("[useMinWidth] Negative minWidthPx clamped to 0.", { minWidthPx });
+      }
+      return 0;
+    }
+    return minWidthPx;
+  }, [minWidthPx]);
+
+  const query = useMemo(() => {
+    if (normalizedMinWidth === null) {
+      return null;
+    }
+    return `(min-width: ${normalizedMinWidth}px)`;
+  }, [normalizedMinWidth]);
+
+  const matches = useMediaQuery(query ?? "(min-width: 0px)", options);
+  if (query === null) {
+    return false;
+  }
+  return matches;
 }

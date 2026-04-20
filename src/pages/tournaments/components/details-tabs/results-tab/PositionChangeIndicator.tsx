@@ -14,9 +14,14 @@ export function PositionChangeIndicator({
   iconClassName,
   zeroLabel = "0",
 }: PositionChangeIndicatorProps) {
+  const signedLabel = change > 0 ? `+${change}` : change < 0 ? `${change}` : zeroLabel;
+
   if (change > 0) {
     return (
-      <span className={cn("inline-flex items-center gap-0.5 text-sm font-medium text-[#15803d]", className)}>
+      <span
+        aria-label={signedLabel}
+        className={cn("inline-flex items-center gap-0.5 text-sm font-medium text-[#15803d]", className)}
+      >
         <ChevronUp className={cn("size-4", iconClassName)} aria-hidden />
         {change}
       </span>
@@ -25,7 +30,10 @@ export function PositionChangeIndicator({
 
   if (change < 0) {
     return (
-      <span className={cn("inline-flex items-center gap-0.5 text-sm font-medium text-[#dc2626]", className)}>
+      <span
+        aria-label={signedLabel}
+        className={cn("inline-flex items-center gap-0.5 text-sm font-medium text-[#dc2626]", className)}
+      >
         <ChevronDown className={cn("size-4", iconClassName)} aria-hidden />
         {Math.abs(change)}
       </span>
@@ -33,7 +41,10 @@ export function PositionChangeIndicator({
   }
 
   return (
-    <span className={cn("inline-flex items-center gap-0.5 text-sm text-[#6a6a6a]", className)}>
+    <span
+      aria-label={signedLabel}
+      className={cn("inline-flex items-center gap-0.5 text-sm text-[#6a6a6a]", className)}
+    >
       <Minus className={cn("size-4", iconClassName)} aria-hidden />
       {zeroLabel}
     </span>

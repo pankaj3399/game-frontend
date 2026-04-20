@@ -48,11 +48,11 @@ export function TournamentTotalRoundsInput({
       return;
     }
     const next = parseCommittedTotalRounds(nextText);
-    committedRef.current = true;
     setText(String(next));
     if (next === valueRef.current) {
       return;
     }
+    committedRef.current = true;
     onCommitRef.current(next);
   };
 
@@ -74,9 +74,11 @@ export function TournamentTotalRoundsInput({
       aria-labelledby={ariaLabelledBy}
       value={text}
       onFocus={() => {
+        committedRef.current = false;
         setText(String(value));
       }}
       onChange={(e) => {
+        committedRef.current = false;
         setText(takeDigits(e.target.value));
       }}
       onBlur={(e) => {

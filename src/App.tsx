@@ -76,7 +76,21 @@ function TournamentScheduleRoute() {
 
   const enrolled = tournament.participants.length;
   if (enrolled < tournament.minMember) {
-    return <Navigate to={`/tournaments/${id}?tab=matches`} replace />;
+    return (
+      <Navigate
+        to={`/tournaments/${id}?tab=matches`}
+        replace
+        state={{
+          toast: {
+            key: "tournaments.scheduleMinPlayersNotMet",
+            values: {
+              min: tournament.minMember,
+              current: enrolled,
+            },
+          },
+        }}
+      />
+    );
   }
 
   return <TournamentSchedulePage />;

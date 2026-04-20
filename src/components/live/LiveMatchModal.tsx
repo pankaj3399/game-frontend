@@ -35,7 +35,7 @@ function formatMatchTime(startTime: string | null, language: string, fallback: s
     return fallback;
   }
 
-  return format(parsed, "EEE, MMM d · h:mm a", {
+  return format(parsed, "EEE, MMM d · HH:mm", {
     locale: getDateFnsLocale(language),
   });
 }
@@ -83,6 +83,7 @@ function LiveMatchEnterScoreButton({ enterScoreLabel }: { enterScoreLabel: strin
   return (
     <Button
       type="button"
+      // TODO(GAME-582): Restore real score-entry flow from the live modal instead of this temporary stub.
       onClick={() =>
         toast.info(t("common.comingSoon"), {
           id: "live-match-enter-score",

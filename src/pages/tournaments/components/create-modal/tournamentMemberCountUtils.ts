@@ -46,12 +46,6 @@ export function applyTournamentMemberCountCommit(
       ? { minMember: self, maxMember: peerValue }
       : { minMember: peerValue, maxMember: self };
 
-  if (raw.minMember > raw.maxMember) {
-    const pair = normalizeTournamentMemberPair(raw.minMember, raw.maxMember);
-    onCommitPair(pair);
-    return String(role === "min" ? pair.minMember : pair.maxMember);
-  }
-
   const pair = normalizeTournamentMemberPair(raw.minMember, raw.maxMember);
   onCommitPair(pair);
   return String(role === "min" ? pair.minMember : pair.maxMember);

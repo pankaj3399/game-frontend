@@ -1,8 +1,9 @@
+import { useEffect } from "react";
 import type { TFunction } from "i18next";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 interface MatchesActionsProps {
   t: TFunction;
@@ -26,6 +27,25 @@ export function MatchesActions({
   enrolledParticipantCount,
 }: MatchesActionsProps) {
   const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    const stateToast = (location.state as {
+      toast?: {
+        key?: string;
+        values?: Record<string, string | number>;
+      };
+    } | null)?.toast;
+
+    if (!stateToast?.key) {
+      return;
+    }
+
+    toast.warning(t(stateToast.key, stateToast.values), {
+      id: "tournaments-schedule-min-players",
+    });
+    navigate(`${location.pathname}${location.search}`, { replace: true, state: null });
+  }, [location.pathname, location.search, location.state, navigate, t]);
 
   if (!hasGeneratedSchedule && !canEdit) {
     return null;
