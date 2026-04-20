@@ -3,6 +3,7 @@ import type { TournamentScheduleMatch } from "@/models/tournament/types";
 import { teamSideDisplayName } from "@/pages/tournaments/schedule/utils/matchTeamDisplay";
 import { formatDateOrFallback } from "@/utils/date";
 import { formatTimeTo12Hour } from "@/utils/time";
+import { withBracketedElo } from "./ratingSummary";
 import type { DerivedMatch, MatchCounts, MatchStatus } from "./types";
 
 /** True when the string is not date-only (avoids local-midnight drift from parsing a calendar date as UTC midnight). */
@@ -93,11 +94,22 @@ export function deriveMatches(
       court.id?.trim() ||
       t("tournaments.courtTBD");
 
+    const playerA = teamSideDisplayName(match, 0, t);
+    const playerB = teamSideDisplayName(match, 1, t);
+
     pairs.push({
       id: match.id,
       mode: match.mode ?? "singles",
-      playerA: teamSideDisplayName(match, 0, t),
-      playerB: teamSideDisplayName(match, 1, t),
+      playerA: withBracketedElo(
+        playerA,
+        match.side1,
+        (rating) => `(${t("tournaments.matchRatingElo", { value: rating })})`
+      ),
+      playerB: withBracketedElo(
+        playerB,
+        match.side2,
+        (rating) => `(${t("tournaments.matchRatingElo", { value: rating })})`
+      ),
       courtName,
       status: match.status,
       round: match.round,

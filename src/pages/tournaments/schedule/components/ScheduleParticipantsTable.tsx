@@ -75,6 +75,12 @@ function participantToneClass(participant: ScheduleParticipantRow): string {
   return AVATAR_TONES[seed % AVATAR_TONES.length] ?? AVATAR_TONES[0];
 }
 
+function glickoSkillLevel(participant: ScheduleParticipantRow) {
+  const rating = Number.isFinite(participant.rating) ? Math.round(participant.rating) : 1500;
+  const rd = Number.isFinite(participant.rd ?? Number.NaN) ? Math.round(participant.rd as number) : 200;
+  return `${rating}±${rd}`;
+}
+
 interface DoublesPlayerChipProps {
   player: TournamentSchedulePairPlayer;
   fallbackName: string;
@@ -244,7 +250,7 @@ export function ScheduleParticipantsTable({
               <div className="min-w-0">
                 <p className="truncate text-[14px] font-medium text-[#010a04]">{displayName}</p>
                 <div className="mt-0.5 flex items-center gap-2 text-[12px]">
-                  <span className="truncate text-[#010a04]/60">{participant.skillLabel}</span>
+                  <span className="truncate text-[#010a04]/60">{glickoSkillLevel(participant)}</span>
                   <span className="text-[#010a04]/25">•</span>
                   <button
                     type="button"
@@ -332,7 +338,7 @@ export function ScheduleParticipantsTable({
                     </span>
                   </div>
                 </TableCell>
-                <TableCell className="text-[14px] text-[#010a04]/85">{participant.skillLabel}</TableCell>
+                <TableCell className="text-[14px] text-[#010a04]/85">{glickoSkillLevel(participant)}</TableCell>
                 <TableCell>
                   <div className="flex items-center gap-1">
                     <Button

@@ -10,6 +10,7 @@ import { MatchCardReadOnlyRows } from "@/pages/tournaments/schedule/components/M
 import { matchScheduleDateTimeLabels } from "@/pages/tournaments/schedule/utils/matchScheduleLabels";
 import { scoreColumns, type ScoreColumn } from "@/pages/tournaments/schedule/utils/matchScheduleScore";
 import { teamSideDisplayName } from "@/pages/tournaments/schedule/utils/matchTeamDisplay";
+import { withBracketedElo } from "./ratingSummary";
 
 const AVATAR_TONES = [
   "from-[#f7d4bf] to-[#efb598]",
@@ -90,8 +91,18 @@ function PlayerMatchCard({
   t: TFunction;
 }) {
   const unknown = t("tournaments.unknownPlayer");
-  const teamOne = teamSideDisplayName(match, 0, t) || unknown;
-  const teamTwo = teamSideDisplayName(match, 1, t) || unknown;
+  const teamOneBase = teamSideDisplayName(match, 0, t) || unknown;
+  const teamTwoBase = teamSideDisplayName(match, 1, t) || unknown;
+  const teamOne = withBracketedElo(
+    teamOneBase,
+    match.side1,
+    (rating) => `(${t("tournaments.matchRatingElo", { value: rating })})`
+  );
+  const teamTwo = withBracketedElo(
+    teamTwoBase,
+    match.side2,
+    (rating) => `(${t("tournaments.matchRatingElo", { value: rating })})`
+  );
   const toneIndex = hashSeed(match.id) % AVATAR_TONES.length;
   const tone = AVATAR_TONES[toneIndex]!;
   const locale = getDateFnsLocale(language) ?? enUS;
