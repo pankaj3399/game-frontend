@@ -93,8 +93,16 @@ function PlayerMatchCard({
   const unknown = t("tournaments.unknownPlayer");
   const teamOneBase = teamSideDisplayName(match, 0, t) || unknown;
   const teamTwoBase = teamSideDisplayName(match, 1, t) || unknown;
-  const teamOne = withBracketedElo(teamOneBase, match.side1);
-  const teamTwo = withBracketedElo(teamTwoBase, match.side2);
+  const teamOne = withBracketedElo(
+    teamOneBase,
+    match.side1,
+    (rating) => `(${t("tournaments.matchRatingElo", { value: rating })})`
+  );
+  const teamTwo = withBracketedElo(
+    teamTwoBase,
+    match.side2,
+    (rating) => `(${t("tournaments.matchRatingElo", { value: rating })})`
+  );
   const toneIndex = hashSeed(match.id) % AVATAR_TONES.length;
   const tone = AVATAR_TONES[toneIndex]!;
   const locale = getDateFnsLocale(language) ?? enUS;

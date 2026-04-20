@@ -225,6 +225,7 @@ export const tournamentScheduleParticipantSchema = z.object({
   alias: wireJsonNullableString(),
   skillLabel: z.string(),
   rating: z.number(),
+  rd: z.number().optional(),
   order: z.number().int().min(1),
 });
 

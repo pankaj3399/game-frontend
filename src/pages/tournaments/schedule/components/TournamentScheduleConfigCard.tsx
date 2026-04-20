@@ -185,6 +185,7 @@ export function TournamentScheduleConfigCard({
               <button
                 key={court.id}
                 type="button"
+                aria-pressed={selected}
                 onClick={() => onToggleCourt(court.id)}
                 className={`h-[38px] rounded-[8px] border px-3 text-[14px] font-medium transition-colors ${
                   selected

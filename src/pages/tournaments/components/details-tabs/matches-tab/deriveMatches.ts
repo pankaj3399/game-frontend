@@ -100,8 +100,16 @@ export function deriveMatches(
     pairs.push({
       id: match.id,
       mode: match.mode ?? "singles",
-      playerA: withBracketedElo(playerA, match.side1),
-      playerB: withBracketedElo(playerB, match.side2),
+      playerA: withBracketedElo(
+        playerA,
+        match.side1,
+        (rating) => `(${t("tournaments.matchRatingElo", { value: rating })})`
+      ),
+      playerB: withBracketedElo(
+        playerB,
+        match.side2,
+        (rating) => `(${t("tournaments.matchRatingElo", { value: rating })})`
+      ),
       courtName,
       status: match.status,
       round: match.round,
