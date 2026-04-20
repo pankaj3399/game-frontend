@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Input } from "@/components/ui/input";
 import {
-  normalizeTournamentMemberPair,
+  applyTournamentMemberCountCommit,
   parseCommittedMemberCount,
   takeDigits,
 } from "@/pages/tournaments/components/create-modal/tournamentMemberCountUtils";
@@ -33,6 +33,48 @@ export function TournamentMemberCountInput({
   className,
 }: TournamentMemberCountInputProps) {
   const [text, setText] = useState(() => String(value));
+  const textRef = useRef(text);
+  const valueRef = useRef(value);
+  const peerValueRef = useRef(peerValue);
+  const roleRef = useRef(role);
+  const onCommitPairRef = useRef(onCommitPair);
+  const committedRef = useRef(false);
+  const editedAfterSyncRef = useRef(false);
+
+  useLayoutEffect(() => {
+    textRef.current = text;
+    valueRef.current = value;
+    peerValueRef.current = peerValue;
+    roleRef.current = role;
+    onCommitPairRef.current = onCommitPair;
+  }, [text, value, peerValue, role, onCommitPair]);
+
+  useEffect(() => {
+    committedRef.current = false;
+    editedAfterSyncRef.current = false;
+  }, [value]);
+
+  useEffect(() => {
+    return () => {
+      if (committedRef.current) {
+        return;
+      }
+      if (!editedAfterSyncRef.current) {
+        return;
+      }
+      const draft = parseCommittedMemberCount(textRef.current);
+      if (draft === valueRef.current) {
+        return;
+      }
+      committedRef.current = true;
+      applyTournamentMemberCountCommit(
+        textRef.current,
+        roleRef.current,
+        peerValueRef.current,
+        onCommitPairRef.current
+      );
+    };
+  }, []);
 
   return (
     <Input
@@ -43,27 +85,27 @@ export function TournamentMemberCountInput({
       aria-labelledby={ariaLabelledBy}
       value={text}
       onFocus={() => {
+        committedRef.current = false;
         setText(String(value));
       }}
       onChange={(e) => {
+        committedRef.current = false;
+        editedAfterSyncRef.current = true;
         setText(takeDigits(e.target.value));
       }}
       onBlur={(e) => {
-        const self = parseCommittedMemberCount(e.currentTarget.value);
-        const raw =
-          role === "min"
-            ? { minMember: self, maxMember: peerValue }
-            : { minMember: peerValue, maxMember: self };
-
-        if (raw.minMember > raw.maxMember) {
-          onCommitPair(raw);
-          setText(takeDigits(e.currentTarget.value));
+        if (committedRef.current) {
           return;
         }
-
-        const pair = normalizeTournamentMemberPair(raw.minMember, raw.maxMember);
-        onCommitPair(pair);
-        setText(String(role === "min" ? pair.minMember : pair.maxMember));
+        committedRef.current = true;
+        setText(
+          applyTournamentMemberCountCommit(
+            e.currentTarget.value,
+            role,
+            peerValue,
+            onCommitPair
+          )
+        );
       }}
       className={className}
     />

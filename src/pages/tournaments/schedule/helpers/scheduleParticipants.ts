@@ -18,7 +18,7 @@ export function normalizeParticipantRows(
     })
     .map((participant, index) => ({
       ...participant,
-      order: Number.isFinite(participant.order) ? participant.order : index + 1,
+      order: index + 1,
     }));
 }
 

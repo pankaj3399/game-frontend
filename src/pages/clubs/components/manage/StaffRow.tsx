@@ -117,6 +117,7 @@ export function StaffRow({
               className="truncate text-[12px] text-brand-primary/80 animate-skeleton-soft"
               role="status"
               aria-live="polite"
+              aria-atomic="true"
             >
               {t("manageClub.mainAdminUpdating")}
             </p>

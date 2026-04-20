@@ -119,7 +119,9 @@ export function TimePicker({
   const minuteFieldId = useId();
 
   const focusMinuteField = useCallback(() => {
-    document.getElementById(minuteFieldId)?.focus();
+    requestAnimationFrame(() => {
+      document.getElementById(minuteFieldId)?.focus();
+    });
   }, [minuteFieldId]);
 
   let parsedValue: { hour: number; minute: number } | null = null;
@@ -243,11 +245,7 @@ export function TimePicker({
       notifyTimeConstraint(warningInvalidInputKey);
       return false;
     }
-    if (h12 < 1 || h12 > 12) {
-      notifyTimeConstraint(warningInvalidInputKey);
-      return false;
-    }
-    if (min < 0 || min > 59) {
+    if (h12 < 1 || h12 > 12 || min < 0 || min > 59) {
       notifyTimeConstraint(warningInvalidInputKey);
       return false;
     }

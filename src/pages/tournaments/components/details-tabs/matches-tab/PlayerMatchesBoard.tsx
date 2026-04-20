@@ -1,14 +1,15 @@
-import { useMemo, useState, type KeyboardEvent } from "react";
-import { useNavigate } from "react-router-dom";
-import { format, isValid, parseISO } from "date-fns";
+import { useMemo, useState } from "react";
+import { enUS } from "date-fns/locale";
 import type { TFunction } from "i18next";
 import { SwitchToggle } from "@/components/ui/switch-toggle";
 import { getDateFnsLocale } from "@/lib/dateFnsLocale";
 import { cn } from "@/lib/utils";
 import type { TournamentScheduleMatch, TournamentScheduleMode } from "@/models/tournament/types";
-import { IconCalendarDays, IconChevronRight, IconMap } from "@/icons/figma-icons";
-import { initialsFromName } from "@/pages/tournaments/schedule/matchDisplayUtils";
-import { teamSideDisplayName } from "@/pages/tournaments/schedule/matchTeamDisplay";
+import { IconCalendarDays, IconClock, IconMap } from "@/icons/figma-icons";
+import { MatchCardReadOnlyRows } from "@/pages/tournaments/schedule/components/MatchCardReadOnlyRows";
+import { matchScheduleDateTimeLabels } from "@/pages/tournaments/schedule/utils/matchScheduleLabels";
+import { scoreColumns, type ScoreColumn } from "@/pages/tournaments/schedule/utils/matchScheduleScore";
+import { teamSideDisplayName } from "@/pages/tournaments/schedule/utils/matchTeamDisplay";
 
 const AVATAR_TONES = [
   "from-[#f7d4bf] to-[#efb598]",
@@ -19,11 +20,7 @@ const AVATAR_TONES = [
   "from-[#ffd8e0] to-[#f4b3c2]",
 ];
 
-type ScoreValue = number | "wo";
-type WinnerSide = "one" | "two" | null;
-
 interface PlayerMatchesBoardProps {
-  tournamentId: string;
   matches: TournamentScheduleMatch[];
   currentUserId: string | null;
   language: string;
@@ -38,48 +35,6 @@ function hashSeed(value: string): number {
   return (hash >>> 0) % 2147483647;
 }
 
-function matchDateLabel(startTime: string | null, fallback: string, language: string): string {
-  if (!startTime) {
-    return fallback;
-  }
-
-  const parsed = parseISO(startTime);
-  if (!isValid(parsed)) {
-    return fallback;
-  }
-
-  return format(parsed, "EEE, MMM d", {
-    locale: getDateFnsLocale(language),
-  });
-}
-
-function compareScoreValue(
-  playerOne: ScoreValue | undefined,
-  playerTwo: ScoreValue | undefined
-): number {
-  if (playerOne == null || playerTwo == null) {
-    return 0;
-  }
-
-  if (playerOne === "wo" && playerTwo === "wo") {
-    return 0;
-  }
-
-  if (playerOne === "wo") {
-    return -1;
-  }
-
-  if (playerTwo === "wo") {
-    return 1;
-  }
-
-  if (playerOne === playerTwo) {
-    return 0;
-  }
-
-  return playerOne > playerTwo ? 1 : -1;
-}
-
 function isCurrentUserInMatch(match: TournamentScheduleMatch, currentUserId: string | null): boolean {
   if (!currentUserId) {
     return false;
@@ -90,151 +45,140 @@ function isCurrentUserInMatch(match: TournamentScheduleMatch, currentUserId: str
     return true;
   }
 
-  const fromSides = [...match.side1, ...match.side2];
-  return fromSides.some((player) => player?.id === currentUserId);
+  for (const team of [match.side1, match.side2]) {
+    for (const player of team) {
+      if (player?.id === currentUserId) {
+        return true;
+      }
+    }
+  }
+
+  return false;
 }
 
-function scoreText(value: ScoreValue | undefined): string {
-  if (value == null) {
-    return "";
+/** Best-of style: side with more sets won (uses per-set winners from {@link scoreColumns}). */
+function aggregateMatchWinner(columns: ScoreColumn[]): "one" | "two" | null {
+  let setsOne = 0;
+  let setsTwo = 0;
+  for (const col of columns) {
+    if (col.winner === "one") {
+      setsOne += 1;
+    }
+    if (col.winner === "two") {
+      setsTwo += 1;
+    }
   }
-  if (value === "wo") {
-    return "WO";
+  if (setsOne === 0 && setsTwo === 0) {
+    return null;
   }
-  return String(value);
-}
-
-function scoreCellClass(winner: WinnerSide, side: "one" | "two", hasValue: boolean): string {
-  if (!hasValue) {
-    return "bg-[#dce2de] text-transparent";
+  if (setsOne > setsTwo) {
+    return "one";
   }
-
-  if (winner === side) {
-    return "bg-[#010a04] text-white";
+  if (setsTwo > setsOne) {
+    return "two";
   }
-
-  return "bg-[rgba(0,0,0,0.08)] text-[#010a04]";
+  return null;
 }
 
 function PlayerMatchCard({
   match,
   language,
-  tournamentId,
   t,
 }: {
   match: TournamentScheduleMatch;
   language: string;
-  tournamentId: string;
   t: TFunction;
 }) {
-  const navigate = useNavigate();
-  const teamOne = teamSideDisplayName(match, 0, t);
-  const teamTwo = teamSideDisplayName(match, 1, t);
+  const unknown = t("tournaments.unknownPlayer");
+  const teamOne = teamSideDisplayName(match, 0, t) || unknown;
+  const teamTwo = teamSideDisplayName(match, 1, t) || unknown;
   const toneIndex = hashSeed(match.id) % AVATAR_TONES.length;
   const tone = AVATAR_TONES[toneIndex]!;
-  const dateLabel = matchDateLabel(match.startTime, t("tournaments.scheduledTbd"), language);
+  const locale = getDateFnsLocale(language) ?? enUS;
+  const tbd = t("tournaments.scheduledTbd");
+  const { date: dateLabel, time: timeLabel } = matchScheduleDateTimeLabels(match.startTime, locale, tbd);
   const courtLabel = match.court.name ?? t("tournaments.courtTBD");
 
-  const playerOneScores = match.score.playerOneScores;
-  const playerTwoScores = match.score.playerTwoScores;
-  const scoreColumnCount = Math.max(3, playerOneScores.length, playerTwoScores.length);
-  const scoreColumns = Array.from({ length: scoreColumnCount }, (_, index) => {
-    const playerOne = playerOneScores[index];
-    const playerTwo = playerTwoScores[index];
-    const comparison = compareScoreValue(playerOne, playerTwo);
-    const winner: WinnerSide = comparison > 0 ? "one" : comparison < 0 ? "two" : null;
-    return { playerOne, playerTwo, winner };
-  });
-  const hasScoreData = scoreColumns.some(
-    (column) => column.playerOne != null || column.playerTwo != null
-  );
+  const columns = scoreColumns(match);
+  const winningSide = aggregateMatchWinner(columns);
 
-  const round = Math.max(1, match.round);
-  const goToSchedule = () => {
-    navigate(`/tournaments/${tournamentId}/schedule?round=${round}`);
-  };
-
-  const onCardKeyDown = (event: KeyboardEvent<HTMLElement>) => {
-    if (event.key === "Enter" || event.key === " ") {
-      event.preventDefault();
-      goToSchedule();
-    }
-  };
+  const isLive = match.status === "inProgress";
+  const isPendingScore = match.status === "pendingScore";
+  const isCancelled = match.status === "cancelled";
 
   return (
     <article
-      role="button"
-      tabIndex={0}
-      aria-label={t("tournaments.viewMatchAria", { id: match.id })}
-      onClick={goToSchedule}
-      onKeyDown={onCardKeyDown}
       className={cn(
-        "cursor-pointer rounded-[12px] bg-[rgba(1,10,4,0.04)] px-[15px] py-[15px] outline-none transition-shadow focus-visible:ring-2 focus-visible:ring-[#010a04]/25",
-        match.status === "inProgress" && "border border-[#16a34a]"
+        "rounded-[12px] border px-[15px] py-[15px]",
+        isLive
+          ? "border-[#067429] bg-[#eef8f1]"
+          : isPendingScore
+            ? "border-[#b45309] bg-[#fff7ed]"
+            : "border-transparent bg-[#010a04]/[0.04]"
       )}
     >
-      <div className="mb-[15px] flex items-start justify-between gap-3">
-        <div className="flex min-w-0 items-center gap-[16px] text-[14px] text-[#6a6a6a]">
-          <span className="inline-flex min-w-0 items-center gap-[6px]">
-            <IconCalendarDays size={16} className="shrink-0 text-[#6a6a6a]" />
+      <div className="mb-[14px] flex items-start justify-between gap-3">
+        <div className="flex min-w-0 flex-wrap items-center gap-3 text-[13px] text-[#6a6a6a]">
+          <span className="flex min-w-0 items-center gap-1.5">
+            <IconCalendarDays size={14} className="shrink-0 text-[#6a6a6a]" />
             <span className="truncate">{dateLabel}</span>
           </span>
-          <span className="inline-flex min-w-0 items-center gap-[6px]">
-            <IconMap size={16} className="shrink-0 text-[#6a6a6a]" />
+          <span className="flex min-w-0 items-center gap-1.5">
+            <IconClock size={14} className="shrink-0 text-[#6a6a6a]" />
+            <span className="truncate">{timeLabel}</span>
+          </span>
+          <span className="flex min-w-0 items-center gap-1.5">
+            <IconMap size={14} className="shrink-0 text-[#6a6a6a]" />
             <span className="truncate">{courtLabel}</span>
           </span>
-          {match.status === "inProgress" ? (
+        </div>
+
+        <div className="flex shrink-0 flex-col items-end gap-1">
+          {isLive ? (
             <span className="inline-flex items-center gap-1 text-[12px] font-medium text-[#d92100]">
-              <span className="inline-block size-[6px] rounded-full bg-[#d92100]" />
+              <span className="inline-block h-[6px] w-[6px] rounded-full bg-[#d92100]" />
               {t("tournaments.liveLabel")}
             </span>
+          ) : isPendingScore ? (
+            <span className="text-[12px] font-medium text-[#b45309]">{t("tournaments.matchStatusPendingScore")}</span>
+          ) : isCancelled ? (
+            <span className="text-[12px] font-medium text-[#d92100]">{t("tournaments.matchStatusCancelled")}</span>
           ) : null}
         </div>
-        <IconChevronRight size={16} className="shrink-0 text-[#010a04]/70" />
       </div>
 
-      <div className="space-y-[10px]">
-        {[
-          { key: "team-one", name: teamOne, side: "one" as const },
-          { key: "team-two", name: teamTwo, side: "two" as const },
-        ].map((row) => (
-          <div key={`${match.id}-${row.key}`} className="flex items-center justify-between gap-3">
-            <div className="flex min-w-0 items-center gap-[15px]">
-              <span
-                className={`flex size-[30px] shrink-0 items-center justify-center rounded-[20px] border-2 border-[#eef1ee] bg-gradient-to-br ${tone} text-[11px] font-semibold text-[#010a04]/80`}
-              >
-                {initialsFromName(row.name)}
-              </span>
-              <span className="truncate text-[16px] font-medium leading-[20px] text-[#010a04]">{row.name}</span>
-            </div>
-
-            {hasScoreData ? (
-              <div className="flex items-center gap-[6px]">
-                {scoreColumns.map((column, index) => {
-                  const value = row.side === "one" ? column.playerOne : column.playerTwo;
-                  return (
-                    <span
-                      key={`${match.id}-${row.side}-${index}`}
-                      className={cn(
-                        "inline-flex size-[32px] items-center justify-center rounded-[5px] text-[14px] font-medium",
-                        scoreCellClass(column.winner, row.side, value != null)
-                      )}
-                    >
-                      {scoreText(value)}
-                    </span>
-                  );
-                })}
-              </div>
-            ) : null}
-          </div>
-        ))}
-      </div>
+      <MatchCardReadOnlyRows
+        matchId={match.id}
+        tone={tone}
+        columns={columns}
+        rows={[
+          {
+            name: teamOne,
+            side: "one",
+            nameSuffix:
+              match.status === "completed" && winningSide === "one" ? (
+                <span className="shrink-0 text-[13px] font-medium text-[#065f46]">
+                  {t("tournaments.matchWinnerParenthetical")}
+                </span>
+              ) : undefined,
+          },
+          {
+            name: teamTwo,
+            side: "two",
+            nameSuffix:
+              match.status === "completed" && winningSide === "two" ? (
+                <span className="shrink-0 text-[13px] font-medium text-[#065f46]">
+                  {t("tournaments.matchWinnerParenthetical")}
+                </span>
+              ) : undefined,
+          },
+        ]}
+      />
     </article>
   );
 }
 
 export function PlayerMatchesBoard({
-  tournamentId,
   matches,
   currentUserId,
   language,
@@ -322,13 +266,7 @@ export function PlayerMatchesBoard({
       ) : (
         <div className="grid gap-3 sm:grid-cols-2">
           {filteredMatches.map((match) => (
-            <PlayerMatchCard
-              key={match.id}
-              match={match}
-              language={language}
-              tournamentId={tournamentId}
-              t={t}
-            />
+            <PlayerMatchCard key={match.id} match={match} language={language} t={t} />
           ))}
         </div>
       )}

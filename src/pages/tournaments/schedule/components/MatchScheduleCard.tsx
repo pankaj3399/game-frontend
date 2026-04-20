@@ -9,11 +9,11 @@ import {
   IconPenLine,
 } from "@/icons/figma-icons";
 import type { TournamentScheduleMatch } from "@/models/tournament/types";
-import { matchScheduleDateTimeLabels } from "@/pages/tournaments/schedule/matchScheduleLabels";
-import { MatchCardReadOnlyRows } from "@/pages/tournaments/schedule/MatchCardReadOnlyRows";
-import { scoreColumns, type ScoreEditorRow } from "@/pages/tournaments/schedule/matchScheduleScore";
-import { teamSideDisplayName } from "@/pages/tournaments/schedule/matchTeamDisplay";
-import { initialsFromName } from "@/pages/tournaments/schedule/matchDisplayUtils";
+import { matchScheduleDateTimeLabels } from "@/pages/tournaments/schedule/utils/matchScheduleLabels";
+import { MatchCardReadOnlyRows } from "@/pages/tournaments/schedule/components/MatchCardReadOnlyRows";
+import { scoreColumns, type ScoreEditorRow } from "@/pages/tournaments/schedule/utils/matchScheduleScore";
+import { teamSideDisplayName } from "@/pages/tournaments/schedule/utils/matchTeamDisplay";
+import { initialsFromName } from "@/pages/tournaments/schedule/utils/matchDisplayUtils";
 
 const AVATAR_TONES = [
   "from-[#f7d4bf] to-[#efb598]",

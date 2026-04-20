@@ -1,6 +1,29 @@
 import type { TFunction } from "i18next";
+import { cn } from "@/lib/utils";
 import { MATCH_STATUS_KEYS, statusClassName } from "./deriveMatches";
 import type { DerivedMatch } from "./types";
+
+function matchListHeadline(match: DerivedMatch, t: (key: string) => string): string {
+  const versus = t("tournaments.matchPlayersVersus");
+  const a = match.playerA.trim();
+  const b = match.playerB.trim();
+  const parts = [a, b].filter(Boolean);
+  if (parts.length === 0) {
+    return t("tournaments.unknownPlayer");
+  }
+  if (parts.length === 1) {
+    return parts[0];
+  }
+  return `${a} ${versus} ${b}`;
+}
+
+function firstLetterFromDisplayName(name: string): string {
+  const trimmed = name.trim();
+  if (!trimmed) {
+    return "?";
+  }
+  return trimmed[0]!.toLocaleUpperCase();
+}
 
 interface MatchCardProps {
   match: DerivedMatch;
@@ -8,17 +31,29 @@ interface MatchCardProps {
 }
 
 export function MatchCard({ match, t }: MatchCardProps) {
+  const headline = matchListHeadline(match, t);
+  const letterA = firstLetterFromDisplayName(match.playerA);
+  const letterB = firstLetterFromDisplayName(match.playerB);
+  const hasSecondSide = match.playerB.trim().length > 0;
+
+  const avatarClass =
+    "relative flex size-5 shrink-0 items-center justify-center rounded-full border border-[#010a04]/20 bg-[#dddddd]/60 text-[10px] font-semibold leading-none text-[#010a04] ring-2 ring-white";
+
   return (
-    <div className="rounded-xl bg-card-surface p-4">
+    <div className="rounded-[12px] border border-[#010a04]/[0.08] bg-white p-4">
       <div className="flex items-start gap-3">
-        <div className="mt-0.5 flex gap-1.5">
-          <span className="size-5 rounded-full bg-muted" />
-          <span className="size-5 rounded-full bg-muted" />
+        <div
+          className="mt-0.5 flex shrink-0"
+          aria-hidden
+          title={headline}
+        >
+          <span className={cn(avatarClass, "z-0")}>{letterA}</span>
+          {hasSecondSide ? (
+            <span className={cn(avatarClass, "z-10 -ml-1")}>{letterB}</span>
+          ) : null}
         </div>
         <div className="min-w-0">
-          <p className="truncate text-sm font-semibold leading-tight text-foreground">
-            {match.playerA} / {match.playerB}
-          </p>
+          <p className="truncate text-sm font-semibold leading-tight text-foreground">{headline}</p>
           <p className="mt-1 text-xs text-muted-foreground">{match.scheduledText}</p>
         </div>
       </div>

@@ -4,7 +4,7 @@ import {
   getPreviousRoundGate,
   parseRoundQueryParam,
   resolveMatchViewSelectedRound,
-} from "@/pages/tournaments/schedule/tournamentRoundWorkflow";
+} from "@/pages/tournaments/schedule/helpers/tournamentRoundWorkflow";
 
 export interface MatchSchedulePageModel {
   selectedRound: number;

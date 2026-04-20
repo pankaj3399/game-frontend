@@ -6,7 +6,7 @@ import { InfoTab } from "./InfoTab";
 import { MatchesTab } from "./MatchesTab";
 import { ResultsTab } from "./ResultsTab";
 import { SponsorsTab } from "./SponsorsTab";
-import { getTournamentDetailsTabOptions } from "./tabConfig";
+import { getTournamentDetailsTabOptions, resolveTournamentDetailsTab } from "./tabConfig";
 
 interface TournamentDetailsTabsProps {
   tournament: TournamentDetail;
@@ -24,10 +24,7 @@ export function TournamentDetailsTabs({
   const { t } = useTranslation();
   const [searchParams, setSearchParams] = useSearchParams();
   const tabOptions = getTournamentDetailsTabOptions(t);
-  const requestedTab = searchParams.get("tab");
-  const tabValues = tabOptions.map((tab) => tab.value);
-  const resolvedTab =
-    requestedTab && tabValues.includes(requestedTab) ? requestedTab : "info";
+  const resolvedTab = resolveTournamentDetailsTab(searchParams.get("tab"), t);
 
   const onTabChange = (nextTab: string) => {
     const nextSearchParams = new URLSearchParams(searchParams);

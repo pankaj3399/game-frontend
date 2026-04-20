@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import type { KeyboardEvent } from "react";
 import { Input } from "@/components/ui/input";
 import {
   parseCommittedTotalRounds,
@@ -27,6 +28,42 @@ export function TournamentTotalRoundsInput({
   className,
 }: TournamentTotalRoundsInputProps) {
   const [text, setText] = useState(() => String(value));
+  const textRef = useRef(text);
+  const valueRef = useRef(value);
+  const onCommitRef = useRef(onCommit);
+  const committedRef = useRef(false);
+
+  useLayoutEffect(() => {
+    textRef.current = text;
+    valueRef.current = value;
+    onCommitRef.current = onCommit;
+  }, [text, value, onCommit]);
+
+  useEffect(() => {
+    committedRef.current = false;
+  }, [value]);
+
+  const commitText = (nextText: string) => {
+    if (committedRef.current) {
+      return;
+    }
+    const next = parseCommittedTotalRounds(nextText);
+    setText(String(next));
+    if (next === valueRef.current) {
+      return;
+    }
+    committedRef.current = true;
+    onCommitRef.current(next);
+  };
+
+  const handleEnterCommit = (event: KeyboardEvent<HTMLInputElement>) => {
+    if (event.key !== "Enter") {
+      return;
+    }
+    event.preventDefault();
+    commitText(event.currentTarget.value);
+    event.currentTarget.blur();
+  };
 
   return (
     <Input
@@ -37,16 +74,17 @@ export function TournamentTotalRoundsInput({
       aria-labelledby={ariaLabelledBy}
       value={text}
       onFocus={() => {
+        committedRef.current = false;
         setText(String(value));
       }}
       onChange={(e) => {
+        committedRef.current = false;
         setText(takeDigits(e.target.value));
       }}
       onBlur={(e) => {
-        const next = parseCommittedTotalRounds(e.currentTarget.value);
-        setText(String(next));
-        onCommit(next);
+        commitText(e.currentTarget.value);
       }}
+      onKeyDown={handleEnterCommit}
       className={className}
     />
   );
