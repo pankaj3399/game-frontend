@@ -14,7 +14,52 @@ import {
   useUpdateTournament,
 } from "@/pages/tournaments/hooks";
 import { getErrorMessage } from "@/lib/errors";
+import { getSafeLink } from "@/lib/url";
+import type { TournamentSponsor } from "@/models/tournament/types";
+import type { TFunction } from "i18next";
 import { toast } from "sonner";
+
+function TournamentHeaderSponsorLogo({
+  sponsor,
+  websiteUrl,
+  t,
+}: {
+  sponsor: TournamentSponsor;
+  websiteUrl: string | null;
+  t: TFunction;
+}) {
+  const logoBoxClass =
+    "flex h-[45px] w-[45px] shrink-0 items-center justify-center overflow-hidden rounded-[10px] border-[2.5px] border-white bg-[#d9d9d9] shadow-[0_2px_3px_rgba(143,143,143,0.1),0_6px_6px_rgba(143,143,143,0.09)]";
+
+  const inner = sponsor.logoUrl ? (
+    <img src={sponsor.logoUrl} alt={sponsor.name} className="h-full w-full object-cover" />
+  ) : (
+    <span className="px-1 text-center text-[11px] font-semibold leading-tight text-[#6b7280]">
+      {sponsor.name
+        .split(/\s+/)
+        .filter(Boolean)
+        .slice(0, 2)
+        .map((word: string) => word.charAt(0).toUpperCase())
+        .join("") || "?"}
+    </span>
+  );
+
+  if (websiteUrl) {
+    return (
+      <a
+        href={websiteUrl}
+        target="_blank"
+        rel="noreferrer noopener"
+        className={`${logoBoxClass} outline-offset-2 transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0a9f43]`}
+        aria-label={t("tournaments.openSponsorWebsite", { name: sponsor.name })}
+      >
+        {inner}
+      </a>
+    );
+  }
+
+  return <div className={logoBoxClass}>{inner}</div>;
+}
 
 export default function TournamentDetailsPage() {
   const { t } = useTranslation();
@@ -54,6 +99,7 @@ export default function TournamentDetailsPage() {
   }
 
   const tournament = data.tournament;
+  const sponsorWebsiteUrl = tournament.sponsor ? getSafeLink(tournament.sponsor.link) : null;
   const onParticipationAction = async () => {
     const isParticipant = tournament.permissions.isParticipant;
 
@@ -171,24 +217,11 @@ export default function TournamentDetailsPage() {
             <div className="flex flex-wrap items-center gap-3 self-start pt-0.5 sm:pt-1">
               <p className="text-[14px] font-normal text-[#010a04]/60">{t("tournaments.sponsoredBy")}:</p>
               <div className="flex min-w-0 items-center gap-[10px]">
-                <div className="flex h-[45px] w-[45px] shrink-0 items-center justify-center overflow-hidden rounded-[10px] border-[2.5px] border-white bg-[#d9d9d9] shadow-[0_2px_3px_rgba(143,143,143,0.1),0_6px_6px_rgba(143,143,143,0.09)]">
-                  {tournament.sponsor.logoUrl ? (
-                    <img
-                      src={tournament.sponsor.logoUrl}
-                      alt={tournament.sponsor.name}
-                      className="h-full w-full object-cover"
-                    />
-                  ) : (
-                    <span className="px-1 text-center text-[11px] font-semibold leading-tight text-[#6b7280]">
-                      {tournament.sponsor.name
-                        .split(/\s+/)
-                        .filter(Boolean)
-                        .slice(0, 2)
-                        .map((word: string) => word.charAt(0).toUpperCase())
-                        .join("") || "?"}
-                    </span>
-                  )}
-                </div>
+                <TournamentHeaderSponsorLogo
+                  sponsor={tournament.sponsor}
+                  websiteUrl={sponsorWebsiteUrl}
+                  t={t}
+                />
               </div>
             </div>
           ) : null}

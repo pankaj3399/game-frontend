@@ -54,6 +54,7 @@ export const DEFAULT_TOURNAMENT_FILTERS_STATE: TournamentFiltersState = {
   filters: {
     page: 1,
     limit: 10,
+    when: "future",
   },
 };
 
@@ -125,6 +126,7 @@ export function filtersReducer(
         filters: {
           ...state.filters,
           ...action.payload.filters,
+          when: action.payload.filters.when ?? state.filters.when ?? "future",
           page: 1,
         },
       };
