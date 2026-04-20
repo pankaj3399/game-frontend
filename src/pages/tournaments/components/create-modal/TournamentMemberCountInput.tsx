@@ -38,6 +38,7 @@ export function TournamentMemberCountInput({
   const peerValueRef = useRef(peerValue);
   const roleRef = useRef(role);
   const onCommitPairRef = useRef(onCommitPair);
+  const committedRef = useRef(false);
 
   useLayoutEffect(() => {
     textRef.current = text;
@@ -48,15 +49,19 @@ export function TournamentMemberCountInput({
   }, [text, value, peerValue, role, onCommitPair]);
 
   useEffect(() => {
-    valueRef.current = value;
+    committedRef.current = false;
   }, [value]);
 
   useEffect(() => {
     return () => {
+      if (committedRef.current) {
+        return;
+      }
       const draft = parseCommittedMemberCount(textRef.current);
       if (draft === valueRef.current) {
         return;
       }
+      committedRef.current = true;
       applyTournamentMemberCountCommit(
         textRef.current,
         roleRef.current,
@@ -75,12 +80,18 @@ export function TournamentMemberCountInput({
       aria-labelledby={ariaLabelledBy}
       value={text}
       onFocus={() => {
+        committedRef.current = false;
         setText(String(value));
       }}
       onChange={(e) => {
+        committedRef.current = false;
         setText(takeDigits(e.target.value));
       }}
       onBlur={(e) => {
+        if (committedRef.current) {
+          return;
+        }
+        committedRef.current = true;
         setText(
           applyTournamentMemberCountCommit(
             e.currentTarget.value,

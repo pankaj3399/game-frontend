@@ -1,4 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import type { KeyboardEvent } from "react";
 import { Input } from "@/components/ui/input";
 import {
   parseCommittedTotalRounds,
@@ -42,18 +43,27 @@ export function TournamentTotalRoundsInput({
     committedRef.current = false;
   }, [value]);
 
-  useEffect(() => {
-    return () => {
-      if (committedRef.current) {
-        return;
-      }
-      const next = parseCommittedTotalRounds(textRef.current);
-      if (next === valueRef.current) {
-        return;
-      }
-      onCommitRef.current(next);
-    };
-  }, []);
+  const commitText = (nextText: string) => {
+    if (committedRef.current) {
+      return;
+    }
+    const next = parseCommittedTotalRounds(nextText);
+    committedRef.current = true;
+    setText(String(next));
+    if (next === valueRef.current) {
+      return;
+    }
+    onCommitRef.current(next);
+  };
+
+  const handleEnterCommit = (event: KeyboardEvent<HTMLInputElement>) => {
+    if (event.key !== "Enter") {
+      return;
+    }
+    event.preventDefault();
+    commitText(event.currentTarget.value);
+    event.currentTarget.blur();
+  };
 
   return (
     <Input
@@ -70,11 +80,9 @@ export function TournamentTotalRoundsInput({
         setText(takeDigits(e.target.value));
       }}
       onBlur={(e) => {
-        const next = parseCommittedTotalRounds(e.currentTarget.value);
-        setText(String(next));
-        committedRef.current = true;
-        onCommit(next);
+        commitText(e.currentTarget.value);
       }}
+      onKeyDown={handleEnterCommit}
       className={className}
     />
   );

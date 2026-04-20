@@ -160,7 +160,7 @@ function MatchesTabLoadingBody() {
           {cardPlaceholders.map((i) => (
             <div
               key={i}
-                className="rounded-[12px] border border-[#010a04]/[0.08] bg-white p-4"
+              className="rounded-[12px] border border-[#010a04]/[0.08] bg-white p-4"
             >
               <div className="flex items-start gap-3">
                 <div className="mt-0.5 flex shrink-0">
@@ -271,7 +271,7 @@ export function TournamentDetailsPageSkeleton({ activeTab }: TournamentDetailsPa
         </div>
 
         <Tabs value={activeTab} className="w-full">
-          <div className="pointer-events-none mt-0.5 w-full select-none border-b border-[#dddddd] pb-6 sm:mt-1 sm:pb-7">
+          <div className="mt-0.5 w-full select-none border-b border-[#dddddd] pb-6 sm:mt-1 sm:pb-7">
             <TabsList
               className="grid h-auto w-full max-w-full rounded-[10px] bg-[rgba(1,10,4,0.05)] p-1 sm:inline-flex sm:w-fit"
               style={{
