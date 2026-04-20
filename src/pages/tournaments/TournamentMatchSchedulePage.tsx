@@ -1,4 +1,4 @@
-import { useCallback, useId, useState } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, Navigate, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import type { Locale } from "date-fns";
@@ -103,7 +103,6 @@ export default function TournamentMatchSchedulePage() {
   const scheduleQuery = useTournamentSchedule(id ?? null, Boolean(id));
   const generateScheduleMutation = useGenerateTournamentSchedule();
   const recordScoreMutation = useRecordTournamentMatchScore();
-  const nextRoundHintId = useId();
 
   if (!id) {
     return <Navigate to="/tournaments" replace />;
@@ -233,8 +232,25 @@ export default function TournamentMatchSchedulePage() {
     openEditor(match);
   };
 
-  const handleCreateNextRound = useCallback(async () => {
-    if (!id || !view.canCreateNextRound) {
+  const handleCreateNextRound = async () => {
+    if (!id) {
+      return;
+    }
+    if (!view.canCreateNextRound) {
+      const blockedMessage =
+        view.nextRoundDisabledHint != null
+          ? view.nextRoundDisabledHint.reason === "missing"
+            ? t("tournaments.schedulePreviousRoundMissing", {
+                round: view.nextRoundDisabledHint.round,
+              })
+            : t("tournaments.schedulePreviousRoundIncomplete", {
+                round: view.nextRoundDisabledHint.round,
+              })
+          : null;
+
+      if (blockedMessage) {
+        toast.error(blockedMessage);
+      }
       return;
     }
     if (scheduleQuery.isLoading) {
@@ -287,29 +303,7 @@ export default function TournamentMatchSchedulePage() {
     } catch (error: unknown) {
       toast.error(getErrorMessage(error) ?? t("tournaments.scheduleGenerateError"));
     }
-  }, [
-    generateScheduleMutation,
-    id,
-    navigate,
-    scheduleQuery.data,
-    scheduleQuery.error,
-    scheduleQuery.isLoading,
-    t,
-    tournament,
-    view.canCreateNextRound,
-    view.nextRound,
-  ]);
-
-  const nextRoundDisabledMessage =
-    view.nextRoundDisabledHint != null
-      ? view.nextRoundDisabledHint.reason === "missing"
-        ? t("tournaments.schedulePreviousRoundMissing", {
-            round: view.nextRoundDisabledHint.round,
-          })
-        : t("tournaments.schedulePreviousRoundIncomplete", {
-            round: view.nextRoundDisabledHint.round,
-          })
-      : null;
+  };
 
   return (
     <div className="mx-auto w-full max-w-6xl px-5 pb-10 pt-8 sm:px-6">
@@ -348,30 +342,20 @@ export default function TournamentMatchSchedulePage() {
                 {t("tournaments.viewResults")}
               </Button>
             ) : (
-              <div className="flex max-w-[min(100%,18rem)] flex-col items-end gap-1">
+              <div className="flex max-w-[min(100%,18rem)]">
                 <Button
                   type="button"
                   onClick={() => void handleCreateNextRound()}
                   disabled={
-                    !view.canCreateNextRound ||
                     generateScheduleMutation.isPending ||
                     scheduleQuery.isLoading
                   }
-                  aria-describedby={
-                    !view.canCreateNextRound && nextRoundDisabledMessage
-                      ? nextRoundHintId
-                      : undefined
-                  }
+                  aria-disabled={!view.canCreateNextRound}
                   className="h-[34px] shrink-0 gap-1.5 rounded-[8px] bg-[#067429] px-3 text-[13px] font-medium text-white hover:bg-[#055d21] sm:px-4"
                 >
                   <IconPlus size={16} className="text-white" aria-hidden />
                   {t("tournaments.newRound")}
                 </Button>
-                {!view.canCreateNextRound && nextRoundDisabledMessage ? (
-                  <p id={nextRoundHintId} className="text-right text-[11px] leading-snug text-[#6b7280]">
-                    {nextRoundDisabledMessage}
-                  </p>
-                ) : null}
               </div>
             )
           ) : null}

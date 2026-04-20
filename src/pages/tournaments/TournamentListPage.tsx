@@ -15,6 +15,7 @@ import { useTournaments } from "./hooks/useTournaments";
 import { useAuth } from "@/pages/auth/hooks";
 import { TournamentTableSkeleton } from "@/components/ui/tournament-table-skeleton";
 import { getErrorMessage } from "@/lib/errors";
+import { TW_BREAKPOINT_LG_PX, useMinWidth } from "@/lib/hooks/useMediaQuery";
 import { TournamentTab, type TournamentListTab } from "@/models/tournament";
 import { RoleGuard } from "@/components/auth/RoleGuard";
 import { ROLES } from "@/constants/roles";
@@ -33,6 +34,7 @@ const DEFAULT_PAGINATION = {
 function TournamentListContent() {
   const { t, i18n } = useTranslation();
   const [searchParams, setSearchParams] = useSearchParams();
+  const isDesktop = useMinWidth(TW_BREAKPOINT_LG_PX);
   const isOrganiserOrAbove = useIsOrganiserOrAbove();
   const { user, loading: authLoading } = useAuth();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -138,7 +140,7 @@ function TournamentListContent() {
 
             <div className="mt-3 lg:hidden">
               <TournamentFilters
-                open={filtersOpen}
+                open={filtersOpen && !isDesktop}
                 onOpenChange={setFiltersOpen}
                 filters={{
                   when: filters.when,
@@ -156,7 +158,7 @@ function TournamentListContent() {
               <TournamentActions
                 activeTab={activeTab}
                 onTabChange={handleTabChange}
-                filtersOpen={filtersOpen}
+                filtersOpen={filtersOpen && isDesktop}
                 onFiltersOpenChange={setFiltersOpen}
                 when={filters.when}
                 distance={filters.distance}
