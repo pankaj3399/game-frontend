@@ -6,10 +6,10 @@ import { getDateFnsLocale } from "@/lib/dateFnsLocale";
 import { cn } from "@/lib/utils";
 import type { TournamentScheduleMatch, TournamentScheduleMode } from "@/models/tournament/types";
 import { IconCalendarDays, IconClock, IconMap } from "@/icons/figma-icons";
-import { MatchCardReadOnlyRows } from "@/pages/tournaments/schedule/MatchCardReadOnlyRows";
-import { matchScheduleDateTimeLabels } from "@/pages/tournaments/schedule/matchScheduleLabels";
-import { scoreColumns, type ScoreColumn } from "@/pages/tournaments/schedule/matchScheduleScore";
-import { teamSideDisplayName } from "@/pages/tournaments/schedule/matchTeamDisplay";
+import { MatchCardReadOnlyRows } from "@/pages/tournaments/schedule/components/MatchCardReadOnlyRows";
+import { matchScheduleDateTimeLabels } from "@/pages/tournaments/schedule/utils/matchScheduleLabels";
+import { scoreColumns, type ScoreColumn } from "@/pages/tournaments/schedule/utils/matchScheduleScore";
+import { teamSideDisplayName } from "@/pages/tournaments/schedule/utils/matchTeamDisplay";
 
 const AVATAR_TONES = [
   "from-[#f7d4bf] to-[#efb598]",

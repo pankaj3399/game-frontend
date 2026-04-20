@@ -1,5 +1,5 @@
 import { Suspense, lazy } from "react";
-import { Routes, Route, Navigate, useParams } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./contexts/auth";
 import { useAuth } from "./pages/auth/hooks";
 import { Toaster } from "@/components/ui/sonner";
@@ -7,7 +7,6 @@ import { MainLayout } from "@/layouts/MainLayout";
 import { ProtectedRoute } from "@/components/auth";
 import Loader from "@/components/shared/Loader";
 import { ROLES } from "./constants/roles";
-import { useTournamentById } from "./pages/tournaments/hooks";
 
 const Login = lazy(() => import("./pages/auth/Login"));
 const UserInformation = lazy(() => import("./pages/user/UserInformation"));
@@ -15,8 +14,8 @@ const AuthCallback = lazy(() => import("./pages/auth/AuthCallback"));
 const SettingsPage = lazy(() => import("./pages/profile/SettingsPage"));
 const TournamentListPage = lazy(() => import('./pages/tournaments/TournamentListPage'))
 const TournamentDetailsPage = lazy(() => import('./pages/tournaments/TournamentDetailsPage'))
-const TournamentSchedulePage = lazy(() => import('./pages/tournaments/TournamentSchedulePage'))
-const TournamentMatchSchedulePage = lazy(() => import('./pages/tournaments/TournamentMatchSchedulePage'))
+const TournamentSchedulePage = lazy(() => import('./pages/tournaments/schedule/TournamentSchedulePage'))
+const TournamentMatchSchedulePage = lazy(() => import('./pages/tournaments/schedule/TournamentMatchSchedulePage'))
 const MyScorePage = lazy(() => import("./pages/my-score/MyScorePage"));
 const PlaceholderPage = lazy(() => import("./pages/PlaceholderPage"));
 const ClubsListPage = lazy(() => import("./pages/clubs/ClubsListPage"));
@@ -50,52 +49,6 @@ function Home() {
   return <Navigate to="/tournaments" replace />;
 }
 
-function TournamentScheduleRoute() {
-  const { id } = useParams<{ id: string }>();
-  const tournamentDetailQuery = useTournamentById(id ?? null, Boolean(id));
-
-  if (!id) {
-    return <Navigate to="/tournaments" replace />;
-  }
-
-  if (tournamentDetailQuery.isLoading) {
-    return <Loader />;
-  }
-
-  if (
-    tournamentDetailQuery.isError ||
-    !tournamentDetailQuery.data?.tournament
-  ) {
-    return <Navigate to={`/tournaments/${id}`} replace />;
-  }
-
-  const tournament = tournamentDetailQuery.data.tournament;
-  if (!tournament.permissions.canEdit) {
-    return <Navigate to={`/tournaments/${id}`} replace />;
-  }
-
-  const enrolled = tournament.participants.length;
-  if (enrolled < tournament.minMember) {
-    return (
-      <Navigate
-        to={`/tournaments/${id}?tab=matches`}
-        replace
-        state={{
-          toast: {
-            key: "tournaments.scheduleMinPlayersNotMet",
-            values: {
-              min: tournament.minMember,
-              current: enrolled,
-            },
-          },
-        }}
-      />
-    );
-  }
-
-  return <TournamentSchedulePage />;
-}
-
 function App() {
   return (
     <div className="w-screen h-screen bg-gray-50 overflow-x-hidden">
@@ -119,7 +72,7 @@ function App() {
               
               <Route path="/tournaments" element={<TournamentListPage />} />
               <Route path="/tournaments/:id" element={<TournamentDetailsPage />} />
-              <Route path="/tournaments/:id/schedule" element={<TournamentScheduleRoute />} />
+              <Route path="/tournaments/:id/schedule" element={<TournamentSchedulePage />} />
               <Route path="/tournaments/:id/match-schedule" element={<TournamentMatchSchedulePage />} />
               <Route path="/my-score" element={<MyScorePage />} />
               <Route path="/record-score" element={<PlaceholderPage />} />

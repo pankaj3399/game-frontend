@@ -4,8 +4,8 @@ import {
   formatScoreCellValue,
   scoreCellClass,
   type ScoreColumn,
-} from "./matchScheduleScore";
-import { initialsFromName } from "./matchDisplayUtils";
+} from "../utils/matchScheduleScore";
+import { initialsFromName } from "../utils/matchDisplayUtils";
 
 export type MatchCardReadOnlyRow = {
   name: string;

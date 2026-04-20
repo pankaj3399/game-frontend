@@ -19,18 +19,18 @@ import {
   useTournamentSchedule,
 } from "@/pages/tournaments/hooks";
 import type { TournamentScheduleMatch } from "@/models/tournament/types";
-import { MatchScheduleCard } from "@/pages/tournaments/schedule/MatchScheduleCard";
-import { buildMatchSchedulePageModel } from "@/pages/tournaments/schedule/matchScheduleViewModel";
+import { MatchScheduleCard } from "@/pages/tournaments/schedule/components/MatchScheduleCard";
+import { buildMatchSchedulePageModel } from "@/pages/tournaments/schedule/utils/matchScheduleViewModel";
 import {
   buildScorePayload,
   createScoreEditorRows,
   type ScoreEditorRow,
-} from "@/pages/tournaments/schedule/matchScheduleScore";
+} from "@/pages/tournaments/schedule/utils/matchScheduleScore";
 import {
   canGenerateSchedule,
   normalizeParticipantRows,
   participantOrderIds,
-} from "@/pages/tournaments/schedule/helpers";
+} from "@/pages/tournaments/schedule/helpers/scheduleParticipants";
 import { clampTime24ToBounds, resolveTournamentScheduleTimeBounds } from "@/utils/time";
 
 function MatchScheduleSkeleton() {
@@ -278,8 +278,10 @@ export default function TournamentMatchSchedulePage() {
     ) {
       const reasonMessage =
         selectedCourtIds.length === 0
-          ? `Round ${view.nextRound}: No courts selected.`
-          : `Round ${view.nextRound}: Not enough participants to generate schedule.`;
+          ? t("tournaments.scheduleNoCourtsSelected", { round: view.nextRound })
+          : t("tournaments.scheduleNotEnoughParticipants", {
+              round: view.nextRound,
+            });
       toast.info(reasonMessage);
       navigate(`/tournaments/${id}/schedule?round=${view.nextRound}`);
       return;

@@ -1,6 +1,6 @@
 import { isValid, parseISO, type Locale } from "date-fns";
 import type { TournamentScheduleMatch } from "@/models/tournament/types";
-import { teamSideDisplayName } from "@/pages/tournaments/schedule/matchTeamDisplay";
+import { teamSideDisplayName } from "@/pages/tournaments/schedule/utils/matchTeamDisplay";
 import { formatDateOrFallback } from "@/utils/date";
 import { formatTimeTo12Hour } from "@/utils/time";
 import type { DerivedMatch, MatchCounts, MatchStatus } from "./types";

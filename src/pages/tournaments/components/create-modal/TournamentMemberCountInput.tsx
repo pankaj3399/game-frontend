@@ -39,6 +39,7 @@ export function TournamentMemberCountInput({
   const roleRef = useRef(role);
   const onCommitPairRef = useRef(onCommitPair);
   const committedRef = useRef(false);
+  const editedAfterSyncRef = useRef(false);
 
   useLayoutEffect(() => {
     textRef.current = text;
@@ -50,11 +51,15 @@ export function TournamentMemberCountInput({
 
   useEffect(() => {
     committedRef.current = false;
+    editedAfterSyncRef.current = false;
   }, [value]);
 
   useEffect(() => {
     return () => {
       if (committedRef.current) {
+        return;
+      }
+      if (!editedAfterSyncRef.current) {
         return;
       }
       const draft = parseCommittedMemberCount(textRef.current);
@@ -85,6 +90,7 @@ export function TournamentMemberCountInput({
       }}
       onChange={(e) => {
         committedRef.current = false;
+        editedAfterSyncRef.current = true;
         setText(takeDigits(e.target.value));
       }}
       onBlur={(e) => {

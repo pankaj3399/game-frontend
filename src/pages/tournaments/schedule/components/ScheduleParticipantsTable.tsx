@@ -20,7 +20,7 @@ import type {
   TournamentSchedulePairPlayer,
   TournamentScheduleMode,
 } from "@/models/tournament/types";
-import type { ScheduleParticipantRow } from "./helpers";
+import type { ScheduleParticipantRow } from "../helpers/scheduleParticipants";
 
 interface ScheduleParticipantsTableProps {
   mode: TournamentScheduleMode;
@@ -163,9 +163,14 @@ export function ScheduleParticipantsTable({
       <div className="space-y-3.5">
         <div className="grid gap-3.5 md:grid-cols-2 xl:grid-cols-3">
           {doublesRows.map((teamRow) => {
-            const hasCompletePair = Array.isArray(teamRow.players) && teamRow.players.length >= 2;
-            const firstPlayer = hasCompletePair ? teamRow.players[0] : null;
-            const secondPlayer = hasCompletePair ? teamRow.players[1] : null;
+            const firstPlayer =
+              Array.isArray(teamRow.players) && teamRow.players.length > 0
+                ? teamRow.players[0]
+                : null;
+            const secondPlayer =
+              Array.isArray(teamRow.players) && teamRow.players.length > 1
+                ? teamRow.players[1]
+                : null;
 
             return (
               <article
@@ -271,7 +276,7 @@ export function ScheduleParticipantsTable({
                   onClick={() => onMoveParticipant(index, "up")}
                   className="h-4 w-5 p-0 text-[#010a04]/55 hover:bg-transparent"
                   disabled={!canMoveUp}
-                  aria-label="Move participant up"
+                  aria-label={t("tournaments.scheduleMoveParticipantUp")}
                 >
                   <ChevronUp size={12} />
                 </Button>
@@ -282,7 +287,7 @@ export function ScheduleParticipantsTable({
                   onClick={() => onMoveParticipant(index, "down")}
                   className="h-4 w-5 p-0 text-[#010a04]/55 hover:bg-transparent"
                   disabled={!canMoveDown}
-                  aria-label="Move participant down"
+                  aria-label={t("tournaments.scheduleMoveParticipantDown")}
                 >
                   <IconChevronDown size={12} />
                 </Button>
@@ -315,7 +320,13 @@ export function ScheduleParticipantsTable({
                 <TableCell className="text-[13px] text-[#010a04]/75">{index + 1}</TableCell>
                 <TableCell>
                   <div className="flex items-center gap-2.5">
-                    <span className="h-[18px] w-[18px] rounded-full bg-[#d9d9d9]" />
+                    <span
+                      className={`flex h-[24px] w-[24px] shrink-0 items-center justify-center rounded-full bg-gradient-to-br ${participantToneClass(
+                        participant
+                      )} text-[9px] font-semibold text-[#010a04]/80`}
+                    >
+                      {initialsFromName(participant.name ?? t("tournaments.unknownPlayer"))}
+                    </span>
                     <span className="text-[14px] text-[#010a04]">
                       {participant.name ?? t("tournaments.unknownPlayer")}
                     </span>
@@ -351,7 +362,7 @@ export function ScheduleParticipantsTable({
                       onClick={() => onMoveParticipant(index, "up")}
                       className="h-7 px-1.5 text-[#6a6a6a] hover:bg-[#010a04]/5"
                       disabled={index === 0}
-                      aria-label="Move participant up"
+                      aria-label={t("tournaments.scheduleMoveParticipantUp")}
                     >
                       <ChevronUp size={14} />
                     </Button>
@@ -362,7 +373,7 @@ export function ScheduleParticipantsTable({
                       onClick={() => onMoveParticipant(index, "down")}
                       className="h-7 px-1.5 text-[#6a6a6a] hover:bg-[#010a04]/5"
                       disabled={index === participants.length - 1}
-                      aria-label="Move participant down"
+                      aria-label={t("tournaments.scheduleMoveParticipantDown")}
                     >
                       <IconChevronDown size={14} />
                     </Button>
