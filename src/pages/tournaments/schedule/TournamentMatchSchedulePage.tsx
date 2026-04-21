@@ -1,4 +1,4 @@
-import { useId, useState } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, Navigate, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import type { Locale } from "date-fns";
@@ -97,7 +97,6 @@ export default function TournamentMatchSchedulePage() {
   const [searchParams] = useSearchParams();
   const [editingMatch, setEditingMatch] = useState<TournamentScheduleMatch | null>(null);
   const [scoreRows, setScoreRows] = useState<ScoreEditorRow[]>([]);
-  const nextRoundHintId = useId();
 
   const tournamentQuery = useTournamentById(id ?? null, Boolean(id));
   const matchesQuery = useTournamentMatches(id ?? null, Boolean(id));
@@ -358,17 +357,6 @@ export default function TournamentMatchSchedulePage() {
     }
   };
 
-  const nextRoundDisabledMessage =
-    view.nextRoundDisabledHint != null
-      ? view.nextRoundDisabledHint.reason === "missing"
-        ? t("tournaments.schedulePreviousRoundMissing", {
-            round: view.nextRoundDisabledHint.round,
-          })
-        : t("tournaments.schedulePreviousRoundIncomplete", {
-            round: view.nextRoundDisabledHint.round,
-          })
-      : null;
-
   return (
     <div className="mx-auto w-full max-w-6xl px-5 pb-10 pt-8 sm:px-6">
       <div className="rounded-[12px] border border-[rgba(1,10,4,0.08)] bg-white px-4 py-5 shadow-[0_3px_15px_rgba(0,0,0,0.06)] sm:px-5">
@@ -411,23 +399,16 @@ export default function TournamentMatchSchedulePage() {
                 <Button
                   type="button"
                   onClick={() => void handleCreateNextRound()}
-                  // Keep pointer/click enabled to show contextual toast, while exposing blocked state to AT.
+                  // Keep pointer/click enabled so blocked states can show a contextual toast on click.
                   disabled={
                     generateScheduleMutation.isPending ||
                     scheduleQuery.isLoading
                   }
-                  aria-describedby={!view.canCreateNextRound && nextRoundDisabledMessage ? nextRoundHintId : undefined}
-                  aria-disabled={!view.canCreateNextRound}
                   className="h-[34px] shrink-0 gap-1.5 rounded-[8px] bg-[#067429] px-3 text-[13px] font-medium text-white hover:bg-[#055d21] sm:px-4"
                 >
                   <IconPlus size={16} className="text-white" aria-hidden />
                   {t("tournaments.newRound")}
                 </Button>
-                {!view.canCreateNextRound && nextRoundDisabledMessage ? (
-                  <p id={nextRoundHintId} className="text-right text-[11px] leading-snug text-[#6b7280]">
-                    {nextRoundDisabledMessage}
-                  </p>
-                ) : null}
               </div>
             )
           ) : null}

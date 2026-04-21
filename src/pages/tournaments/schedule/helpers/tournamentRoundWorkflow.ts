@@ -1,8 +1,5 @@
 import type { TournamentScheduleMatch } from "@/models/tournament/types";
-
-function isRoundResolvedStatus(status: TournamentScheduleMatch["status"]): boolean {
-  return status === "completed" || status === "cancelled";
-}
+import { isRoundResolvedStatus } from "@/pages/tournaments/utils/matchStatus";
 
 /**
  * Parses `?round=` from the URL. Returns null when missing or invalid (< 1 or NaN).

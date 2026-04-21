@@ -12,14 +12,12 @@ interface TournamentDetailsTabsProps {
   tournament: TournamentDetail;
   currentUserId: string | null;
   onParticipationAction: () => Promise<void>;
-  isParticipationPending: boolean;
 }
 
 export function TournamentDetailsTabs({
   tournament,
   currentUserId,
   onParticipationAction,
-  isParticipationPending,
 }: TournamentDetailsTabsProps) {
   const { t } = useTranslation();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -60,7 +58,6 @@ export function TournamentDetailsTabs({
       <InfoTab
         key={tournament.id}
         tournament={tournament}
-        isParticipationPending={isParticipationPending}
         onParticipationAction={onParticipationAction}
       />
       <MatchesTab tournament={tournament} currentUserId={currentUserId} />

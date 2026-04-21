@@ -15,13 +15,11 @@ import { useTournamentInfo } from "./info-tab/useTournamentInfo";
 interface InfoTabProps {
   tournament: TournamentDetail;
   onParticipationAction: () => Promise<void>;
-  isParticipationPending: boolean;
 }
 
 export function InfoTab({
   tournament,
   onParticipationAction,
-  isParticipationPending,
 }: InfoTabProps) {
   const { t, i18n } = useTranslation();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -129,7 +127,6 @@ export function InfoTab({
           tournament={tournament}
           spotPercentage={spotPercentage}
           onParticipationAction={onParticipationAction}
-          isParticipationPending={isParticipationPending}
           onEdit={() => setIsEditModalOpen(true)}
           t={t}
         />
