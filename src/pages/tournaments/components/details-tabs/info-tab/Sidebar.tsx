@@ -29,11 +29,17 @@ export function Sidebar({
 
   const { permissions, progress, minMember, maxMember } = tournament;
   const { canJoin, canLeave, canEdit, isParticipant } = permissions;
-  const pendingIntent = mutation.isPending ? mutation.variables?.nextIsParticipant : undefined;
+  const pendingIntent =
+    mutation.isPending && typeof mutation.variables?.nextIsParticipant === "boolean"
+      ? mutation.variables.nextIsParticipant
+      : undefined;
   const effectiveIsParticipant =
     typeof pendingIntent === "boolean" ? pendingIntent : isParticipant;
-  const isLeaveLocked = effectiveIsParticipant && !canLeave;
-  const shouldShowParticipation = mutation.isPending || canJoin || effectiveIsParticipant;
+  // Never show "locked leave" while a participation mutation is pending; show loading consistently.
+  const isLeaveLocked = !mutation.isPending && effectiveIsParticipant && !canLeave;
+  // Keep CTA visible through optimistic/refetch transitions where `canJoin` may lag.
+  const shouldShowParticipation =
+    mutation.isPending || canJoin || canLeave || effectiveIsParticipant;
   const progressWidth = Math.min(100, Math.max(0, spotPercentage));
   const participationLabel = mutation.isPending
     ? t("common.loading")
@@ -43,6 +49,7 @@ export function Sidebar({
   const participationButtonClass = effectiveIsParticipant
     ? "h-[42px] w-full rounded-[12px] bg-[#e8c15a] text-[16px] font-medium text-[#111111] hover:bg-[#ddb44c]"
     : "h-[42px] w-full rounded-[8px] bg-gradient-to-r from-[#0a6925] via-[#0c7b2c] to-[#0f8d33] text-[16px] font-medium text-white hover:opacity-95";
+  const participationDisabled = mutation.isPending || isLeaveLocked;
 
   return (
     <aside className={cn("xl:sticky xl:top-7", className)}>
@@ -84,25 +91,20 @@ export function Sidebar({
         <div className="my-6 h-px w-full bg-[#dddddd]" />
 
         <div className="space-y-3">
-          {shouldShowParticipation &&
-            (isLeaveLocked ? (
-              <Button
-                type="button"
-                className={cn(participationButtonClass, "cursor-not-allowed opacity-80")}
-                aria-disabled={true}
-                disabled
-              >
-                {t("tournaments.leaveMatch")}
-              </Button>
-            ) : (
-              <Button
-                className={participationButtonClass}
-                onClick={() => mutation.mutate({ nextIsParticipant: !isParticipant })}
-                disabled={mutation.isPending}
-              >
-                {participationLabel}
-              </Button>
-            ))}
+          {shouldShowParticipation ? (
+            <Button
+              type="button"
+              className={cn(
+                participationButtonClass,
+                participationDisabled && "cursor-not-allowed opacity-80"
+              )}
+              aria-disabled={participationDisabled}
+              onClick={() => mutation.mutate({ nextIsParticipant: !effectiveIsParticipant })}
+              disabled={participationDisabled}
+            >
+              {isLeaveLocked ? t("tournaments.leaveMatch") : participationLabel}
+            </Button>
+          ) : null}
 
           {canEdit && (
             <Button

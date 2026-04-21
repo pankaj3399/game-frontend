@@ -42,8 +42,6 @@ export function useOptimisticTournamentParticipation({
             permissions: {
               ...currentPermissions,
               isParticipant: nextIsParticipant,
-              canJoin: !nextIsParticipant,
-              canLeave: nextIsParticipant,
             },
           },
         };
@@ -56,8 +54,11 @@ export function useOptimisticTournamentParticipation({
         queryClient.setQueryData(tournamentQueryKey, context.previous);
       }
     },
-    onSettled: () => {
-      void queryClient.invalidateQueries({ queryKey: tournamentQueryKey });
+    onSettled: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: tournamentQueryKey,
+        refetchType: "all",
+      });
     },
   });
 }

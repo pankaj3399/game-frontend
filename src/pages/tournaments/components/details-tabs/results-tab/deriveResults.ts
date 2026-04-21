@@ -1,12 +1,9 @@
 import type { TournamentDetail, TournamentScheduleMatch } from "@/models/tournament/types";
+import { isRoundResolvedStatus } from "@/pages/tournaments/utils/matchStatus";
 import type { ParticipantResult } from "./types";
 
 function participantDisplayName(name: string | null, alias: string | null, fallback: string) {
   return name || alias || fallback;
-}
-
-function isRoundResolvedStatus(status: TournamentScheduleMatch["status"]): boolean {
-  return status === "completed" || status === "cancelled";
 }
 
 function getNumericScoreTotal(scores: Array<number | "wo">): number {
@@ -186,10 +183,6 @@ function resolveLatestResolvedRound(matches: TournamentScheduleMatch[]): number 
   }
 
   const rounds = Array.from(matchesByRound.keys()).sort((a, b) => a - b);
-  if (rounds.length === 0) {
-    return 0;
-  }
-
   let latestResolvedRound = rounds[0] - 1;
   for (const round of rounds) {
     if (round !== latestResolvedRound + 1) {
