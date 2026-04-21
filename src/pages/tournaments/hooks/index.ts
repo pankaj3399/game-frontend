@@ -14,3 +14,4 @@ export {
   useJoinTournament,
   useLeaveTournament,
 } from "./useTournamentMutations";
+export { useOptimisticTournamentParticipation } from "./useOptimisticTournamentParticipation";

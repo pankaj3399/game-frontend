@@ -231,7 +231,6 @@ export default function TournamentDetailsPage() {
           tournament={tournament}
           currentUserId={user?.id ?? null}
           onParticipationAction={onParticipationAction}
-          isParticipationPending={joinTournament.isPending || leaveTournament.isPending}
         />
       </div>
     </div>

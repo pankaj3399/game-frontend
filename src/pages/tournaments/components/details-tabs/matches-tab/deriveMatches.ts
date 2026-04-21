@@ -106,12 +106,12 @@ export function deriveMatches(
       playerA: withBracketedElo(
         playerA,
         match.side1,
-        (rating) => `(${t("tournaments.matchRatingElo", { value: rating })})`
+        (rating) => `(${rating})`
       ),
       playerB: withBracketedElo(
         playerB,
         match.side2,
-        (rating) => `(${t("tournaments.matchRatingElo", { value: rating })})`
+        (rating) => `(${rating})`
       ),
       courtName,
       status: match.status,
