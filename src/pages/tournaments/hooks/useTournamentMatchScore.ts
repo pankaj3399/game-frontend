@@ -34,14 +34,25 @@ export function useRecordTournamentMatchScore() {
       matchId: string;
       input: RecordTournamentMatchScoreInput;
     }) => recordTournamentMatchScore(tournamentId, matchId, input),
-    onSuccess: (_response, variables) => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.tournament.liveMatch() });
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.tournament.matches(variables.tournamentId),
-      });
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.tournament.detail(variables.tournamentId),
-      });
+    onSuccess: async (_response, variables) => {
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.tournament.liveMatch(),
+          refetchType: "all",
+        }),
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.tournament.matches(variables.tournamentId),
+          refetchType: "all",
+        }),
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.tournament.detail(variables.tournamentId),
+          refetchType: "all",
+        }),
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.tournament.schedule(variables.tournamentId),
+          refetchType: "all",
+        }),
+      ]);
     },
   });
 }

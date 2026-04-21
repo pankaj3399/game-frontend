@@ -404,7 +404,6 @@ export default function TournamentMatchSchedulePage() {
                     generateScheduleMutation.isPending ||
                     scheduleQuery.isLoading
                   }
-                  aria-disabled={!view.canCreateNextRound}
                   className="h-[34px] shrink-0 gap-1.5 rounded-[8px] bg-[#067429] px-3 text-[13px] font-medium text-white hover:bg-[#055d21] sm:px-4"
                 >
                   <IconPlus size={16} className="text-white" aria-hidden />
