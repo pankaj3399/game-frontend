@@ -92,7 +92,14 @@ function PlayerMatchCard({
   const locale = getDateFnsLocale(language) ?? enUS;
   const tbd = t("tournaments.scheduledTbd");
   const { date: dateLabel, time: timeLabel } = matchScheduleDateTimeLabels(match.startTime, locale, tbd);
-  const courtLabel = match.court.name ?? t("tournaments.courtTBD");
+  const trimmedCourtName = match.court.name?.trim();
+  const courtLabel =
+    (trimmedCourtName && trimmedCourtName.length > 0
+      ? trimmedCourtName
+      : null) ??
+    (match.court.number != null ? t("tournaments.courtFallback", { number: match.court.number }) : null) ??
+    match.court.id ??
+    t("tournaments.courtTBD");
 
   const columns = scoreColumns(match);
   const winningSide = aggregateMatchWinner(columns);
@@ -106,9 +113,9 @@ function PlayerMatchCard({
       className={cn(
         "rounded-[12px] border px-[15px] py-[15px]",
         isLive
-          ? "border-green-700 bg-green-50"
+          ? "border-destructive/30 bg-destructive/5"
           : isPendingScore
-            ? "border-amber-700 bg-amber-50"
+            ? "border-primary/30 bg-primary/5"
             : "border-transparent bg-muted/40"
       )}
     >
@@ -135,7 +142,7 @@ function PlayerMatchCard({
               {t("tournaments.liveLabel")}
             </span>
           ) : isPendingScore ? (
-            <span className="text-[12px] font-medium text-amber-700">{t("tournaments.matchStatusPendingScore")}</span>
+            <span className="text-[12px] font-medium text-primary">{t("tournaments.matchStatusPendingScore")}</span>
           ) : isCancelled ? (
             <span className="text-[12px] font-medium text-destructive">{t("tournaments.matchStatusCancelled")}</span>
           ) : null}
@@ -152,7 +159,7 @@ function PlayerMatchCard({
             side: "one",
             nameSuffix:
               match.status === "completed" && winningSide === "one" ? (
-                <span className="shrink-0 text-[13px] font-medium text-green-700">
+                <span className="shrink-0 text-[13px] font-medium text-primary">
                   {t("tournaments.matchWinnerParenthetical")}
                 </span>
               ) : undefined,
@@ -162,7 +169,7 @@ function PlayerMatchCard({
             side: "two",
             nameSuffix:
               match.status === "completed" && winningSide === "two" ? (
-                <span className="shrink-0 text-[13px] font-medium text-green-700">
+                <span className="shrink-0 text-[13px] font-medium text-primary">
                   {t("tournaments.matchWinnerParenthetical")}
                 </span>
               ) : undefined,
@@ -192,6 +199,8 @@ export function PlayerMatchesBoard({
     userSelectedMode && matches.some((m) => (m.mode ?? "singles") === userSelectedMode)
       ? userSelectedMode
       : defaultMode;
+  const singlesAvailable = matches.some((m) => (m.mode ?? "singles") === "singles");
+  const doublesAvailable = matches.some((m) => (m.mode ?? "singles") === "doubles");
 
   const modeFilteredMatches = matches.filter((match) => (match.mode ?? "singles") === selectedMode);
 
@@ -217,8 +226,11 @@ export function PlayerMatchesBoard({
               onClick={() => {
                 setUserSelectedMode("singles");
               }}
+              disabled={!singlesAvailable}
+              aria-disabled={!singlesAvailable ? "true" : undefined}
               className={cn(
                 "inline-flex h-full items-center justify-center rounded-[5px] px-3 text-[12px] font-medium",
+                !singlesAvailable && "cursor-not-allowed opacity-50",
                 selectedMode === "singles"
                   ? "bg-background text-foreground shadow-[0_0_4px_rgba(0,0,0,0.04),0_4px_8px_rgba(0,0,0,0.06)]"
                   : "text-muted-foreground"
@@ -232,8 +244,11 @@ export function PlayerMatchesBoard({
               onClick={() => {
                 setUserSelectedMode("doubles");
               }}
+              disabled={!doublesAvailable}
+              aria-disabled={!doublesAvailable ? "true" : undefined}
               className={cn(
                 "inline-flex h-full items-center justify-center rounded-[5px] px-3 text-[12px] font-medium",
+                !doublesAvailable && "cursor-not-allowed opacity-50",
                 selectedMode === "doubles"
                   ? "bg-background text-foreground shadow-[0_0_4px_rgba(0,0,0,0.04),0_4px_8px_rgba(0,0,0,0.06)]"
                   : "text-muted-foreground"

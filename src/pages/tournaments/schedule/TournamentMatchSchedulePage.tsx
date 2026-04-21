@@ -257,8 +257,17 @@ export default function TournamentMatchSchedulePage() {
         return;
       }
       closeEditor();
-      const refreshedMatches = await matchesQuery.refetch();
-      const latestMatchesData = refreshedMatches.data ?? matchesQuery.data;
+      let latestMatchesData = matchesQuery.data;
+      try {
+        const refreshedMatches = await matchesQuery.refetch();
+        latestMatchesData = refreshedMatches.data ?? matchesQuery.data;
+      } catch (error) {
+        console.error("[TournamentMatchSchedulePage] Failed to refetch matches after score save.", {
+          tournamentId: tournament.id,
+          search: searchParams.toString(),
+          error,
+        });
+      }
       if (latestMatchesData) {
         effectiveView = buildMatchSchedulePageModel(
           searchParams,

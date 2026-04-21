@@ -117,7 +117,7 @@ export function ScheduleParticipantsTable({
   const showDoublesLayout =
     mode === "doubles" && (doublesPairs != null || doublesPairsLoading);
 
-  if (showDoublesLayout && doublesPairsLoading && !doublesPairs) {
+  if (showDoublesLayout && doublesPairsLoading) {
     const pairCount = Math.max(1, Math.floor(participants.length / 2));
     return (
       <div className="space-y-3.5">
@@ -240,7 +240,7 @@ export function ScheduleParticipantsTable({
                 size="sm"
                 onClick={() => onEditParticipant(participant.id)}
                 className="h-7 w-7 px-0 text-[#067429] hover:bg-[#067429]/10"
-                aria-label={t("tournaments.edit")}
+                aria-label={t("tournaments.scheduleEditParticipant", { name: displayName })}
               >
                 <PencilEdit01Icon size={15} />
               </Button>
@@ -252,7 +252,9 @@ export function ScheduleParticipantsTable({
                   onClick={() => onMoveParticipant(index, "up")}
                   className="h-4 w-5 p-0 text-[#010a04]/55 hover:bg-transparent"
                   disabled={!canMoveUp}
-                  aria-label={t("tournaments.scheduleMoveParticipantUp")}
+                  aria-label={t("tournaments.scheduleMoveParticipantUpWithName", {
+                    name: displayName,
+                  })}
                 >
                   <ChevronUp size={12} />
                 </Button>
@@ -263,7 +265,9 @@ export function ScheduleParticipantsTable({
                   onClick={() => onMoveParticipant(index, "down")}
                   className="h-4 w-5 p-0 text-[#010a04]/55 hover:bg-transparent"
                   disabled={!canMoveDown}
-                  aria-label={t("tournaments.scheduleMoveParticipantDown")}
+                  aria-label={t("tournaments.scheduleMoveParticipantDownWithName", {
+                    name: displayName,
+                  })}
                 >
                   <IconChevronDown size={12} />
                 </Button>
@@ -293,6 +297,7 @@ export function ScheduleParticipantsTable({
           <TableBody>
             {participants.map((participant, index) => (
               <TableRow key={participant.id}>
+                {/** Keep row labels participant-specific for screen readers. */}
                 <TableCell className="text-[13px] text-[#010a04]/75">{index + 1}</TableCell>
                 <TableCell>
                   <div className="flex items-center gap-2.5">
@@ -319,6 +324,10 @@ export function ScheduleParticipantsTable({
                       size="sm"
                       onClick={() => onEditParticipant(participant.id)}
                       className="h-7 px-2 text-[12px] text-[#067429] hover:bg-[#067429]/10"
+                      aria-label={t("tournaments.scheduleEditParticipant", {
+                        name:
+                          participant.alias ?? participant.name ?? t("tournaments.unknownPlayer"),
+                      })}
                     >
                       <PencilEdit01Icon size={14} className="mr-1" />
                       {t("tournaments.edit")}
@@ -344,7 +353,10 @@ export function ScheduleParticipantsTable({
                       onClick={() => onMoveParticipant(index, "up")}
                       className="h-7 px-1.5 text-[#6a6a6a] hover:bg-[#010a04]/5"
                       disabled={index === 0}
-                      aria-label={t("tournaments.scheduleMoveParticipantUp")}
+                      aria-label={t("tournaments.scheduleMoveParticipantUpWithName", {
+                        name:
+                          participant.alias ?? participant.name ?? t("tournaments.unknownPlayer"),
+                      })}
                     >
                       <ChevronUp size={14} />
                     </Button>
@@ -355,7 +367,10 @@ export function ScheduleParticipantsTable({
                       onClick={() => onMoveParticipant(index, "down")}
                       className="h-7 px-1.5 text-[#6a6a6a] hover:bg-[#010a04]/5"
                       disabled={index === participants.length - 1}
-                      aria-label={t("tournaments.scheduleMoveParticipantDown")}
+                      aria-label={t("tournaments.scheduleMoveParticipantDownWithName", {
+                        name:
+                          participant.alias ?? participant.name ?? t("tournaments.unknownPlayer"),
+                      })}
                     >
                       <IconChevronDown size={14} />
                     </Button>

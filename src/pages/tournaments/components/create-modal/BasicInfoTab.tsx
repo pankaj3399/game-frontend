@@ -246,7 +246,6 @@ export function BasicInfoTab({
                   <Button
                     id="create-tournament-basic-date"
                     type="button"
-                    aria-labelledby="create-tournament-basic-date-label"
                     aria-label={`${t("tournaments.date")} ${dateDisplayValue}`}
                     variant="outline"
                     className={cn(

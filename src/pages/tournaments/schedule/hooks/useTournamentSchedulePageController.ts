@@ -219,6 +219,9 @@ export function useTournamentSchedulePageController({
       }
 
       if (generateDoublesPairsMutation.isPending || participants.length < 2) {
+        if (participants.length < 2) {
+          toast.warning(t("tournaments.scheduleDoublesBlockedMinParticipants"));
+        }
         return;
       }
 
@@ -243,31 +246,31 @@ export function useTournamentSchedulePageController({
             participantOrder: participantOrderIds(participants),
           },
         });
-        updateOverrides((current) => ({
-          ...(latestDoublesRequestIdRef.current !== callId || current.mode !== "doubles"
-            ? current
-            : {}),
-          ...(latestDoublesRequestIdRef.current !== callId || current.mode !== "doubles"
-            ? {}
-            : {
-                ...current,
-                doublesPairs: response,
-                doublesPairsKey: participantOrderKey,
-              }),
-        }));
+        updateOverrides((current) => {
+          const isStale =
+            latestDoublesRequestIdRef.current !== callId || current.mode !== "doubles";
+          if (isStale) {
+            return current;
+          }
+          return {
+            ...current,
+            doublesPairs: response,
+            doublesPairsKey: participantOrderKey,
+          };
+        });
       } catch (error: unknown) {
-        updateOverrides((current) => ({
-          ...(latestDoublesRequestIdRef.current !== callId || current.mode !== "doubles"
-            ? current
-            : {}),
-          ...(latestDoublesRequestIdRef.current !== callId || current.mode !== "doubles"
-            ? {}
-            : {
-                ...current,
-                mode: "singles",
-                doublesPairsKey: null,
-              }),
-        }));
+        updateOverrides((current) => {
+          const isStale =
+            latestDoublesRequestIdRef.current !== callId || current.mode !== "doubles";
+          if (isStale) {
+            return current;
+          }
+          return {
+            ...current,
+            mode: "singles",
+            doublesPairsKey: null,
+          };
+        });
         if (latestDoublesRequestIdRef.current === callId) {
           toast.error(getErrorMessage(error) ?? t("tournaments.schedulePairsError"));
         }
