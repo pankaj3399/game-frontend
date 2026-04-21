@@ -7,6 +7,10 @@ interface UseOptimisticTournamentParticipationOptions {
   onParticipationAction: () => Promise<void>;
 }
 
+interface ParticipationMutationVariables {
+  nextIsParticipant: boolean;
+}
+
 interface ParticipationMutationContext {
   previous?: TournamentDetailResponse;
 }
@@ -18,9 +22,9 @@ export function useOptimisticTournamentParticipation({
   const queryClient = useQueryClient();
   const tournamentQueryKey = queryKeys.tournament.detail(tournamentId);
 
-  return useMutation<void, unknown, void, ParticipationMutationContext>({
-    mutationFn: onParticipationAction,
-    onMutate: async () => {
+  return useMutation<void, unknown, ParticipationMutationVariables, ParticipationMutationContext>({
+    mutationFn: async () => onParticipationAction(),
+    onMutate: async ({ nextIsParticipant }) => {
       await queryClient.cancelQueries({ queryKey: tournamentQueryKey });
 
       const previous = queryClient.getQueryData<TournamentDetailResponse>(tournamentQueryKey);
@@ -31,30 +35,15 @@ export function useOptimisticTournamentParticipation({
         }
 
         const currentPermissions = oldData.tournament.permissions;
-        if (currentPermissions.isParticipant) {
-          return {
-            ...oldData,
-            tournament: {
-              ...oldData.tournament,
-              permissions: {
-                ...currentPermissions,
-                isParticipant: false,
-                canJoin: true,
-                canLeave: false,
-              },
-            },
-          };
-        }
-
         return {
           ...oldData,
           tournament: {
             ...oldData.tournament,
             permissions: {
               ...currentPermissions,
-              isParticipant: true,
-              canJoin: false,
-              canLeave: true,
+              isParticipant: nextIsParticipant,
+              canJoin: !nextIsParticipant,
+              canLeave: nextIsParticipant,
             },
           },
         };

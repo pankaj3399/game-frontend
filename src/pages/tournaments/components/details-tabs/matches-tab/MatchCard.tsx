@@ -83,7 +83,6 @@ export function MatchCard({ match, t }: MatchCardProps) {
           </p>
           {showHeadlineTooltip ? (
             <div
-              role="tooltip"
               className="pointer-events-none absolute left-0 top-full z-20 mt-1 max-w-[min(30rem,calc(100vw-3rem))] rounded-md border border-border bg-popover px-3 py-2 text-xs font-medium leading-snug text-popover-foreground shadow-md"
             >
               {headline}

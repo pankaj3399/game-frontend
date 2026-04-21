@@ -5,6 +5,10 @@ function participantDisplayName(name: string | null, alias: string | null, fallb
   return name || alias || fallback;
 }
 
+function isRoundResolvedStatus(status: TournamentScheduleMatch["status"]): boolean {
+  return status === "completed" || status === "cancelled";
+}
+
 function getNumericScoreTotal(scores: Array<number | "wo">): number {
   return scores.reduce<number>(
     (sum, value) => (typeof value === "number" ? sum + value : sum),
@@ -110,18 +114,24 @@ function resolveWinnerIds(match: TournamentScheduleMatch): string[] | null {
   return playerOneTotal > playerTwoTotal ? sideOneIds : sideTwoIds;
 }
 
-/**
- * Standings are based on real completed matches from the API.
- * Each match win gives exactly 1 win; losses do not add wins.
- * Total score advantage is the cumulative numeric score difference across completed matches.
- */
-export function deriveResults(
+function sortStandings(a: ParticipantResult, b: ParticipantResult): number {
+  if (b.wins !== a.wins) return b.wins - a.wins;
+  if (b.totalScoreAdvantage !== a.totalScoreAdvantage) {
+    return b.totalScoreAdvantage - a.totalScoreAdvantage;
+  }
+  return a.name.localeCompare(b.name);
+}
+
+function deriveStandingsUpToRound(
   tournament: TournamentDetail,
   matches: TournamentScheduleMatch[],
-  unknownLabel: string
+  unknownLabel: string,
+  roundLimit: number
 ): ParticipantResult[] {
   const participants = tournament.participants;
-  if (participants.length === 0) return [];
+  if (participants.length === 0) {
+    return [];
+  }
 
   const winsById = new Map<string, number>();
   const scoreAdvantageById = new Map<string, number>();
@@ -131,36 +141,112 @@ export function deriveResults(
     scoreAdvantageById.set(p.id, 0);
   }
 
-  matches.forEach((match) => {
-    if (match.status !== "completed") {
-      return;
+  for (const match of matches) {
+    if (match.round > roundLimit || match.status !== "completed") {
+      continue;
     }
 
     applyScoreAdvantageBySide(match, scoreAdvantageById);
 
     const winnerIds = resolveWinnerIds(match);
     if (!winnerIds || winnerIds.length === 0) {
-      return;
+      continue;
     }
 
     for (const id of winnerIds) {
       winsById.set(id, (winsById.get(id) ?? 0) + 1);
     }
-  });
+  }
 
-  const withScores: ParticipantResult[] = participants.map((participant) => ({
-    id: participant.id,
-    name: participantDisplayName(participant.name, participant.alias, unknownLabel),
-    wins: winsById.get(participant.id) ?? 0,
-    totalScoreAdvantage: scoreAdvantageById.get(participant.id) ?? 0,
-    positionChange: 0,
-  }));
+  return participants
+    .map((participant) => ({
+      id: participant.id,
+      name: participantDisplayName(participant.name, participant.alias, unknownLabel),
+      wins: winsById.get(participant.id) ?? 0,
+      totalScoreAdvantage: scoreAdvantageById.get(participant.id) ?? 0,
+      positionChange: 0,
+    }))
+    .sort(sortStandings);
+}
 
-  return withScores.sort((a, b) => {
-    if (b.wins !== a.wins) return b.wins - a.wins;
-    if (b.totalScoreAdvantage !== a.totalScoreAdvantage) {
-      return b.totalScoreAdvantage - a.totalScoreAdvantage;
+function resolveLatestResolvedRound(matches: TournamentScheduleMatch[]): number {
+  if (matches.length === 0) {
+    return 0;
+  }
+
+  const matchesByRound = new Map<number, TournamentScheduleMatch[]>();
+  for (const match of matches) {
+    const round = Math.max(1, Math.trunc(match.round));
+    const current = matchesByRound.get(round);
+    if (current) {
+      current.push(match);
+    } else {
+      matchesByRound.set(round, [match]);
     }
-    return a.name.localeCompare(b.name);
+  }
+
+  const rounds = Array.from(matchesByRound.keys()).sort((a, b) => a - b);
+  if (rounds.length === 0) {
+    return 0;
+  }
+
+  let latestResolvedRound = rounds[0] - 1;
+  for (const round of rounds) {
+    if (round !== latestResolvedRound + 1) {
+      break;
+    }
+
+    const roundMatches = matchesByRound.get(round) ?? [];
+    if (roundMatches.length === 0 || !roundMatches.every((match) => isRoundResolvedStatus(match.status))) {
+      break;
+    }
+
+    latestResolvedRound = round;
+  }
+
+  return Math.max(0, latestResolvedRound);
+}
+
+/**
+ * Standings are based on real completed matches from the API.
+ * We only include matches up to the latest fully resolved round
+ * (every match in the round is completed or cancelled), so the
+ * leaderboard updates when a round closes, not mid-round.
+ */
+export function deriveResults(
+  tournament: TournamentDetail,
+  matches: TournamentScheduleMatch[],
+  unknownLabel: string
+): ParticipantResult[] {
+  const latestResolvedRound = resolveLatestResolvedRound(matches);
+  const currentStandings = deriveStandingsUpToRound(
+    tournament,
+    matches,
+    unknownLabel,
+    latestResolvedRound
+  );
+
+  if (latestResolvedRound <= 1) {
+    return currentStandings;
+  }
+
+  const previousStandings = deriveStandingsUpToRound(
+    tournament,
+    matches,
+    unknownLabel,
+    latestResolvedRound - 1
+  );
+  const previousPositionById = new Map(
+    previousStandings.map((result, index) => [result.id, index + 1])
+  );
+
+  return currentStandings.map((result, index) => {
+    const currentPosition = index + 1;
+    const previousPosition = previousPositionById.get(result.id);
+    return {
+      ...result,
+      positionChange:
+        previousPosition == null ? 0 : previousPosition - currentPosition,
+    };
   });
 }

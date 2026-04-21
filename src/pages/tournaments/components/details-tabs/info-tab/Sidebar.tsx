@@ -29,9 +29,11 @@ export function Sidebar({
 
   const { permissions, progress, minMember, maxMember } = tournament;
   const { canJoin, canLeave, canEdit, isParticipant } = permissions;
-  const effectiveIsParticipant = mutation.isPending ? !isParticipant : isParticipant;
+  const pendingIntent = mutation.isPending ? mutation.variables?.nextIsParticipant : undefined;
+  const effectiveIsParticipant =
+    typeof pendingIntent === "boolean" ? pendingIntent : isParticipant;
   const isLeaveLocked = effectiveIsParticipant && !canLeave;
-  const shouldShowParticipation = mutation.isPending || canJoin || isParticipant;
+  const shouldShowParticipation = mutation.isPending || canJoin || effectiveIsParticipant;
   const progressWidth = Math.min(100, Math.max(0, spotPercentage));
   const participationLabel = mutation.isPending
     ? t("common.loading")
@@ -95,7 +97,7 @@ export function Sidebar({
             ) : (
               <Button
                 className={participationButtonClass}
-                onClick={() => mutation.mutate()}
+                onClick={() => mutation.mutate({ nextIsParticipant: !isParticipant })}
                 disabled={mutation.isPending}
               >
                 {participationLabel}
