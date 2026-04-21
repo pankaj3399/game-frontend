@@ -56,7 +56,7 @@ interface DoublesPlayerChipProps {
 }
 
 function DoublesPlayerChip({ player, fallbackName }: DoublesPlayerChipProps) {
-  const displayName = player.name ?? fallbackName;
+  const displayName = player.alias ?? player.name ?? fallbackName;
 
   return (
     <div className="flex min-w-0 flex-1 items-center gap-3">
@@ -187,7 +187,7 @@ export function ScheduleParticipantsTable({
           <div className="rounded-[10px] border border-dashed border-[#010a04]/20 bg-[#010a04]/[0.02] px-4 py-3 text-[13px] text-[#010a04]/75">
             {t("tournaments.scheduleUnpairedList", {
               names: doublesPairs.unpaired
-                .map((player) => player.name ?? t("tournaments.unknownPlayer"))
+                .map((player) => player.alias ?? player.name ?? t("tournaments.unknownPlayer"))
                 .join(", "),
             })}
           </div>
@@ -199,7 +199,7 @@ export function ScheduleParticipantsTable({
   const mobileSinglesRows = (
     <div className="overflow-hidden rounded-[10px] border border-[rgba(0,0,0,0.08)] md:hidden">
       {participants.map((participant, index) => {
-        const displayName = participant.name ?? t("tournaments.unknownPlayer");
+        const displayName = participant.alias ?? participant.name ?? t("tournaments.unknownPlayer");
         const canMoveUp = index > 0;
         const canMoveDown = index < participants.length - 1;
 
@@ -300,10 +300,12 @@ export function ScheduleParticipantsTable({
                         participant
                       )} text-[9px] font-semibold text-[#010a04]/80`}
                     >
-                      {initialsFromName(participant.name ?? t("tournaments.unknownPlayer"))}
+                      {initialsFromName(
+                        participant.alias ?? participant.name ?? t("tournaments.unknownPlayer")
+                      )}
                     </span>
                     <span className="text-[14px] text-[#010a04]">
-                      {participant.name ?? t("tournaments.unknownPlayer")}
+                      {participant.alias ?? participant.name ?? t("tournaments.unknownPlayer")}
                     </span>
                   </div>
                 </TableCell>

@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { enUS } from "date-fns/locale";
 import type { TFunction } from "i18next";
 import { SwitchToggle } from "@/components/ui/switch-toggle";
@@ -188,20 +188,13 @@ export function PlayerMatchesBoard({
   /** User preference; the filter and switch only apply when signed in (see `onlyMyMatchesActive`). */
   const [wantOnlyMyMatches, setWantOnlyMyMatches] = useState(false);
 
-  const modeFilteredMatches = useMemo(
-    () => matches.filter((match) => (match.mode ?? "singles") === selectedMode),
-    [matches, selectedMode]
-  );
+  const modeFilteredMatches = matches.filter((match) => (match.mode ?? "singles") === selectedMode);
 
   const onlyMyMatchesActive = Boolean(currentUserId) && wantOnlyMyMatches;
 
-  const filteredMatches = useMemo(
-    () =>
-      onlyMyMatchesActive
-        ? modeFilteredMatches.filter((match) => isCurrentUserInMatch(match, currentUserId))
-        : modeFilteredMatches,
-    [modeFilteredMatches, onlyMyMatchesActive, currentUserId]
-  );
+  const filteredMatches = onlyMyMatchesActive
+    ? modeFilteredMatches.filter((match) => isCurrentUserInMatch(match, currentUserId))
+    : modeFilteredMatches;
 
   const emptyText =
     modeFilteredMatches.length === 0

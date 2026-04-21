@@ -11,23 +11,16 @@ function average(values: number[]) {
 
 function normalizedRatings(team: Array<TournamentMatchPlayer | null>) {
   const ratings: number[] = [];
-  const deviations: number[] = [];
 
   for (const player of team) {
     const rating = player?.elo?.rating;
     if (typeof rating === "number" && Number.isFinite(rating)) {
       ratings.push(rating);
     }
-
-    const rd = player?.elo?.rd;
-    if (typeof rd === "number" && Number.isFinite(rd)) {
-      deviations.push(rd);
-    }
   }
 
   return {
     rating: average(ratings),
-    rd: average(deviations),
   };
 }
 

@@ -44,7 +44,7 @@ function formatPlayedAt(playedAt: string, language: string): string {
       return "-";
     }
 
-    return format(parsed, "dd MMM, yyyy", {
+    return format(parsed, "PP", {
       locale: getDateFnsLocale(language),
     });
   } catch {

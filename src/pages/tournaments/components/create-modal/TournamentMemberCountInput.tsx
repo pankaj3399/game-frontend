@@ -78,8 +78,9 @@ export function TournamentMemberCountInput({
         if (committedRef.current) {
           return;
         }
-        const draft = parseCommittedMemberCount(e.currentTarget.value);
-        if (draft === valueRef.current) {
+        const normalizedDraft = parseCommittedMemberCount(e.currentTarget.value);
+        if (normalizedDraft === valueRef.current) {
+          setText(String(normalizedDraft));
           return;
         }
         committedRef.current = true;

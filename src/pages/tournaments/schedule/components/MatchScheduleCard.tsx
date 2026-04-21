@@ -178,7 +178,7 @@ export function MatchScheduleCard({
                   <span className="truncate text-[16px] font-medium leading-[20px] text-[#010a04]">{name}</span>
                 </div>
                 <div className="flex items-center gap-1.5 rounded-[8px] bg-white/80 px-1 py-1">
-                  {editableRows.map((row) => {
+                  {editableRows.map((row, rowIndex) => {
                     const value = side === "one" ? row.playerOne : row.playerTwo;
                     return (
                       <input
@@ -187,7 +187,7 @@ export function MatchScheduleCard({
                         inputMode="text"
                         aria-label={t("tournaments.scoreInputLabel", {
                           playerName: name,
-                          setNumber: editableRows.findIndex((item) => item.id === row.id) + 1,
+                          setNumber: rowIndex + 1,
                         })}
                         value={value}
                         onChange={(event) =>

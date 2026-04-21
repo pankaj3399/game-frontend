@@ -2,6 +2,7 @@ import { useTranslation } from "react-i18next";
 import { format, startOfDay } from "date-fns";
 import { Calendar as CalendarIcon, ChartIcon } from "@/icons/figma-icons";
 import { cn } from "@/lib/utils";
+import { getDateFnsLocale } from "@/lib/dateFnsLocale";
 import { parseIsoDateSafely } from "@/utils/date";
 import { TOURNAMENT_MODES } from "@/constants/tournament";
 import { getScheduledTimeRangeErrorKey } from "@/lib/tournament/form";
@@ -44,7 +45,7 @@ export function BasicInfoTab({
   allowPastDates = false,
   formScopeKey,
 }: BasicInfoTabProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   const selectedDate = parseIsoDateSafely(form.date) ?? undefined;
   const scheduledErrorKey = getScheduledTimeRangeErrorKey(form);
@@ -208,7 +209,7 @@ export function BasicInfoTab({
                   >
                     <span className="min-w-0 truncate leading-normal">
                       {selectedDate
-                        ? format(selectedDate, "dd/MM/yyyy")
+                        ? format(selectedDate, "P", { locale: getDateFnsLocale(i18n.language) })
                         : t("tournaments.datePlaceholder")}
                     </span>
                     <CalendarIcon className="h-4 w-4 shrink-0 text-[#010a04]/65 sm:h-5 sm:w-5" />
