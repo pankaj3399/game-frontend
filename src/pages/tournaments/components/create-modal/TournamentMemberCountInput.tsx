@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Input } from "@/components/ui/input";
 import {
   applyTournamentMemberCountCommit,
@@ -33,21 +33,8 @@ export function TournamentMemberCountInput({
   className,
 }: TournamentMemberCountInputProps) {
   const [text, setText] = useState(() => String(value));
-  const textRef = useRef(text);
-  const valueRef = useRef(value);
-  const peerValueRef = useRef(peerValue);
-  const roleRef = useRef(role);
-  const onCommitPairRef = useRef(onCommitPair);
   const committedRef = useRef(false);
   const editedAfterSyncRef = useRef(false);
-
-  useLayoutEffect(() => {
-    textRef.current = text;
-    valueRef.current = value;
-    peerValueRef.current = peerValue;
-    roleRef.current = role;
-    onCommitPairRef.current = onCommitPair;
-  }, [text, value, peerValue, role, onCommitPair]);
 
   useEffect(() => {
     committedRef.current = false;
@@ -79,7 +66,8 @@ export function TournamentMemberCountInput({
           return;
         }
         const normalizedDraft = parseCommittedMemberCount(e.currentTarget.value);
-        if (normalizedDraft === valueRef.current) {
+        if (normalizedDraft === value) {
+          editedAfterSyncRef.current = false;
           setText(String(normalizedDraft));
           return;
         }

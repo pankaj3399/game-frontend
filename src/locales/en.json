@@ -635,6 +635,7 @@
     "enterScore": "Enter Score",
     "scoreEditorSet": "Set {{set}}",
     "scoreInputLabel": "Score for {{playerName}}, set {{setNumber}}",
+    "scorePlaceholder": "0 / WO",
     "scoreEditorAddSet": "Add Set",
     "scoreEditorSaveSuccess": "Score updated successfully.",
     "scoreEditorNoSets": "Add at least one set before saving.",
@@ -730,7 +731,8 @@
     "timeRange": "{{start}} – {{end}}",
     "notSpecified": "–",
     "entryFeeFree": "Free",
-    "entryFeeFormat": "${{amount}}"
+    "entryFeeFormat": "${{amount}}",
+    "removeParticipant": "Remove {{name}}"
   },
   "myScorePage": {
     "title": "My Score",

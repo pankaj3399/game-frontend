@@ -634,6 +634,7 @@
     "enterScore": "Score eintragen",
     "scoreEditorSet": "Satz {{set}}",
     "scoreInputLabel": "Score für {{playerName}}, Satz {{setNumber}}",
+    "scorePlaceholder": "0 / WO",
     "scoreEditorAddSet": "Satz hinzufügen",
     "scoreEditorSaveSuccess": "Score erfolgreich aktualisiert.",
     "scoreEditorNoSets": "Fügen Sie vor dem Speichern mindestens einen Satz hinzu.",
@@ -728,7 +729,8 @@
     "timeRange": "{{start}} – {{end}}",
     "notSpecified": "–",
     "entryFeeFree": "Kostenlos",
-    "entryFeeFormat": "{{amount}} €"
+    "entryFeeFormat": "{{amount}} €",
+    "removeParticipant": "{{name}} entfernen"
   },
   "myScorePage": {
     "title": "Meine Punktzahl",

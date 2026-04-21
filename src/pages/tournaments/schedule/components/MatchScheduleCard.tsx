@@ -150,7 +150,7 @@ export function MatchScheduleCard({
         </div>
       </div>
 
-      {isEditing ? (
+      {isEditing && canEditScores ? (
         <div className="mb-2 flex justify-end gap-1.5">
           {Array.from({ length: editableRows.length }, (_, columnIndex) => (
             <span
@@ -163,7 +163,7 @@ export function MatchScheduleCard({
         </div>
       ) : null}
 
-      {isEditing ? (
+      {isEditing && canEditScores ? (
         <div className="space-y-[10px]">
           {[firstPlayer, secondPlayer].map((name, index) => {
             const side = index === 0 ? "one" : "two";
@@ -197,7 +197,7 @@ export function MatchScheduleCard({
                             event.target.value
                           )
                         }
-                        placeholder="0 / WO"
+                        placeholder={t("tournaments.scorePlaceholder")}
                         className="h-[34px] w-[64px] rounded-[7px] border border-[#010a04]/20 bg-white px-2 text-center text-[13px] font-semibold text-[#010a04] outline-none transition focus:border-[#067429]"
                       />
                     );

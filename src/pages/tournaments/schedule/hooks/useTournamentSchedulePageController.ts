@@ -342,7 +342,7 @@ export function useTournamentSchedulePageController({
     });
   }, [defaultParticipants, updateOverrides]);
 
-  const onEditParticipant = useCallback(() => {
+  const onEditParticipant = useCallback((_participantId: string) => {
     toast.info(t("common.comingSoon"));
   }, [t]);
 

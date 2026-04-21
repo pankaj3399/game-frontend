@@ -31,11 +31,11 @@ interface ScheduleParticipantsTableProps {
   doublesPairsLoading?: boolean;
   onRemoveParticipant: (id: string) => void;
   onMoveParticipant: (index: number, direction: "up" | "down") => void;
-  onEditParticipant: () => void;
+  onEditParticipant: (id: string) => void;
 }
 
 function playerToneClass(player: TournamentSchedulePairPlayer): string {
-  return avatarToneClass(`${player.id}:${player.name ?? ""}`);
+  return avatarToneClass(`${player.id}:${player.name ?? player.alias ?? ""}`);
 }
 
 function participantToneClass(participant: ScheduleParticipantRow): string {
@@ -225,6 +225,7 @@ export function ScheduleParticipantsTable({
                     type="button"
                     onClick={() => onRemoveParticipant(participant.id)}
                     className="text-[#d92100] hover:underline"
+                    aria-label={t("tournaments.removeParticipant", { name: displayName })}
                   >
                     {t("tournaments.remove")}
                   </button>
@@ -237,7 +238,7 @@ export function ScheduleParticipantsTable({
                 type="button"
                 variant="ghost"
                 size="sm"
-                onClick={onEditParticipant}
+                onClick={() => onEditParticipant(participant.id)}
                 className="h-7 w-7 px-0 text-[#067429] hover:bg-[#067429]/10"
                 aria-label={t("tournaments.edit")}
               >
@@ -316,7 +317,7 @@ export function ScheduleParticipantsTable({
                       type="button"
                       variant="ghost"
                       size="sm"
-                      onClick={onEditParticipant}
+                      onClick={() => onEditParticipant(participant.id)}
                       className="h-7 px-2 text-[12px] text-[#067429] hover:bg-[#067429]/10"
                     >
                       <PencilEdit01Icon size={14} className="mr-1" />
@@ -328,6 +329,10 @@ export function ScheduleParticipantsTable({
                       size="sm"
                       onClick={() => onRemoveParticipant(participant.id)}
                       className="h-7 px-2 text-[12px] text-[#d92100] hover:bg-[#d92100]/10"
+                      aria-label={t("tournaments.removeParticipant", {
+                        name:
+                          participant.alias ?? participant.name ?? t("tournaments.unknownPlayer"),
+                      })}
                     >
                       <Delete01Icon size={14} className="mr-1" />
                       {t("tournaments.remove")}

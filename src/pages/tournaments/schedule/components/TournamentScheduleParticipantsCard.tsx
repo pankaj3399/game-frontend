@@ -13,7 +13,7 @@ interface TournamentScheduleParticipantsCardProps {
   doublesPairs: GenerateTournamentDoublesPairsResponse | null;
   doublesPairsLoading: boolean;
   onPlayingModeChange: (nextMode: TournamentScheduleMode) => Promise<void> | void;
-  onEditParticipant: () => void;
+  onEditParticipant: (participantId: string) => void;
   onRemoveParticipant: (participantId: string) => void;
   onMoveParticipant: (index: number, direction: "up" | "down") => void;
 }

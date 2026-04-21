@@ -86,7 +86,7 @@ export default function MyScorePage() {
 
   const onShare = async () => {
     try {
-      const baseUrl = `${window.location.origin}/my-score`;
+      const baseUrl = `${window.location.origin}${window.location.pathname}`;
       const shareUrl = new URL(baseUrl);
       shareUrl.searchParams.set("mode", mode);
       shareUrl.searchParams.set("range", range);
@@ -203,37 +203,53 @@ export default function MyScorePage() {
 
           <div className="overflow-x-auto">
             {entries.length > 0 ? (
-              <div className="min-w-[760px]">
-                <div className="border-b border-[rgba(0,0,0,0.06)] bg-[#010a04]/[0.04] px-[16px] py-2 sm:px-[18px]">
-                  <div className="grid grid-cols-[128px_1.6fr_1.6fr_1fr_1fr] gap-4 text-[12px] font-normal text-[#010a04]/80">
-                    <p>{t("myScorePage.table.date")}</p>
-                    <p>{t("myScorePage.table.tournament")}</p>
-                    <p>{t("myScorePage.table.opponent")}</p>
-                    <p>{t("myScorePage.table.myScore")}</p>
-                    <p>{t("myScorePage.table.opponentScore")}</p>
-                  </div>
-                </div>
-                {entries.map((entry) => (
-                  <div
-                    key={entry.id}
-                    className="grid grid-cols-[128px_1.6fr_1.6fr_1fr_1fr] items-center gap-4 border-b border-[rgba(0,0,0,0.06)] px-[16px] py-[11px] text-[14px] text-[#010a04] last:border-b-0 sm:px-[18px]"
-                  >
-                    <p>{formatPlayedAt(entry.playedAt, i18n.language)}</p>
-                    <div className="flex min-w-0 items-center gap-2">
-                      <span className="inline-flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-[6px] bg-[#d9d9d9] text-[10px] font-semibold text-[#010a04]/75">
-                        {tournamentBadgeLabel(entry)}
-                      </span>
-                      <p className="truncate">{entry.tournament.name}</p>
-                    </div>
-                    <div className="flex min-w-0 items-center gap-2">
-                      <span className="h-[17px] w-[17px] shrink-0 rounded-full bg-[#d9d9d9]" aria-hidden="true" />
-                      <p className="truncate">{entry.opponent.name}</p>
-                    </div>
-                    <p>{formatScore(entry.myScore)}</p>
-                    <p>{formatScore(entry.opponentScore)}</p>
-                  </div>
-                ))}
-              </div>
+              <table className="min-w-[760px] w-full border-collapse">
+                <thead className="border-b border-[rgba(0,0,0,0.06)] bg-[#010a04]/[0.04]">
+                  <tr className="grid grid-cols-[128px_1.6fr_1.6fr_1fr_1fr] gap-4 px-[16px] py-2 sm:px-[18px]">
+                    <th scope="col" className="text-left text-[12px] font-normal text-[#010a04]/80">
+                      {t("myScorePage.table.date")}
+                    </th>
+                    <th scope="col" className="text-left text-[12px] font-normal text-[#010a04]/80">
+                      {t("myScorePage.table.tournament")}
+                    </th>
+                    <th scope="col" className="text-left text-[12px] font-normal text-[#010a04]/80">
+                      {t("myScorePage.table.opponent")}
+                    </th>
+                    <th scope="col" className="text-left text-[12px] font-normal text-[#010a04]/80">
+                      {t("myScorePage.table.myScore")}
+                    </th>
+                    <th scope="col" className="text-left text-[12px] font-normal text-[#010a04]/80">
+                      {t("myScorePage.table.opponentScore")}
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {entries.map((entry) => (
+                    <tr
+                      key={entry.id}
+                      className="grid grid-cols-[128px_1.6fr_1.6fr_1fr_1fr] items-center gap-4 border-b border-[rgba(0,0,0,0.06)] px-[16px] py-[11px] text-[14px] text-[#010a04] last:border-b-0 sm:px-[18px]"
+                    >
+                      <td>{formatPlayedAt(entry.playedAt, i18n.language)}</td>
+                      <td>
+                        <div className="flex min-w-0 items-center gap-2">
+                          <span className="inline-flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-[6px] bg-[#d9d9d9] text-[10px] font-semibold text-[#010a04]/75">
+                            {tournamentBadgeLabel(entry)}
+                          </span>
+                          <p className="truncate">{entry.tournament.name}</p>
+                        </div>
+                      </td>
+                      <td>
+                        <div className="flex min-w-0 items-center gap-2">
+                          <span className="h-[17px] w-[17px] shrink-0 rounded-full bg-[#d9d9d9]" aria-hidden="true" />
+                          <p className="truncate">{entry.opponent.name}</p>
+                        </div>
+                      </td>
+                      <td>{formatScore(entry.myScore)}</td>
+                      <td>{formatScore(entry.opponentScore)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             ) : (
               <div className="px-6 py-10 text-center text-[14px] text-[#010a04]/70">
                 {t("myScorePage.empty")}

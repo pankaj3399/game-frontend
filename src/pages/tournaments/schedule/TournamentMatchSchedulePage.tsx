@@ -237,6 +237,16 @@ export default function TournamentMatchSchedulePage() {
     if (!id) {
       return;
     }
+    if (editingMatch) {
+      if (recordScoreMutation.isPending) {
+        return;
+      }
+      const ok = await persistEditedScore();
+      if (!ok) {
+        return;
+      }
+      closeEditor();
+    }
     if (!view.canCreateNextRound) {
       const blockedMessage =
         view.nextRoundDisabledHint != null

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { enUS } from "date-fns/locale";
 import type { TFunction } from "i18next";
 import { SwitchToggle } from "@/components/ui/switch-toggle";
@@ -106,38 +106,38 @@ function PlayerMatchCard({
       className={cn(
         "rounded-[12px] border px-[15px] py-[15px]",
         isLive
-          ? "border-[#067429] bg-[#eef8f1]"
+          ? "border-green-700 bg-green-50"
           : isPendingScore
-            ? "border-[#b45309] bg-[#fff7ed]"
-            : "border-transparent bg-[#010a04]/[0.04]"
+            ? "border-amber-700 bg-amber-50"
+            : "border-transparent bg-muted/40"
       )}
     >
       <div className="mb-[14px] flex items-start justify-between gap-3">
-        <div className="flex min-w-0 flex-wrap items-center gap-3 text-[13px] text-[#6a6a6a]">
+        <div className="flex min-w-0 flex-wrap items-center gap-3 text-[13px] text-muted-foreground">
           <span className="flex min-w-0 items-center gap-1.5">
-            <IconCalendarDays size={14} className="shrink-0 text-[#6a6a6a]" />
+            <IconCalendarDays size={14} className="shrink-0 text-muted-foreground" />
             <span className="truncate">{dateLabel}</span>
           </span>
           <span className="flex min-w-0 items-center gap-1.5">
-            <IconClock size={14} className="shrink-0 text-[#6a6a6a]" />
+            <IconClock size={14} className="shrink-0 text-muted-foreground" />
             <span className="truncate">{timeLabel}</span>
           </span>
           <span className="flex min-w-0 items-center gap-1.5">
-            <IconMap size={14} className="shrink-0 text-[#6a6a6a]" />
+            <IconMap size={14} className="shrink-0 text-muted-foreground" />
             <span className="truncate">{courtLabel}</span>
           </span>
         </div>
 
         <div className="flex shrink-0 flex-col items-end gap-1">
           {isLive ? (
-            <span className="inline-flex items-center gap-1 text-[12px] font-medium text-[#d92100]">
-              <span className="inline-block h-[6px] w-[6px] rounded-full bg-[#d92100]" />
+            <span className="inline-flex items-center gap-1 text-[12px] font-medium text-destructive">
+              <span className="inline-block h-[6px] w-[6px] rounded-full bg-destructive" />
               {t("tournaments.liveLabel")}
             </span>
           ) : isPendingScore ? (
-            <span className="text-[12px] font-medium text-[#b45309]">{t("tournaments.matchStatusPendingScore")}</span>
+            <span className="text-[12px] font-medium text-amber-700">{t("tournaments.matchStatusPendingScore")}</span>
           ) : isCancelled ? (
-            <span className="text-[12px] font-medium text-[#d92100]">{t("tournaments.matchStatusCancelled")}</span>
+            <span className="text-[12px] font-medium text-destructive">{t("tournaments.matchStatusCancelled")}</span>
           ) : null}
         </div>
       </div>
@@ -152,7 +152,7 @@ function PlayerMatchCard({
             side: "one",
             nameSuffix:
               match.status === "completed" && winningSide === "one" ? (
-                <span className="shrink-0 text-[13px] font-medium text-[#065f46]">
+                <span className="shrink-0 text-[13px] font-medium text-green-700">
                   {t("tournaments.matchWinnerParenthetical")}
                 </span>
               ) : undefined,
@@ -162,7 +162,7 @@ function PlayerMatchCard({
             side: "two",
             nameSuffix:
               match.status === "completed" && winningSide === "two" ? (
-                <span className="shrink-0 text-[13px] font-medium text-[#065f46]">
+                <span className="shrink-0 text-[13px] font-medium text-green-700">
                   {t("tournaments.matchWinnerParenthetical")}
                 </span>
               ) : undefined,
@@ -188,6 +188,14 @@ export function PlayerMatchesBoard({
   /** User preference; the filter and switch only apply when signed in (see `onlyMyMatchesActive`). */
   const [wantOnlyMyMatches, setWantOnlyMyMatches] = useState(false);
 
+  useEffect(() => {
+    if (matches.length === 0) {
+      setSelectedMode("singles");
+      return;
+    }
+    setSelectedMode(matches.some((m) => (m.mode ?? "singles") === "singles") ? "singles" : "doubles");
+  }, [matches]);
+
   const modeFilteredMatches = matches.filter((match) => (match.mode ?? "singles") === selectedMode);
 
   const onlyMyMatchesActive = Boolean(currentUserId) && wantOnlyMyMatches;
@@ -204,17 +212,17 @@ export function PlayerMatchesBoard({
   return (
     <div>
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <h3 className="text-[20px] font-semibold leading-tight text-[#010a04]">{t("tournaments.allMatches")}</h3>
+        <h3 className="text-[20px] font-semibold leading-tight text-foreground">{t("tournaments.allMatches")}</h3>
         <div className="flex flex-wrap items-center gap-5">
-          <div className="flex h-[30px] items-center rounded-[6px] bg-[rgba(1,10,4,0.05)] p-[3px]">
+          <div className="flex h-[30px] items-center rounded-[6px] bg-muted p-[3px]">
             <button
               type="button"
               onClick={() => setSelectedMode("singles")}
               className={cn(
                 "inline-flex h-full items-center justify-center rounded-[5px] px-3 text-[12px] font-medium",
                 selectedMode === "singles"
-                  ? "bg-white text-[#010a04] shadow-[0_0_4px_rgba(0,0,0,0.04),0_4px_8px_rgba(0,0,0,0.06)]"
-                  : "text-[#010a04]/70"
+                  ? "bg-background text-foreground shadow-[0_0_4px_rgba(0,0,0,0.04),0_4px_8px_rgba(0,0,0,0.06)]"
+                  : "text-muted-foreground"
               )}
               aria-pressed={selectedMode === "singles"}
             >
@@ -226,8 +234,8 @@ export function PlayerMatchesBoard({
               className={cn(
                 "inline-flex h-full items-center justify-center rounded-[5px] px-3 text-[12px] font-medium",
                 selectedMode === "doubles"
-                  ? "bg-white text-[#010a04] shadow-[0_0_4px_rgba(0,0,0,0.04),0_4px_8px_rgba(0,0,0,0.06)]"
-                  : "text-[#010a04]/70"
+                  ? "bg-background text-foreground shadow-[0_0_4px_rgba(0,0,0,0.04),0_4px_8px_rgba(0,0,0,0.06)]"
+                  : "text-muted-foreground"
               )}
               aria-pressed={selectedMode === "doubles"}
             >
@@ -239,8 +247,8 @@ export function PlayerMatchesBoard({
             checked={onlyMyMatchesActive}
             onCheckedChange={setWantOnlyMyMatches}
             disabled={!currentUserId}
-            className="text-[14px] font-normal text-[#010a04]"
-            switchClassName="data-[state=checked]:bg-[#067429]"
+            className="text-[14px] font-normal text-foreground"
+            switchClassName="data-[state=checked]:bg-green-700"
           >
             {t("tournaments.myMatches")}
           </SwitchToggle>
@@ -248,7 +256,7 @@ export function PlayerMatchesBoard({
       </div>
 
       {filteredMatches.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-[#d1d5db] bg-white p-8 text-sm text-[#6b7280]">
+        <div className="rounded-xl border border-dashed border-border bg-card p-8 text-sm text-muted-foreground">
           {emptyText}
         </div>
       ) : (

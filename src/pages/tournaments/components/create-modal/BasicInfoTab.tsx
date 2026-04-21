@@ -38,6 +38,49 @@ interface BasicInfoTabProps {
   formScopeKey: string;
 }
 
+interface TotalRoundsFieldProps {
+  label: string;
+  inputId: string;
+  labelId: string;
+  value: number;
+  onCommit: (next: number) => void;
+  formScopeKey: string;
+}
+
+function TotalRoundsField({
+  label,
+  inputId,
+  labelId,
+  value,
+  onCommit,
+  formScopeKey,
+}: TotalRoundsFieldProps) {
+  return (
+    <div className="min-w-0 space-y-2 sm:space-y-[10px]">
+      <Label
+        id={labelId}
+        className="text-[13px] font-medium text-[#010a04] sm:text-[15px]"
+      >
+        {label} *
+      </Label>
+      <div className="relative">
+        <TournamentTotalRoundsInput
+          key={formScopeKey}
+          id={inputId}
+          value={value}
+          onCommit={onCommit}
+          aria-labelledby={labelId}
+          className="h-[38px] rounded-[10px] border-[#e1e3e8] bg-[#f9fafc] py-0 pr-10 pl-3 text-[13px] font-normal leading-normal tabular-nums text-[#010a04] [appearance:textfield] sm:h-[46px] sm:rounded-[12px] sm:pl-[15px] sm:pr-12 sm:text-[14px] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+        />
+        <ChartIcon
+          className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#010a04]/48 sm:right-[15px] sm:h-5 sm:w-5 sm:text-[#010a04]/50"
+          aria-hidden
+        />
+      </div>
+    </div>
+  );
+}
+
 export function BasicInfoTab({
   form,
   clubs,
@@ -234,28 +277,14 @@ export function BasicInfoTab({
               </Popover>
             </div>
 
-            <div className="min-w-0 space-y-2 sm:space-y-[10px]">
-              <Label
-                id="create-tournament-basic-total-rounds-label"
-                className="text-[13px] font-medium text-[#010a04] sm:text-[15px]"
-              >
-                {t("tournaments.totalRounds")} *
-              </Label>
-              <div className="relative">
-                <TournamentTotalRoundsInput
-                  key={formScopeKey}
-                  id="create-tournament-basic-total-rounds"
-                  value={form.totalRounds}
-                  onCommit={(next) => update({ totalRounds: next })}
-                  aria-labelledby="create-tournament-basic-total-rounds-label"
-                  className="h-[38px] rounded-[10px] border-[#e1e3e8] bg-[#f9fafc] py-0 pr-10 pl-3 text-[13px] font-normal leading-normal tabular-nums text-[#010a04] [appearance:textfield] sm:h-[46px] sm:rounded-[12px] sm:pl-[15px] sm:pr-12 sm:text-[14px] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
-                />
-                <ChartIcon
-                  className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#010a04]/48 sm:right-[15px] sm:h-5 sm:w-5 sm:text-[#010a04]/50"
-                  aria-hidden
-                />
-              </div>
-            </div>
+            <TotalRoundsField
+              label={t("tournaments.totalRounds")}
+              inputId="create-tournament-basic-total-rounds"
+              labelId="create-tournament-basic-total-rounds-label"
+              value={form.totalRounds}
+              onCommit={(next) => update({ totalRounds: next })}
+              formScopeKey={formScopeKey}
+            />
           </div>
 
           {scheduledErrorKey ? (
@@ -271,28 +300,14 @@ export function BasicInfoTab({
 
       {form.tournamentMode !== "singleDay" ? (
         <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-x-[14px] sm:gap-y-[14px]">
-          <div className="min-w-0 space-y-2 sm:space-y-[10px]">
-            <Label
-              id="create-tournament-basic-total-rounds-unscheduled-label"
-              className="text-[13px] font-medium text-[#010a04] sm:text-[15px]"
-            >
-              {t("tournaments.totalRounds")} *
-            </Label>
-            <div className="relative">
-              <TournamentTotalRoundsInput
-                key={formScopeKey}
-                id="create-tournament-basic-total-rounds-unscheduled"
-                value={form.totalRounds}
-                onCommit={(next) => update({ totalRounds: next })}
-                aria-labelledby="create-tournament-basic-total-rounds-unscheduled-label"
-                className="h-[38px] rounded-[10px] border-[#e1e3e8] bg-[#f9fafc] py-0 pr-10 pl-3 text-[13px] font-normal leading-normal tabular-nums text-[#010a04] [appearance:textfield] sm:h-[46px] sm:rounded-[12px] sm:pl-[15px] sm:pr-12 sm:text-[14px] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
-              />
-              <ChartIcon
-                className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#010a04]/48 sm:right-[15px] sm:h-5 sm:w-5 sm:text-[#010a04]/50"
-                aria-hidden
-              />
-            </div>
-          </div>
+          <TotalRoundsField
+            label={t("tournaments.totalRounds")}
+            inputId="create-tournament-basic-total-rounds-unscheduled"
+            labelId="create-tournament-basic-total-rounds-unscheduled-label"
+            value={form.totalRounds}
+            onCommit={(next) => update({ totalRounds: next })}
+            formScopeKey={formScopeKey}
+          />
 
           <div className="hidden sm:block" aria-hidden="true" />
         </div>
