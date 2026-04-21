@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Pencil } from "@/icons/figma-icons";
 import { cn } from "@/lib/utils";
@@ -28,7 +29,20 @@ export function Sidebar({
   const canLeave = tournament.permissions.canLeave;
   const isParticipant = tournament.permissions.isParticipant;
   const participationDisabled = isParticipant && !canLeave;
-  const showParticipationButton = canJoin || isParticipant;
+  const [keepParticipationButtonVisible, setKeepParticipationButtonVisible] = useState(false);
+  useEffect(() => {
+    if (isParticipationPending) {
+      setKeepParticipationButtonVisible(true);
+      return;
+    }
+    const timeoutId = window.setTimeout(() => {
+      setKeepParticipationButtonVisible(false);
+    }, 700);
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [isParticipationPending]);
+  const showParticipationButton = canJoin || isParticipant || keepParticipationButtonVisible;
   const participationButtonClass = isParticipant
     ? "h-[42px] w-full rounded-[12px] bg-[#e8c15a] text-[16px] font-medium text-[#111111] hover:bg-[#ddb44c]"
     : "h-[42px] w-full rounded-[8px] bg-gradient-to-r from-[#0a6925] via-[#0c7b2c] to-[#0f8d33] text-[16px] font-medium text-white hover:opacity-95";
