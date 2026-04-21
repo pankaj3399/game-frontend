@@ -1,11 +1,7 @@
-import { useCallback, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { useAdminClubs } from "@/pages/clubs/hooks";
 import { BasicInfoTab } from "@/pages/tournaments/components/create-modal/BasicInfoTab";
-import {
-  DetailsTab,
-  type DetailsTabHandle,
-} from "@/pages/tournaments/components/create-modal/DetailsTab";
+import { DetailsTab } from "@/pages/tournaments/components/create-modal/DetailsTab";
 import { SponsorTab } from "@/pages/tournaments/components/create-modal/SponsorTab";
 import { useTournamentActions } from "@/pages/tournaments/components/create-modal/hooks/useTournamentActions";
 import { useTournamentForm } from "@/pages/tournaments/components/create-modal/hooks/useTournamentForm";
@@ -33,11 +29,6 @@ export function CreateTournamentModal({
   tournamentId = null,
 }: CreateTournamentModalProps) {
   const { t } = useTranslation();
-  const detailsTabRef = useRef<DetailsTabHandle>(null);
-  const commitDetailsDrafts = useCallback(
-    () => detailsTabRef.current?.commitPlayerDrafts() ?? {},
-    []
-  );
   const { data: adminClubsData } = useAdminClubs();
   const clubs = adminClubsData?.clubs ?? [];
 
@@ -53,6 +44,8 @@ export function CreateTournamentModal({
     publishValidationError,
     update,
   } = useTournamentForm({ mode, tournamentId, open });
+
+  const basicInfoFormScopeKey = validTournamentId ?? "create";
 
   const isEditingPublishedTournament =
     isEditMode && originalTournamentStatus === "active";
@@ -70,7 +63,6 @@ export function CreateTournamentModal({
       validTournamentId,
       onOpenChange,
       t,
-      commitDetailsDrafts,
     });
 
   if (isEditMode && isTournamentLoading) {
@@ -112,18 +104,19 @@ export function CreateTournamentModal({
           </TabsList>
 
           <div className="min-w-0 max-w-full overflow-x-clip py-5">
-            <TabsContent value="basic">
+            <TabsContent value="basic" forceMount className="data-[state=inactive]:hidden">
               <BasicInfoTab
                 form={form}
                 clubs={clubs}
                 update={update}
                 allowPastDates={isEditMode}
+                formScopeKey={basicInfoFormScopeKey}
               />
             </TabsContent>
-            <TabsContent value="details">
-              <DetailsTab ref={detailsTabRef} form={form} update={update} />
+            <TabsContent value="details" forceMount className="data-[state=inactive]:hidden">
+              <DetailsTab form={form} update={update} formScopeKey={basicInfoFormScopeKey} />
             </TabsContent>
-            <TabsContent value="sponsor">
+            <TabsContent value="sponsor" forceMount className="data-[state=inactive]:hidden">
               <SponsorTab
                 form={form}
                 sponsors={sponsors}

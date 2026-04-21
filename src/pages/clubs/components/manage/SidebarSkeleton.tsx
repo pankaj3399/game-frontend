@@ -9,7 +9,7 @@ export function SidebarSkeleton({ className }: SidebarSkeletonProps) {
   return (
     <aside className={cn("w-full lg:w-[312px]", className)}>
       <div className="rounded-[12px] border border-black/8 bg-white px-[15px] py-6 shadow-[0px_3px_15px_0px_rgba(0,0,0,0.06)]">
-        <div className="animate-pulse space-y-4">
+        <div className="animate-skeleton-soft space-y-4">
           <div className="flex items-start justify-between gap-3">
             <div className="space-y-2">
               <div className="h-6 w-32 rounded-md bg-[#edf2ed]" />

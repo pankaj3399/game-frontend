@@ -1,12 +1,20 @@
-import type { Locale } from "date-fns";
-import type { TournamentDetail } from "@/models/tournament/types";
+import { isValid, parseISO, type Locale } from "date-fns";
+import type { TournamentScheduleMatch } from "@/models/tournament/types";
+import { teamSideDisplayName } from "@/pages/tournaments/schedule/utils/matchTeamDisplay";
 import { formatDateOrFallback } from "@/utils/date";
 import { formatTimeTo12Hour } from "@/utils/time";
-import { getMockMatchOutcomes } from "../shared/mockMatchOutcomes";
+import { withBracketedElo } from "./ratingSummary";
 import type { DerivedMatch, MatchCounts, MatchStatus } from "./types";
 
-function participantName(name: string | null, alias: string | null, fallback: string) {
-  return name || alias || fallback;
+/** True when the string is not date-only (avoids local-midnight drift from parsing a calendar date as UTC midnight). */
+function dateStringHasTimeComponent(value: string): boolean {
+  const trimmed = value.trim();
+  if (trimmed.includes("T")) return true;
+  if (trimmed.includes(":")) return true;
+  if (/z$/i.test(trimmed)) return true;
+  if (/[+-]\d{2}:?\d{2}$/.test(trimmed)) return true;
+  if (/[+-]\d{4}$/.test(trimmed)) return true;
+  return false;
 }
 
 function scheduleText(
@@ -15,59 +23,101 @@ function scheduleText(
   tbdLabel: string,
   locale: Locale | undefined
 ) {
-  const time = formatTimeTo12Hour(startTime);
+  let effectiveDate = date;
+  let time = formatTimeTo12Hour(startTime, locale?.code);
 
-  if (!date) return time ?? tbdLabel;
+  if (!time && date && dateStringHasTimeComponent(date)) {
+    const normalized = date.replace(" ", "T");
+    const parsed = parseISO(normalized);
+    if (isValid(parsed)) {
+      const localeTag = locale?.code ?? "en-US";
+      time = parsed.toLocaleTimeString(localeTag, { hour: "numeric", minute: "2-digit" });
+      effectiveDate = parsed.toISOString();
+    }
+  }
 
-  const dateLabel = formatDateOrFallback(date, tbdLabel, "P", locale);
+  if (!effectiveDate) return time ?? tbdLabel;
+
+  const dateLabel = formatDateOrFallback(effectiveDate, tbdLabel, "P", locale);
   return `${time ?? tbdLabel} (${dateLabel})`;
 }
 
 export const MATCH_STATUS_KEYS: Record<MatchStatus, string> = {
   completed: "tournaments.matchStatusCompleted",
   inProgress: "tournaments.matchStatusInProgress",
+  pendingScore: "tournaments.matchStatusPendingScore",
   scheduled: "tournaments.matchStatusScheduled",
+  cancelled: "tournaments.matchStatusCancelled",
 };
 
 export function statusClassName(status: MatchStatus) {
   if (status === "completed") return "bg-green-100 text-green-700";
   if (status === "inProgress") return "bg-blue-100 text-blue-700";
+  if (status === "pendingScore") return "bg-amber-100 text-amber-800";
+  if (status === "cancelled") return "bg-rose-100 text-rose-700";
   return "bg-gray-100 text-gray-500";
 }
 
 export function deriveMatches(
-  tournament: TournamentDetail,
+  scheduleMatches: TournamentScheduleMatch[],
   currentUserId: string | null,
   t: (key: string, options?: Record<string, unknown>) => string,
-  locale: Locale | undefined
+  locale: Locale | undefined,
+  fallbackDate: string | null,
+  fallbackStartTime: string | null
 ): DerivedMatch[] {
-  const outcomes = getMockMatchOutcomes(tournament);
-  const participants = tournament.participants;
-  const byId = new Map(participants.map((p) => [p.id, p]));
   const pairs: DerivedMatch[] = [];
   const tbdLabel = t("tournaments.scheduledTbd");
 
-  for (let i = 0; i < outcomes.length; i++) {
-    const o = outcomes[i];
-    const first = byId.get(o.playerAId);
-    if (!first) continue;
-    const second = o.playerBId ? byId.get(o.playerBId) : null;
-
-    const round = Math.floor(i / 3) + 1;
-    const court = tournament.courts[i % Math.max(1, tournament.courts.length)];
-
+  for (const match of scheduleMatches) {
+    const allPlayers = [
+      ...match.players,
+      ...match.side1,
+      ...match.side2,
+    ];
     const isMine =
-      !!currentUserId && (first.id === currentUserId || second?.id === currentUserId);
+      !!currentUserId &&
+      allPlayers.some((player) => player?.id === currentUserId);
+
+    const scheduleLabel = scheduleText(
+      match.startTime ?? fallbackDate,
+      match.startTime && dateStringHasTimeComponent(match.startTime)
+        ? null
+        : fallbackStartTime,
+      tbdLabel,
+      locale
+    );
+
+    const court = match.court;
+    const courtName =
+      court.name?.trim() ||
+      (typeof court.number === "number" && Number.isFinite(court.number)
+        ? t("tournaments.courtFallback", { number: court.number })
+        : "") ||
+      court.id?.trim() ||
+      t("tournaments.courtTBD");
+
+    const playerA = teamSideDisplayName(match, 0, t);
+    const playerB = teamSideDisplayName(match, 1, t);
 
     pairs.push({
-      id: `${first.id}-${second?.id ?? "bye"}`,
-      playerA: participantName(first.name, first.alias, t("tournaments.playerAFallback")),
-      playerB: participantName(second?.name ?? null, second?.alias ?? null, t("tournaments.playerBFallback")),
-      courtName: court?.name || t("tournaments.courtFallback", { number: i + 1 }),
-      status: o.status,
-      round,
+      id: match.id,
+      mode: match.mode ?? "singles",
+      playerA: withBracketedElo(
+        playerA,
+        match.side1,
+        (rating) => `(${t("tournaments.matchRatingElo", { value: rating })})`
+      ),
+      playerB: withBracketedElo(
+        playerB,
+        match.side2,
+        (rating) => `(${t("tournaments.matchRatingElo", { value: rating })})`
+      ),
+      courtName,
+      status: match.status,
+      round: match.round,
       isMine,
-      scheduledText: scheduleText(tournament.date, tournament.startTime, tbdLabel, locale),
+      scheduledText: scheduleLabel,
     });
   }
 
@@ -77,7 +127,7 @@ export function deriveMatches(
 /** Round where play is still open (min among incomplete); if all finished, last round. */
 export function getCurrentRound(matches: DerivedMatch[]): number {
   if (matches.length === 0) return 1;
-  const active = matches.filter((m) => m.status !== "completed");
+  const active = matches.filter((m) => m.status !== "completed" && m.status !== "cancelled");
   if (active.length > 0) {
     return active.reduce((minRound, match) => Math.min(minRound, match.round), active[0].round);
   }
@@ -87,13 +137,19 @@ export function getCurrentRound(matches: DerivedMatch[]): number {
 export function getMatchCounts(matches: DerivedMatch[]): MatchCounts {
   let completedCount = 0;
   let inProgressCount = 0;
+  let pendingScoreCount = 0;
   let scheduledCount = 0;
+  let cancelledCount = 0;
 
   for (const match of matches) {
     if (match.status === "completed") {
       completedCount += 1;
     } else if (match.status === "inProgress") {
       inProgressCount += 1;
+    } else if (match.status === "pendingScore") {
+      pendingScoreCount += 1;
+    } else if (match.status === "cancelled") {
+      cancelledCount += 1;
     } else {
       scheduledCount += 1;
     }
@@ -104,7 +160,9 @@ export function getMatchCounts(matches: DerivedMatch[]): MatchCounts {
   return {
     completedCount,
     inProgressCount,
+    pendingScoreCount,
     scheduledCount,
+    cancelledCount,
     progressPct,
   };
 }

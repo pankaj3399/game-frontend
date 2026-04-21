@@ -3,8 +3,6 @@ export type {
   CreateTournamentInput,
   JoinTournamentResponse,
   LeaveTournamentResponse,
-  PublishTournamentPayload,
-  PublishTournamentResponse,
   TournamentDetail,
   TournamentClub,
   TournamentListFilters,
@@ -23,6 +21,7 @@ export type {
 export {
   DEFAULT_TOURNAMENT_FILTERS_STATE,
   filtersReducer,
+  resolveTournamentListTabFromSearchParams,
   shapeTournamentFilters,
   type TournamentFiltersAction,
   type TournamentFiltersState,

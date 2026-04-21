@@ -1,15 +1,12 @@
 import { useTranslation } from "react-i18next";
 import { format, startOfDay } from "date-fns";
-import { Calendar as CalendarIcon } from "@/icons/figma-icons";
+import { Calendar as CalendarIcon, ChartIcon } from "@/icons/figma-icons";
 import { cn } from "@/lib/utils";
+import { getDateFnsLocale } from "@/lib/dateFnsLocale";
 import { parseIsoDateSafely } from "@/utils/date";
 import { TOURNAMENT_MODES } from "@/constants/tournament";
 import { getScheduledTimeRangeErrorKey } from "@/lib/tournament/form";
-import type {
-  CreateTournamentInput,
-  TournamentClub,
-  TournamentMode,
-} from "@/models/tournament/types";
+import type { CreateTournamentInput, TournamentMode } from "@/models/tournament/types";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -28,12 +25,60 @@ import {
 import { Calendar } from "@/components/ui/calendar";
 import { TimePicker } from "@/components/ui/time-picker";
 import { Textarea } from "@/components/ui/textarea";
+import { TournamentTotalRoundsInput } from "@/pages/tournaments/components/create-modal/TournamentTotalRoundsInput";
+
 interface BasicInfoTabProps {
   form: CreateTournamentInput;
-  clubs: TournamentClub[];
+  /** Club picker only needs id + name (e.g. admin clubs list). */
+  clubs: readonly { id: string; name: string }[];
   update: (updates: Partial<CreateTournamentInput>) => void;
   /** When false (default), the date picker cannot select days before today. */
   allowPastDates?: boolean;
+  /** Stable id for the form instance (e.g. tournament id or `"create"`); used to reset local inputs when switching context. */
+  formScopeKey: string;
+}
+
+interface TotalRoundsFieldProps {
+  label: string;
+  inputId: string;
+  labelId: string;
+  value: number;
+  onCommit: (next: number) => void;
+  formScopeKey: string;
+}
+
+function TotalRoundsField({
+  label,
+  inputId,
+  labelId,
+  value,
+  onCommit,
+  formScopeKey,
+}: TotalRoundsFieldProps) {
+  return (
+    <div className="min-w-0 space-y-2 sm:space-y-[10px]">
+      <Label
+        id={labelId}
+        className="text-[13px] font-medium text-[#010a04] sm:text-[15px]"
+      >
+        {label} *
+      </Label>
+      <div className="relative">
+        <TournamentTotalRoundsInput
+          key={formScopeKey}
+          id={inputId}
+          value={value}
+          onCommit={onCommit}
+          aria-labelledby={labelId}
+          className="h-[38px] rounded-[10px] border-[#e1e3e8] bg-[#f9fafc] py-0 pr-10 pl-3 text-[13px] font-normal leading-normal tabular-nums text-[#010a04] [appearance:textfield] sm:h-[46px] sm:rounded-[12px] sm:pl-[15px] sm:pr-12 sm:text-[14px] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+        />
+        <ChartIcon
+          className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#010a04]/48 sm:right-[15px] sm:h-5 sm:w-5 sm:text-[#010a04]/50"
+          aria-hidden
+        />
+      </div>
+    </div>
+  );
 }
 
 export function BasicInfoTab({
@@ -41,10 +86,14 @@ export function BasicInfoTab({
   clubs,
   update,
   allowPastDates = false,
+  formScopeKey,
 }: BasicInfoTabProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   const selectedDate = parseIsoDateSafely(form.date) ?? undefined;
+  const dateDisplayValue = selectedDate
+    ? format(selectedDate, "P", { locale: getDateFnsLocale(i18n.language) })
+    : t("tournaments.datePlaceholder");
   const scheduledErrorKey = getScheduledTimeRangeErrorKey(form);
 
   return (
@@ -145,95 +194,98 @@ export function BasicInfoTab({
 
       {form.tournamentMode === "singleDay" && (
         <>
-          <div className="min-w-0">
-            <Label
-              id="create-tournament-basic-date-label"
-              className="text-[13px] font-medium text-[#010a04] sm:text-[15px]"
-            >
-              {t("tournaments.date")} *
-            </Label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  id="create-tournament-basic-date"
-                  type="button"
-                  aria-labelledby="create-tournament-basic-date-label"
-                  variant="outline"
-                  className={cn(
-                    "mt-2 h-[38px] w-full min-w-0 max-w-full justify-between overflow-hidden rounded-[10px] border-[#e1e3e8] bg-[#f9fafc] px-3 text-left text-[13px] font-normal text-[#010a04] sm:mt-[10px] sm:h-[46px] sm:rounded-[12px] sm:px-[15px] sm:text-[14px]",
-                    !selectedDate && "text-[#010a04]/50",
-                  )}
-                >
-                  <span className="min-w-0 truncate">
-                    {selectedDate
-                      ? format(selectedDate, "dd/MM/yyyy")
-                      : t("tournaments.datePlaceholder")}
-                  </span>
-                  <CalendarIcon className="h-4 w-4 shrink-0 text-[#010a04]/65 sm:h-5 sm:w-5" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={selectedDate}
-                  onSelect={(date) => {
-                    if (!date) return;
-                    update({ date: format(date, "yyyy-MM-dd") });
-                  }}
-                  disabled={
-                    allowPastDates
-                      ? undefined
-                      : (date) => startOfDay(date) < startOfDay(new Date())
-                  }
-                  autoFocus
-                />
-              </PopoverContent>
-            </Popover>
-          </div>
-
-          <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-[14px]">
-            <div className="min-w-0">
+          <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-x-[14px] sm:gap-y-[14px]">
+            <div className="min-w-0 space-y-2 sm:space-y-[10px]">
               <Label
                 id="create-tournament-basic-start-label"
                 className="text-[13px] font-medium text-[#010a04] sm:text-[15px]"
               >
                 {t("tournaments.startTime")} *
               </Label>
-              <div className="mt-2 sm:mt-[10px]">
-                <TimePicker
-                  id="create-tournament-basic-start"
-                  aria-labelledby="create-tournament-basic-start-label"
-                  value={form.startTime ?? null}
-                  onChange={(time) => update({ startTime: time })}
-                  maxTime={form.endTime ?? undefined}
-                  maxExclusive={
-                    form.endTime != null && form.startTime !== form.endTime
-                  }
-                />
-              </div>
+              <TimePicker
+                id="create-tournament-basic-start"
+                aria-labelledby="create-tournament-basic-start-label"
+                value={form.startTime ?? null}
+                onChange={(time) => update({ startTime: time })}
+                maxTime={form.endTime ?? undefined}
+                maxExclusive={
+                  form.endTime != null && form.startTime !== form.endTime
+                }
+              />
             </div>
 
-            <div className="min-w-0">
+            <div className="min-w-0 space-y-2 sm:space-y-[10px]">
               <Label
                 id="create-tournament-basic-end-label"
                 className="text-[13px] font-medium text-[#010a04] sm:text-[15px]"
               >
                 {t("tournaments.endTime")} *
               </Label>
-              <div className="mt-2 sm:mt-[10px]">
-                <TimePicker
-                  id="create-tournament-basic-end"
-                  aria-labelledby="create-tournament-basic-end-label"
-                  value={form.endTime ?? null}
-                  onChange={(time) => update({ endTime: time })}
-                  minTime={form.startTime ?? undefined}
-                  minExclusive={
-                    form.startTime != null && form.startTime !== form.endTime
-                  }
-                  popoverAlign="end"
-                />
-              </div>
+              <TimePicker
+                id="create-tournament-basic-end"
+                aria-labelledby="create-tournament-basic-end-label"
+                value={form.endTime ?? null}
+                onChange={(time) => update({ endTime: time })}
+                minTime={form.startTime ?? undefined}
+                minExclusive={
+                  form.startTime != null && form.startTime !== form.endTime
+                }
+                popoverAlign="end"
+              />
             </div>
+
+            <div className="min-w-0 space-y-2 sm:space-y-[10px]">
+              <Label
+                id="create-tournament-basic-date-label"
+                className="text-[13px] font-medium text-[#010a04] sm:text-[15px]"
+              >
+                {t("tournaments.date")} *
+              </Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    id="create-tournament-basic-date"
+                    type="button"
+                    aria-label={`${t("tournaments.date")} ${dateDisplayValue}`}
+                    variant="outline"
+                    className={cn(
+                      "h-[38px] w-full min-w-0 max-w-full justify-between overflow-hidden rounded-[10px] border border-[#e1e3e8] bg-[#f9fafc] px-3 py-0 text-left text-[13px] font-normal leading-normal text-[#010a04] shadow-none hover:bg-[#f9fafc] hover:text-[#010a04] sm:h-[46px] sm:rounded-[12px] sm:px-[15px] sm:text-[14px]",
+                      !selectedDate && "text-[#010a04]/50",
+                    )}
+                  >
+                    <span className="min-w-0 truncate leading-normal">
+                      {dateDisplayValue}
+                    </span>
+                    <CalendarIcon className="h-4 w-4 shrink-0 text-[#010a04]/65 sm:h-5 sm:w-5" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={selectedDate}
+                    onSelect={(date) => {
+                      if (!date) return;
+                      update({ date: format(date, "yyyy-MM-dd") });
+                    }}
+                    disabled={
+                      allowPastDates
+                        ? undefined
+                        : (date) => startOfDay(date) < startOfDay(new Date())
+                    }
+                    autoFocus
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+
+            <TotalRoundsField
+              label={t("tournaments.totalRounds")}
+              inputId="create-tournament-basic-total-rounds"
+              labelId="create-tournament-basic-total-rounds-label"
+              value={form.totalRounds}
+              onCommit={(next) => update({ totalRounds: next })}
+              formScopeKey={formScopeKey}
+            />
           </div>
 
           {scheduledErrorKey ? (
@@ -247,23 +299,38 @@ export function BasicInfoTab({
         </>
       )}
 
-      <div className="min-w-0 space-y-2 sm:space-y-[10px]">
-        <div className="flex min-w-0 flex-wrap items-baseline gap-x-1.5 gap-y-0">
-          <Label
-            htmlFor="create-tournament-basic-description"
-            className="text-[13px] font-medium text-[#010a04] sm:text-[15px]"
-          >
-            {t("tournaments.description")}
-          </Label>
-          <span
-            className="text-[11px] font-normal tabular-nums text-[#010a04]/40 sm:text-[12px] sm:text-[#010a04]/38"
-            aria-live="polite"
-          >
-            {(form.descriptionInfo ?? "").length}/500
-          </span>
+      {form.tournamentMode !== "singleDay" ? (
+        <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-x-[14px] sm:gap-y-[14px]">
+          <TotalRoundsField
+            label={t("tournaments.totalRounds")}
+            inputId="create-tournament-basic-total-rounds-unscheduled"
+            labelId="create-tournament-basic-total-rounds-unscheduled-label"
+            value={form.totalRounds}
+            onCommit={(next) => update({ totalRounds: next })}
+            formScopeKey={formScopeKey}
+          />
+
+          <div className="hidden sm:block" aria-hidden="true" />
         </div>
+      ) : null}
+
+      <div className="min-w-0 space-y-2 sm:space-y-3">
+        <Label
+          htmlFor="create-tournament-basic-description"
+          className="text-[13px] font-medium text-[#010a04] sm:text-[15px]"
+        >
+          {t("tournaments.description")}
+        </Label>
+        <p
+          id="create-tournament-basic-description-count"
+          className="text-[12px] font-normal tabular-nums leading-[1.35] text-[#010a04]/60 sm:text-[14px] sm:leading-[1.4]"
+          aria-live="polite"
+        >
+          {(form.descriptionInfo ?? "").length}/500
+        </p>
         <Textarea
           id="create-tournament-basic-description"
+          aria-describedby="create-tournament-basic-description-count"
           placeholder={t("tournaments.descriptionPlaceholder")}
           maxLength={500}
           value={form.descriptionInfo ?? ""}
