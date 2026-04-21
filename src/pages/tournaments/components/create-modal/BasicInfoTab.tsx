@@ -242,7 +242,7 @@ export function BasicInfoTab({
               </Label>
               <div className="relative">
                 <TournamentTotalRoundsInput
-                  key={`${formScopeKey}-${form.totalRounds}`}
+                  key={formScopeKey}
                   id="create-tournament-basic-total-rounds"
                   value={form.totalRounds}
                   onCommit={(next) => update({ totalRounds: next })}
@@ -279,7 +279,7 @@ export function BasicInfoTab({
             </Label>
             <div className="relative">
               <TournamentTotalRoundsInput
-                key={`${formScopeKey}-${form.totalRounds}`}
+                key={formScopeKey}
                 id="create-tournament-basic-total-rounds-unscheduled"
                 value={form.totalRounds}
                 onCommit={(next) => update({ totalRounds: next })}

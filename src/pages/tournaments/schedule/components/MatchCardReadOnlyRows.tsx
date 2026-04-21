@@ -5,7 +5,7 @@ import {
   scoreCellClass,
   type ScoreColumn,
 } from "../utils/matchScheduleScore";
-import { initialsFromName } from "../utils/matchDisplayUtils";
+import { initialsFromName } from "../utils/avatarUtils";
 
 export type MatchCardReadOnlyRow = {
   name: string;

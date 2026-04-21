@@ -117,11 +117,28 @@ export function MatchScheduleCard({
               type="button"
               variant="ghost"
               size="sm"
-              onClick={() => void onToggleEdit(match)}
-              disabled={isMutationPending}
+              onClick={() => {
+                if (isCancelled) {
+                  return;
+                }
+                void onToggleEdit(match);
+              }}
+              disabled={isMutationPending || isCancelled}
               className="h-8 w-8 rounded-md border border-[#010a04]/10 p-0 text-[#010a04] hover:bg-[#010a04]/5"
-              title={isEditing ? t("tournaments.liveModalSaveScore") : t("tournaments.editScore")}
-              aria-label={isEditing ? t("tournaments.liveModalSaveScore") : t("tournaments.editScore")}
+              title={
+                isCancelled
+                  ? t("tournaments.matchStatusCancelled")
+                  : isEditing
+                    ? t("tournaments.liveModalSaveScore")
+                    : t("tournaments.editScore")
+              }
+              aria-label={
+                isCancelled
+                  ? t("tournaments.matchStatusCancelled")
+                  : isEditing
+                    ? t("tournaments.liveModalSaveScore")
+                    : t("tournaments.editScore")
+              }
             >
               {isEditing ? (
                 <CheckIcon size={14} className="text-[#067429]" />
@@ -168,6 +185,10 @@ export function MatchScheduleCard({
                         key={`${row.id}-${side}-input`}
                         type="text"
                         inputMode="text"
+                        aria-label={t("tournaments.scoreInputLabel", {
+                          playerName: name,
+                          setNumber: editableRows.findIndex((item) => item.id === row.id) + 1,
+                        })}
                         value={value}
                         onChange={(event) =>
                           onScoreInputChange(

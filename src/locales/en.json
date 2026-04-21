@@ -634,6 +634,7 @@
     "editScore": "Edit Score",
     "enterScore": "Enter Score",
     "scoreEditorSet": "Set {{set}}",
+    "scoreInputLabel": "Score for {{playerName}}, set {{setNumber}}",
     "scoreEditorAddSet": "Add Set",
     "scoreEditorSaveSuccess": "Score updated successfully.",
     "scoreEditorNoSets": "Add at least one set before saving.",

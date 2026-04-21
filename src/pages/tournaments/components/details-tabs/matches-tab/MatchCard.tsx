@@ -32,9 +32,17 @@ interface MatchCardProps {
 
 export function MatchCard({ match, t }: MatchCardProps) {
   const headline = matchListHeadline(match, t);
-  const letterA = firstLetterFromDisplayName(match.playerA);
-  const letterB = firstLetterFromDisplayName(match.playerB);
-  const hasSecondSide = match.playerB.trim().length > 0;
+  const normalizedDisplayA =
+    match.playerA.trim() ||
+    match.playerB.trim() ||
+    "";
+  const normalizedDisplayB =
+    match.playerA.trim() && match.playerB.trim()
+      ? match.playerB
+      : "";
+  const letterA = firstLetterFromDisplayName(normalizedDisplayA);
+  const letterB = firstLetterFromDisplayName(normalizedDisplayB);
+  const hasSecondSide = normalizedDisplayB.trim().length > 0;
 
   const avatarClass =
     "relative flex size-5 shrink-0 items-center justify-center rounded-full border border-[#010a04]/20 bg-[#dddddd]/60 text-[10px] font-semibold leading-none text-[#010a04] ring-2 ring-white";

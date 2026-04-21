@@ -57,6 +57,9 @@ export function teamSideDisplayName(
   }
 
   if (teamIndex === 1 && mode === "singles" && !legacySlot) {
+    // In singles, the second side may be intentionally unknown until an opponent is assigned.
+    // When `teamIndex` is 1 with no `legacySlot`, return an empty label instead of forcing
+    // `matchPlayerName(...)` fallback text for that missing opponent.
     return "";
   }
 

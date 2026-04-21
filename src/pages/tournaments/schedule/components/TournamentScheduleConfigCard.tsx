@@ -79,7 +79,7 @@ export function TournamentScheduleConfigCard({
       <div className="grid grid-cols-2 gap-[10px] md:grid-cols-2 lg:grid-cols-4">
         {isScheduledTournament ? (
           <div className="space-y-2">
-            <p className="text-[12px] font-medium uppercase text-[#010a04]/70">
+            <p id="schedule-match-duration-label" className="text-[12px] font-medium uppercase text-[#010a04]/70">
               {t("tournaments.matchDuration")}
             </p>
             <Select
@@ -88,7 +88,10 @@ export function TournamentScheduleConfigCard({
                 onMatchDurationChange(Number.parseInt(value, 10));
               }}
             >
-              <SelectTrigger className="h-[38px] w-full rounded-[8px] border-[#e1e3e8] bg-[#f9fafc] text-[14px]">
+              <SelectTrigger
+                aria-labelledby="schedule-match-duration-label"
+                className="h-[38px] w-full rounded-[8px] border-[#e1e3e8] bg-[#f9fafc] text-[14px]"
+              >
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -104,7 +107,7 @@ export function TournamentScheduleConfigCard({
 
         {isScheduledTournament ? (
           <div className="space-y-2">
-            <p className="text-[12px] font-medium uppercase text-[#010a04]/70">
+            <p id="schedule-break-time-label" className="text-[12px] font-medium uppercase text-[#010a04]/70">
               {t("tournaments.breakTime")}
             </p>
             <Select
@@ -113,7 +116,10 @@ export function TournamentScheduleConfigCard({
                 onBreakTimeChange(Number.parseInt(value, 10));
               }}
             >
-              <SelectTrigger className="h-[38px] w-full rounded-[8px] border-[#e1e3e8] bg-[#f9fafc] text-[14px]">
+              <SelectTrigger
+                aria-labelledby="schedule-break-time-label"
+                className="h-[38px] w-full rounded-[8px] border-[#e1e3e8] bg-[#f9fafc] text-[14px]"
+              >
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -128,7 +134,7 @@ export function TournamentScheduleConfigCard({
         ) : null}
 
         <div className="space-y-2">
-          <p className="text-[12px] font-medium uppercase text-[#010a04]/70">
+          <p id="schedule-matches-per-player-label" className="text-[12px] font-medium uppercase text-[#010a04]/70">
             {t("tournaments.scheduleMatchesPerPlayer")}
           </p>
           <Select
@@ -137,7 +143,10 @@ export function TournamentScheduleConfigCard({
               onMatchesPerPlayerChange(Number.parseInt(value, 10));
             }}
           >
-            <SelectTrigger className="h-[38px] w-full rounded-[8px] border-[#e1e3e8] bg-[#f9fafc] text-[14px]">
+            <SelectTrigger
+              aria-labelledby="schedule-matches-per-player-label"
+              className="h-[38px] w-full rounded-[8px] border-[#e1e3e8] bg-[#f9fafc] text-[14px]"
+            >
               <SelectValue />
             </SelectTrigger>
             <SelectContent>

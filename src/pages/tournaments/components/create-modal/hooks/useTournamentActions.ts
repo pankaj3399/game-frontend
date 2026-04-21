@@ -137,7 +137,6 @@ export function useTournamentActions({
           await createTournament.mutateAsync(
             buildTournamentPayload(mergedForm, "active")
           );
- 
         } finally {
           setCreationAction(null);
         }

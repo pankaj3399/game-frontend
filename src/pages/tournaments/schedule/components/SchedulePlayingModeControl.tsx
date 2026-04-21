@@ -36,6 +36,7 @@ export function SchedulePlayingModeControl({
   const doublesDisabled = pairingPending || doublesLocked;
   const singlesActive = mode === "singles";
   const doublesActive = mode === "doubles";
+  const doublesHintId = `${switchId}-doubles-hint`;
 
   return (
     <div
@@ -62,7 +63,6 @@ export function SchedulePlayingModeControl({
           type="button"
           onClick={() => onChange("doubles")}
           disabled={doublesDisabled}
-          title={doublesLocked ? hint : undefined}
           className={cn(
             "h-[30px] rounded-[8px] px-[15px] text-[14px] font-medium transition-all",
             doublesActive
@@ -72,6 +72,7 @@ export function SchedulePlayingModeControl({
           )}
           aria-pressed={doublesActive}
           aria-label={t("tournaments.scheduleDoubles")}
+          aria-describedby={doublesDisabled ? doublesHintId : undefined}
         >
           {t("tournaments.scheduleDoubles")}
         </button>
@@ -93,7 +94,7 @@ export function SchedulePlayingModeControl({
             onChange(checked ? "doubles" : "singles");
           }}
           disabled={disabled}
-          title={doublesLocked && mode === "singles" ? hint : undefined}
+          aria-describedby={disabled ? doublesHintId : undefined}
           aria-label={t("tournaments.schedulePlayingMode")}
           className="data-[state=checked]:bg-[#1b8135]"
         />
@@ -107,8 +108,16 @@ export function SchedulePlayingModeControl({
         </span>
       </div>
 
+      {doublesDisabled ? (
+        <span id={doublesHintId} className="sr-only">
+          {hint}
+        </span>
+      ) : null}
+
       {pairingPending ? (
-        <span className="sr-only">{t("tournaments.scheduleDoublesArranging")}</span>
+        <span className="sr-only" role="status" aria-live="polite" aria-atomic="true">
+          {t("tournaments.scheduleDoublesArranging")}
+        </span>
       ) : null}
     </div>
   );

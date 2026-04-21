@@ -12,12 +12,16 @@ export function formatTimeTo12Hour(
 
   const hours = Number(match[1]);
   const minutes = match[2];
+  const parsedMinutes = Number(minutes);
 
   if (!Number.isInteger(hours) || hours < 0 || hours > 23) {
     return normalized;
   }
+  if (!Number.isInteger(parsedMinutes) || parsedMinutes < 0 || parsedMinutes > 59) {
+    return normalized;
+  }
 
-  const date = new Date(Date.UTC(2000, 0, 1, hours, Number(minutes)));
+  const date = new Date(Date.UTC(2000, 0, 1, hours, parsedMinutes));
   return new Intl.DateTimeFormat(locale ?? "en-US", {
     hour: "numeric",
     minute: "2-digit",

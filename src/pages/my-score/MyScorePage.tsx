@@ -1,6 +1,7 @@
 import { format, parseISO } from "date-fns";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useLocation } from "react-router-dom";
 import { toast } from "sonner";
 import {
   Select,
@@ -22,6 +23,19 @@ import { useMyScore } from "./hooks";
 const FILTER_MODES: MyScoreFilterMode[] = ["all", "singles", "doubles"];
 
 const DATE_RANGES: MyScoreDateRange[] = ["last30Days", "allTime"];
+
+function parseModeFromSearch(search: string): MyScoreFilterMode {
+  const rawMode = new URLSearchParams(search).get("mode");
+  return rawMode && FILTER_MODES.includes(rawMode as MyScoreFilterMode)
+    ? (rawMode as MyScoreFilterMode)
+    : "all";
+}
+
+function parseRangeFromSearch(search: string): MyScoreDateRange {
+  const rawRange = new URLSearchParams(search).get("range");
+  const parsedRange = myScoreDateRangeSchema.safeParse(rawRange);
+  return parsedRange.success ? parsedRange.data : "last30Days";
+}
 
 function formatPlayedAt(playedAt: string, language: string): string {
   try {
@@ -60,8 +74,13 @@ function tournamentBadgeLabel(entry: MyScoreEntry): string {
 
 export default function MyScorePage() {
   const { t, i18n } = useTranslation();
-  const [mode, setMode] = useState<MyScoreFilterMode>("all");
-  const [range, setRange] = useState<MyScoreDateRange>("last30Days");
+  const location = useLocation();
+  const [mode, setMode] = useState<MyScoreFilterMode>(() =>
+    parseModeFromSearch(location.search)
+  );
+  const [range, setRange] = useState<MyScoreDateRange>(() =>
+    parseRangeFromSearch(location.search)
+  );
 
   const myScoreQuery = useMyScore({ mode, range });
 

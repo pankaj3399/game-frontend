@@ -70,11 +70,14 @@ export function deriveMatches(
   const tbdLabel = t("tournaments.scheduledTbd");
 
   for (const match of scheduleMatches) {
-    const first = match.players[0];
-    const second = match.players[1];
+    const allPlayers = [
+      ...match.players,
+      ...match.side1,
+      ...match.side2,
+    ];
     const isMine =
       !!currentUserId &&
-      (first?.id === currentUserId || second?.id === currentUserId);
+      allPlayers.some((player) => player?.id === currentUserId);
 
     const scheduleLabel = scheduleText(
       match.startTime ?? fallbackDate,

@@ -54,28 +54,6 @@ export function TournamentMemberCountInput({
     editedAfterSyncRef.current = false;
   }, [value]);
 
-  useEffect(() => {
-    return () => {
-      if (committedRef.current) {
-        return;
-      }
-      if (!editedAfterSyncRef.current) {
-        return;
-      }
-      const draft = parseCommittedMemberCount(textRef.current);
-      if (draft === valueRef.current) {
-        return;
-      }
-      committedRef.current = true;
-      applyTournamentMemberCountCommit(
-        textRef.current,
-        roleRef.current,
-        peerValueRef.current,
-        onCommitPairRef.current
-      );
-    };
-  }, []);
-
   return (
     <Input
       id={id}
@@ -94,7 +72,14 @@ export function TournamentMemberCountInput({
         setText(takeDigits(e.target.value));
       }}
       onBlur={(e) => {
+        if (!editedAfterSyncRef.current) {
+          return;
+        }
         if (committedRef.current) {
+          return;
+        }
+        const draft = parseCommittedMemberCount(e.currentTarget.value);
+        if (draft === valueRef.current) {
           return;
         }
         committedRef.current = true;

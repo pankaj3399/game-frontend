@@ -10,30 +10,14 @@ import { MatchCardReadOnlyRows } from "@/pages/tournaments/schedule/components/M
 import { matchScheduleDateTimeLabels } from "@/pages/tournaments/schedule/utils/matchScheduleLabels";
 import { scoreColumns, type ScoreColumn } from "@/pages/tournaments/schedule/utils/matchScheduleScore";
 import { teamSideDisplayName } from "@/pages/tournaments/schedule/utils/matchTeamDisplay";
+import { AVATAR_TONES, hashSeed } from "@/pages/tournaments/schedule/utils/avatarUtils";
 import { withBracketedElo } from "./ratingSummary";
-
-const AVATAR_TONES = [
-  "from-[#f7d4bf] to-[#efb598]",
-  "from-[#d5e5f6] to-[#acc8e7]",
-  "from-[#d9efdd] to-[#b9dfc4]",
-  "from-[#f7e5bb] to-[#efd587]",
-  "from-[#e8ddfb] to-[#cab6ef]",
-  "from-[#ffd8e0] to-[#f4b3c2]",
-];
 
 interface PlayerMatchesBoardProps {
   matches: TournamentScheduleMatch[];
   currentUserId: string | null;
   language: string;
   t: TFunction;
-}
-
-function hashSeed(value: string): number {
-  let hash = 0;
-  for (let index = 0; index < value.length; index += 1) {
-    hash = (Math.imul(hash, 31) + value.charCodeAt(index)) | 0;
-  }
-  return (hash >>> 0) % 2147483647;
 }
 
 function isCurrentUserInMatch(match: TournamentScheduleMatch, currentUserId: string | null): boolean {

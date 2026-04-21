@@ -15,7 +15,7 @@ export function matchScheduleDateTimeLabels(
     return { date: tbd, time: tbd };
   }
   return {
-    date: format(parsed, "EEE, MMM d", { locale }),
-    time: format(parsed, "HH:mm", { locale }),
+    date: format(parsed, "P", { locale }),
+    time: format(parsed, "p", { locale }),
   };
 }

@@ -1,4 +1,4 @@
-import { type ReactNode, useMemo, useState } from "react";
+import { type ReactNode, useState } from "react";
 import { format, isValid, parseISO } from "date-fns";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
@@ -22,7 +22,9 @@ function playerDisplayName(
   player: { name: string | null; alias: string | null },
   fallback: string
 ) {
-  return player.name ?? player.alias ?? fallback;
+  const hasName = player.name?.trim();
+  const hasAlias = player.alias?.trim();
+  return hasName ? player.name! : hasAlias ? player.alias! : fallback;
 }
 
 function formatMatchTime(startTime: string | null, language: string, fallback: string) {
@@ -35,7 +37,7 @@ function formatMatchTime(startTime: string | null, language: string, fallback: s
     return fallback;
   }
 
-  return format(parsed, "EEE, MMM d · HH:mm", {
+  return format(parsed, "P · p", {
     locale: getDateFnsLocale(language),
   });
 }
@@ -113,49 +115,27 @@ export function LiveMatchModal() {
 
   const dialogOpen = liveMatch != null && dismissedMatchId !== liveMatch.id;
 
-  const liveTimeLabel = useMemo(
-    () =>
-      formatMatchTime(
-        liveMatch?.startTime ?? null,
-        i18n.language,
-        t("tournaments.scheduledTbd")
-      ),
-    [i18n.language, liveMatch?.startTime, t]
+  const liveTimeLabel = formatMatchTime(
+    liveMatch?.startTime ?? null,
+    i18n.language,
+    t("tournaments.scheduledTbd")
   );
 
-  const nextTimeLabel = useMemo(
-    () =>
-      formatMatchTime(
-        nextMatch?.startTime ?? null,
-        i18n.language,
-        t("tournaments.scheduledTbd")
-      ),
-    [i18n.language, nextMatch?.startTime, t]
+  const nextTimeLabel = formatMatchTime(
+    nextMatch?.startTime ?? null,
+    i18n.language,
+    t("tournaments.scheduledTbd")
   );
 
-  const liveRound = useMemo(() => {
-    if (!liveMatch) {
-      return null;
-    }
-    if (
-      tournamentMatchesQuery.isLoading ||
-      tournamentMatchesQuery.isError ||
-      !tournamentMatchesQuery.data
-    ) {
-      return null;
-    }
-
-    const scheduleMatch = tournamentMatchesQuery.data.matches.find(
-      (match) => match.id === liveMatch.id
-    );
-
-    return scheduleMatch != null ? scheduleMatch.round : null;
-  }, [
-    liveMatch,
-    tournamentMatchesQuery.data,
-    tournamentMatchesQuery.isError,
-    tournamentMatchesQuery.isLoading,
-  ]);
+  const liveRound =
+    !liveMatch ||
+    tournamentMatchesQuery.isLoading ||
+    tournamentMatchesQuery.isError ||
+    !tournamentMatchesQuery.data
+      ? null
+      : (tournamentMatchesQuery.data.matches.find(
+          (match) => match.id === liveMatch.id
+        )?.round ?? null);
 
   if (!liveMatch) {
     return null;

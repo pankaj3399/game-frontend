@@ -58,6 +58,7 @@ export function MatchesProgress({
                   "data-[state=open]:border-[#010a04]/14 data-[state=open]:bg-[#e8ecef]"
                 )}
                 aria-label={t("tournaments.matchesRoundFilterAria")}
+                aria-haspopup="menu"
                 aria-expanded={roundMenuOpen}
               >
                 <span className="min-w-0">{triggerLabel}</span>
@@ -158,6 +159,7 @@ function RoundMenuItem({
     <button
       type="button"
       role="menuitem"
+      aria-current={active ? "true" : undefined}
       onClick={onClick}
       className={cn(
         "w-full rounded-md px-2.5 py-1.5 text-left text-[13px] transition-colors",

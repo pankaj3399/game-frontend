@@ -633,6 +633,7 @@
     "editScore": "Score bearbeiten",
     "enterScore": "Score eintragen",
     "scoreEditorSet": "Satz {{set}}",
+    "scoreInputLabel": "Score für {{playerName}}, Satz {{setNumber}}",
     "scoreEditorAddSet": "Satz hinzufügen",
     "scoreEditorSaveSuccess": "Score erfolgreich aktualisiert.",
     "scoreEditorNoSets": "Fügen Sie vor dem Speichern mindestens einen Satz hinzu.",

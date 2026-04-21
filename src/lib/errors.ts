@@ -10,6 +10,10 @@ function trimmedNonEmptyString(value: unknown): string | undefined {
 }
 
 export function getErrorMessage(err: unknown): string | null {
+  if (typeof err === "string" || err instanceof String) {
+    const fromString = trimmedNonEmptyString(String(err));
+    return fromString ?? String(err);
+  }
   if (err === null || typeof err !== "object") return null;
   const withResponse = err as {
     response?: {

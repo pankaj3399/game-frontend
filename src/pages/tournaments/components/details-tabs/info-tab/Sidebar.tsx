@@ -78,7 +78,7 @@ export function Sidebar({
               <Button
                 type="button"
                 className={cn(participationButtonClass, "cursor-not-allowed opacity-80")}
-                aria-disabled
+                aria-disabled="true"
                 onClick={() => toast.warning(t("tournaments.leaveLockedAfterSchedule"))}
               >
                 {t("tournaments.leaveMatch")}

@@ -51,6 +51,6 @@ export function withBracketedElo(
     return name;
   }
 
-  const suffix = formatRating ? formatRating(rating) : `(${rating})`;
+  const suffix = formatRating ? ` ${formatRating(rating)}` : ` (${rating})`;
   return `${trimmed}${suffix}`;
 }
