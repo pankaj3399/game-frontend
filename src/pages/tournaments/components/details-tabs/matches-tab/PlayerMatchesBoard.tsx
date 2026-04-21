@@ -179,22 +179,30 @@ export function PlayerMatchesBoard({
   language,
   t,
 }: PlayerMatchesBoardProps) {
-  const [selectedMode, setSelectedMode] = useState<TournamentScheduleMode>(() => {
-    if (matches.length === 0) {
+  const derivedModeFromMatches = (items: TournamentScheduleMatch[]): TournamentScheduleMode => {
+    if (items.length === 0) {
       return "singles";
     }
-    return matches.some((m) => (m.mode ?? "singles") === "singles") ? "singles" : "doubles";
+    return items.some((m) => (m.mode ?? "singles") === "singles") ? "singles" : "doubles";
+  };
+  const [selectedMode, setSelectedMode] = useState<TournamentScheduleMode>(() => {
+    return derivedModeFromMatches(matches);
   });
+  const [userSelectedMode, setUserSelectedMode] = useState<TournamentScheduleMode | null>(null);
   /** User preference; the filter and switch only apply when signed in (see `onlyMyMatchesActive`). */
   const [wantOnlyMyMatches, setWantOnlyMyMatches] = useState(false);
 
   useEffect(() => {
-    if (matches.length === 0) {
-      setSelectedMode("singles");
+    const hasSelectedMode = matches.some((m) => (m.mode ?? "singles") === selectedMode);
+    if (hasSelectedMode) {
       return;
     }
-    setSelectedMode(matches.some((m) => (m.mode ?? "singles") === "singles") ? "singles" : "doubles");
-  }, [matches]);
+    if (userSelectedMode == null) {
+      setSelectedMode(derivedModeFromMatches(matches));
+      return;
+    }
+    setSelectedMode(derivedModeFromMatches(matches));
+  }, [matches, selectedMode, userSelectedMode]);
 
   const modeFilteredMatches = matches.filter((match) => (match.mode ?? "singles") === selectedMode);
 
@@ -217,7 +225,10 @@ export function PlayerMatchesBoard({
           <div className="flex h-[30px] items-center rounded-[6px] bg-muted p-[3px]">
             <button
               type="button"
-              onClick={() => setSelectedMode("singles")}
+              onClick={() => {
+                setSelectedMode("singles");
+                setUserSelectedMode("singles");
+              }}
               className={cn(
                 "inline-flex h-full items-center justify-center rounded-[5px] px-3 text-[12px] font-medium",
                 selectedMode === "singles"
@@ -230,7 +241,10 @@ export function PlayerMatchesBoard({
             </button>
             <button
               type="button"
-              onClick={() => setSelectedMode("doubles")}
+              onClick={() => {
+                setSelectedMode("doubles");
+                setUserSelectedMode("doubles");
+              }}
               className={cn(
                 "inline-flex h-full items-center justify-center rounded-[5px] px-3 text-[12px] font-medium",
                 selectedMode === "doubles"

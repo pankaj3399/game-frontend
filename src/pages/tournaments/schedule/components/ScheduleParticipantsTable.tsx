@@ -35,7 +35,7 @@ interface ScheduleParticipantsTableProps {
 }
 
 function playerToneClass(player: TournamentSchedulePairPlayer): string {
-  return avatarToneClass(`${player.id}:${player.name ?? player.alias ?? ""}`);
+  return avatarToneClass(`${player.id}:${player.alias ?? player.name ?? ""}`);
 }
 
 function participantToneClass(participant: ScheduleParticipantRow): string {

@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -69,6 +69,7 @@ export function useTournamentSchedulePageController({
     tournamentId: null,
     values: {},
   });
+  const latestDoublesRequestIdRef = useRef(0);
 
   const updateOverrides = useCallback(
     (updater: (current: ScheduleOverrides) => ScheduleOverrides) => {
@@ -229,6 +230,8 @@ export function useTournamentSchedulePageController({
         ...current,
         mode: "doubles",
       }));
+      const callId = latestDoublesRequestIdRef.current + 1;
+      latestDoublesRequestIdRef.current = callId;
       try {
         const response = await generateDoublesPairsMutation.mutateAsync({
           id,
@@ -237,15 +240,31 @@ export function useTournamentSchedulePageController({
           },
         });
         updateOverrides((current) => ({
-          ...current,
-          doublesPairs: response,
+          ...(latestDoublesRequestIdRef.current !== callId || current.mode !== "doubles"
+            ? current
+            : {}),
+          ...(latestDoublesRequestIdRef.current !== callId || current.mode !== "doubles"
+            ? {}
+            : {
+                ...current,
+                doublesPairs: response,
+              }),
         }));
       } catch (error: unknown) {
         updateOverrides((current) => ({
-          ...current,
-          mode: "singles",
+          ...(latestDoublesRequestIdRef.current !== callId || current.mode !== "doubles"
+            ? current
+            : {}),
+          ...(latestDoublesRequestIdRef.current !== callId || current.mode !== "doubles"
+            ? {}
+            : {
+                ...current,
+                mode: "singles",
+              }),
         }));
-        toast.error(getErrorMessage(error) ?? t("tournaments.schedulePairsError"));
+        if (latestDoublesRequestIdRef.current === callId) {
+          toast.error(getErrorMessage(error) ?? t("tournaments.schedulePairsError"));
+        }
       }
     },
     [
@@ -342,7 +361,7 @@ export function useTournamentSchedulePageController({
     });
   }, [defaultParticipants, updateOverrides]);
 
-  const onEditParticipant = useCallback((_participantId: string) => {
+  const onEditParticipant = useCallback(() => {
     toast.info(t("common.comingSoon"));
   }, [t]);
 

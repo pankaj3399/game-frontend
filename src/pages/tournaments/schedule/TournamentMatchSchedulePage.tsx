@@ -237,6 +237,7 @@ export default function TournamentMatchSchedulePage() {
     if (!id) {
       return;
     }
+    let effectiveView = view;
     if (editingMatch) {
       if (recordScoreMutation.isPending) {
         return;
@@ -246,16 +247,28 @@ export default function TournamentMatchSchedulePage() {
         return;
       }
       closeEditor();
+      const refreshedMatches = await matchesQuery.refetch();
+      const latestMatchesData = refreshedMatches.data ?? matchesQuery.data;
+      if (latestMatchesData) {
+        effectiveView = buildMatchSchedulePageModel(
+          searchParams,
+          latestMatchesData.matches,
+          latestMatchesData.schedule.currentRound,
+          latestMatchesData.schedule.totalRounds,
+          tournament.totalRounds,
+          matchesQuery.isFetching
+        );
+      }
     }
-    if (!view.canCreateNextRound) {
+    if (!effectiveView.canCreateNextRound) {
       const blockedMessage =
-        view.nextRoundDisabledHint != null
-          ? view.nextRoundDisabledHint.reason === "missing"
+        effectiveView.nextRoundDisabledHint != null
+          ? effectiveView.nextRoundDisabledHint.reason === "missing"
             ? t("tournaments.schedulePreviousRoundMissing", {
-                round: view.nextRoundDisabledHint.round,
+                round: effectiveView.nextRoundDisabledHint.round,
               })
             : t("tournaments.schedulePreviousRoundIncomplete", {
-                round: view.nextRoundDisabledHint.round,
+                round: effectiveView.nextRoundDisabledHint.round,
               })
           : null;
 
@@ -270,9 +283,9 @@ export default function TournamentMatchSchedulePage() {
     if (!scheduleQuery.data) {
       toast.error(
         getErrorMessage(scheduleQuery.error) ??
-          t("tournaments.scheduleLoadError", { round: view.nextRound })
+          t("tournaments.scheduleLoadError", { round: effectiveView.nextRound })
       );
-      navigate(`/tournaments/${id}/schedule?round=${view.nextRound}`);
+      navigate(`/tournaments/${id}/schedule?round=${effectiveView.nextRound}`);
       return;
     }
 
@@ -288,12 +301,12 @@ export default function TournamentMatchSchedulePage() {
     ) {
       const reasonMessage =
         selectedCourtIds.length === 0
-          ? t("tournaments.scheduleNoCourtsSelected", { round: view.nextRound })
+          ? t("tournaments.scheduleNoCourtsSelected", { round: effectiveView.nextRound })
           : t("tournaments.scheduleNotEnoughParticipants", {
-              round: view.nextRound,
+              round: effectiveView.nextRound,
             });
       toast.info(reasonMessage);
-      navigate(`/tournaments/${id}/schedule?round=${view.nextRound}`);
+      navigate(`/tournaments/${id}/schedule?round=${effectiveView.nextRound}`);
       return;
     }
 
@@ -304,7 +317,7 @@ export default function TournamentMatchSchedulePage() {
       const response = await generateScheduleMutation.mutateAsync({
         id,
         payload: {
-          round: view.nextRound,
+          round: effectiveView.nextRound,
           mode: input.mode,
           matchesPerPlayer: input.matchesPerPlayer,
           startTime: clampedStartTime,
@@ -346,6 +359,7 @@ export default function TournamentMatchSchedulePage() {
               type="button"
               variant="ghost"
               size="sm"
+              aria-label={t("tournaments.goBack")}
               onClick={() => navigate(`/tournaments/${id}?tab=matches`)}
               className="h-auto w-auto shrink-0 p-0 text-[#010a04] hover:bg-transparent"
             >

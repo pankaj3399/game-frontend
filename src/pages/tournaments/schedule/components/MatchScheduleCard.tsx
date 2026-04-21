@@ -13,24 +13,7 @@ import { matchScheduleDateTimeLabels } from "@/pages/tournaments/schedule/utils/
 import { MatchCardReadOnlyRows } from "@/pages/tournaments/schedule/components/MatchCardReadOnlyRows";
 import { scoreColumns, type ScoreEditorRow } from "@/pages/tournaments/schedule/utils/matchScheduleScore";
 import { teamSideDisplayName } from "@/pages/tournaments/schedule/utils/matchTeamDisplay";
-import { initialsFromName } from "@/pages/tournaments/schedule/utils/matchDisplayUtils";
-
-const AVATAR_TONES = [
-  "from-[#f7d4bf] to-[#efb598]",
-  "from-[#d5e5f6] to-[#acc8e7]",
-  "from-[#d9efdd] to-[#b9dfc4]",
-  "from-[#f7e5bb] to-[#efd587]",
-  "from-[#e8ddfb] to-[#cab6ef]",
-  "from-[#ffd8e0] to-[#f4b3c2]",
-];
-
-function hashSeed(value: string): number {
-  let hash = 0;
-  for (let index = 0; index < value.length; index += 1) {
-    hash = (Math.imul(hash, 31) + value.charCodeAt(index)) | 0;
-  }
-  return (hash >>> 0) % 2147483647;
-}
+import { AVATAR_TONES, hashSeed, initialsFromName } from "@/pages/tournaments/schedule/utils/avatarUtils";
 
 export interface MatchScheduleCardProps {
   match: TournamentScheduleMatch;
