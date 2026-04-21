@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { enUS } from "date-fns/locale";
 import type { TFunction } from "i18next";
 import { SwitchToggle } from "@/components/ui/switch-toggle";
@@ -179,30 +179,19 @@ export function PlayerMatchesBoard({
   language,
   t,
 }: PlayerMatchesBoardProps) {
-  const derivedModeFromMatches = (items: TournamentScheduleMatch[]): TournamentScheduleMode => {
-    if (items.length === 0) {
-      return "singles";
-    }
-    return items.some((m) => (m.mode ?? "singles") === "singles") ? "singles" : "doubles";
-  };
-  const [selectedMode, setSelectedMode] = useState<TournamentScheduleMode>(() => {
-    return derivedModeFromMatches(matches);
-  });
   const [userSelectedMode, setUserSelectedMode] = useState<TournamentScheduleMode | null>(null);
   /** User preference; the filter and switch only apply when signed in (see `onlyMyMatchesActive`). */
   const [wantOnlyMyMatches, setWantOnlyMyMatches] = useState(false);
 
-  useEffect(() => {
-    const hasSelectedMode = matches.some((m) => (m.mode ?? "singles") === selectedMode);
-    if (hasSelectedMode) {
-      return;
-    }
-    if (userSelectedMode == null) {
-      setSelectedMode(derivedModeFromMatches(matches));
-      return;
-    }
-    setSelectedMode(derivedModeFromMatches(matches));
-  }, [matches, selectedMode, userSelectedMode]);
+  const defaultMode: TournamentScheduleMode =
+    matches.length === 0 || matches.some((m) => (m.mode ?? "singles") === "singles")
+      ? "singles"
+      : "doubles";
+
+  const selectedMode: TournamentScheduleMode =
+    userSelectedMode && matches.some((m) => (m.mode ?? "singles") === userSelectedMode)
+      ? userSelectedMode
+      : defaultMode;
 
   const modeFilteredMatches = matches.filter((match) => (match.mode ?? "singles") === selectedMode);
 
@@ -226,7 +215,6 @@ export function PlayerMatchesBoard({
             <button
               type="button"
               onClick={() => {
-                setSelectedMode("singles");
                 setUserSelectedMode("singles");
               }}
               className={cn(
@@ -242,7 +230,6 @@ export function PlayerMatchesBoard({
             <button
               type="button"
               onClick={() => {
-                setSelectedMode("doubles");
                 setUserSelectedMode("doubles");
               }}
               className={cn(

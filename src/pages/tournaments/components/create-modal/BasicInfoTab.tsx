@@ -91,6 +91,9 @@ export function BasicInfoTab({
   const { t, i18n } = useTranslation();
 
   const selectedDate = parseIsoDateSafely(form.date) ?? undefined;
+  const dateDisplayValue = selectedDate
+    ? format(selectedDate, "P", { locale: getDateFnsLocale(i18n.language) })
+    : t("tournaments.datePlaceholder");
   const scheduledErrorKey = getScheduledTimeRangeErrorKey(form);
 
   return (
@@ -244,6 +247,7 @@ export function BasicInfoTab({
                     id="create-tournament-basic-date"
                     type="button"
                     aria-labelledby="create-tournament-basic-date-label"
+                    aria-label={`${t("tournaments.date")} ${dateDisplayValue}`}
                     variant="outline"
                     className={cn(
                       "h-[38px] w-full min-w-0 max-w-full justify-between overflow-hidden rounded-[10px] border border-[#e1e3e8] bg-[#f9fafc] px-3 py-0 text-left text-[13px] font-normal leading-normal text-[#010a04] shadow-none hover:bg-[#f9fafc] hover:text-[#010a04] sm:h-[46px] sm:rounded-[12px] sm:px-[15px] sm:text-[14px]",
@@ -251,9 +255,7 @@ export function BasicInfoTab({
                     )}
                   >
                     <span className="min-w-0 truncate leading-normal">
-                      {selectedDate
-                        ? format(selectedDate, "P", { locale: getDateFnsLocale(i18n.language) })
-                        : t("tournaments.datePlaceholder")}
+                      {dateDisplayValue}
                     </span>
                     <CalendarIcon className="h-4 w-4 shrink-0 text-[#010a04]/65 sm:h-5 sm:w-5" />
                   </Button>
@@ -321,6 +323,7 @@ export function BasicInfoTab({
           {t("tournaments.description")}
         </Label>
         <p
+          id="create-tournament-basic-description-count"
           className="text-[12px] font-normal tabular-nums leading-[1.35] text-[#010a04]/60 sm:text-[14px] sm:leading-[1.4]"
           aria-live="polite"
         >
@@ -328,6 +331,7 @@ export function BasicInfoTab({
         </p>
         <Textarea
           id="create-tournament-basic-description"
+          aria-describedby="create-tournament-basic-description-count"
           placeholder={t("tournaments.descriptionPlaceholder")}
           maxLength={500}
           value={form.descriptionInfo ?? ""}

@@ -43,6 +43,7 @@ type ScheduleFieldOverrides = {
   participants: ScheduleParticipantRow[];
   selectedCourtIds: string[];
   doublesPairs: GenerateTournamentDoublesPairsResponse | null;
+  doublesPairsKey: string | null;
 };
 
 type ScheduleOverrides = Partial<ScheduleFieldOverrides>;
@@ -124,8 +125,10 @@ export function useTournamentSchedulePageController({
   const startTime = scopedOverrides.startTime ?? scheduleInput?.startTime ?? "09:00";
   const mode = scopedOverrides.mode ?? scheduleInput?.mode ?? "singles";
   const participants = scopedOverrides.participants ?? defaultParticipants;
+  const participantOrderKey = participantOrderIds(participants).join(",");
   const selectedCourtIds = scopedOverrides.selectedCourtIds ?? defaultSelectedCourtIds;
   const doublesPairs = scopedOverrides.doublesPairs ?? null;
+  const doublesPairsKey = scopedOverrides.doublesPairsKey ?? null;
 
   const queryRound = parseRoundQueryParam(searchParams);
   const summaryCurrentRound = scheduleQuery.data?.scheduleSummary.currentRound ?? 0;
@@ -210,6 +213,7 @@ export function useTournamentSchedulePageController({
         updateOverrides((current) => ({
           ...current,
           mode: "singles",
+          doublesPairsKey: null,
         }));
         return;
       }
@@ -218,7 +222,7 @@ export function useTournamentSchedulePageController({
         return;
       }
 
-      if (doublesPairs) {
+      if (doublesPairs && doublesPairsKey === participantOrderKey) {
         updateOverrides((current) => ({
           ...current,
           mode: "doubles",
@@ -248,6 +252,7 @@ export function useTournamentSchedulePageController({
             : {
                 ...current,
                 doublesPairs: response,
+                doublesPairsKey: participantOrderKey,
               }),
         }));
       } catch (error: unknown) {
@@ -260,6 +265,7 @@ export function useTournamentSchedulePageController({
             : {
                 ...current,
                 mode: "singles",
+                doublesPairsKey: null,
               }),
         }));
         if (latestDoublesRequestIdRef.current === callId) {
@@ -269,9 +275,11 @@ export function useTournamentSchedulePageController({
     },
     [
       doublesPairs,
+      doublesPairsKey,
       generateDoublesPairsMutation,
       id,
       mode,
+      participantOrderKey,
       participants,
       updateOverrides,
       t,
@@ -345,6 +353,7 @@ export function useTournamentSchedulePageController({
       return {
         ...current,
         doublesPairs: null,
+        doublesPairsKey: null,
         participants: removeParticipant(baseParticipants, participantId),
       };
     });
@@ -356,6 +365,7 @@ export function useTournamentSchedulePageController({
       return {
         ...current,
         doublesPairs: null,
+        doublesPairsKey: null,
         participants: moveParticipant(baseParticipants, index, direction),
       };
     });

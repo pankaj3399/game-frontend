@@ -51,6 +51,7 @@ export function TournamentMemberCountInput({
       value={text}
       onFocus={() => {
         committedRef.current = false;
+        editedAfterSyncRef.current = false;
         setText(String(value));
       }}
       onChange={(e) => {

@@ -180,8 +180,18 @@ export default function TournamentMatchSchedulePage() {
     if (!editingMatch) {
       return true;
     }
+    const freshMatch =
+      matchesQuery.data?.matches.find((match) => match.id === editingMatch.id) ?? null;
+    if (!freshMatch) {
+      toast.error(t("tournaments.matchesLoadError"));
+      return false;
+    }
+    if (freshMatch.status === "cancelled") {
+      toast.error(t("tournaments.matchStatusCancelled"));
+      return false;
+    }
 
-    const payload = buildScorePayload(scoreRows, editingMatch.playMode, t);
+    const payload = buildScorePayload(scoreRows, freshMatch.playMode, t);
     if (!payload.ok) {
       toast.error(payload.message ?? t("tournaments.scoreEditorIncomplete"));
       return false;
@@ -190,7 +200,7 @@ export default function TournamentMatchSchedulePage() {
     try {
       await recordScoreMutation.mutateAsync({
         tournamentId: tournament.id,
-        matchId: editingMatch.id,
+        matchId: freshMatch.id,
         input: {
           playerOneScores: payload.playerOneScores,
           playerTwoScores: payload.playerTwoScores,

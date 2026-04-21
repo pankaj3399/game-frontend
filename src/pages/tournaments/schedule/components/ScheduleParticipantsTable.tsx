@@ -39,7 +39,7 @@ function playerToneClass(player: TournamentSchedulePairPlayer): string {
 }
 
 function participantToneClass(participant: ScheduleParticipantRow): string {
-  return avatarToneClass(`${participant.id}:${participant.name ?? participant.alias ?? ""}`);
+  return avatarToneClass(`${participant.id}:${participant.alias ?? participant.name ?? ""}`);
 }
 
 function glickoSkillLevel(participant: ScheduleParticipantRow) {
