@@ -4,8 +4,25 @@ import {
   OctagonXIcon,
   TriangleAlertIcon,
 } from "@/icons/figma-icons"
-import { Toaster as Sonner, type ToasterProps } from "sonner"
+import { Toaster as Sonner, toast, type ToasterProps } from "sonner"
 import InlineLoader from "@/components/shared/InlineLoader"
+
+function DismissErrorToastIcon() {
+  return (
+    <button
+      type="button"
+      aria-label="Dismiss error toast"
+      className="inline-flex size-4 items-center justify-center"
+      onClick={(event) => {
+        event.preventDefault()
+        event.stopPropagation()
+        toast.dismiss()
+      }}
+    >
+      <OctagonXIcon className="size-4" />
+    </button>
+  )
+}
 
 const Toaster = ({ ...props }: ToasterProps) => {
   return (
@@ -16,7 +33,7 @@ const Toaster = ({ ...props }: ToasterProps) => {
         success: <CircleCheckIcon className="size-4" />,
         info: <InfoIcon className="size-4" />,
         warning: <TriangleAlertIcon className="size-4" />,
-        error: <OctagonXIcon className="size-4" />,
+        error: <DismissErrorToastIcon />,
         loading: <InlineLoader size="sm" />,
       }}
       style={

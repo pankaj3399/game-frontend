@@ -114,8 +114,6 @@ export function LiveMatchModal() {
     liveTournamentId !== null
   );
 
-  const dialogOpen = liveMatch != null && dismissedMatchId !== liveMatch.id;
-
   const liveTimeLabel = formatMatchTime(
     liveMatch?.startTime ?? null,
     i18n.language,
@@ -137,6 +135,18 @@ export function LiveMatchModal() {
       : (tournamentMatchesQuery.data.matches.find(
           (match) => match.id === liveMatch.id
         )?.round ?? null);
+
+  const hasTournamentContext = liveMatch != null && liveTournamentId !== null;
+  const isRoundDataReady =
+    !hasTournamentContext ||
+    (tournamentMatchesQuery.isSuccess &&
+      liveRound != null &&
+      liveMatch != null &&
+      liveMatch.tournament.name.trim().length > 0);
+  const dialogOpen =
+    liveMatch != null &&
+    dismissedMatchId !== liveMatch.id &&
+    isRoundDataReady;
 
   if (!liveMatch) {
     return null;
@@ -161,6 +171,10 @@ export function LiveMatchModal() {
         opponent: nextTeams.opponentNames,
       })
     : t("tournaments.liveModalNoNextMatch");
+  const liveRoundTournamentLabel =
+    liveRound != null
+      ? `${t("tournaments.roundNumber", { round: liveRound })} · ${liveMatch.tournament.name}`
+      : liveMatch.tournament.name;
 
   const handleOpenChange = (nextOpen: boolean) => {
     if (!nextOpen) {
@@ -203,9 +217,7 @@ export function LiveMatchModal() {
           <div className="space-y-6">
             <div className="space-y-3">
               <p className="text-xl font-semibold leading-none tracking-tight text-[#0f172a]">
-                {liveRound != null
-                  ? t("tournaments.roundNumber", { round: liveRound })
-                  : t("tournaments.liveModalRoundPending")}
+                {liveRoundTournamentLabel}
               </p>
               <div className="space-y-2.5">
                 <MatchMetaRow
