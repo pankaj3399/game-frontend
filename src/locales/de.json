@@ -597,7 +597,7 @@
       "joined": "Sie haben an diesem Match teilgenommen.",
       "left": "Sie haben dieses Match verlassen.",
       "leaveWithUnfinishedMatchesConfirmTitle": "Turnier verlassen?",
-      "leaveWithUnfinishedMatchesConfirmDescription": "Sie haben in diesem Turnier noch nicht abgeschlossene Matches. Wenn Sie jetzt das Turnier verlassen, werden alle diese Matches als Walkover-Niederlagen fuer Sie und Siege fuer Ihre Gegner abgeschlossen.",
+      "leaveWithUnfinishedMatchesConfirmDescription": "Sie haben in diesem Turnier noch nicht abgeschlossene Matches. Wenn Sie jetzt das Turnier verlassen, werden alle diese Matches als Walkover-Niederlagen für Sie und Siege für Ihre Gegner abgeschlossen.",
       "leaveWithUnfinishedMatchesConfirmAction": "Verlassen und aufgeben",
       "participantLeft": "ausgetreten",
       "joinError": "Beitritt zum Match ist fehlgeschlagen.",
