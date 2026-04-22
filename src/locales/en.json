@@ -599,6 +599,7 @@
     "left": "You left this match.",
     "joinError": "Failed to join match.",
     "leaveError": "Failed to leave match.",
+    "participantLeft": "left",
     "linkCopied": "Link copied to clipboard.",
     "shareError": "Unable to share this tournament.",
     "scheduleGamesRound": "Schedule Games for Round {{round}}",

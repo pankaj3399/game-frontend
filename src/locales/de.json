@@ -596,6 +596,7 @@
       "editClubHint": "Wenn Sie Admin von mehreren Vereinen sind, wählen Sie, zu welchem Verein das Turnier gehören soll. Wenn Sie nur einen Verein verwalten, wird diese Auswahl nicht abgefragt.",
       "joined": "Sie haben an diesem Match teilgenommen.",
       "left": "Sie haben dieses Match verlassen.",
+      "participantLeft": "ausgetreten",
       "joinError": "Beitritt zum Match ist fehlgeschlagen.",
       "leaveError": "Verlassen des Matches ist fehlgeschlagen.",
       "linkCopied": "Link in die Zwischenablage kopiert.",
