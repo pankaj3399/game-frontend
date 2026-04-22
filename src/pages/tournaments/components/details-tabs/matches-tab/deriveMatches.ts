@@ -14,10 +14,13 @@ type ScheduleInput = {
 };
 
 const TIME_ONLY_PATTERN = /^([01]?\d|2[0-3]):([0-5]\d)(?::([0-5]\d))?$/;
+const HAS_EXPLICIT_TIME_INFO_PATTERN =
+  /T|Z|[+-]\d{2}:?\d{2}$|[+-]\d{4}$/i;
 
 function createDateFormatter(locale?: Locale) {
   return new Intl.DateTimeFormat(locale?.code ?? "en-US", {
     dateStyle: "short",
+    timeZone: "UTC",
   });
 }
 
@@ -25,6 +28,7 @@ function createTimeFormatter(locale?: Locale) {
   return new Intl.DateTimeFormat(locale?.code ?? "en-US", {
     hour: "numeric",
     minute: "2-digit",
+    timeZone: "UTC",
   });
 }
 
@@ -33,7 +37,10 @@ function parseDateSafe(value: string | null): Date | null {
   const normalized = value.trim();
   if (!normalized) return null;
   try {
-    const parsed = parseISO(normalized);
+    const parseInput = HAS_EXPLICIT_TIME_INFO_PATTERN.test(normalized)
+      ? normalized
+      : `${normalized}T00:00:00Z`;
+    const parsed = parseISO(parseInput);
     return isValid(parsed) ? parsed : null;
   } catch {
     return null;
@@ -62,7 +69,7 @@ function parseTimeSafe(value: string | null, baseDate: Date): Date | null {
   const seconds = match[3] ? Number(match[3]) : 0;
 
   const parsed = new Date(baseDate);
-  parsed.setHours(hours, minutes, seconds, 0);
+  parsed.setUTCHours(hours, minutes, seconds, 0);
   return isValid(parsed) ? parsed : null;
 }
 
