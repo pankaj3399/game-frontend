@@ -1,8 +1,19 @@
 import { Link, Navigate, useParams, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { useState } from "react";
 import { ChevronLeft, Share2 } from "@/icons/figma-icons";
 import { Upload01Icon } from "@/icons/figma-icons";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { useAuth } from "@/pages/auth/hooks";
 import { TournamentDetailsPageSkeleton } from "@/pages/tournaments/components/TournamentDetailsLoadingSkeletons";
 import { TournamentDetailsTabs } from "@/pages/tournaments/components/details-tabs/TournamentDetailsTabs";
@@ -66,6 +77,7 @@ export default function TournamentDetailsPage() {
   const { id } = useParams<{ id: string }>();
   const [searchParams] = useSearchParams();
   const { user } = useAuth();
+  const [showLeaveWoConfirm, setShowLeaveWoConfirm] = useState(false);
   const joinTournament = useJoinTournament();
   const leaveTournament = useLeaveTournament();
   const updateTournament = useUpdateTournament();
@@ -112,10 +124,28 @@ export default function TournamentDetailsPage() {
         toast.success(t("tournaments.joined"));
       }
     } catch (participationError: unknown) {
+      const normalizedMessage = getErrorMessage(participationError);
+      if (isParticipant && normalizedMessage === "LEAVE_CONFIRM_WO_REQUIRED") {
+        setShowLeaveWoConfirm(true);
+        return;
+      }
       toast.error(
-        getErrorMessage(participationError) ??
+        normalizedMessage ??
           (isParticipant ? t("tournaments.leaveError") : t("tournaments.joinError"))
       );
+    }
+  };
+
+  const confirmLeaveWithWalkover = async () => {
+    try {
+      await leaveTournament.mutateAsync({
+        id: tournament.id,
+        confirmLeaveWithWalkover: true,
+      });
+      setShowLeaveWoConfirm(false);
+      toast.success(t("tournaments.left"));
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error) ?? t("tournaments.leaveError"));
     }
   };
 
@@ -232,6 +262,35 @@ export default function TournamentDetailsPage() {
           currentUserId={user?.id ?? null}
           onParticipationAction={onParticipationAction}
         />
+
+        <AlertDialog open={showLeaveWoConfirm} onOpenChange={setShowLeaveWoConfirm}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>
+                {t("tournaments.leaveWithUnfinishedMatchesConfirmTitle")}
+              </AlertDialogTitle>
+              <AlertDialogDescription>
+                {t("tournaments.leaveWithUnfinishedMatchesConfirmDescription")}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={leaveTournament.isPending}>
+                {t("common.cancel")}
+              </AlertDialogCancel>
+              <AlertDialogAction
+                onClick={(event) => {
+                  event.preventDefault();
+                  void confirmLeaveWithWalkover();
+                }}
+                disabled={leaveTournament.isPending}
+              >
+                {leaveTournament.isPending
+                  ? t("common.loading")
+                  : t("tournaments.leaveWithUnfinishedMatchesConfirmAction")}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </div>
   );
