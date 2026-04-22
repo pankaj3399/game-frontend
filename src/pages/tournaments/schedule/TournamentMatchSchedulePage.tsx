@@ -12,11 +12,9 @@ import {
   IconPlus,
 } from "@/icons/figma-icons";
 import {
-  useGenerateTournamentSchedule,
   useRecordTournamentMatchScore,
   useTournamentById,
   useTournamentMatches,
-  useTournamentSchedule,
 } from "@/pages/tournaments/hooks";
 import type { TournamentScheduleMatch } from "@/models/tournament/types";
 import { MatchScheduleCard } from "@/pages/tournaments/schedule/components/MatchScheduleCard";
@@ -26,12 +24,6 @@ import {
   createScoreEditorRows,
   type ScoreEditorRow,
 } from "@/pages/tournaments/schedule/utils/matchScheduleScore";
-import {
-  canGenerateSchedule,
-  normalizeParticipantRows,
-  participantOrderIds,
-} from "@/pages/tournaments/schedule/helpers/scheduleParticipants";
-import { clampTime24ToBounds, resolveTournamentScheduleTimeBounds } from "@/utils/time";
 
 function MatchScheduleSkeleton() {
   const { t } = useTranslation();
@@ -100,8 +92,6 @@ export default function TournamentMatchSchedulePage() {
 
   const tournamentQuery = useTournamentById(id ?? null, Boolean(id));
   const matchesQuery = useTournamentMatches(id ?? null, Boolean(id));
-  const scheduleQuery = useTournamentSchedule(id ?? null, Boolean(id));
-  const generateScheduleMutation = useGenerateTournamentSchedule();
   const recordScoreMutation = useRecordTournamentMatchScore();
 
   if (!id) {
@@ -295,66 +285,7 @@ export default function TournamentMatchSchedulePage() {
       }
       return;
     }
-    if (scheduleQuery.isLoading) {
-      return;
-    }
-    if (!scheduleQuery.data) {
-      toast.error(
-        getErrorMessage(scheduleQuery.error) ??
-          t("tournaments.scheduleLoadError", { round: effectiveView.nextRound })
-      );
-      navigate(`/tournaments/${id}/schedule?round=${effectiveView.nextRound}`);
-      return;
-    }
-
-    const input = scheduleQuery.data.scheduleInput;
-    const participants = normalizeParticipantRows(scheduleQuery.data.participants);
-    const selectedCourtIds = input.availableCourts
-      .filter((court) => court.selected)
-      .map((court) => court.id);
-
-    if (
-      selectedCourtIds.length === 0 ||
-      !canGenerateSchedule(input.mode, participants.length)
-    ) {
-      const reasonMessage =
-        selectedCourtIds.length === 0
-          ? t("tournaments.scheduleNoCourtsSelected", { round: effectiveView.nextRound })
-          : t("tournaments.scheduleNotEnoughParticipants", {
-              round: effectiveView.nextRound,
-            });
-      toast.info(reasonMessage);
-      navigate(`/tournaments/${id}/schedule?round=${effectiveView.nextRound}`);
-      return;
-    }
-
-    const bounds = resolveTournamentScheduleTimeBounds(tournament.startTime, tournament.endTime);
-    const clampedStartTime = clampTime24ToBounds(input.startTime, bounds);
-
-    try {
-      const response = await generateScheduleMutation.mutateAsync({
-        id,
-        payload: {
-          round: effectiveView.nextRound,
-          mode: input.mode,
-          matchesPerPlayer: input.matchesPerPlayer,
-          startTime: clampedStartTime,
-          courtIds: selectedCourtIds,
-          participantOrder: participantOrderIds(participants),
-          ...(tournament.tournamentMode === "singleDay"
-            ? {
-                matchDurationMinutes: input.matchDurationMinutes ?? tournament.duration ?? 60,
-                breakTimeMinutes: input.breakTimeMinutes ?? tournament.breakDuration ?? 5,
-              }
-            : {}),
-        },
-      });
-
-      toast.success(t("tournaments.scheduleGenerated", { round: response.schedule.round }));
-      navigate(`/tournaments/${id}/match-schedule?round=${response.schedule.round}`);
-    } catch (error: unknown) {
-      toast.error(getErrorMessage(error) ?? t("tournaments.scheduleGenerateError"));
-    }
+    navigate(`/tournaments/${id}/schedule?round=${effectiveView.nextRound}`);
   };
 
   return (
@@ -401,8 +332,7 @@ export default function TournamentMatchSchedulePage() {
                   onClick={() => void handleCreateNextRound()}
                   // Keep pointer/click enabled so blocked states can show a contextual toast on click.
                   disabled={
-                    generateScheduleMutation.isPending ||
-                    scheduleQuery.isLoading
+                    recordScoreMutation.isPending
                   }
                   className="h-[34px] shrink-0 gap-1.5 rounded-[8px] bg-[#067429] px-3 text-[13px] font-medium text-white hover:bg-[#055d21] sm:px-4"
                 >

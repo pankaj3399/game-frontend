@@ -115,8 +115,13 @@ async function joinTournament(id: string): Promise<JoinTournamentResponse> {
   return joinTournamentResponseSchema.parse(res.data);
 }
 
-async function leaveTournament(id: string): Promise<LeaveTournamentResponse> {
-  const res = await api.post(`/api/tournaments/${id}/leave`);
+async function leaveTournament(
+  id: string,
+  options?: { confirmLeaveWithWalkover?: boolean }
+): Promise<LeaveTournamentResponse> {
+  const res = await api.post(`/api/tournaments/${id}/leave`, {
+    confirmLeaveWithWalkover: options?.confirmLeaveWithWalkover === true,
+  });
   return leaveTournamentResponseSchema.parse(res.data);
 }
 
@@ -169,7 +174,13 @@ export function useJoinTournament() {
 export function useLeaveTournament() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ id }: { id: string }) => leaveTournament(id),
+    mutationFn: ({
+      id,
+      confirmLeaveWithWalkover,
+    }: {
+      id: string;
+      confirmLeaveWithWalkover?: boolean;
+    }) => leaveTournament(id, { confirmLeaveWithWalkover }),
     onSuccess: (response, { id }) => {
       const queryKey = queryKeys.tournament.detail(id);
       const me = queryClient.getQueryData<AuthUser | null>(queryKeys.auth.me());

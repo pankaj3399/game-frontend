@@ -56,7 +56,7 @@ const QUICK_EXTEND_OPTIONS: QuickExtendOption[] = [
 ];
 
 function toOptionValue(date: Date) {
-  return date.toISOString().slice(0, 10);
+  return format(date, "yyyy-MM-dd");
 }
 
 function toOptionLabel(date: Date) {

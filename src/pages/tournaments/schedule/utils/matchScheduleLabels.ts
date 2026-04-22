@@ -1,4 +1,3 @@
-import { format } from "date-fns";
 import type { Locale } from "date-fns";
 import { parseIsoDateSafely } from "@/utils/date";
 
@@ -7,15 +6,18 @@ export function matchScheduleDateTimeLabels(
   locale: Locale,
   tbd: string
 ): { date: string; time: string } {
-  if (!startTimeIso) {
-    return { date: tbd, time: tbd };
-  }
   const parsed = parseIsoDateSafely(startTimeIso);
-  if (!parsed) {
+  if (!startTimeIso || !parsed) {
     return { date: tbd, time: tbd };
   }
+  const localeTag = locale.code ?? "en-US";
   return {
-    date: format(parsed, "P", { locale }),
-    time: format(parsed, "p", { locale }),
+    date: new Intl.DateTimeFormat(localeTag, {
+      dateStyle: "short",
+    }).format(parsed),
+    time: new Intl.DateTimeFormat(localeTag, {
+      hour: "numeric",
+      minute: "2-digit",
+    }).format(parsed),
   };
 }

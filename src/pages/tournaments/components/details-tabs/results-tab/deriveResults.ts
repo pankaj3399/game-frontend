@@ -119,13 +119,85 @@ function sortStandings(a: ParticipantResult, b: ParticipantResult): number {
   return a.name.localeCompare(b.name);
 }
 
+type ParticipantLike = {
+  id: string;
+  name: string | null;
+  alias: string | null;
+  hasLeft: boolean;
+};
+
+type ResolvedParticipantLike = {
+  id: string;
+  name: string;
+  hasLeft: boolean;
+};
+
+function deriveParticipantPool(
+  tournament: TournamentDetail,
+  matches: TournamentScheduleMatch[],
+  unknownLabel: string
+): ResolvedParticipantLike[] {
+  const byId = new Map<string, ParticipantLike>();
+
+  for (const participant of tournament.participants) {
+    byId.set(participant.id, {
+      id: participant.id,
+      name: participant.name,
+      alias: participant.alias,
+      hasLeft: false,
+    });
+  }
+
+  const upsertFromMatchSlot = (
+    candidate: { id: string; name: string | null; alias: string | null } | null
+  ) => {
+    if (!candidate?.id) return;
+    const current = byId.get(candidate.id);
+    if (!current) {
+      byId.set(candidate.id, {
+        id: candidate.id,
+        name: candidate.name,
+        alias: candidate.alias,
+        hasLeft: true,
+      });
+      return;
+    }
+
+    // Prefer populated names from match payload if current value is empty.
+    byId.set(candidate.id, {
+      ...current,
+      name: current.name ?? candidate.name,
+      alias: current.alias ?? candidate.alias,
+    });
+  };
+
+  for (const match of matches) {
+    for (const sidePlayer of [...(match.side1 ?? []), ...(match.side2 ?? [])]) {
+      upsertFromMatchSlot(sidePlayer);
+    }
+    for (const flatPlayer of match.players ?? []) {
+      upsertFromMatchSlot(flatPlayer);
+    }
+  }
+
+  if (byId.size === 0) {
+    return [];
+  }
+
+  return [...byId.values()].map((participant) => ({
+    id: participant.id,
+    name: participantDisplayName(participant.name, participant.alias, unknownLabel),
+    hasLeft: participant.hasLeft,
+  }));
+}
+
 function deriveStandingsUpToRound(
   tournament: TournamentDetail,
   matches: TournamentScheduleMatch[],
   unknownLabel: string,
   roundLimit: number
 ): ParticipantResult[] {
-  const participants = tournament.participants;
+  const participants = deriveParticipantPool(tournament, matches, unknownLabel);
   if (participants.length === 0) {
     return [];
   }
@@ -158,7 +230,8 @@ function deriveStandingsUpToRound(
   return participants
     .map((participant) => ({
       id: participant.id,
-      name: participantDisplayName(participant.name, participant.alias, unknownLabel),
+      name: participant.name,
+      hasLeft: participant.hasLeft,
       wins: winsById.get(participant.id) ?? 0,
       totalScoreAdvantage: scoreAdvantageById.get(participant.id) ?? 0,
       positionChange: 0,

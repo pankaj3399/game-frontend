@@ -1,5 +1,4 @@
 import { type ReactNode, useState } from "react";
-import { format, isValid, parseISO } from "date-fns";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -17,6 +16,7 @@ import LiveModalUserIcon from "@/assets/icons/figma/vuesax/linear/user.svg?react
 import { getDateFnsLocale } from "@/lib/dateFnsLocale";
 import type { TournamentLiveMatchItem } from "@/models/tournament/types";
 import { useTournamentLiveMatch, useTournamentMatches } from "@/pages/tournaments/hooks";
+import { parseIsoDateSafely } from "@/utils/date";
 
 function playerDisplayName(
   player: { name: string | null; alias: string | null },
@@ -28,18 +28,21 @@ function playerDisplayName(
 }
 
 function formatMatchTime(startTime: string | null, language: string, fallback: string) {
-  if (!startTime) {
+  const parsed = parseIsoDateSafely(startTime);
+  if (!parsed) {
     return fallback;
   }
-
-  const parsed = parseISO(startTime);
-  if (!isValid(parsed)) {
-    return fallback;
-  }
-
-  return format(parsed, "P · p", {
-    locale: getDateFnsLocale(language),
-  });
+  const localeTag = getDateFnsLocale(language)?.code ?? language ?? "en-US";
+  const dateLabel = new Intl.DateTimeFormat(localeTag, {
+    dateStyle: "short",
+    timeZone: "UTC",
+  }).format(parsed);
+  const timeLabel = new Intl.DateTimeFormat(localeTag, {
+    hour: "numeric",
+    minute: "2-digit",
+    timeZone: "UTC",
+  }).format(parsed);
+  return `${dateLabel} · ${timeLabel}`;
 }
 
 function matchTeamNames(match: TournamentLiveMatchItem, fallback: string) {
@@ -113,8 +116,6 @@ export function LiveMatchModal() {
     liveTournamentId !== null
   );
 
-  const dialogOpen = liveMatch != null && dismissedMatchId !== liveMatch.id;
-
   const liveTimeLabel = formatMatchTime(
     liveMatch?.startTime ?? null,
     i18n.language,
@@ -136,6 +137,17 @@ export function LiveMatchModal() {
       : (tournamentMatchesQuery.data.matches.find(
           (match) => match.id === liveMatch.id
         )?.round ?? null);
+
+  const hasTournamentContext = liveMatch != null && liveTournamentId !== null;
+  const isRoundDataReady =
+    !hasTournamentContext ||
+    (tournamentMatchesQuery.isSuccess &&
+      liveMatch != null &&
+      liveMatch.tournament.name.trim().length > 0);
+  const dialogOpen =
+    liveMatch != null &&
+    dismissedMatchId !== liveMatch.id &&
+    isRoundDataReady;
 
   if (!liveMatch) {
     return null;
@@ -160,6 +172,10 @@ export function LiveMatchModal() {
         opponent: nextTeams.opponentNames,
       })
     : t("tournaments.liveModalNoNextMatch");
+  const liveRoundTournamentLabel =
+    liveRound != null
+      ? `${t("tournaments.roundNumber", { round: liveRound })} · ${liveMatch.tournament.name}`
+      : liveMatch.tournament.name;
 
   const handleOpenChange = (nextOpen: boolean) => {
     if (!nextOpen) {
@@ -202,9 +218,7 @@ export function LiveMatchModal() {
           <div className="space-y-6">
             <div className="space-y-3">
               <p className="text-xl font-semibold leading-none tracking-tight text-[#0f172a]">
-                {liveRound != null
-                  ? t("tournaments.roundNumber", { round: liveRound })
-                  : t("tournaments.liveModalRoundPending")}
+                {liveRoundTournamentLabel}
               </p>
               <div className="space-y-2.5">
                 <MatchMetaRow
