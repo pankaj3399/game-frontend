@@ -14,12 +14,10 @@ export function matchScheduleDateTimeLabels(
   return {
     date: new Intl.DateTimeFormat(localeTag, {
       dateStyle: "short",
-      timeZone: "UTC",
     }).format(parsed),
     time: new Intl.DateTimeFormat(localeTag, {
       hour: "numeric",
       minute: "2-digit",
-      timeZone: "UTC",
     }).format(parsed),
   };
 }

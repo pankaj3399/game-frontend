@@ -35,12 +35,10 @@ function formatMatchTime(startTime: string | null, language: string, fallback: s
   const localeTag = getDateFnsLocale(language)?.code ?? language ?? "en-US";
   const dateLabel = new Intl.DateTimeFormat(localeTag, {
     dateStyle: "short",
-    timeZone: "UTC",
   }).format(parsed);
   const timeLabel = new Intl.DateTimeFormat(localeTag, {
     hour: "numeric",
     minute: "2-digit",
-    timeZone: "UTC",
   }).format(parsed);
   return `${dateLabel} · ${timeLabel}`;
 }
