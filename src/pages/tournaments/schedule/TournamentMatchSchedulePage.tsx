@@ -27,6 +27,7 @@ import {
   type ScoreEditorRow,
 } from "@/pages/tournaments/schedule/utils/matchScheduleScore";
 import {
+  capCourtsForParticipants,
   canGenerateSchedule,
   normalizeParticipantRows,
   participantOrderIds,
@@ -330,6 +331,19 @@ export default function TournamentMatchSchedulePage() {
 
     const bounds = resolveTournamentScheduleTimeBounds(tournament.startTime, tournament.endTime);
     const clampedStartTime = clampTime24ToBounds(input.startTime, bounds);
+    const effectiveCourtIds = capCourtsForParticipants(
+      selectedCourtIds,
+      input.mode,
+      participants.length
+    );
+    if (effectiveCourtIds.length < selectedCourtIds.length) {
+      toast.info(
+        t("tournaments.scheduleCourtsCappedForParticipants", {
+          selected: selectedCourtIds.length,
+          usable: effectiveCourtIds.length,
+        })
+      );
+    }
 
     try {
       const response = await generateScheduleMutation.mutateAsync({
@@ -339,7 +353,7 @@ export default function TournamentMatchSchedulePage() {
           mode: input.mode,
           matchesPerPlayer: input.matchesPerPlayer,
           startTime: clampedStartTime,
-          courtIds: selectedCourtIds,
+          courtIds: effectiveCourtIds,
           participantOrder: participantOrderIds(participants),
           ...(tournament.tournamentMode === "singleDay"
             ? {

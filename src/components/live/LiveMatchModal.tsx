@@ -1,5 +1,4 @@
 import { type ReactNode, useState } from "react";
-import { format, isValid, parseISO } from "date-fns";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -17,6 +16,7 @@ import LiveModalUserIcon from "@/assets/icons/figma/vuesax/linear/user.svg?react
 import { getDateFnsLocale } from "@/lib/dateFnsLocale";
 import type { TournamentLiveMatchItem } from "@/models/tournament/types";
 import { useTournamentLiveMatch, useTournamentMatches } from "@/pages/tournaments/hooks";
+import { parseIsoDateSafely } from "@/utils/date";
 
 function playerDisplayName(
   player: { name: string | null; alias: string | null },
@@ -28,18 +28,21 @@ function playerDisplayName(
 }
 
 function formatMatchTime(startTime: string | null, language: string, fallback: string) {
-  if (!startTime) {
+  const parsed = parseIsoDateSafely(startTime);
+  if (!parsed) {
     return fallback;
   }
-
-  const parsed = parseISO(startTime);
-  if (!isValid(parsed)) {
-    return fallback;
-  }
-
-  return format(parsed, "P · p", {
-    locale: getDateFnsLocale(language),
-  });
+  const localeTag = getDateFnsLocale(language)?.code ?? language ?? "en-US";
+  const dateLabel = new Intl.DateTimeFormat(localeTag, {
+    dateStyle: "short",
+    timeZone: "UTC",
+  }).format(parsed);
+  const timeLabel = new Intl.DateTimeFormat(localeTag, {
+    hour: "numeric",
+    minute: "2-digit",
+    timeZone: "UTC",
+  }).format(parsed);
+  return `${dateLabel} · ${timeLabel}`;
 }
 
 function matchTeamNames(match: TournamentLiveMatchItem, fallback: string) {

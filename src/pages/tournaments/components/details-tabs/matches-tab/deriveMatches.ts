@@ -1,7 +1,6 @@
 import { isValid, parseISO, type Locale } from "date-fns";
 import type { TournamentScheduleMatch } from "@/models/tournament/types";
 import { teamSideDisplayName } from "@/pages/tournaments/schedule/utils/matchTeamDisplay";
-import { formatDateOrFallback } from "@/utils/date";
 import { formatTimeTo12Hour } from "@/utils/time";
 import { withBracketedElo } from "./ratingSummary";
 import type { DerivedMatch, MatchCounts, MatchStatus } from "./types";
@@ -31,14 +30,29 @@ function scheduleText(
     const parsed = parseISO(normalized);
     if (isValid(parsed)) {
       const localeTag = locale?.code ?? "en-US";
-      time = parsed.toLocaleTimeString(localeTag, { hour: "numeric", minute: "2-digit" });
+      time = new Intl.DateTimeFormat(localeTag, {
+        hour: "numeric",
+        minute: "2-digit",
+        timeZone: "UTC",
+      }).format(parsed);
       effectiveDate = parsed.toISOString();
     }
   }
 
   if (!effectiveDate) return time ?? tbdLabel;
 
-  const dateLabel = formatDateOrFallback(effectiveDate, tbdLabel, "P", locale);
+  let dateLabel = tbdLabel;
+  try {
+    const parsedDate = parseISO(effectiveDate);
+    if (isValid(parsedDate)) {
+      dateLabel = new Intl.DateTimeFormat(locale?.code ?? "en-US", {
+        dateStyle: "short",
+        timeZone: "UTC",
+      }).format(parsedDate);
+    }
+  } catch {
+    dateLabel = tbdLabel;
+  }
   return `${time ?? tbdLabel} (${dateLabel})`;
 }
 

@@ -69,3 +69,33 @@ export function canGenerateSchedule(mode: TournamentScheduleMode, participantsCo
 
   return participantsCount >= 4;
 }
+
+function playersPerMatch(mode: TournamentScheduleMode): number {
+  return mode === "doubles" ? 4 : 2;
+}
+
+/**
+ * Maximum simultaneous matches that can run without assigning a participant to multiple courts.
+ */
+export function maxConcurrentMatchesForParticipants(
+  mode: TournamentScheduleMode,
+  participantsCount: number
+): number {
+  const perMatch = playersPerMatch(mode);
+  return Math.max(0, Math.floor(participantsCount / perMatch));
+}
+
+/**
+ * Caps selected courts to feasible participant concurrency for the chosen mode.
+ */
+export function capCourtsForParticipants(
+  selectedCourtIds: string[],
+  mode: TournamentScheduleMode,
+  participantsCount: number
+): string[] {
+  const maxConcurrent = maxConcurrentMatchesForParticipants(mode, participantsCount);
+  if (maxConcurrent <= 0) {
+    return [];
+  }
+  return selectedCourtIds.slice(0, maxConcurrent);
+}

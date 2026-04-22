@@ -653,6 +653,7 @@
     "schedulePreviousRoundMissing": "Runde {{round}} wurde noch nicht erstellt.",
     "scheduleNoCourtsSelected": "Runde {{round}}: Keine Plätze ausgewählt.",
     "scheduleNotEnoughParticipants": "Runde {{round}}: Nicht genug Teilnehmer, um den Spielplan zu erzeugen.",
+    "scheduleCourtsCappedForParticipants": "Es werden {{usable}} von {{selected}} ausgewählten Plätzen genutzt, um Spielerkonflikte zu vermeiden.",
     "scheduleGenerateError": "Spielplan konnte nicht generiert werden.",
     "scheduleGenerateDoublesPairs": "Doppel-Paare generieren",
     "schedulePairsGenerated": "Doppel-Paare wurden generiert.",

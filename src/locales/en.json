@@ -654,6 +654,7 @@
     "schedulePreviousRoundMissing": "Round {{round}} has not been generated yet.",
     "scheduleNoCourtsSelected": "Round {{round}}: No courts selected.",
     "scheduleNotEnoughParticipants": "Round {{round}}: Not enough participants to generate schedule.",
+    "scheduleCourtsCappedForParticipants": "Using {{usable}} of {{selected}} selected courts to avoid player conflicts.",
     "scheduleGenerateError": "Failed to generate schedule.",
     "scheduleGenerateDoublesPairs": "Generate Doubles Pairs",
     "schedulePairsGenerated": "Doubles pairs generated.",

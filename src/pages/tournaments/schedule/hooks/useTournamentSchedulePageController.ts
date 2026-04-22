@@ -16,6 +16,7 @@ import {
 } from "@/pages/tournaments/hooks";
 import { clampTime24ToBounds, resolveTournamentScheduleTimeBounds } from "@/utils/time";
 import {
+  capCourtsForParticipants,
   canGenerateSchedule,
   moveParticipant,
   normalizeParticipantRows,
@@ -308,12 +309,26 @@ export function useTournamentSchedulePageController({
     }
 
     try {
+      const effectiveCourtIds = capCourtsForParticipants(
+        selectedCourtIds,
+        mode,
+        participants.length
+      );
+      if (effectiveCourtIds.length < selectedCourtIds.length) {
+        toast.info(
+          t("tournaments.scheduleCourtsCappedForParticipants", {
+            selected: selectedCourtIds.length,
+            usable: effectiveCourtIds.length,
+          })
+        );
+      }
+
       const payload = {
         round,
         mode,
         matchesPerPlayer,
         startTime: clampedStartTime,
-        courtIds: selectedCourtIds,
+        courtIds: effectiveCourtIds,
         participantOrder: participantOrderIds(participants),
         ...(isScheduledTournament
           ? {
