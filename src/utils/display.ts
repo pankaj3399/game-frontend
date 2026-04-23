@@ -1,5 +1,5 @@
 import { formatDateOrFallback } from "@/utils/date";
-import { formatTimeTo12Hour } from "@/utils/time";
+import { formatTimeTo24Hour } from "@/utils/time";
 import type { Locale } from "date-fns";
 
 type TimeRangeFormatter = (start: string, end: string) => string;
@@ -19,8 +19,8 @@ export function formatTimeRangeDisplay(
   fallback: string,
   formatRange?: TimeRangeFormatter
 ) {
-  const formattedStart = formatTimeTo12Hour(startTime);
-  const formattedEnd = formatTimeTo12Hour(endTime);
+  const formattedStart = formatTimeTo24Hour(startTime);
+  const formattedEnd = formatTimeTo24Hour(endTime);
 
   if (!formattedStart && !formattedEnd) return fallback;
   if (formattedStart && formattedEnd) {

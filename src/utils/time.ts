@@ -1,4 +1,4 @@
-export function formatTimeTo12Hour(
+export function formatTimeTo24Hour(
   time: string | null | undefined,
   locale?: string
 ): string | null {
@@ -23,8 +23,10 @@ export function formatTimeTo12Hour(
 
   const date = new Date(Date.UTC(2000, 0, 1, hours, parsedMinutes));
   return new Intl.DateTimeFormat(locale ?? "en-US", {
-    hour: "numeric",
+    hour: "2-digit",
     minute: "2-digit",
+    hour12: false,
+    hourCycle: "h23",
     timeZone: "UTC",
   }).format(date);
 }
@@ -42,17 +44,20 @@ export function normalizeTimeTo24Hour(value: string | null | undefined): string 
     return `${String(hours).padStart(2, "0")}:${minutes}`;
   }
 
-  const match = normalized.match(/(\d{1,2}):(\d{2})\s*(AM|PM)?/i);
+  const match = normalized.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?$/);
   if (!match) return null;
 
-  let hours = Number.parseInt(match[1], 10);
+  const hours = Number.parseInt(match[1], 10);
   const minutes = match[2];
-  const meridiem = match[3]?.toUpperCase();
+  const seconds = match[3];
 
   if (!Number.isInteger(hours) || hours < 0 || hours > 23) return null;
-
-  if (meridiem === "PM" && hours < 12) hours += 12;
-  if (meridiem === "AM" && hours === 12) hours = 0;
+  if (seconds != null) {
+    const parsedSeconds = Number.parseInt(seconds, 10);
+    if (!Number.isInteger(parsedSeconds) || parsedSeconds < 0 || parsedSeconds > 59) {
+      return null;
+    }
+  }
 
   return `${String(hours).padStart(2, "0")}:${minutes}`;
 }

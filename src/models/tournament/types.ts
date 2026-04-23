@@ -205,7 +205,13 @@ export const tournamentMatchesResponseSchema = z.object({
 
 export const tournamentScheduleInputSchema = z
   .object({
-    matchDurationMinutes: z.number().int().min(5).optional(),
+    matchDurationMinutes: z
+      .number()
+      .int()
+      .min(5)
+      .max(120)
+      .refine((value) => value % 5 === 0, "matchDurationMinutes must be in 5-minute intervals")
+      .optional(),
     breakTimeMinutes: z.number().int().min(0).optional(),
     matchesPerPlayer: z.number().int().min(1).max(20),
     startTime: z.string(),
@@ -245,7 +251,13 @@ export const tournamentScheduleResponseSchema = z.object({
 export const generateTournamentScheduleInputSchema = z.object({
   round: z.number().int().min(1),
   mode: tournamentScheduleModeSchema,
-  matchDurationMinutes: z.number().int().min(5).max(240).optional(),
+  matchDurationMinutes: z
+    .number()
+    .int()
+    .min(5)
+    .max(120)
+    .refine((value) => value % 5 === 0, "matchDurationMinutes must be in 5-minute intervals")
+    .optional(),
   breakTimeMinutes: z.number().int().min(0).max(120).optional(),
   matchesPerPlayer: z.number().int().min(1).max(20),
   startTime: z.string(),
@@ -366,14 +378,18 @@ const tournamentInputBaseSchema = z.object({
   date: z.string().nullable().optional(),
   startTime: z.string().nullable().optional(),
   endTime: z.string().nullable().optional(),
-  timezone: z.string().nullable().optional(),
   playMode: tournamentPlayModeSchema,
   tournamentMode: tournamentModeSchema,
   entryFee: z.number(),
   minMember: memberCountSchema,
   maxMember: memberCountSchema,
   totalRounds: totalRoundsSchema,
-  duration: z.number().int().min(5).max(240),
+  duration: z
+    .number()
+    .int()
+    .min(5)
+    .max(120)
+    .refine((value) => value % 5 === 0, "duration must be in 5-minute intervals"),
   breakDuration: z.number().int().min(0).max(120),
   foodInfo: foodInfoSchema.nullable().optional(),
   descriptionInfo: z.string().nullable().optional(),
@@ -414,14 +430,18 @@ export const backendCreateTournamentInputSchema = z.object({
   date: z.string().nullable().optional(),
   startTime: z.string().nullable().optional(),
   endTime: z.string().nullable().optional(),
-  timezone: z.string().nullable().optional(),
   playMode: tournamentPlayModeSchema,
   tournamentMode: tournamentModeSchema,
   entryFee: z.number(),
   minMember: memberCountSchema,
   maxMember: memberCountSchema,
   totalRounds: totalRoundsSchema,
-  duration: z.number().int().min(5).max(240),
+  duration: z
+    .number()
+    .int()
+    .min(5)
+    .max(120)
+    .refine((value) => value % 5 === 0, "duration must be in 5-minute intervals"),
   breakDuration: z.number().int().min(0).max(120),
   foodInfo: foodInfoSchema.nullable().optional(),
   descriptionInfo: z.string().nullable().optional(),
@@ -436,14 +456,19 @@ export const backendUpdateTournamentInputSchema = z
     date: z.string().nullable(),
     startTime: z.string().nullable(),
     endTime: z.string().nullable(),
-    timezone: z.string().nullable(),
     playMode: tournamentPlayModeSchema,
     tournamentMode: tournamentModeSchema,
     entryFee: z.number(),
     minMember: memberCountSchema,
     maxMember: memberCountSchema,
     totalRounds: totalRoundsSchema,
-    duration: z.number().int().min(5).max(240).nullable(),
+    duration: z
+      .number()
+      .int()
+      .min(5)
+      .max(120)
+      .refine((value) => value % 5 === 0, "duration must be in 5-minute intervals")
+      .nullable(),
     breakDuration: z.number().int().min(0).max(120).nullable(),
     foodInfo: foodInfoSchema.nullable(),
     descriptionInfo: z.string().nullable(),

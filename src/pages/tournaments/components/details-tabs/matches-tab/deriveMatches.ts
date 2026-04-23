@@ -23,8 +23,10 @@ function createDateFormatter(locale?: Locale) {
 
 function createTimeFormatter(locale?: Locale) {
   return new Intl.DateTimeFormat(locale?.code ?? "en-US", {
-    hour: "numeric",
+    hour: "2-digit",
     minute: "2-digit",
+    hour12: false,
+    hourCycle: "h23",
   });
 }
 

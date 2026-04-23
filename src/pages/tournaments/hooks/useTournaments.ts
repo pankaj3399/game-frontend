@@ -6,11 +6,9 @@ import {
   type TournamentListFilters,
   type TournamentsResponse,
 } from "@/models/tournament/types";
-import { getClientTimeZone } from "@/utils/timezone";
 
 async function fetchTournaments(filters: TournamentListFilters): Promise<TournamentsResponse> {
   const params = new URLSearchParams();
-  params.set("timezone", getClientTimeZone());
   if (filters.view) params.set("view", filters.view);
   if (filters.when) params.set("when", filters.when);
   if (filters.distance) params.set("distance", filters.distance);

@@ -16,8 +16,10 @@ export function matchScheduleDateTimeLabels(
       dateStyle: "short",
     }).format(parsed),
     time: new Intl.DateTimeFormat(localeTag, {
-      hour: "numeric",
+      hour: "2-digit",
       minute: "2-digit",
+      hour12: false,
+      hourCycle: "h23",
     }).format(parsed),
   };
 }

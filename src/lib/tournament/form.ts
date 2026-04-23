@@ -9,7 +9,6 @@ import {
   normalizeIsoDateInputValue,
 } from "@/utils/date";
 import { normalizeTimeTo24Hour } from "@/utils/time";
-import { getClientTimeZone, isValidIanaTimeZone } from "@/utils/timezone";
 
 export type TournamentValidationErrorKey =
   | "tournaments.requiredNameAndClub"
@@ -26,7 +25,6 @@ export const DEFAULT_CREATE_TOURNAMENT_FORM: CreateTournamentInput = {
   date: getTodayDateInputValue(),
   startTime: "05:00",
   endTime: "21:00",
-  timezone: getClientTimeZone(),
   playMode: "1set",
   tournamentMode: "singleDay",
   entryFee: 0,
@@ -48,7 +46,6 @@ export function mapTournamentDetailToForm(tournament: TournamentDetail): CreateT
     date: normalizeIsoDateInputValue(tournament.date),
     startTime: tournament.startTime ?? null,
     endTime: tournament.endTime ?? null,
-    timezone: isValidIanaTimeZone(tournament.timezone) ? tournament.timezone : getClientTimeZone(),
     playMode: tournament.playMode,
     tournamentMode: tournament.tournamentMode ,
     entryFee: tournament.entryFee,
@@ -81,7 +78,6 @@ export function buildTournamentPayload(
     date: normalizeDateToUtcIsoString(form.date),
     startTime: normalizeTimeTo24Hour(form.startTime ?? null),
     endTime: normalizeTimeTo24Hour(form.endTime ?? null),
-    timezone: isValidIanaTimeZone(form.timezone) ? form.timezone : getClientTimeZone(),
     sponsor: form.sponsor || null,
     foodInfo: form.foodInfo ?? "",
     descriptionInfo: form.descriptionInfo ?? "",
@@ -103,7 +99,6 @@ export function buildUpdatePayload(form: CreateTournamentInput): Omit<CreateTour
     date: payload.date,
     startTime: payload.startTime,
     endTime: payload.endTime,
-    timezone: payload.timezone,
     playMode: payload.playMode,
     tournamentMode: payload.tournamentMode,
     entryFee: payload.entryFee,

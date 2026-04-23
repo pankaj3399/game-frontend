@@ -41,6 +41,14 @@ async function deleteSponsor(clubId: string, sponsorId: string) {
 
 export function useCreateSponsor(clubId: string | null) {
   const queryClient = useQueryClient();
+  const invalidateTournamentDetailQueries = () =>
+    queryClient.invalidateQueries({
+      predicate: (query) => {
+        const key = query.queryKey;
+        return Array.isArray(key) && key[0] === "tournament" && key[1] === "detail";
+      },
+    });
+
   return useMutation({
     mutationFn: async (input: CreateSponsorInput) => {
       const data = await createSponsor(requireClubId(clubId), input);
@@ -50,6 +58,7 @@ export function useCreateSponsor(clubId: string | null) {
       if (clubId) {
         queryClient.invalidateQueries({ queryKey: queryKeys.club.sponsors(clubId) });
         queryClient.invalidateQueries({ queryKey: queryKeys.sponsors.all });
+        invalidateTournamentDetailQueries();
       }
     },
   });
@@ -57,6 +66,14 @@ export function useCreateSponsor(clubId: string | null) {
 
 export function useUpdateSponsor(clubId: string | null) {
   const queryClient = useQueryClient();
+  const invalidateTournamentDetailQueries = () =>
+    queryClient.invalidateQueries({
+      predicate: (query) => {
+        const key = query.queryKey;
+        return Array.isArray(key) && key[0] === "tournament" && key[1] === "detail";
+      },
+    });
+
   return useMutation({
     mutationFn: async ({
       sponsorId,
@@ -72,6 +89,7 @@ export function useUpdateSponsor(clubId: string | null) {
       if (clubId) {
         queryClient.invalidateQueries({ queryKey: queryKeys.club.sponsors(clubId) });
         queryClient.invalidateQueries({ queryKey: queryKeys.sponsors.all });
+        invalidateTournamentDetailQueries();
       }
     },
   });
@@ -79,12 +97,21 @@ export function useUpdateSponsor(clubId: string | null) {
 
 export function useDeleteSponsor(clubId: string | null) {
   const queryClient = useQueryClient();
+  const invalidateTournamentDetailQueries = () =>
+    queryClient.invalidateQueries({
+      predicate: (query) => {
+        const key = query.queryKey;
+        return Array.isArray(key) && key[0] === "tournament" && key[1] === "detail";
+      },
+    });
+
   return useMutation({
     mutationFn: (sponsorId: string) => deleteSponsor(requireClubId(clubId), sponsorId),
     onSuccess: () => {
       if (clubId) {
         queryClient.invalidateQueries({ queryKey: queryKeys.club.sponsors(clubId) });
         queryClient.invalidateQueries({ queryKey: queryKeys.sponsors.all });
+        invalidateTournamentDetailQueries();
       }
     },
   });
