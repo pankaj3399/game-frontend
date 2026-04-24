@@ -8,11 +8,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { TimePicker } from "@/components/ui/time-picker";
+import { DURATION_OPTIONS } from "@/constants/tournament";
 import type { TournamentScheduleInput } from "@/models/tournament/types";
 import { resolveTournamentScheduleTimeBounds } from "@/utils/time";
 import { getPreviousRoundGate } from "../helpers/tournamentRoundWorkflow";
 
-const MATCH_DURATION_OPTIONS = [30, 45, 60, 75, 90];
 const BREAK_DURATION_OPTIONS = [0, 5, 10, 15, 20, 30];
 const MATCHES_PER_PLAYER_OPTIONS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
@@ -95,9 +95,9 @@ export function TournamentScheduleConfigCard({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {MATCH_DURATION_OPTIONS.map((option) => (
+                {DURATION_OPTIONS.map((option) => (
                   <SelectItem key={option} value={String(option)}>
-                    {option} min
+                    {t("tournaments.durationMinutes", { minutes: option })}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -125,7 +125,7 @@ export function TournamentScheduleConfigCard({
               <SelectContent>
                 {BREAK_DURATION_OPTIONS.map((option) => (
                   <SelectItem key={option} value={String(option)}>
-                    {option} min
+                    {t("tournaments.durationMinutes", { minutes: option })}
                   </SelectItem>
                 ))}
               </SelectContent>

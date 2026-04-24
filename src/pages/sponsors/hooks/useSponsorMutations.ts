@@ -39,8 +39,13 @@ async function deleteSponsor(clubId: string, sponsorId: string) {
   await api.delete(`/api/sponsors/clubs/${clubId}/${sponsorId}`);
 }
 
+function invalidateTournamentDetailQueries(queryClient: ReturnType<typeof useQueryClient>) {
+  return queryClient.invalidateQueries({ queryKey: ["tournament", "detail"] });
+}
+
 export function useCreateSponsor(clubId: string | null) {
   const queryClient = useQueryClient();
+
   return useMutation({
     mutationFn: async (input: CreateSponsorInput) => {
       const data = await createSponsor(requireClubId(clubId), input);
@@ -50,6 +55,7 @@ export function useCreateSponsor(clubId: string | null) {
       if (clubId) {
         queryClient.invalidateQueries({ queryKey: queryKeys.club.sponsors(clubId) });
         queryClient.invalidateQueries({ queryKey: queryKeys.sponsors.all });
+        invalidateTournamentDetailQueries(queryClient);
       }
     },
   });
@@ -57,6 +63,7 @@ export function useCreateSponsor(clubId: string | null) {
 
 export function useUpdateSponsor(clubId: string | null) {
   const queryClient = useQueryClient();
+
   return useMutation({
     mutationFn: async ({
       sponsorId,
@@ -72,6 +79,7 @@ export function useUpdateSponsor(clubId: string | null) {
       if (clubId) {
         queryClient.invalidateQueries({ queryKey: queryKeys.club.sponsors(clubId) });
         queryClient.invalidateQueries({ queryKey: queryKeys.sponsors.all });
+        invalidateTournamentDetailQueries(queryClient);
       }
     },
   });
@@ -79,12 +87,14 @@ export function useUpdateSponsor(clubId: string | null) {
 
 export function useDeleteSponsor(clubId: string | null) {
   const queryClient = useQueryClient();
+
   return useMutation({
     mutationFn: (sponsorId: string) => deleteSponsor(requireClubId(clubId), sponsorId),
     onSuccess: () => {
       if (clubId) {
         queryClient.invalidateQueries({ queryKey: queryKeys.club.sponsors(clubId) });
         queryClient.invalidateQueries({ queryKey: queryKeys.sponsors.all });
+        invalidateTournamentDetailQueries(queryClient);
       }
     },
   });

@@ -38,10 +38,6 @@ interface TimePickerProps {
   hourLabel?: string;
   /** Override minute field label (default: timepicker.minute) */
   minuteLabel?: string;
-  /** Override AM label (default: timepicker.am) */
-  amLabel?: string;
-  /** Override PM label (default: timepicker.pm) */
-  pmLabel?: string;
   /** Override clear button (default: timepicker.clear) */
   clearLabel?: string;
   /** Override now button (default: timepicker.now) */
@@ -64,8 +60,6 @@ interface TimePickerProps {
   triggerClassName?: string;
 }
 
-type Meridian = "AM" | "PM";
-
 export function TimePicker({
   value,
   onChange,
@@ -81,8 +75,6 @@ export function TimePicker({
   titleLabel,
   hourLabel,
   minuteLabel,
-  amLabel,
-  pmLabel,
   clearLabel,
   nowLabel,
   confirmLabel,
@@ -103,8 +95,6 @@ export function TimePicker({
   const effectiveTitle = titleLabel ?? t("timepicker.title");
   const effectiveHourLabel = hourLabel ?? t("timepicker.hour");
   const effectiveMinuteLabel = minuteLabel ?? t("timepicker.minute");
-  const effectiveAmLabel = amLabel ?? t("timepicker.am");
-  const effectivePmLabel = pmLabel ?? t("timepicker.pm");
   const effectiveClearLabel = clearLabel ?? t("timepicker.clear");
   const effectiveNowLabel = nowLabel ?? t("timepicker.now");
   const effectiveConfirmLabel = confirmLabel ?? t("timepicker.confirm");
@@ -113,8 +103,6 @@ export function TimePicker({
   const warningOutOfBoundsKey = warningKeys?.outOfBounds ?? "timepicker.outOfBounds";
 
   const [open, setOpen] = useState(false);
-  /** 12h AM/PM while the popover is open; committed only on Done (with validation). */
-  const [draftMeridian, setDraftMeridian] = useState<Meridian>("AM");
   const hourFieldId = useId();
   const minuteFieldId = useId();
 
@@ -137,39 +125,29 @@ export function TimePicker({
   }
 
   const selectedHour24 = parsedValue?.hour ?? 0;
-  const selectedHour = selectedHour24 % 12 || 12;
-  const selectedMeridian: Meridian = selectedHour24 >= 12 ? "PM" : "AM";
   const selectedMinute = parsedValue?.minute ?? 0;
   const formatted = parsedValue
-    ? `${String(selectedHour).padStart(2, "0")}:${String(selectedMinute).padStart(2, "0")} ${selectedMeridian}`
+    ? `${String(selectedHour24).padStart(2, "0")}:${String(selectedMinute).padStart(2, "0")}`
     : "";
 
   const formatTime = (hour: number, minute: number) =>
     `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
-
-  const to24Hour = (hour: number, meridian: Meridian) => {
-    if (meridian === "AM") return hour === 12 ? 0 : hour;
-    return hour === 12 ? 12 : hour + 12;
-  };
-
-  const hourDisplay = String(selectedHour).padStart(2, "0");
+  const hourDisplay = String(selectedHour24).padStart(2, "0");
   const minuteDisplay = String(selectedMinute).padStart(2, "0");
 
   const [hourInput, setHourInput] = useState(hourDisplay);
   const [minuteInput, setMinuteInput] = useState(minuteDisplay);
 
   const rejectAndSyncInputs = useCallback(() => {
-    setHourInput(String(selectedHour).padStart(2, "0"));
+    setHourInput(String(selectedHour24).padStart(2, "0"));
     setMinuteInput(String(selectedMinute).padStart(2, "0"));
-    setDraftMeridian(selectedMeridian);
-  }, [selectedHour, selectedMinute, selectedMeridian]);
+  }, [selectedHour24, selectedMinute]);
 
-  /** Sync hour/minute text inputs to a proposed total-minutes value (12h display). */
+  /** Sync hour/minute text inputs to a proposed total-minutes value (24h display). */
   const syncInputsToTotalMinutes = useCallback((totalMinutes: number) => {
     const hour24 = ((Math.floor(totalMinutes / 60) % 24) + 24) % 24;
     const minute = ((totalMinutes % 60) + 60) % 60;
-    const hour12 = hour24 % 12 || 12;
-    setHourInput(String(hour12).padStart(2, "0"));
+    setHourInput(String(hour24).padStart(2, "0"));
     setMinuteInput(String(minute).padStart(2, "0"));
   }, []);
 
@@ -187,7 +165,6 @@ export function TimePicker({
     if (next === null) {
       onChange(null);
       syncInputsToTotalMinutes(0);
-      setDraftMeridian("AM");
       return true;
     }
     const m = time24ToMinutes(next);
@@ -205,7 +182,6 @@ export function TimePicker({
     }
     onChange(minutesToTime24(m));
     syncInputsToTotalMinutes(m);
-    setDraftMeridian(m >= 12 * 60 ? "PM" : "AM");
     return true;
   };
 
@@ -229,7 +205,6 @@ export function TimePicker({
       }
     }
     syncInputsToTotalMinutes(m);
-    setDraftMeridian(m >= 12 * 60 ? "PM" : "AM");
   };
 
   const confirmDraft = (): boolean => {
@@ -239,17 +214,17 @@ export function TimePicker({
       notifyTimeConstraint(warningInvalidInputKey);
       return false;
     }
-    const h12 = Number(rawH);
+    const hour24 = Number(rawH);
     const min = Number(rawM);
-    if (Number.isNaN(h12) || Number.isNaN(min)) {
+    if (Number.isNaN(hour24) || Number.isNaN(min)) {
       notifyTimeConstraint(warningInvalidInputKey);
       return false;
     }
-    if (h12 < 1 || h12 > 12 || min < 0 || min > 59) {
+    if (hour24 < 0 || hour24 > 23 || min < 0 || min > 59) {
       notifyTimeConstraint(warningInvalidInputKey);
       return false;
     }
-    const timeStr = formatTime(to24Hour(h12, draftMeridian), min);
+    const timeStr = formatTime(hour24, min);
     return proposeTime(timeStr);
   };
 
@@ -269,19 +244,18 @@ export function TimePicker({
     if (nextOpen) {
       setHourInput(hourDisplay);
       setMinuteInput(minuteDisplay);
-      setDraftMeridian(selectedMeridian);
     }
     setOpen(nextOpen);
   };
 
-  /** Draft hour: pad only when 1–12; empty/invalid stays for confirmDraft to reject. */
+  /** Draft hour: pad only when 0–23; empty/invalid stays for confirmDraft to reject. */
   const commitHourInput = (raw: string) => {
     if (raw === "") {
       setHourInput("");
       return;
     }
     const next = Number(raw);
-    if (Number.isNaN(next) || next < 1 || next > 12) {
+    if (Number.isNaN(next) || next < 0 || next > 23) {
       setHourInput(raw);
       return;
     }
@@ -304,10 +278,10 @@ export function TimePicker({
 
   const nudgeHour = (delta: 1 | -1) => {
     let current = Number.parseInt(hourInput.replace(/\D/g, ""), 10);
-    if (Number.isNaN(current) || current < 1 || current > 12) {
-      current = selectedHour;
+    if (Number.isNaN(current) || current < 0 || current > 23) {
+      current = selectedHour24;
     }
-    const wrapped = current + delta < 1 ? 12 : current + delta > 12 ? 1 : current + delta;
+    const wrapped = current + delta < 0 ? 23 : current + delta > 23 ? 0 : current + delta;
     setHourInput(String(wrapped).padStart(2, "0"));
   };
 
@@ -350,27 +324,6 @@ export function TimePicker({
         <div className="border-b border-[#e5e7eb] p-4">
           <div className="mb-3 flex items-center justify-between gap-3">
             <p className="text-[11px] font-medium uppercase tracking-wide text-[#6b7280]">{effectiveTitle}</p>
-            <div className="inline-flex h-8 rounded-lg border border-[#d1d5db] bg-[#f3f4f6] p-0.5">
-              {(["AM", "PM"] as const).map((meridian) => {
-                const isActive = meridian === draftMeridian;
-                return (
-                  <button
-                    key={meridian}
-                    type="button"
-                    aria-pressed={isActive}
-                    onClick={() => setDraftMeridian(meridian)}
-                    className={cn(
-                      "min-w-[56px] rounded-md px-3 text-[12px] font-medium transition-colors",
-                      isActive
-                        ? "bg-white text-[#111827] shadow-[0_1px_2px_rgba(0,0,0,0.12)]"
-                        : "text-[#6b7280] hover:text-[#374151]"
-                    )}
-                  >
-                    {meridian === "AM" ? effectiveAmLabel : effectivePmLabel}
-                  </button>
-                );
-              })}
-            </div>
           </div>
 
           <div className="flex items-center justify-center gap-2">
@@ -517,4 +470,3 @@ export function TimePicker({
     </Popover>
   );
 }
-

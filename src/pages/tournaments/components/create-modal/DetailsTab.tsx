@@ -99,8 +99,8 @@ export function DetailsTab({ form, update, formScopeKey }: DetailsTabProps) {
             </SelectTrigger>
             <SelectContent>
               {DURATION_OPTIONS.map((d) => (
-                <SelectItem key={d.value} value={String(d.value)}>
-                  {t(d.labelKey)}
+                <SelectItem key={d} value={String(d)}>
+                  {t("tournaments.durationMinutes", { minutes: d })}
                 </SelectItem>
               ))}
             </SelectContent>

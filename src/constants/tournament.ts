@@ -2,6 +2,9 @@ import type { TournamentMode, TournamentPlayMode } from "@/models/tournament/typ
 
 export const DEFAULT_TOURNAMENT_DURATION = 30;
 export const DEFAULT_TOURNAMENT_BREAK_DURATION = 5;
+const DURATION_MINUTES_STEP = 5;
+const TOURNAMENT_DURATION_MIN = 5;
+const TOURNAMENT_DURATION_MAX = 120;
 
 export const TOURNAMENT_MODES: TournamentMode[] = ["singleDay", "unscheduled"];
 
@@ -13,13 +16,21 @@ export const PLAY_MODES: Array<{ value: TournamentPlayMode; labelKey: string }> 
   { value: "5set", labelKey: "tournaments.playModes.fiveSet" },
 ];
 
-export const DURATION_OPTIONS: Array<{ value: number; labelKey: string }> = [
-  { value: 15, labelKey: "tournaments.duration.min15" },
-  { value: DEFAULT_TOURNAMENT_DURATION, labelKey: "tournaments.duration.min30" },
-  { value: 45, labelKey: "tournaments.duration.min45" },
-  { value: 60, labelKey: "tournaments.duration.min60" },
-  { value: 90, labelKey: "tournaments.duration.min90" },
-];
+const DURATION_DELTA = TOURNAMENT_DURATION_MAX - TOURNAMENT_DURATION_MIN;
+const DURATION_DELTA_REMAINDER = DURATION_DELTA % DURATION_MINUTES_STEP;
+
+if (DURATION_DELTA_REMAINDER !== 0) {
+  throw new Error(
+    `Invalid duration range: max (${TOURNAMENT_DURATION_MAX}) - min (${TOURNAMENT_DURATION_MIN}) must be divisible by step (${DURATION_MINUTES_STEP}).`
+  );
+}
+
+export const DURATION_OPTIONS: number[] = Array.from(
+  {
+    length: DURATION_DELTA / DURATION_MINUTES_STEP + 1,
+  },
+  (_, index) => TOURNAMENT_DURATION_MIN + index * DURATION_MINUTES_STEP
+);
 
 export const BREAK_OPTIONS: Array<{ value: number; labelKey: string }> = [
   { value: 0, labelKey: "tournaments.break.min0" },
