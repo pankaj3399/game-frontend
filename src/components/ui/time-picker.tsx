@@ -214,17 +214,17 @@ export function TimePicker({
       notifyTimeConstraint(warningInvalidInputKey);
       return false;
     }
-    const h12 = Number(rawH);
+    const hour24 = Number(rawH);
     const min = Number(rawM);
-    if (Number.isNaN(h12) || Number.isNaN(min)) {
+    if (Number.isNaN(hour24) || Number.isNaN(min)) {
       notifyTimeConstraint(warningInvalidInputKey);
       return false;
     }
-    if (h12 < 0 || h12 > 23 || min < 0 || min > 59) {
+    if (hour24 < 0 || hour24 > 23 || min < 0 || min > 59) {
       notifyTimeConstraint(warningInvalidInputKey);
       return false;
     }
-    const timeStr = formatTime(h12, min);
+    const timeStr = formatTime(hour24, min);
     return proposeTime(timeStr);
   };
 

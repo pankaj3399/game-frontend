@@ -16,12 +16,18 @@ export const PLAY_MODES: Array<{ value: TournamentPlayMode; labelKey: string }> 
   { value: "5set", labelKey: "tournaments.playModes.fiveSet" },
 ];
 
+const DURATION_DELTA = TOURNAMENT_DURATION_MAX - TOURNAMENT_DURATION_MIN;
+const DURATION_DELTA_REMAINDER = DURATION_DELTA % DURATION_MINUTES_STEP;
+
+if (DURATION_DELTA_REMAINDER !== 0) {
+  throw new Error(
+    `Invalid duration range: max (${TOURNAMENT_DURATION_MAX}) - min (${TOURNAMENT_DURATION_MIN}) must be divisible by step (${DURATION_MINUTES_STEP}).`
+  );
+}
+
 export const DURATION_OPTIONS: number[] = Array.from(
   {
-    length:
-      (TOURNAMENT_DURATION_MAX - TOURNAMENT_DURATION_MIN) /
-        DURATION_MINUTES_STEP +
-      1,
+    length: DURATION_DELTA / DURATION_MINUTES_STEP + 1,
   },
   (_, index) => TOURNAMENT_DURATION_MIN + index * DURATION_MINUTES_STEP
 );

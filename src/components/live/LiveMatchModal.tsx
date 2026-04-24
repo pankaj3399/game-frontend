@@ -39,7 +39,6 @@ function formatMatchTime(startTime: string | null, language: string, fallback: s
   const timeLabel = new Intl.DateTimeFormat(localeTag, {
     hour: "2-digit",
     minute: "2-digit",
-    hour12: false,
     hourCycle: "h23",
   }).format(parsed);
   return `${dateLabel} · ${timeLabel}`;
