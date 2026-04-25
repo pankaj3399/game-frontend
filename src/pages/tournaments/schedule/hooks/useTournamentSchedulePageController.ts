@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { getErrorMessage } from "@/lib/errors";
 import type {
   GenerateTournamentDoublesPairsResponse,
+  TournamentScheduleMatch,
   TournamentScheduleMode,
 } from "@/models/tournament/types";
 import {
@@ -18,9 +19,9 @@ import { clampTime24ToBounds, resolveTournamentScheduleTimeBounds } from "@/util
 import {
   capCourtsForParticipants,
   canGenerateSchedule,
-  moveParticipant,
   normalizeParticipantRows,
   participantOrderIds,
+  reorderParticipantsById,
   removeParticipant,
   type ScheduleParticipantRow,
 } from "../helpers/scheduleParticipants";
@@ -71,6 +72,7 @@ export function useTournamentSchedulePageController({
     tournamentId: null,
     values: {},
   });
+  const [isRescheduleWarningOpen, setIsRescheduleWarningOpen] = useState(false);
   const latestDoublesRequestIdRef = useRef(0);
 
   const updateOverrides = useCallback(
@@ -151,11 +153,35 @@ export function useTournamentSchedulePageController({
     [matchesQuery.data?.matches, round]
   );
 
+  const roundMatches = useMemo(
+    () => (matchesQuery.data?.matches ?? []).filter((match) => match.round === round),
+    [matchesQuery.data?.matches, round]
+  );
+  const isReschedulingExistingRound = roundMatches.length > 0;
+  const hasRecordedScoresInRound = useMemo(
+    () =>
+      roundMatches.some((match: TournamentScheduleMatch) => {
+        const p1 = match.score.playerOneScores?.length ?? 0;
+        const p2 = match.score.playerTwoScores?.length ?? 0;
+        return p1 > 0 || p2 > 0 || match.status === "completed" || match.status === "pendingScore";
+      }),
+    [roundMatches]
+  );
+  const scoredMatchesCount = useMemo(
+    () =>
+      roundMatches.filter((match: TournamentScheduleMatch) => {
+        const p1 = match.score.playerOneScores?.length ?? 0;
+        const p2 = match.score.playerTwoScores?.length ?? 0;
+        return p1 > 0 || p2 > 0 || match.status === "completed" || match.status === "pendingScore";
+      }).length,
+    [roundMatches]
+  );
+
   const canSubmit =
     selectedCourtIds.length > 0 &&
     meetsTournamentMinimum &&
     canGenerateSchedule(mode, participants.length) &&
-    !scheduleRoundGate.blocked &&
+    (!scheduleRoundGate.blocked || isReschedulingExistingRound) &&
     !matchesQuery.isLoading &&
     !generateScheduleMutation.isPending;
 
@@ -290,12 +316,87 @@ export function useTournamentSchedulePageController({
     ]
   );
 
+  const buildGeneratePayload = useCallback(
+    (allowRescheduleWithScores: boolean) => {
+      const effectiveCourtIds = capCourtsForParticipants(
+        selectedCourtIds,
+        mode,
+        participants.length
+      );
+
+      return {
+        payload: {
+          round,
+          mode,
+          matchesPerPlayer,
+          startTime: clampedStartTime,
+          courtIds: effectiveCourtIds,
+          participantOrder: participantOrderIds(participants),
+          ...(isScheduledTournament
+            ? {
+                matchDurationMinutes,
+                breakTimeMinutes,
+              }
+            : {}),
+          ...(allowRescheduleWithScores ? { allowRescheduleWithScores: true } : {}),
+        },
+        effectiveCourtIds,
+      };
+    },
+    [
+      breakTimeMinutes,
+      clampedStartTime,
+      isScheduledTournament,
+      matchDurationMinutes,
+      matchesPerPlayer,
+      mode,
+      participants,
+      round,
+      selectedCourtIds,
+    ]
+  );
+
+  const submitGenerateSchedule = useCallback(
+    async (allowRescheduleWithScores: boolean) => {
+      if (!id) {
+        return;
+      }
+
+      const { payload, effectiveCourtIds } = buildGeneratePayload(allowRescheduleWithScores);
+      if (effectiveCourtIds.length < selectedCourtIds.length) {
+        toast.info(
+          t("tournaments.scheduleCourtsCappedForParticipants", {
+            selected: selectedCourtIds.length,
+            usable: effectiveCourtIds.length,
+          })
+        );
+      }
+
+      const response = await generateScheduleMutation.mutateAsync({
+        id,
+        payload,
+      });
+
+      toast.success(t("tournaments.scheduleGenerated", { round }));
+      navigate(`/tournaments/${id}/match-schedule?round=${response.schedule.round}`);
+    },
+    [
+      buildGeneratePayload,
+      generateScheduleMutation,
+      id,
+      navigate,
+      round,
+      selectedCourtIds.length,
+      t,
+    ]
+  );
+
   const onGenerateSchedule = useCallback(async () => {
     if (!id) {
       return;
     }
 
-    if (scheduleRoundGate.blocked) {
+    if (scheduleRoundGate.blocked && !isReschedulingExistingRound) {
       toast.error(
         scheduleRoundGate.reason === "missing"
           ? t("tournaments.schedulePreviousRoundMissing", {
@@ -308,62 +409,42 @@ export function useTournamentSchedulePageController({
       return;
     }
 
+    if (isReschedulingExistingRound && hasRecordedScoresInRound) {
+      setIsRescheduleWarningOpen(true);
+      return;
+    }
+
     try {
-      const effectiveCourtIds = capCourtsForParticipants(
-        selectedCourtIds,
-        mode,
-        participants.length
-      );
-      if (effectiveCourtIds.length < selectedCourtIds.length) {
-        toast.info(
-          t("tournaments.scheduleCourtsCappedForParticipants", {
-            selected: selectedCourtIds.length,
-            usable: effectiveCourtIds.length,
-          })
-        );
-      }
-
-      const payload = {
-        round,
-        mode,
-        matchesPerPlayer,
-        startTime: clampedStartTime,
-        courtIds: effectiveCourtIds,
-        participantOrder: participantOrderIds(participants),
-        ...(isScheduledTournament
-          ? {
-              matchDurationMinutes,
-              breakTimeMinutes,
-            }
-          : {}),
-      };
-
-      const response = await generateScheduleMutation.mutateAsync({
-        id,
-        payload,
-      });
-
-      toast.success(t("tournaments.scheduleGenerated", { round }));
-      navigate(`/tournaments/${id}/match-schedule?round=${response.schedule.round}`);
+      await submitGenerateSchedule(false);
     } catch (error: unknown) {
       toast.error(getErrorMessage(error) ?? t("tournaments.scheduleGenerateError"));
     }
   }, [
-    breakTimeMinutes,
-    clampedStartTime,
-    generateScheduleMutation,
+    hasRecordedScoresInRound,
     id,
-    isScheduledTournament,
-    matchDurationMinutes,
-    matchesPerPlayer,
-    mode,
-    navigate,
-    participants,
-    round,
+    isReschedulingExistingRound,
     scheduleRoundGate,
-    selectedCourtIds,
+    submitGenerateSchedule,
     t,
   ]);
+
+  const onCancelRescheduleWarning = useCallback(() => {
+    setIsRescheduleWarningOpen(false);
+  }, []);
+
+  const onConfirmRescheduleWarning = useCallback(async () => {
+    if (!id) {
+      setIsRescheduleWarningOpen(false);
+      return;
+    }
+    try {
+      await submitGenerateSchedule(true);
+      setIsRescheduleWarningOpen(false);
+    } catch (error: unknown) {
+      const message = getErrorMessage(error) ?? t("tournaments.scheduleGenerateError");
+      toast.error(message);
+    }
+  }, [id, submitGenerateSchedule, t]);
 
   const onRemoveParticipant = useCallback((participantId: string) => {
     updateOverrides((current) => {
@@ -377,14 +458,14 @@ export function useTournamentSchedulePageController({
     });
   }, [defaultParticipants, updateOverrides]);
 
-  const onMoveParticipant = useCallback((index: number, direction: "up" | "down") => {
+  const onReorderParticipant = useCallback((activeId: string, overId: string) => {
     updateOverrides((current) => {
       const baseParticipants = current.participants ?? defaultParticipants;
       return {
         ...current,
         doublesPairs: null,
         doublesPairsKey: null,
-        participants: moveParticipant(baseParticipants, index, direction),
+        participants: reorderParticipantsById(baseParticipants, activeId, overId),
       };
     });
   }, [defaultParticipants, updateOverrides]);
@@ -414,6 +495,10 @@ export function useTournamentSchedulePageController({
     isDirty,
     meetsTournamentMinimum,
     scheduleRoundGate,
+    isReschedulingExistingRound,
+    hasRecordedScoresInRound,
+    scoredMatchesCount,
+    isRescheduleWarningOpen,
     canSubmit,
     onMatchDurationChange,
     onBreakTimeChange,
@@ -422,8 +507,10 @@ export function useTournamentSchedulePageController({
     onToggleCourt,
     onPlayingModeChange,
     onGenerateSchedule,
+    onConfirmRescheduleWarning,
+    onCancelRescheduleWarning,
     onRemoveParticipant,
-    onMoveParticipant,
+    onReorderParticipant,
     onEditParticipant,
   };
 }

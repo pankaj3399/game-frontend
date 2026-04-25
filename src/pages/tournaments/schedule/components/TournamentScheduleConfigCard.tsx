@@ -28,6 +28,7 @@ interface TournamentScheduleConfigCardProps {
   selectedCourtIds: string[];
   canSubmit: boolean;
   scheduleRoundGate: ReturnType<typeof getPreviousRoundGate>;
+  isReschedulingExistingRound: boolean;
   isGenerating: boolean;
   onMatchDurationChange: (value: number) => void;
   onBreakTimeChange: (value: number) => void;
@@ -49,6 +50,7 @@ export function TournamentScheduleConfigCard({
   selectedCourtIds,
   canSubmit,
   scheduleRoundGate,
+  isReschedulingExistingRound,
   isGenerating,
   onMatchDurationChange,
   onBreakTimeChange,
@@ -220,7 +222,7 @@ export function TournamentScheduleConfigCard({
             ? t("tournaments.scheduleGenerating")
             : t("tournaments.scheduleGenerateButton")}
         </Button>
-        {scheduleRoundGate.blocked ? (
+        {scheduleRoundGate.blocked && !isReschedulingExistingRound ? (
           <p className="mt-2 text-[12px] text-[#a02626]">
             {scheduleRoundGate.reason === "missing"
               ? t("tournaments.schedulePreviousRoundMissing", {

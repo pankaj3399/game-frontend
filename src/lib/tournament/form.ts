@@ -91,7 +91,32 @@ export function buildTournamentPayload(
 }
 
 export function buildUpdatePayload(form: CreateTournamentInput): Omit<CreateTournamentInput, "status"> {
-  const payload = buildTournamentPayload(form, "draft");
+  return buildChangedUpdatePayload(form, null) as Omit<CreateTournamentInput, "status">;
+}
+
+const UPDATE_PAYLOAD_FIELDS = [
+  "club",
+  "name",
+  "sponsor",
+  "date",
+  "startTime",
+  "endTime",
+  "playMode",
+  "tournamentMode",
+  "entryFee",
+  "minMember",
+  "maxMember",
+  "totalRounds",
+  "duration",
+  "breakDuration",
+  "foodInfo",
+  "descriptionInfo",
+] as const;
+
+type UpdatePayloadField = (typeof UPDATE_PAYLOAD_FIELDS)[number];
+type UpdatePayloadBody = Omit<CreateTournamentInput, "status">;
+
+function pickUpdatePayloadFields(payload: CreateTournamentInput): UpdatePayloadBody {
   return {
     club: payload.club,
     name: payload.name,
@@ -110,6 +135,37 @@ export function buildUpdatePayload(form: CreateTournamentInput): Omit<CreateTour
     foodInfo: payload.foodInfo,
     descriptionInfo: payload.descriptionInfo,
   };
+}
+
+/**
+ * Builds a PATCH payload containing only fields that differ from the baseline.
+ * If no baseline is provided, returns all editable update fields.
+ */
+export function buildChangedUpdatePayload(
+  form: CreateTournamentInput,
+  baselineForm: CreateTournamentInput | null
+): Partial<UpdatePayloadBody> {
+  const normalizedCurrent = pickUpdatePayloadFields(buildTournamentPayload(form, "draft"));
+
+  if (baselineForm == null) {
+    return normalizedCurrent;
+  }
+
+  const normalizedBaseline = pickUpdatePayloadFields(
+    buildTournamentPayload(baselineForm, "draft")
+  );
+
+  return UPDATE_PAYLOAD_FIELDS.reduce<Partial<UpdatePayloadBody>>((acc, field) => {
+    const key = field as UpdatePayloadField;
+    const currentValue = normalizedCurrent[key];
+    const baselineValue = normalizedBaseline[key];
+
+    if (currentValue !== baselineValue) {
+      (acc as Record<UpdatePayloadField, UpdatePayloadBody[UpdatePayloadField]>)[key] =
+        currentValue;
+    }
+    return acc;
+  }, {});
 }
 
 export function getMemberRangeErrorKey(

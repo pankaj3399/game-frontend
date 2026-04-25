@@ -1,5 +1,6 @@
 import { useId, type ReactNode } from "react";
 import type { TFunction } from "i18next";
+import { PlayerNameText } from "@/components/shared/PlayerNameText";
 import { ChevronDown, ChevronUp, UserCircle2 } from "@/icons/figma-icons";
 import type { TournamentParticipant } from "@/models/tournament/types";
 import { UI_LIMITS } from "./constants";
@@ -41,12 +42,16 @@ function getPlayersContent({
                 <UserCircle2 size={30} className="text-[#010a04]" />
               </div>
               <div className="flex min-w-0 flex-col gap-1.5">
-                <p className="truncate text-[14px] leading-5 text-[#010a04] sm:text-[16px]">
-                  {nameTrimmed || aliasTrimmed || t("tournaments.unknownPlayer")}
-                </p>
-                <p className="truncate text-[14px] leading-[18px] text-[#6a6a6a]">
-                  {aliasTrimmed ? aliasTrimmed : t("tournaments.participantNoAlias")}
-                </p>
+                <PlayerNameText
+                  name={nameTrimmed || aliasTrimmed || t("tournaments.unknownPlayer")}
+                  className="text-[14px] leading-5 text-[#010a04] sm:text-[16px]"
+                  focusable
+                />
+                <PlayerNameText
+                  name={aliasTrimmed ? aliasTrimmed : t("tournaments.participantNoAlias")}
+                  className="text-[14px] leading-[18px] text-[#6a6a6a]"
+                  focusable
+                />
               </div>
             </div>
           );

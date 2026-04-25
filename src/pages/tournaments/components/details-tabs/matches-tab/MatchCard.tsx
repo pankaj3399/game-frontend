@@ -77,7 +77,10 @@ export function MatchCard({ match, t }: MatchCardProps) {
             className="truncate text-sm font-semibold leading-tight text-foreground"
             onMouseEnter={maybeShowHeadlineTooltip}
             onMouseLeave={() => setShowHeadlineTooltip(false)}
+            onFocus={maybeShowHeadlineTooltip}
+            onBlur={() => setShowHeadlineTooltip(false)}
             title={showHeadlineTooltip ? undefined : headline}
+            tabIndex={0}
           >
             {headline}
           </p>

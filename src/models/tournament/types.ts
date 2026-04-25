@@ -251,6 +251,7 @@ export const generateTournamentScheduleInputSchema = z.object({
   startTime: z.string(),
   courtIds: z.array(z.string()).min(1),
   participantOrder: z.array(z.string()).min(2),
+  allowRescheduleWithScores: z.boolean().optional(),
 });
 
 export const generateTournamentScheduleResponseSchema = z.object({

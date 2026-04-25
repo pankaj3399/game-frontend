@@ -111,14 +111,27 @@ function PlayerMatchCard({
   return (
     <article
       className={cn(
-        "rounded-[12px] border px-[15px] py-[15px]",
+        "relative rounded-[12px] border bg-card px-[15px] py-[15px] shadow-sm",
         isLive
-          ? "border-destructive/30 bg-destructive/5"
+          ? "border-destructive/35 shadow-[0_8px_18px_-12px_hsl(var(--destructive)/0.65)]"
           : isPendingScore
-            ? "border-primary/30 bg-primary/5"
-            : "border-transparent bg-muted/40"
+            ? "border-primary/35 shadow-[0_8px_18px_-12px_hsl(var(--primary)/0.55)]"
+            : isCancelled
+              ? "border-border/90"
+              : "border-border/80"
       )}
     >
+      <div
+        className={cn(
+          "absolute inset-0 pointer-events-none rounded-[12px]",
+          isLive
+            ? "bg-destructive/[0.05]"
+            : isPendingScore
+              ? "bg-primary/[0.05]"
+              : "bg-transparent"
+        )}
+        aria-hidden
+      />
       <div className="mb-[14px] flex items-start justify-between gap-3">
         <div className="flex min-w-0 flex-wrap items-center gap-3 text-[13px] text-muted-foreground">
           <span className="flex min-w-0 items-center gap-1.5">
@@ -137,14 +150,18 @@ function PlayerMatchCard({
 
         <div className="flex shrink-0 flex-col items-end gap-1">
           {isLive ? (
-            <span className="inline-flex items-center gap-1 text-[12px] font-medium text-destructive">
+            <span className="inline-flex items-center gap-1 rounded-full border border-destructive/25 bg-destructive/10 px-2 py-0.5 text-[12px] font-medium text-destructive">
               <span className="inline-block h-[6px] w-[6px] rounded-full bg-destructive" />
               {t("tournaments.liveLabel")}
             </span>
           ) : isPendingScore ? (
-            <span className="text-[12px] font-medium text-primary">{t("tournaments.matchStatusPendingScore")}</span>
+            <span className="rounded-full border border-primary/25 bg-primary/10 px-2 py-0.5 text-[12px] font-medium text-primary">
+              {t("tournaments.matchStatusPendingScore")}
+            </span>
           ) : isCancelled ? (
-            <span className="text-[12px] font-medium text-destructive">{t("tournaments.matchStatusCancelled")}</span>
+            <span className="rounded-full border border-destructive/20 bg-destructive/10 px-2 py-0.5 text-[12px] font-medium text-destructive">
+              {t("tournaments.matchStatusCancelled")}
+            </span>
           ) : null}
         </div>
       </div>

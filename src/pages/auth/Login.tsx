@@ -1,18 +1,34 @@
 import { useTranslation } from "react-i18next";
 import { Link, useSearchParams } from "react-router-dom";
+import { useState } from "react";
 import { ArrowLeft01Icon } from "@/icons/figma-icons";
 import Google from "@/assets/icons/Google";
 import Apple from "@/assets/icons/Apple";
 import { getBackendUrl } from "@/lib/api";
+import InlineLoader from "@/components/shared/InlineLoader";
 
 const Login = () => {
   const { t } = useTranslation();
   const [searchParams] = useSearchParams();
+  const [submittingProvider, setSubmittingProvider] = useState<"google" | "apple" | null>(null);
   const error = searchParams.get("error");
   const errorMessage = searchParams.get("errorMessage");
   const backendUrl = getBackendUrl();
   const googleAuthUrl = backendUrl ? new URL("/api/auth/google", backendUrl).toString() : null;
   const appleAuthUrl = backendUrl ? new URL("/api/auth/apple", backendUrl).toString() : null;
+  const isSubmitting = submittingProvider !== null;
+
+  const handleProviderSignIn = (provider: "google" | "apple", authUrl: string | null) => {
+    if (!authUrl || isSubmitting) {
+      return;
+    }
+
+    setSubmittingProvider(provider);
+    window.location.assign(authUrl);
+  };
+
+  const socialButtonClassName =
+    "font-semibold border rounded-lg border-[#C6C4D5] text-[#333333] bg-white w-full md:h-[48px] h-[40px] font-primary md:text-base text-sm flex justify-center items-center gap-2 transition-colors transition-transform duration-150 hover:bg-[#F7F7FA] active:bg-[#ECEBF3] active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary/30 focus-visible:border-brand-primary disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:bg-white disabled:active:scale-100";
 
   return (
     <section className="relative w-full min-h-screen flex flex-col items-center justify-center gap-6 py-8 px-4 sm:px-6">
@@ -25,42 +41,40 @@ const Login = () => {
             {errorMessage ?? "Sign-in could not be completed. Please try again."}
           </div>
         ) : null}
-        {googleAuthUrl ? (
-          <a
-            href={googleAuthUrl}
-            className="font-semibold border rounded-lg border-[#C6C4D5] active:animate-jerk text-[#333333] bg-white w-full mt-6 md:h-[48px] h-[40px] font-primary md:text-base text-sm hover:bg-white flex justify-center items-center gap-2 no-underline"
-          >
+        <button
+          type="button"
+          disabled={!googleAuthUrl || isSubmitting}
+          onClick={() => handleProviderSignIn("google", googleAuthUrl)}
+          aria-busy={submittingProvider === "google"}
+          className={`${socialButtonClassName} mt-6`}
+        >
+          {submittingProvider === "google" ? (
+            <InlineLoader size="sm" className="border-[#C6C4D5] border-t-brand-primary" />
+          ) : (
             <Google width={22} height={22} className="mr-2 shrink-0" />
-            {t("auth.signInWithGoogle")}
-          </a>
-        ) : (
-          <button
-            type="button"
-            disabled
-            className="font-semibold border rounded-lg border-[#C6C4D5] text-[#333333] bg-white w-full mt-6 md:h-[48px] h-[40px] font-primary md:text-base text-sm flex justify-center items-center gap-2 opacity-50 cursor-not-allowed"
-          >
-            <Google width={22} height={22} className="mr-2 shrink-0" />
-            {t("auth.signInWithGoogle")}
-          </button>
-        )}
-        {appleAuthUrl ? (
-          <a
-            href={appleAuthUrl}
-            className="font-semibold border rounded-lg border-[#C6C4D5] active:animate-jerk text-[#333333] bg-white w-full mt-4 md:h-[48px] h-[40px] font-primary md:text-base text-sm hover:bg-white flex justify-center items-center gap-2 no-underline"
-          >
+          )}
+          {t("auth.signInWithGoogle")}
+          {submittingProvider === "google" ? (
+            <span className="sr-only"> {t("common.loading")}</span>
+          ) : null}
+        </button>
+        <button
+          type="button"
+          disabled={!appleAuthUrl || isSubmitting}
+          onClick={() => handleProviderSignIn("apple", appleAuthUrl)}
+          aria-busy={submittingProvider === "apple"}
+          className={`${socialButtonClassName} mt-4`}
+        >
+          {submittingProvider === "apple" ? (
+            <InlineLoader size="sm" className="border-[#C6C4D5] border-t-brand-primary" />
+          ) : (
             <Apple width={22} height={22} className="mr-2 shrink-0 text-[#000000]" />
-            {t("auth.signInWithApple")}
-          </a>
-        ) : (
-          <button
-            type="button"
-            disabled
-            className="font-semibold border rounded-lg border-[#C6C4D5] text-[#333333] bg-white w-full mt-4 md:h-[48px] h-[40px] font-primary md:text-base text-sm flex justify-center items-center gap-2 opacity-50 cursor-not-allowed"
-          >
-            <Apple width={22} height={22} className="mr-2 shrink-0 text-[#000000]" />
-            {t("auth.signInWithApple")}
-          </button>
-        )}
+          )}
+          {t("auth.signInWithApple")}
+          {submittingProvider === "apple" ? (
+            <span className="sr-only"> {t("common.loading")}</span>
+          ) : null}
+        </button>
         <Link
           to="/"
           className="font-semibold rounded-lg bg-brand-primary text-white mt-8 md:h-[48px] h-[40px] font-primary md:text-base text-sm flex justify-center items-center gap-2 self-center px-8 hover:bg-brand-primary-hover active:animate-jerk"

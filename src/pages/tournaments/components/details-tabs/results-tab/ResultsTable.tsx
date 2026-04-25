@@ -1,4 +1,5 @@
 import type { TFunction } from "i18next";
+import { PlayerNameText } from "@/components/shared/PlayerNameText";
 import type { ParticipantResult } from "./types";
 import { PositionChangeIndicator } from "./PositionChangeIndicator";
 
@@ -90,10 +91,11 @@ export function ResultsTable({
                 {initialsFromName(result.name)}
               </span>
               <div className="min-w-0">
-                <p className="truncate text-[14px] font-medium leading-tight text-[#010a04]">
-                  {result.name}
-                  {result.hasLeft ? ` (${t("tournaments.participantLeft")})` : ""}
-                </p>
+                <PlayerNameText
+                  name={`${result.name}${result.hasLeft ? ` (${t("tournaments.participantLeft")})` : ""}`}
+                  className="text-[14px] font-medium leading-tight text-[#010a04]"
+                  focusable
+                />
                 <p className="line-clamp-2 text-[12px] text-[#010a04]/55">
                   <span className="text-[#010a04]">{result.wins}</span> {t("tournaments.resultsWins")}
                   <span className="px-1.5 text-[#010a04]/25">•</span>
@@ -155,10 +157,11 @@ export function ResultsTable({
                     >
                       {initialsFromName(result.name)}
                     </span>
-                    <span className="truncate text-sm font-medium text-[#111827]">
-                      {result.name}
-                      {result.hasLeft ? ` (${t("tournaments.participantLeft")})` : ""}
-                    </span>
+                    <PlayerNameText
+                      name={`${result.name}${result.hasLeft ? ` (${t("tournaments.participantLeft")})` : ""}`}
+                      className="text-sm font-medium text-[#111827]"
+                      focusable
+                    />
                   </div>
                 </td>
                 <td className="px-4 py-3 text-sm text-[#374151]">{result.wins}</td>

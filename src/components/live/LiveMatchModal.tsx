@@ -2,6 +2,7 @@ import { type ReactNode, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { PlayerNameText } from "@/components/shared/PlayerNameText";
 import {
   Dialog,
   DialogContent,
@@ -73,9 +74,11 @@ function MatchMetaRow({ label, value, icon }: MatchMetaRowProps) {
       </span>
       <div className="min-w-0 flex-1">
         <p className="text-[11px] font-semibold uppercase tracking-[0.06em] text-[#64748b]">{label}</p>
-        <p className="mt-1 truncate text-[16px] font-semibold leading-snug tracking-tight text-[#0f172a]">
-          {value}
-        </p>
+        <PlayerNameText
+          name={value}
+          className="mt-1 text-[16px] font-semibold leading-snug tracking-tight text-[#0f172a]"
+          focusable
+        />
       </div>
     </article>
   );
@@ -250,10 +253,16 @@ export function LiveMatchModal() {
                 </div>
                 <div className="mt-3 flex items-start gap-3">
                   <div className="min-w-0 flex-1 space-y-1">
-                    <p className="truncate text-[13px] leading-snug text-[#64748b]">{nextMatchCourtLabel}</p>
-                    <p className="truncate text-[16px] font-semibold leading-snug text-[#0f172a]">
-                      {nextMatchOpponentLabel}
-                    </p>
+                    <PlayerNameText
+                      name={nextMatchCourtLabel}
+                      className="text-[13px] leading-snug text-[#64748b]"
+                      focusable
+                    />
+                    <PlayerNameText
+                      name={nextMatchOpponentLabel}
+                      className="text-[16px] font-semibold leading-snug text-[#0f172a]"
+                      focusable
+                    />
                   </div>
                   <LiveModalChevronRightIcon className="mt-0.5 size-4 shrink-0 text-[#94a3b8]" aria-hidden />
                 </div>

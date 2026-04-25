@@ -3,13 +3,14 @@ import type { TFunction } from "i18next";
 import { toast } from "sonner";
 import { getErrorMessage } from "@/lib/errors";
 import {
+  buildChangedUpdatePayload,
   buildTournamentPayload,
-  buildUpdatePayload,
   getDraftValidationError,
   getPublishValidationError,
 } from "@/lib/tournament/form";
 import type {
   CreateTournamentInput,
+  TournamentStatus,
   UpdateTournamentInput,
 } from "@/models/tournament/types";
 import {
@@ -19,7 +20,9 @@ import {
 
 interface UseTournamentActionsArgs {
   form: CreateTournamentInput;
+  initialForm: CreateTournamentInput | null;
   validTournamentId: string | null;
+  originalTournamentStatus: TournamentStatus | null;
   onOpenChange: (open: boolean) => void;
   t: TFunction;
   /** Commits Details tab draft inputs; merged into form for this submit tick. */
@@ -28,7 +31,9 @@ interface UseTournamentActionsArgs {
 
 export function useTournamentActions({
   form,
+  initialForm,
   validTournamentId,
+  originalTournamentStatus,
   onOpenChange,
   t,
   commitDetailsDrafts,
@@ -69,6 +74,23 @@ export function useTournamentActions({
     [updateTournament]
   );
 
+  const getUpdatePayloadForAction = useCallback(
+    (
+      mergedForm: CreateTournamentInput,
+      nextStatus: "draft" | "active"
+    ): UpdateTournamentInput => {
+      const changedFields = buildChangedUpdatePayload(mergedForm, initialForm);
+      if (originalTournamentStatus !== nextStatus) {
+        return {
+          ...changedFields,
+          status: nextStatus,
+        };
+      }
+      return changedFields;
+    },
+    [initialForm, originalTournamentStatus]
+  );
+
   const handleClose = useCallback(
     (nextOpen: boolean) => {
       onOpenChange(nextOpen);
@@ -87,10 +109,10 @@ export function useTournamentActions({
 
     try {
       if (validTournamentId) {
-        await performUpdate(validTournamentId, "draft", {
-          ...buildUpdatePayload(mergedForm),
-          status: "draft",
-        });
+        const payload = getUpdatePayloadForAction(mergedForm, "draft");
+        if (Object.keys(payload).length > 0) {
+          await performUpdate(validTournamentId, "draft", payload);
+        }
       } else {
         setCreationAction("draft");
         try {
@@ -112,6 +134,7 @@ export function useTournamentActions({
     form,
     handleClose,
     performUpdate,
+    getUpdatePayloadForAction,
     t,
     validTournamentId,
   ]);
@@ -127,10 +150,10 @@ export function useTournamentActions({
 
     try {
       if (validTournamentId) {
-        await performUpdate(validTournamentId, "publish", {
-          ...buildUpdatePayload(mergedForm),
-          status: "active",
-        });
+        const payload = getUpdatePayloadForAction(mergedForm, "active");
+        if (Object.keys(payload).length > 0) {
+          await performUpdate(validTournamentId, "publish", payload);
+        }
       } else {
         setCreationAction("publish");
         try {
@@ -153,6 +176,7 @@ export function useTournamentActions({
     form,
     handleClose,
     performUpdate,
+    getUpdatePayloadForAction,
     t,
     validTournamentId,
   ]);
