@@ -3,13 +3,14 @@ import type { TFunction } from "i18next";
 import { toast } from "sonner";
 import { getErrorMessage } from "@/lib/errors";
 import {
+  buildChangedUpdatePayload,
   buildTournamentPayload,
-  buildUpdatePayload,
   getDraftValidationError,
   getPublishValidationError,
 } from "@/lib/tournament/form";
 import type {
   CreateTournamentInput,
+  TournamentStatus,
   UpdateTournamentInput,
 } from "@/models/tournament/types";
 import {
@@ -19,7 +20,9 @@ import {
 
 interface UseTournamentActionsArgs {
   form: CreateTournamentInput;
+  initialForm: CreateTournamentInput | null;
   validTournamentId: string | null;
+  originalTournamentStatus: TournamentStatus | null;
   onOpenChange: (open: boolean) => void;
   t: TFunction;
   /** Commits Details tab draft inputs; merged into form for this submit tick. */
@@ -28,7 +31,9 @@ interface UseTournamentActionsArgs {
 
 export function useTournamentActions({
   form,
+  initialForm,
   validTournamentId,
+  originalTournamentStatus,
   onOpenChange,
   t,
   commitDetailsDrafts,
@@ -69,6 +74,23 @@ export function useTournamentActions({
     [updateTournament]
   );
 
+  const getUpdatePayloadForAction = useCallback(
+    (
+      mergedForm: CreateTournamentInput,
+      nextStatus: TournamentStatus
+    ): UpdateTournamentInput => {
+      const changedFields = buildChangedUpdatePayload(mergedForm, initialForm);
+      if (originalTournamentStatus !== nextStatus) {
+        return {
+          ...changedFields,
+          status: nextStatus,
+        };
+      }
+      return changedFields;
+    },
+    [initialForm, originalTournamentStatus]
+  );
+
   const handleClose = useCallback(
     (nextOpen: boolean) => {
       onOpenChange(nextOpen);
@@ -86,22 +108,27 @@ export function useTournamentActions({
     }
 
     try {
+      let didPersistDraft = false;
       if (validTournamentId) {
-        await performUpdate(validTournamentId, "draft", {
-          ...buildUpdatePayload(mergedForm),
-          status: "draft",
-        });
+        const payload = getUpdatePayloadForAction(mergedForm, "draft");
+        if (Object.keys(payload).length > 0) {
+          await performUpdate(validTournamentId, "draft", payload);
+          didPersistDraft = true;
+        }
       } else {
         setCreationAction("draft");
         try {
           const createPayload = buildTournamentPayload(mergedForm, "draft");
           await createTournament.mutateAsync(createPayload);
+          didPersistDraft = true;
         } finally {
           setCreationAction(null);
         }
       }
 
-      toast.success(t("tournaments.draftSaved"));
+      if (didPersistDraft) {
+        toast.success(t("tournaments.draftSaved"));
+      }
       handleClose(false);
     } catch (err: unknown) {
       toast.error(getErrorMessage(err) ?? t("tournaments.saveError"));
@@ -112,6 +139,7 @@ export function useTournamentActions({
     form,
     handleClose,
     performUpdate,
+    getUpdatePayloadForAction,
     t,
     validTournamentId,
   ]);
@@ -126,23 +154,28 @@ export function useTournamentActions({
     }
 
     try {
+      let didPersistPublish = false;
       if (validTournamentId) {
-        await performUpdate(validTournamentId, "publish", {
-          ...buildUpdatePayload(mergedForm),
-          status: "active",
-        });
+        const payload = getUpdatePayloadForAction(mergedForm, "active");
+        if (Object.keys(payload).length > 0) {
+          await performUpdate(validTournamentId, "publish", payload);
+          didPersistPublish = true;
+        }
       } else {
         setCreationAction("publish");
         try {
           await createTournament.mutateAsync(
             buildTournamentPayload(mergedForm, "active")
           );
+          didPersistPublish = true;
         } finally {
           setCreationAction(null);
         }
       }
 
-      toast.success(t("tournaments.published"));
+      if (didPersistPublish) {
+        toast.success(t("tournaments.published"));
+      }
       handleClose(false);
     } catch (err: unknown) {
       toast.error(getErrorMessage(err) ?? t("tournaments.publishError"));
@@ -153,6 +186,7 @@ export function useTournamentActions({
     form,
     handleClose,
     performUpdate,
+    getUpdatePayloadForAction,
     t,
     validTournamentId,
   ]);

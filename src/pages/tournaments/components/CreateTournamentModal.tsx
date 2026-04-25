@@ -34,6 +34,7 @@ export function CreateTournamentModal({
 
   const {
     form,
+    initialForm,
     sponsors,
     isSponsorsLoading,
     isEditMode,
@@ -60,7 +61,9 @@ export function CreateTournamentModal({
   } =
     useTournamentActions({
       form,
+      initialForm,
       validTournamentId,
+      originalTournamentStatus,
       onOpenChange,
       t,
     });
@@ -79,10 +82,10 @@ export function CreateTournamentModal({
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent
         key={`${mode}-${tournamentId ?? "create"}`}
-        className="max-h-[calc(100dvh-24px)] max-w-[min(100vw-1.5rem,390px)] min-w-0 gap-0 overflow-x-clip overflow-y-auto rounded-[12px] border border-brand-primary/20 px-3 py-3 shadow-sm shadow-brand-primary/15 sm:max-w-[min(100vw-2rem,515px)] sm:px-[15px] sm:py-5 [&>*]:min-w-0"
+        className="max-h-[calc(100dvh-16px)] max-w-[min(100vw-1rem,390px)] min-w-0 gap-0 overflow-x-clip overflow-y-auto rounded-[12px] border border-brand-primary/20 px-2.5 py-2.5 shadow-sm shadow-brand-primary/15 sm:max-h-[calc(100dvh-24px)] sm:max-w-[min(100vw-2rem,515px)] sm:px-[15px] sm:py-5 [&>*]:min-w-0"
         showCloseButton
       >
-        <DialogHeader className="min-w-0 max-w-full pb-0">
+        <DialogHeader className="min-w-0 max-w-full pb-0 pr-7 sm:pr-0">
           <DialogTitle className="min-w-0 max-w-full break-words text-[21px] font-semibold text-foreground">
             {isEditMode
               ? t("tournaments.editTournamentInfo")
@@ -91,7 +94,7 @@ export function CreateTournamentModal({
         </DialogHeader>
 
         <Tabs defaultValue="basic" className="w-full min-w-0 max-w-full overflow-x-clip">
-          <TabsList className="mt-[18px] w-full min-w-0 max-w-full bg-brand-primary/10 sm:w-fit">
+          <TabsList className="mt-3 w-full min-w-0 max-w-full bg-brand-primary/10 sm:mt-[18px] sm:w-fit">
             <TabsTrigger value="basic">
               {t("tournaments.tabBasicInfo")}
             </TabsTrigger>
@@ -103,7 +106,7 @@ export function CreateTournamentModal({
             </TabsTrigger>
           </TabsList>
 
-          <div className="min-w-0 max-w-full overflow-x-clip py-5">
+          <div className="min-w-0 max-w-full overflow-x-clip py-3 sm:py-5">
             <TabsContent value="basic" forceMount className="data-[state=inactive]:hidden">
               <BasicInfoTab
                 form={form}
@@ -126,7 +129,7 @@ export function CreateTournamentModal({
             </TabsContent>
           </div>
 
-          <div className="flex min-w-0 max-w-full flex-col gap-3 overflow-x-clip sm:flex-row">
+          <div className="flex min-w-0 max-w-full flex-col gap-2.5 overflow-x-clip sm:gap-3 sm:flex-row">
             <Button
               className="w-full min-w-0 bg-brand-primary text-white shadow-sm shadow-brand-primary/20 hover:bg-brand-primary-hover focus-visible:ring-brand-primary/40 sm:flex-1"
               onClick={handlePublish}

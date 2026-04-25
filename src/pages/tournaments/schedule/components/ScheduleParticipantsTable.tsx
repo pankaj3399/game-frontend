@@ -1,5 +1,25 @@
+import {
+  closestCenter,
+  DndContext,
+  KeyboardSensor,
+  MouseSensor,
+  TouchSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+  type UniqueIdentifier,
+} from "@dnd-kit/core";
+import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
+import {
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
+import { PlayerNameText } from "@/components/shared/PlayerNameText";
 import {
   Table,
   TableBody,
@@ -9,12 +29,12 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
-  IconChevronDown,
-  ChevronUp,
+  DragDropVerticalIcon,
   IconPlus,
   PencilEdit01Icon,
   Delete01Icon,
 } from "@/icons/figma-icons";
+import { cn } from "@/lib/utils";
 import type {
   GenerateTournamentDoublesPairsResponse,
   TournamentSchedulePairPlayer,
@@ -30,7 +50,7 @@ interface ScheduleParticipantsTableProps {
   /** True while doubles pairs are being requested; shows layout skeletons instead of a loading label on the tab. */
   doublesPairsLoading?: boolean;
   onRemoveParticipant: (id: string) => void;
-  onMoveParticipant: (index: number, direction: "up" | "down") => void;
+  onReorderParticipant: (activeId: string, overId: string) => void;
   onEditParticipant: (id: string) => void;
 }
 
@@ -67,7 +87,7 @@ function DoublesPlayerChip({ player, fallbackName }: DoublesPlayerChipProps) {
       >
         {initialsFromName(displayName)}
       </span>
-      <span className="truncate text-[14px] font-medium text-[#010a04]">{displayName}</span>
+      <PlayerNameText name={displayName} className="text-[14px] font-medium text-[#010a04]" focusable />
     </div>
   );
 }
@@ -94,16 +114,218 @@ function DoublesPairSkeleton({ index }: { index: number }) {
   );
 }
 
+interface ParticipantRowActionsProps {
+  participant: ScheduleParticipantRow;
+  displayName: string;
+  onEditParticipant: (id: string) => void;
+  onRemoveParticipant: (id: string) => void;
+  compact?: boolean;
+}
+
+function ParticipantRowActions({
+  participant,
+  displayName,
+  onEditParticipant,
+  onRemoveParticipant,
+  compact = false,
+}: ParticipantRowActionsProps) {
+  const { t } = useTranslation();
+
+  return (
+    <div className="flex items-center gap-1">
+      <Button
+        type="button"
+        variant="ghost"
+        size="sm"
+        onClick={() => onEditParticipant(participant.id)}
+        className={cn(
+          compact
+            ? "h-7 w-7 px-0 text-[#067429] hover:bg-[#067429]/10"
+            : "h-7 px-2 text-[12px] text-[#067429] hover:bg-[#067429]/10"
+        )}
+        aria-label={t("tournaments.scheduleEditParticipant", { name: displayName })}
+      >
+        <PencilEdit01Icon size={compact ? 15 : 14} className={compact ? undefined : "mr-1"} />
+        {compact ? null : t("tournaments.edit")}
+      </Button>
+      <Button
+        type="button"
+        variant="ghost"
+        size="sm"
+        onClick={() => onRemoveParticipant(participant.id)}
+        className={cn(
+          compact
+            ? "h-7 w-7 px-0 text-[#d92100] hover:bg-[#d92100]/10"
+            : "h-7 px-2 text-[12px] text-[#d92100] hover:bg-[#d92100]/10"
+        )}
+        aria-label={t("tournaments.removeParticipant", { name: displayName })}
+      >
+        <Delete01Icon size={compact ? 15 : 14} className={compact ? undefined : "mr-1"} />
+        {compact ? null : t("tournaments.remove")}
+      </Button>
+    </div>
+  );
+}
+
+interface SortableParticipantsMobileRowProps {
+  participant: ScheduleParticipantRow;
+  onEditParticipant: (id: string) => void;
+  onRemoveParticipant: (id: string) => void;
+}
+
+function SortableParticipantsMobileRow({
+  participant,
+  onEditParticipant,
+  onRemoveParticipant,
+}: SortableParticipantsMobileRowProps) {
+  const { t } = useTranslation();
+  const displayName = participant.alias ?? participant.name ?? t("tournaments.unknownPlayer");
+  const { attributes, listeners, setActivatorNodeRef, setNodeRef, transform, transition, isDragging } =
+    useSortable({ id: participant.id });
+
+  return (
+    <div
+      ref={setNodeRef}
+      className={cn(
+        "flex items-center justify-between gap-3 border-b border-[#010a04]/10 bg-[#010a04]/[0.04] px-[15px] py-3 last:border-b-0",
+        "transition-opacity",
+        isDragging && "z-10 opacity-75"
+      )}
+      style={{
+        transform: CSS.Transform.toString(transform),
+        transition,
+      }}
+    >
+      <div className="flex min-w-0 flex-1 items-center gap-3">
+        <button
+          ref={setActivatorNodeRef}
+          {...attributes}
+          {...listeners}
+          type="button"
+          className="touch-none text-[#010a04]/45 transition-colors cursor-grab hover:text-[#010a04]/70 active:cursor-grabbing"
+          aria-label={t("tournaments.scheduleDragParticipantWithName", {
+            name: displayName,
+          })}
+        >
+          <DragDropVerticalIcon size={18} />
+        </button>
+        <span
+          className={`flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-full bg-gradient-to-br ${participantToneClass(
+            participant
+          )} text-[11px] font-semibold text-[#010a04]/80`}
+        >
+          {initialsFromName(displayName)}
+        </span>
+        <div className="min-w-0">
+          <PlayerNameText name={displayName} className="text-[14px] font-medium text-[#010a04]" focusable />
+          <p className="mt-0.5 truncate text-[12px] text-[#010a04]/60">
+            {glickoSkillLevel(participant)}
+          </p>
+        </div>
+      </div>
+
+      <ParticipantRowActions
+        participant={participant}
+        displayName={displayName}
+        onEditParticipant={onEditParticipant}
+        onRemoveParticipant={onRemoveParticipant}
+        compact
+      />
+    </div>
+  );
+}
+
+interface SortableParticipantsDesktopRowProps {
+  participant: ScheduleParticipantRow;
+  index: number;
+  onEditParticipant: (id: string) => void;
+  onRemoveParticipant: (id: string) => void;
+}
+
+function SortableParticipantsDesktopRow({
+  participant,
+  index,
+  onEditParticipant,
+  onRemoveParticipant,
+}: SortableParticipantsDesktopRowProps) {
+  const { t } = useTranslation();
+  const displayName = participant.alias ?? participant.name ?? t("tournaments.unknownPlayer");
+  const { attributes, listeners, setActivatorNodeRef, setNodeRef, transform, transition, isDragging } =
+    useSortable({ id: participant.id });
+
+  return (
+    <TableRow
+      ref={setNodeRef}
+      className={cn(isDragging && "bg-[#010a04]/[0.03]")}
+      style={{
+        transform: CSS.Transform.toString(transform),
+        transition,
+      }}
+    >
+      <TableCell className="text-[13px] text-[#010a04]/75">{index + 1}</TableCell>
+      <TableCell>
+        <div className="flex items-center gap-2.5">
+          <button
+            ref={setActivatorNodeRef}
+            {...attributes}
+            {...listeners}
+            type="button"
+            className="touch-none text-[#010a04]/45 transition-colors cursor-grab hover:text-[#010a04]/70 active:cursor-grabbing"
+            aria-label={t("tournaments.scheduleDragParticipantWithName", {
+              name: displayName,
+            })}
+          >
+            <DragDropVerticalIcon size={16} />
+          </button>
+          <span
+            className={`flex h-[24px] w-[24px] shrink-0 items-center justify-center rounded-full bg-gradient-to-br ${participantToneClass(
+              participant
+            )} text-[9px] font-semibold text-[#010a04]/80`}
+          >
+            {initialsFromName(displayName)}
+          </span>
+          <PlayerNameText name={displayName} className="text-[14px] text-[#010a04]" focusable />
+        </div>
+      </TableCell>
+      <TableCell className="text-[14px] text-[#010a04]/85">{glickoSkillLevel(participant)}</TableCell>
+      <TableCell>
+        <ParticipantRowActions
+          participant={participant}
+          displayName={displayName}
+          onEditParticipant={onEditParticipant}
+          onRemoveParticipant={onRemoveParticipant}
+        />
+      </TableCell>
+    </TableRow>
+  );
+}
+
 export function ScheduleParticipantsTable({
   mode,
   participants,
   doublesPairs,
   doublesPairsLoading = false,
   onRemoveParticipant,
-  onMoveParticipant,
+  onReorderParticipant,
   onEditParticipant,
 }: ScheduleParticipantsTableProps) {
   const { t } = useTranslation();
+  const sensors = useSensors(
+    useSensor(MouseSensor),
+    useSensor(TouchSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+  const participantIds: UniqueIdentifier[] = participants.map((participant) => participant.id);
+
+  const handleDragEnd = ({ active, over }: DragEndEvent) => {
+    if (!over || active.id === over.id) {
+      return;
+    }
+
+    onReorderParticipant(String(active.id), String(over.id));
+  };
 
   const doublesRows =
     mode === "doubles" && doublesPairs
@@ -197,85 +419,26 @@ export function ScheduleParticipantsTable({
   }
 
   const mobileSinglesRows = (
-    <div className="overflow-hidden rounded-[10px] border border-[rgba(0,0,0,0.08)] md:hidden">
-      {participants.map((participant, index) => {
-        const displayName = participant.alias ?? participant.name ?? t("tournaments.unknownPlayer");
-        const canMoveUp = index > 0;
-        const canMoveDown = index < participants.length - 1;
-
-        return (
-          <div
-            key={participant.id}
-            className="flex items-center justify-between gap-3 border-b border-[#010a04]/10 bg-[#010a04]/[0.04] px-[15px] py-3 last:border-b-0"
-          >
-            <div className="flex min-w-0 flex-1 items-center gap-3">
-              <span
-                className={`flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-full bg-gradient-to-br ${participantToneClass(
-                  participant
-                )} text-[11px] font-semibold text-[#010a04]/80`}
-              >
-                {initialsFromName(displayName)}
-              </span>
-              <div className="min-w-0">
-                <p className="truncate text-[14px] font-medium text-[#010a04]">{displayName}</p>
-                <div className="mt-0.5 flex items-center gap-2 text-[12px]">
-                  <span className="truncate text-[#010a04]/60">{glickoSkillLevel(participant)}</span>
-                  <span className="text-[#010a04]/25">•</span>
-                  <button
-                    type="button"
-                    onClick={() => onRemoveParticipant(participant.id)}
-                    className="text-[#d92100] hover:underline"
-                    aria-label={t("tournaments.removeParticipant", { name: displayName })}
-                  >
-                    {t("tournaments.remove")}
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-1.5">
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={() => onEditParticipant(participant.id)}
-                className="h-7 w-7 px-0 text-[#067429] hover:bg-[#067429]/10"
-                aria-label={t("tournaments.scheduleEditParticipant", { name: displayName })}
-              >
-                <PencilEdit01Icon size={15} />
-              </Button>
-              <div className="flex flex-col items-center">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => onMoveParticipant(index, "up")}
-                  className="h-4 w-5 p-0 text-[#010a04]/55 hover:bg-transparent"
-                  disabled={!canMoveUp}
-                  aria-label={t("tournaments.scheduleMoveParticipantUpWithName", {
-                    name: displayName,
-                  })}
-                >
-                  <ChevronUp size={12} />
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => onMoveParticipant(index, "down")}
-                  className="h-4 w-5 p-0 text-[#010a04]/55 hover:bg-transparent"
-                  disabled={!canMoveDown}
-                  aria-label={t("tournaments.scheduleMoveParticipantDownWithName", {
-                    name: displayName,
-                  })}
-                >
-                  <IconChevronDown size={12} />
-                </Button>
-              </div>
-            </div>
+    <div className="md:hidden">
+      <DndContext
+        collisionDetection={closestCenter}
+        modifiers={[restrictToVerticalAxis]}
+        onDragEnd={handleDragEnd}
+        sensors={sensors}
+      >
+        <SortableContext items={participantIds} strategy={verticalListSortingStrategy}>
+          <div className="overflow-hidden rounded-[10px] border border-[rgba(0,0,0,0.08)]">
+            {participants.map((participant) => (
+              <SortableParticipantsMobileRow
+                key={participant.id}
+                participant={participant}
+                onEditParticipant={onEditParticipant}
+                onRemoveParticipant={onRemoveParticipant}
+              />
+            ))}
           </div>
-        );
-      })}
+        </SortableContext>
+      </DndContext>
     </div>
   );
 
@@ -284,102 +447,37 @@ export function ScheduleParticipantsTable({
       {mobileSinglesRows}
 
       <div className="hidden md:block">
-        <Table>
-          <TableHeader>
-            <TableRow className="bg-[#010a04]/[0.04] hover:bg-[#010a04]/[0.04]">
-              <TableHead className="w-10 text-[12px] font-normal text-[#010a04]/70">#</TableHead>
-              <TableHead className="text-[12px] font-normal text-[#010a04]/70">{t("tournaments.players")}</TableHead>
-              <TableHead className="w-[180px] text-[12px] font-normal text-[#010a04]/70">{t("tournaments.skillLevel")}</TableHead>
-              <TableHead className="w-[220px] text-[12px] font-normal text-[#010a04]/70">{t("tournaments.actions")}</TableHead>
-            </TableRow>
-          </TableHeader>
-
-          <TableBody>
-            {participants.map((participant, index) => (
-              <TableRow key={participant.id}>
-                {/** Keep row labels participant-specific for screen readers. */}
-                <TableCell className="text-[13px] text-[#010a04]/75">{index + 1}</TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-2.5">
-                    <span
-                      className={`flex h-[24px] w-[24px] shrink-0 items-center justify-center rounded-full bg-gradient-to-br ${participantToneClass(
-                        participant
-                      )} text-[9px] font-semibold text-[#010a04]/80`}
-                    >
-                      {initialsFromName(
-                        participant.alias ?? participant.name ?? t("tournaments.unknownPlayer")
-                      )}
-                    </span>
-                    <span className="text-[14px] text-[#010a04]">
-                      {participant.alias ?? participant.name ?? t("tournaments.unknownPlayer")}
-                    </span>
-                  </div>
-                </TableCell>
-                <TableCell className="text-[14px] text-[#010a04]/85">{glickoSkillLevel(participant)}</TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-1">
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => onEditParticipant(participant.id)}
-                      className="h-7 px-2 text-[12px] text-[#067429] hover:bg-[#067429]/10"
-                      aria-label={t("tournaments.scheduleEditParticipant", {
-                        name:
-                          participant.alias ?? participant.name ?? t("tournaments.unknownPlayer"),
-                      })}
-                    >
-                      <PencilEdit01Icon size={14} className="mr-1" />
-                      {t("tournaments.edit")}
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => onRemoveParticipant(participant.id)}
-                      className="h-7 px-2 text-[12px] text-[#d92100] hover:bg-[#d92100]/10"
-                      aria-label={t("tournaments.removeParticipant", {
-                        name:
-                          participant.alias ?? participant.name ?? t("tournaments.unknownPlayer"),
-                      })}
-                    >
-                      <Delete01Icon size={14} className="mr-1" />
-                      {t("tournaments.remove")}
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => onMoveParticipant(index, "up")}
-                      className="h-7 px-1.5 text-[#6a6a6a] hover:bg-[#010a04]/5"
-                      disabled={index === 0}
-                      aria-label={t("tournaments.scheduleMoveParticipantUpWithName", {
-                        name:
-                          participant.alias ?? participant.name ?? t("tournaments.unknownPlayer"),
-                      })}
-                    >
-                      <ChevronUp size={14} />
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => onMoveParticipant(index, "down")}
-                      className="h-7 px-1.5 text-[#6a6a6a] hover:bg-[#010a04]/5"
-                      disabled={index === participants.length - 1}
-                      aria-label={t("tournaments.scheduleMoveParticipantDownWithName", {
-                        name:
-                          participant.alias ?? participant.name ?? t("tournaments.unknownPlayer"),
-                      })}
-                    >
-                      <IconChevronDown size={14} />
-                    </Button>
-                  </div>
-                </TableCell>
+        <DndContext
+          collisionDetection={closestCenter}
+          modifiers={[restrictToVerticalAxis]}
+          onDragEnd={handleDragEnd}
+          sensors={sensors}
+        >
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-[#010a04]/[0.04] hover:bg-[#010a04]/[0.04]">
+                <TableHead className="w-10 text-[12px] font-normal text-[#010a04]/70">#</TableHead>
+                <TableHead className="text-[12px] font-normal text-[#010a04]/70">{t("tournaments.players")}</TableHead>
+                <TableHead className="w-[180px] text-[12px] font-normal text-[#010a04]/70">{t("tournaments.skillLevel")}</TableHead>
+                <TableHead className="w-[220px] text-[12px] font-normal text-[#010a04]/70">{t("tournaments.actions")}</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHeader>
+
+            <TableBody>
+              <SortableContext items={participantIds} strategy={verticalListSortingStrategy}>
+                {participants.map((participant, index) => (
+                  <SortableParticipantsDesktopRow
+                    key={participant.id}
+                    participant={participant}
+                    index={index}
+                    onEditParticipant={onEditParticipant}
+                    onRemoveParticipant={onRemoveParticipant}
+                  />
+                ))}
+              </SortableContext>
+            </TableBody>
+          </Table>
+        </DndContext>
       </div>
     </>
   );

@@ -58,7 +58,7 @@ function DialogContent({
             <Button
               variant="ghost"
               size="icon"
-              className="absolute right-4 top-4"
+              className="absolute right-2 top-2 z-10 sm:right-4 sm:top-4"
               aria-label="Close"
             >
               <XIcon className="h-4 w-4" />

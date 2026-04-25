@@ -1,17 +1,21 @@
 import type { Locale } from "date-fns";
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import {
-  CheckIcon,
-  IconCalendarDays,
-  IconClock,
-  IconMap,
-  IconPenLine,
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
+import {
+  IconCalendarDays, IconClock, IconMap,
 } from "@/icons/figma-icons";
 import type { TournamentScheduleMatch } from "@/models/tournament/types";
 import { matchScheduleDateTimeLabels } from "@/pages/tournaments/schedule/utils/matchScheduleLabels";
-import { MatchCardReadOnlyRows } from "@/pages/tournaments/schedule/components/MatchCardReadOnlyRows";
-import { scoreColumns, type ScoreEditorRow } from "@/pages/tournaments/schedule/utils/matchScheduleScore";
+import { MatchCardReadOnlyRows } from "./MatchCardReadOnlyRows";
+import {
+  getScoreSelectOptions,
+  SCORE_SELECT_EMPTY_VALUE,
+  scoreColumns,
+  type ScoreEditorRow,
+} from "@/pages/tournaments/schedule/utils/matchScheduleScore";
 import { teamSideDisplayName } from "@/pages/tournaments/schedule/utils/matchTeamDisplay";
 import { AVATAR_TONES, hashSeed, initialsFromName } from "@/pages/tournaments/schedule/utils/avatarUtils";
 
@@ -22,25 +26,20 @@ export interface MatchScheduleCardProps {
   canEditScores: boolean;
   isEditing: boolean;
   editableRows: ScoreEditorRow[];
-  isMutationPending: boolean;
+  isSavePending: boolean;
+  saveErrorMessage?: string | null;
   onToggleEdit: (match: TournamentScheduleMatch) => void | Promise<void>;
   onScoreInputChange: (
     rowId: string,
     side: "playerOne" | "playerTwo",
-    value: string
+    value: string,
+    setIndex: number
   ) => void;
 }
 
 export function MatchScheduleCard({
-  match,
-  locale,
-  t,
-  canEditScores,
-  isEditing,
-  editableRows,
-  isMutationPending,
-  onToggleEdit,
-  onScoreInputChange,
+  match, locale, t, canEditScores, isEditing, editableRows,
+  isSavePending, saveErrorMessage, onToggleEdit, onScoreInputChange,
 }: MatchScheduleCardProps) {
   const unknown = t("tournaments.unknownPlayer");
   const firstPlayer = teamSideDisplayName(match, 0, t) || unknown;
@@ -54,135 +53,149 @@ export function MatchScheduleCard({
   const isLive = match.status === "inProgress";
   const isPendingScore = match.status === "pendingScore";
   const isCancelled = match.status === "cancelled";
+  const hasStatusBadge = isLive || isPendingScore || isCancelled;
 
   return (
     <article
       className={cn(
-        "rounded-[12px] border px-[15px] py-[15px]",
+        "rounded-[14px] border px-4 py-4",
         isLive
           ? "border-[#067429] bg-[#eef8f1]"
           : isPendingScore
             ? "border-[#b45309] bg-[#fff7ed]"
-          : "border-transparent bg-[#010a04]/[0.04]"
+            : isCancelled
+              ? "border-transparent bg-[#010a04]/[0.03]"
+              : "border-transparent bg-[#010a04]/[0.03]"
       )}
     >
-      <div className="mb-[14px] flex items-start justify-between gap-3">
-        <div className="flex min-w-0 items-center gap-3 text-[13px] text-[#6a6a6a]">
-          <span className="flex items-center gap-1.5">
-            <IconCalendarDays size={14} className="shrink-0 text-[#6a6a6a]" />
-            <span className="truncate">{dateLabel}</span>
-          </span>
-          <span className="flex items-center gap-1.5">
-            <IconClock size={14} className="shrink-0 text-[#6a6a6a]" />
-            <span className="truncate">{timeLabel}</span>
-          </span>
-          <span className="flex items-center gap-1.5">
-            <IconMap size={14} className="shrink-0 text-[#6a6a6a]" />
-            <span className="truncate">{courtName}</span>
-          </span>
-        </div>
-
-        <div className="flex items-center gap-2">
-          {isLive ? (
-            <span className="inline-flex items-center gap-1 text-[12px] font-medium text-[#d92100]">
-              <span className="inline-block h-[6px] w-[6px] rounded-full bg-[#d92100]" />
-              {t("tournaments.liveLabel")}
-            </span>
-          ) : isPendingScore ? (
-            <span className="text-[12px] font-medium text-[#b45309]">
-              {t("tournaments.matchStatusPendingScore")}
-            </span>
-          ) : isCancelled ? (
-            <span className="text-[12px] font-medium text-[#d92100]">{t("tournaments.matchStatusCancelled")}</span>
-          ) : null}
-          {canEditScores ? (
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={() => {
-                if (isCancelled) {
-                  return;
-                }
-                void onToggleEdit(match);
-              }}
-              disabled={isMutationPending || isCancelled}
-              className="h-8 w-8 rounded-md border border-[#010a04]/10 p-0 text-[#010a04] hover:bg-[#010a04]/5"
-              title={
-                isCancelled
-                  ? t("tournaments.matchStatusCancelled")
-                  : isEditing
-                    ? t("tournaments.liveModalSaveScore")
-                    : t("tournaments.editScore")
-              }
-              aria-label={
-                isCancelled
-                  ? t("tournaments.matchStatusCancelled")
-                  : isEditing
-                    ? t("tournaments.liveModalSaveScore")
-                    : t("tournaments.editScore")
-              }
-            >
-              {isEditing ? (
-                <CheckIcon size={14} className="text-[#067429]" />
-              ) : (
-                <IconPenLine size={14} className="text-[#010a04]/80" />
-              )}
-            </Button>
-          ) : null}
-        </div>
-      </div>
-
-      {isEditing && canEditScores ? (
-        <div className="mb-2 flex justify-end gap-1.5">
-          {Array.from({ length: editableRows.length }, (_, columnIndex) => (
+      {/* Header: metadata + edit button */}
+      <div className="mb-2.5 flex flex-wrap items-center gap-2">
+        <div className="flex min-w-0 flex-[999_1_0%] flex-wrap items-center gap-x-3 gap-y-1">
+          {[
+            { Icon: IconCalendarDays, label: dateLabel },
+            { Icon: IconClock, label: timeLabel },
+            { Icon: IconMap, label: courtName },
+          ].map(({ Icon, label }, index) => (
             <span
-              key={`${match.id}-set-${columnIndex}`}
-              className="inline-flex min-w-[64px] items-center justify-center rounded-[4px] px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.06em] text-[#010a04]/45"
+              key={`${match.id}-meta-${index}`}
+              className="inline-flex min-w-0 items-center gap-1.5 text-[12px] text-[#010a04]/50"
             >
-              S{columnIndex + 1}
+              <Icon size={12} className="shrink-0" />
+              <span className="truncate">{label}</span>
             </span>
           ))}
         </div>
-      ) : null}
+        {canEditScores && !isCancelled && (
+          <Button
+            type="button"
+            size="sm"
+            onClick={() => void onToggleEdit(match)}
+            disabled={isSavePending || isCancelled}
+            className={cn(
+              "ml-auto h-7 shrink-0 self-center rounded-[7px] px-3 text-[12px] font-medium max-[380px]:w-full max-[380px]:justify-center",
+              isEditing
+                ? "bg-[#067429] text-white hover:bg-[#055d21]"
+                : "border border-[#010a04]/[0.12] bg-white text-[#010a04] hover:bg-[#010a04]/[0.04]"
+            )}
+          >
+            {isSavePending
+              ? t("tournaments.saving")
+              : isEditing
+                ? t("tournaments.saveChanges")
+                : t("tournaments.editScore")}
+          </Button>
+        )}
+      </div>
 
+      {/* Status badge */}
+      {hasStatusBadge && (
+        <div className="mb-3 flex min-h-[26px] items-center">
+          {isLive && (
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-[#ffeee9] px-2.5 py-1 text-[11px] font-medium text-[#d92100]">
+              <span className="h-1.5 w-1.5 rounded-full bg-[#d92100]" />
+              {t("tournaments.liveLabel")}
+            </span>
+          )}
+          {isPendingScore && (
+            <span className="inline-flex items-center rounded-full bg-[#fef3c7] px-2.5 py-1 text-[11px] font-medium text-[#b45309]">
+              {t("tournaments.matchStatusPendingScore")}
+            </span>
+          )}
+          {isCancelled && (
+            <span className="inline-flex items-center rounded-full bg-[#010a04]/[0.06] px-2.5 py-1 text-[11px] font-medium text-[#010a04]/50">
+              {t("tournaments.matchStatusCancelled")}
+            </span>
+          )}
+        </div>
+      )}
+
+      {saveErrorMessage && (
+        <p className="mb-2.5 rounded-[8px] bg-[#fff1f1] px-3 py-2 text-[12px] font-medium text-[#a02626]" role="status" aria-live="polite">
+          {saveErrorMessage}
+        </p>
+      )}
+
+      {/* Score editor (inline) */}
       {isEditing && canEditScores ? (
-        <div className="space-y-[10px]">
-          {[firstPlayer, secondPlayer].map((name, index) => {
-            const side = index === 0 ? "one" : "two";
+        <div className="flex flex-col gap-0.5">
+          {/* Set labels */}
+          {editableRows.length > 0 && (
+            <div className="mb-1 flex justify-end gap-1 pr-2.5">
+              {editableRows.map((_, i) => (
+                <span
+                  key={`${match.id}-set-lbl-${i}`}
+                  className="w-16 text-center text-[9px] font-semibold uppercase tracking-[0.05em] text-[#010a04]/40"
+                >
+                  S{i + 1}
+                </span>
+              ))}
+            </div>
+          )}
+
+          {[firstPlayer, secondPlayer].map((name, playerIdx) => {
+            const side = playerIdx === 0 ? "one" : "two";
+            const sideKey = playerIdx === 0 ? "playerOne" : "playerTwo";
             return (
-              <div key={`${match.id}-${index}`} className="flex items-center justify-between gap-3">
-                <div className="flex min-w-0 items-center gap-3">
+              <div
+                key={`${match.id}-edit-${side}`}
+                className="flex items-center justify-between gap-3 rounded-[10px] px-2.5 py-2"
+              >
+                <div className="flex min-w-0 flex-1 items-center gap-2.5">
                   <span
-                    className={`flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-full bg-gradient-to-br ${tone} text-[11px] font-semibold text-[#010a04]/80`}
+                    className={cn(
+                      "flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gradient-to-br text-[10px] font-semibold text-[#010a04]/70",
+                      tone
+                    )}
                   >
                     {initialsFromName(name)}
                   </span>
-                  <span className="truncate text-[16px] font-medium leading-[20px] text-[#010a04]">{name}</span>
+                  <span className="truncate text-[14px] font-medium text-[#010a04]">{name}</span>
                 </div>
-                <div className="flex items-center gap-1.5 rounded-[8px] bg-white/80 px-1 py-1">
+
+                <div className="flex shrink-0 items-center gap-1">
                   {editableRows.map((row, rowIndex) => {
-                    const value = side === "one" ? row.playerOne : row.playerTwo;
+                    const value = sideKey === "playerOne" ? row.playerOne : row.playerTwo;
+                    const options = getScoreSelectOptions(row, sideKey, match.playMode, rowIndex);
                     return (
-                      <input
-                        key={`${row.id}-${side}-input`}
-                        type="text"
-                        inputMode="text"
-                        aria-label={t("tournaments.scoreInputLabel", {
-                          playerName: name,
-                          setNumber: rowIndex + 1,
-                        })}
-                        value={value}
-                        onChange={(event) =>
-                          onScoreInputChange(
-                            row.id,
-                            side === "one" ? "playerOne" : "playerTwo",
-                            event.target.value
-                          )
-                        }
-                        placeholder={t("tournaments.scorePlaceholder")}
-                        className="h-[34px] w-[64px] rounded-[7px] border border-[#010a04]/20 bg-white px-2 text-center text-[13px] font-semibold text-[#010a04] outline-none transition focus:border-[#067429]"
-                      />
+                      <Select
+                        key={`${row.id}-${side}`}
+                        value={value === "" ? SCORE_SELECT_EMPTY_VALUE : value}
+                        onValueChange={(v) => onScoreInputChange(row.id, sideKey, v, rowIndex)}
+                      >
+                        <SelectTrigger
+                          aria-label={t("tournaments.scoreInputLabel", { playerName: name, setNumber: rowIndex + 1 })}
+                          className="h-[30px] w-16 rounded-[6px] border border-[#010a04]/[0.14] bg-white px-1.5 text-center text-[13px] font-semibold text-[#010a04] focus:border-[#067429]"
+                        >
+                          <SelectValue placeholder="–" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {options.map((opt) => (
+                            <SelectItem key={`${row.id}-${side}-${opt.value}`} value={opt.value}>
+                              {opt.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     );
                   })}
                 </div>

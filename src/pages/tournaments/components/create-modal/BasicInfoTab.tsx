@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { format, startOfDay } from "date-fns";
-import { Calendar as CalendarIcon, ChartIcon } from "@/icons/figma-icons";
+import { Calendar as CalendarIcon, ChartIcon, Info } from "@/icons/figma-icons";
 import { cn } from "@/lib/utils";
 import { getDateFnsLocale } from "@/lib/dateFnsLocale";
 import { parseIsoDateSafely } from "@/utils/date";
@@ -95,6 +95,7 @@ export function BasicInfoTab({
     ? format(selectedDate, "P", { locale: getDateFnsLocale(i18n.language) })
     : t("tournaments.datePlaceholder");
   const scheduledErrorKey = getScheduledTimeRangeErrorKey(form);
+  const descriptionLength = (form.descriptionInfo ?? "").length;
 
   return (
     <div className="min-w-0 max-w-full space-y-3 overflow-x-clip sm:space-y-5">
@@ -158,15 +159,35 @@ export function BasicInfoTab({
       </div>
 
       <div className="min-w-0 space-y-2 sm:space-y-3">
-        <Label
-          id="create-tournament-basic-club-label"
-          className="text-[13px] font-medium text-[#010a04] sm:text-[15px]"
-        >
-          {t("tournaments.selectClub")}
-        </Label>
+        <div className="flex items-center gap-1.5 sm:gap-2">
+          <Label
+            id="create-tournament-basic-club-label"
+            className="text-[13px] font-medium text-[#010a04] sm:text-[15px]"
+          >
+            {t("tournaments.selectClub")}
+          </Label>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-xs"
+                className="h-5 w-5 shrink-0 p-0 text-[#010a04]/55 hover:bg-transparent hover:text-[#010a04]/70 sm:hidden"
+                aria-label={t("tournaments.selectClubHint")}
+              >
+                <Info size={14} aria-hidden />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent align="start" className="w-[min(100vw-2rem,20rem)] sm:hidden">
+              <p className="text-[12px] leading-[1.4] text-[#010a04]/85">
+                {t("tournaments.selectClubHint")}
+              </p>
+            </PopoverContent>
+          </Popover>
+        </div>
         <p
           id="create-tournament-basic-club-hint"
-          className="break-words text-[12px] leading-[1.35] text-[#010a04]/60 [overflow-wrap:anywhere] sm:text-[14px] sm:leading-[1.4]"
+          className="sr-only break-words text-[12px] leading-[1.35] text-[#010a04]/60 [overflow-wrap:anywhere] sm:not-sr-only sm:block sm:text-[14px] sm:leading-[1.4]"
         >
           {t("tournaments.selectClubHint")}
         </p>
@@ -315,19 +336,21 @@ export function BasicInfoTab({
       ) : null}
 
       <div className="min-w-0 space-y-2 sm:space-y-3">
-        <Label
-          htmlFor="create-tournament-basic-description"
-          className="text-[13px] font-medium text-[#010a04] sm:text-[15px]"
-        >
-          {t("tournaments.description")}
-        </Label>
-        <p
-          id="create-tournament-basic-description-count"
-          className="text-[12px] font-normal tabular-nums leading-[1.35] text-[#010a04]/60 sm:text-[14px] sm:leading-[1.4]"
-          aria-live="polite"
-        >
-          {(form.descriptionInfo ?? "").length}/500
-        </p>
+        <div className="flex items-center justify-between gap-3">
+          <Label
+            htmlFor="create-tournament-basic-description"
+            className="text-[13px] font-medium text-[#010a04] sm:text-[15px]"
+          >
+            {t("tournaments.description")}
+          </Label>
+          <p
+            id="create-tournament-basic-description-count"
+            className="text-[12px] font-normal tabular-nums leading-[1.35] text-[#010a04]/60 sm:text-[14px] sm:leading-[1.4]"
+            aria-live="polite"
+          >
+            {t("tournaments.descriptionCount", { count: descriptionLength, max: 500 })}
+          </p>
+        </div>
         <Textarea
           id="create-tournament-basic-description"
           aria-describedby="create-tournament-basic-description-count"

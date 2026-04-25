@@ -65,7 +65,6 @@ export function useTournamentForm({ mode, tournamentId = null, open }: UseTourna
     }
     const initialChanged = previousInitialFormRef.current !== initialForm;
     if (initialForm !== null && (justOpened || (!hasUserEditedRef.current && initialChanged))) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setForm(initialForm);
     }
     previousInitialFormRef.current = initialForm;
@@ -87,6 +86,7 @@ export function useTournamentForm({ mode, tournamentId = null, open }: UseTourna
 
   return {
     form,
+    initialForm,
     sponsors,
     isSponsorsLoading,
     isEditMode,

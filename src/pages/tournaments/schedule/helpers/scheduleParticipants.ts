@@ -46,6 +46,31 @@ export function moveParticipant(
   }));
 }
 
+export function reorderParticipantsById(
+  rows: ScheduleParticipantRow[],
+  activeId: string,
+  overId: string
+): ScheduleParticipantRow[] {
+  if (rows.length < 2 || activeId === overId) {
+    return rows;
+  }
+
+  const sourceIndex = rows.findIndex((participant) => participant.id === activeId);
+  const targetIndex = rows.findIndex((participant) => participant.id === overId);
+  if (sourceIndex < 0 || targetIndex < 0 || sourceIndex === targetIndex) {
+    return rows;
+  }
+
+  const nextRows = [...rows];
+  const [current] = nextRows.splice(sourceIndex, 1);
+  nextRows.splice(targetIndex, 0, current);
+
+  return nextRows.map((participant, orderIndex) => ({
+    ...participant,
+    order: orderIndex + 1,
+  }));
+}
+
 export function removeParticipant(
   rows: ScheduleParticipantRow[],
   id: string

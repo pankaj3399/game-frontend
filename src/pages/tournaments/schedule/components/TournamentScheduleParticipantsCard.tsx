@@ -15,7 +15,7 @@ interface TournamentScheduleParticipantsCardProps {
   onPlayingModeChange: (nextMode: TournamentScheduleMode) => Promise<void> | void;
   onEditParticipant: (participantId: string) => void;
   onRemoveParticipant: (participantId: string) => void;
-  onMoveParticipant: (index: number, direction: "up" | "down") => void;
+  onReorderParticipant: (activeId: string, overId: string) => void;
 }
 
 export function TournamentScheduleParticipantsCard({
@@ -26,7 +26,7 @@ export function TournamentScheduleParticipantsCard({
   onPlayingModeChange,
   onEditParticipant,
   onRemoveParticipant,
-  onMoveParticipant,
+  onReorderParticipant,
 }: TournamentScheduleParticipantsCardProps) {
   const { t } = useTranslation();
 
@@ -62,7 +62,7 @@ export function TournamentScheduleParticipantsCard({
         doublesPairsLoading={doublesPairsLoading && mode === "doubles"}
         onEditParticipant={onEditParticipant}
         onRemoveParticipant={onRemoveParticipant}
-        onMoveParticipant={onMoveParticipant}
+        onReorderParticipant={onReorderParticipant}
       />
     </div>
   );
