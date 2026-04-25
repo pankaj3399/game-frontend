@@ -658,7 +658,6 @@
     "scheduleGenerating": "Spielplan wird generiert...",
     "scheduleGenerated": "Spielplan für Runde {{round}} erstellt.",
     "scheduleRescheduleWarningTitle": "Runde {{round}} neu planen?",
-    "scheduleRescheduleWarningDescription": "Diese Runde enthält bereits {{scoredMatches}} Match-Ergebnis(se). Beim Neuplanen werden die aktuellen Paarungen dieser Runde ersetzt, aber bereits erfasste Ergebnisse bleiben in der Spielerhistorie erhalten und können nicht automatisch zurückgesetzt werden.",
     "scheduleRescheduleWarningDescription_one": "Diese Runde enthält bereits {{count}} erfasstes Match-Ergebnis. Beim Neuplanen werden die aktuellen Paarungen dieser Runde ersetzt, aber bereits erfasste Ergebnisse bleiben in der Spielerhistorie erhalten und können nicht automatisch zurückgesetzt werden.",
     "scheduleRescheduleWarningDescription_other": "Diese Runde enthält bereits {{count}} erfasste Match-Ergebnisse. Beim Neuplanen werden die aktuellen Paarungen dieser Runde ersetzt, aber bereits erfasste Ergebnisse bleiben in der Spielerhistorie erhalten und können nicht automatisch zurückgesetzt werden.",
     "scheduleRescheduleWarningConfirm": "Runde neu planen",

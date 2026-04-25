@@ -77,7 +77,7 @@ export function useTournamentActions({
   const getUpdatePayloadForAction = useCallback(
     (
       mergedForm: CreateTournamentInput,
-      nextStatus: "draft" | "active"
+      nextStatus: TournamentStatus
     ): UpdateTournamentInput => {
       const changedFields = buildChangedUpdatePayload(mergedForm, initialForm);
       if (originalTournamentStatus !== nextStatus) {

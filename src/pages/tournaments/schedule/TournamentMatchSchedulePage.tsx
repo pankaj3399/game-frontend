@@ -128,6 +128,7 @@ export default function TournamentMatchSchedulePage() {
   const [savingMatchId, setSavingMatchId] = useState<string | null>(null);
   const [saveErrorsByMatchId, setSaveErrorsByMatchId] = useState<Record<string, string>>({});
   const [isCreatingNextRound, setIsCreatingNextRound] = useState(false);
+  const [isPersistingScore, setIsPersistingScore] = useState(false);
   const persistInFlightRef = useRef<Promise<PersistScoreResult> | null>(null);
 
   const queryClient = useQueryClient();
@@ -295,11 +296,13 @@ export default function TournamentMatchSchedulePage() {
       }
     };
 
+    setIsPersistingScore(true);
     persistInFlightRef.current = runPersist();
     try {
       return await persistInFlightRef.current;
     } finally {
       persistInFlightRef.current = null;
+      setIsPersistingScore(false);
     }
   };
 
@@ -342,7 +345,7 @@ export default function TournamentMatchSchedulePage() {
                 queryKeys.tournament.matches(tournament.id)
               ) ?? matchesQuery.data,
           });
-        } catch (_error) {
+        } catch {
           isRoundDataStale = true;
           latestMatchesData = undefined;
           toast.error(t("tournaments.matchesRefreshErrorAfterSave"));
@@ -425,7 +428,7 @@ export default function TournamentMatchSchedulePage() {
               <Button
                 type="button"
                 onClick={() => void handleCreateNextRound()}
-                disabled={isCreatingNextRound || persistInFlightRef.current != null}
+                disabled={isCreatingNextRound || isPersistingScore || savingMatchId != null}
                 className="h-[34px] gap-1.5 rounded-[8px] bg-[#067429] px-3.5 text-[13px] font-medium text-white shadow-none hover:bg-[#055d21]"
               >
                 <IconPlus size={14} className="text-white" aria-hidden />

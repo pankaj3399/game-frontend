@@ -659,7 +659,6 @@
     "scheduleGenerating": "Generating schedule...",
     "scheduleGenerated": "Schedule generated for round {{round}}.",
     "scheduleRescheduleWarningTitle": "Reschedule round {{round}}?",
-    "scheduleRescheduleWarningDescription": "This round already has {{scoredMatches}} scored match(es). Rescheduling will replace the active round fixtures, but existing recorded scores will be preserved in player history and cannot be rolled back automatically.",
     "scheduleRescheduleWarningDescription_one": "This round already has {{count}} scored match. Rescheduling will replace the active round fixtures, but existing recorded scores will be preserved in player history and cannot be rolled back automatically.",
     "scheduleRescheduleWarningDescription_other": "This round already has {{count}} scored matches. Rescheduling will replace the active round fixtures, but existing recorded scores will be preserved in player history and cannot be rolled back automatically.",
     "scheduleRescheduleWarningConfirm": "Reschedule Round",
