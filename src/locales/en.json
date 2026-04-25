@@ -204,6 +204,7 @@
     "backToHome": "Back To Home",
     "signInWithGoogle": "Sign in with Google",
     "signInWithApple": "Sign in with Apple",
+    "oauthUnavailable": "Sign-in is temporarily unavailable because authentication is not configured. Please refresh or contact support.",
     "whatDoesSignInMean": "What does sign in with Apple or Google mean?",
     "signInExplanation": "Signing in with Apple or Google still gives you the option to use a different name and email with this app. You share no other information with this app than the email and name you enter this time.",
     "forMoreInfo": "For more information visit:",
@@ -513,6 +514,7 @@
     "endTime": "End Time",
     "description": "Description",
     "descriptionPlaceholder": "Type tournament description here...",
+    "descriptionCount": "{{count}}/{{max}}",
     "gameMode": "Game Mode",
     "playModes": {
       "tieBreak10": "TieBreak 10",
@@ -688,6 +690,7 @@
     "scheduleMoveParticipantUp": "Move participant up",
     "scheduleMoveParticipantDown": "Move participant down",
     "matchesLoadError": "Failed to load matches.",
+    "matchesRefreshErrorAfterSave": "Score was saved, but schedule data could not be refreshed. Please reload before creating a new round.",
     "tournamentProgressRound": "Tournament Progress - Round {{round}}",
     "matchesProgressTitle": "Tournament progress",
     "matchesProgressRoundScope": "Round {{round}} · stats and match list below are for this round only",

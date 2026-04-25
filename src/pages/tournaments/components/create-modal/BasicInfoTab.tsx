@@ -95,6 +95,7 @@ export function BasicInfoTab({
     ? format(selectedDate, "P", { locale: getDateFnsLocale(i18n.language) })
     : t("tournaments.datePlaceholder");
   const scheduledErrorKey = getScheduledTimeRangeErrorKey(form);
+  const descriptionLength = (form.descriptionInfo ?? "").length;
 
   return (
     <div className="min-w-0 max-w-full space-y-3 overflow-x-clip sm:space-y-5">
@@ -347,7 +348,7 @@ export function BasicInfoTab({
             className="text-[12px] font-normal tabular-nums leading-[1.35] text-[#010a04]/60 sm:text-[14px] sm:leading-[1.4]"
             aria-live="polite"
           >
-            {(form.descriptionInfo ?? "").length}/500
+            {t("tournaments.descriptionCount", { count: descriptionLength, max: 500 })}
           </p>
         </div>
         <Textarea

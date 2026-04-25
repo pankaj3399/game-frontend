@@ -7,6 +7,64 @@ import Apple from "@/assets/icons/Apple";
 import { getBackendUrl } from "@/lib/api";
 import InlineLoader from "@/components/shared/InlineLoader";
 
+type SocialProvider = "google" | "apple";
+
+interface SocialButtonProps {
+  providerKey: SocialProvider;
+  authUrl: string | null;
+  Icon: typeof Google;
+  label: string;
+  loading: boolean;
+  isSubmitting: boolean;
+  isOAuthAvailable: boolean;
+  socialButtonClassName: string;
+  onSignIn: (provider: SocialProvider, url: string | null) => void;
+  loadingLabel: string;
+  unavailableDescriptionId: string;
+}
+
+function SocialButton({
+  providerKey,
+  authUrl,
+  Icon,
+  label,
+  loading,
+  isSubmitting,
+  isOAuthAvailable,
+  socialButtonClassName,
+  onSignIn,
+  loadingLabel,
+  unavailableDescriptionId,
+}: SocialButtonProps) {
+  const isDisabled = !authUrl || isSubmitting;
+  return (
+    <button
+      type="button"
+      disabled={isDisabled}
+      aria-disabled={isDisabled}
+      aria-busy={loading}
+      aria-label={label}
+      aria-describedby={!isOAuthAvailable ? unavailableDescriptionId : undefined}
+      onClick={() => onSignIn(providerKey, authUrl)}
+      className={socialButtonClassName}
+    >
+      {loading ? (
+        <InlineLoader size="sm" className="border-[#C6C4D5] border-t-brand-primary" />
+      ) : (
+        <Icon
+          width={22}
+          height={22}
+          className={
+            providerKey === "apple" ? "mr-2 shrink-0 text-[#000000]" : "mr-2 shrink-0"
+          }
+        />
+      )}
+      {label}
+      {loading ? <span className="sr-only"> {loadingLabel}</span> : null}
+    </button>
+  );
+}
+
 const Login = () => {
   const { t } = useTranslation();
   const [searchParams] = useSearchParams();
@@ -16,6 +74,8 @@ const Login = () => {
   const backendUrl = getBackendUrl();
   const googleAuthUrl = backendUrl ? new URL("/api/auth/google", backendUrl).toString() : null;
   const appleAuthUrl = backendUrl ? new URL("/api/auth/apple", backendUrl).toString() : null;
+  const isOAuthAvailable = Boolean(googleAuthUrl || appleAuthUrl);
+  const oauthUnavailableDescriptionId = "auth-oauth-unavailable-description";
   const isSubmitting = submittingProvider !== null;
 
   const handleProviderSignIn = (provider: "google" | "apple", authUrl: string | null) => {
@@ -45,40 +105,41 @@ const Login = () => {
             {errorMessage ?? "Sign-in could not be completed. Please try again."}
           </div>
         ) : null}
-        <button
-          type="button"
-          disabled={!googleAuthUrl || isSubmitting}
-          onClick={() => handleProviderSignIn("google", googleAuthUrl)}
-          aria-busy={submittingProvider === "google"}
-          className={`${socialButtonClassName} mt-6`}
-        >
-          {submittingProvider === "google" ? (
-            <InlineLoader size="sm" className="border-[#C6C4D5] border-t-brand-primary" />
-          ) : (
-            <Google width={22} height={22} className="mr-2 shrink-0" />
-          )}
-          {t("auth.signInWithGoogle")}
-          {submittingProvider === "google" ? (
-            <span className="sr-only"> {t("common.loading")}</span>
-          ) : null}
-        </button>
-        <button
-          type="button"
-          disabled={!appleAuthUrl || isSubmitting}
-          onClick={() => handleProviderSignIn("apple", appleAuthUrl)}
-          aria-busy={submittingProvider === "apple"}
-          className={`${socialButtonClassName} mt-4`}
-        >
-          {submittingProvider === "apple" ? (
-            <InlineLoader size="sm" className="border-[#C6C4D5] border-t-brand-primary" />
-          ) : (
-            <Apple width={22} height={22} className="mr-2 shrink-0 text-[#000000]" />
-          )}
-          {t("auth.signInWithApple")}
-          {submittingProvider === "apple" ? (
-            <span className="sr-only"> {t("common.loading")}</span>
-          ) : null}
-        </button>
+        {!isOAuthAvailable ? (
+          <p
+            id={oauthUnavailableDescriptionId}
+            role="status"
+            className="mt-6 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900"
+          >
+            {t("auth.oauthUnavailable")}
+          </p>
+        ) : null}
+        <SocialButton
+          providerKey="google"
+          authUrl={googleAuthUrl}
+          Icon={Google}
+          label={t("auth.signInWithGoogle")}
+          loading={submittingProvider === "google"}
+          isSubmitting={isSubmitting}
+          isOAuthAvailable={isOAuthAvailable}
+          socialButtonClassName={`${socialButtonClassName} mt-6`}
+          onSignIn={handleProviderSignIn}
+          loadingLabel={t("common.loading")}
+          unavailableDescriptionId={oauthUnavailableDescriptionId}
+        />
+        <SocialButton
+          providerKey="apple"
+          authUrl={appleAuthUrl}
+          Icon={Apple}
+          label={t("auth.signInWithApple")}
+          loading={submittingProvider === "apple"}
+          isSubmitting={isSubmitting}
+          isOAuthAvailable={isOAuthAvailable}
+          socialButtonClassName={`${socialButtonClassName} mt-4`}
+          onSignIn={handleProviderSignIn}
+          loadingLabel={t("common.loading")}
+          unavailableDescriptionId={oauthUnavailableDescriptionId}
+        />
         <Link
           to="/"
           className="font-semibold rounded-lg bg-brand-primary text-white mt-8 md:h-[48px] h-[40px] font-primary md:text-base text-sm flex justify-center items-center gap-2 self-center px-8 hover:bg-brand-primary-hover active:animate-jerk"

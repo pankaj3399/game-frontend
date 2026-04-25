@@ -203,6 +203,7 @@
     "backToHome": "Zurück zur Startseite",
     "signInWithGoogle": "Mit Google anmelden",
     "signInWithApple": "Mit Apple anmelden",
+    "oauthUnavailable": "Anmeldung ist vorübergehend nicht verfügbar, weil die Authentifizierung nicht konfiguriert ist. Bitte aktualisieren Sie die Seite oder kontaktieren Sie den Support.",
     "whatDoesSignInMean": "Was bedeutet Anmelden mit Apple oder Google?",
     "signInExplanation": "Bei der Anmeldung mit Apple oder Google können Sie weiterhin einen anderen Namen und eine andere E-Mail-Adresse für diese App verwenden. Sie teilen dieser App keine weiteren Informationen mit als die E-Mail und den Namen, die Sie diesmal eingeben.",
     "forMoreInfo": "Weitere Informationen finden Sie unter:",
@@ -512,6 +513,7 @@
     "endTime": "Endzeit",
     "description": "Beschreibung",
     "descriptionPlaceholder": "Turnierbeschreibung hier eingeben...",
+    "descriptionCount": "{{count}}/{{max}}",
     "gameMode": "Spielmodus",
     "playModes": {
       "tieBreak10": "TieBreak 10",
@@ -687,6 +689,7 @@
     "scheduleMoveParticipantUp": "Teilnehmer nach oben verschieben",
     "scheduleMoveParticipantDown": "Teilnehmer nach unten verschieben",
     "matchesLoadError": "Matches konnten nicht geladen werden.",
+    "matchesRefreshErrorAfterSave": "Der Score wurde gespeichert, aber die Planungsdaten konnten nicht aktualisiert werden. Bitte laden Sie neu, bevor Sie eine neue Runde erstellen.",
     "tournamentProgressRound": "Turnierfortschritt – Runde {{round}}",
     "matchesProgressTitle": "Turnierfortschritt",
     "matchesProgressRoundScope": "Runde {{round}} · Statistik und Matchliste gelten nur für diese Runde",

@@ -326,6 +326,7 @@ export default function TournamentMatchSchedulePage() {
     setIsCreatingNextRound(true);
     try {
       let effectiveView = view;
+      let isRoundDataStale = false;
       if (editingMatch) {
         const saveResult = await persistEditedScore({ trackPerMatchState: false });
         if (!saveResult.ok) return;
@@ -341,14 +342,12 @@ export default function TournamentMatchSchedulePage() {
                 queryKeys.tournament.matches(tournament.id)
               ) ?? matchesQuery.data,
           });
-        } catch (error) {
-          console.error("[TournamentMatchSchedulePage] Failed to refetch after score save.", {
-            tournamentId: tournament.id,
-            search: searchParams.toString(),
-            error,
-          });
+        } catch (_error) {
+          isRoundDataStale = true;
+          latestMatchesData = undefined;
+          toast.error(t("tournaments.matchesRefreshErrorAfterSave"));
         }
-        if (latestMatchesData) {
+        if (!isRoundDataStale && latestMatchesData) {
           effectiveView = buildMatchSchedulePageModel(
             searchParams,
             latestMatchesData.matches,
@@ -357,9 +356,19 @@ export default function TournamentMatchSchedulePage() {
             tournament.totalRounds,
             matchesQuery.isFetching
           );
+        } else if (isRoundDataStale) {
+          console.error("[TournamentMatchSchedulePage] Failed to refetch after score save.", {
+            tournamentId: tournament.id,
+            search: searchParams.toString(),
+            reason: "stale data after refetch failure",
+          });
         }
       }
-      if (!effectiveView.canCreateNextRound) {
+      const canCreateNextRound = !isRoundDataStale && effectiveView.canCreateNextRound;
+      if (!canCreateNextRound) {
+        if (isRoundDataStale) {
+          return;
+        }
         const hint = effectiveView.nextRoundDisabledHint;
         const msg = hint != null
           ? hint.reason === "missing"
@@ -416,7 +425,7 @@ export default function TournamentMatchSchedulePage() {
               <Button
                 type="button"
                 onClick={() => void handleCreateNextRound()}
-                disabled={isCreatingNextRound}
+                disabled={isCreatingNextRound || persistInFlightRef.current != null}
                 className="h-[34px] gap-1.5 rounded-[8px] bg-[#067429] px-3.5 text-[13px] font-medium text-white shadow-none hover:bg-[#055d21]"
               >
                 <IconPlus size={14} className="text-white" aria-hidden />

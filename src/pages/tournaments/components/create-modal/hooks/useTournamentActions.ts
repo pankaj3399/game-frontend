@@ -154,10 +154,12 @@ export function useTournamentActions({
     }
 
     try {
+      let didPersistPublish = false;
       if (validTournamentId) {
         const payload = getUpdatePayloadForAction(mergedForm, "active");
         if (Object.keys(payload).length > 0) {
           await performUpdate(validTournamentId, "publish", payload);
+          didPersistPublish = true;
         }
       } else {
         setCreationAction("publish");
@@ -165,12 +167,15 @@ export function useTournamentActions({
           await createTournament.mutateAsync(
             buildTournamentPayload(mergedForm, "active")
           );
+          didPersistPublish = true;
         } finally {
           setCreationAction(null);
         }
       }
 
-      toast.success(t("tournaments.published"));
+      if (didPersistPublish) {
+        toast.success(t("tournaments.published"));
+      }
       handleClose(false);
     } catch (err: unknown) {
       toast.error(getErrorMessage(err) ?? t("tournaments.publishError"));
