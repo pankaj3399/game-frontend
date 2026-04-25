@@ -108,22 +108,27 @@ export function useTournamentActions({
     }
 
     try {
+      let didPersistDraft = false;
       if (validTournamentId) {
         const payload = getUpdatePayloadForAction(mergedForm, "draft");
         if (Object.keys(payload).length > 0) {
           await performUpdate(validTournamentId, "draft", payload);
+          didPersistDraft = true;
         }
       } else {
         setCreationAction("draft");
         try {
           const createPayload = buildTournamentPayload(mergedForm, "draft");
           await createTournament.mutateAsync(createPayload);
+          didPersistDraft = true;
         } finally {
           setCreationAction(null);
         }
       }
 
-      toast.success(t("tournaments.draftSaved"));
+      if (didPersistDraft) {
+        toast.success(t("tournaments.draftSaved"));
+      }
       handleClose(false);
     } catch (err: unknown) {
       toast.error(getErrorMessage(err) ?? t("tournaments.saveError"));

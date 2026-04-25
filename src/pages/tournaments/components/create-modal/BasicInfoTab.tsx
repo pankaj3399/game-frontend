@@ -184,12 +184,9 @@ export function BasicInfoTab({
             </PopoverContent>
           </Popover>
         </div>
-        <span id="create-tournament-basic-club-hint-mobile" className="sr-only sm:hidden">
-          {t("tournaments.selectClubHint")}
-        </span>
         <p
           id="create-tournament-basic-club-hint"
-          className="hidden break-words text-[12px] leading-[1.35] text-[#010a04]/60 [overflow-wrap:anywhere] sm:block sm:text-[14px] sm:leading-[1.4]"
+          className="sr-only break-words text-[12px] leading-[1.35] text-[#010a04]/60 [overflow-wrap:anywhere] sm:not-sr-only sm:block sm:text-[14px] sm:leading-[1.4]"
         >
           {t("tournaments.selectClubHint")}
         </p>
@@ -200,7 +197,7 @@ export function BasicInfoTab({
           <SelectTrigger
             id="create-tournament-basic-club"
             aria-labelledby="create-tournament-basic-club-label"
-            aria-describedby="create-tournament-basic-club-hint create-tournament-basic-club-hint-mobile"
+            aria-describedby="create-tournament-basic-club-hint"
             className="h-[38px] w-full rounded-[10px] border-[#e1e3e8] bg-[#f9fafc] px-3 text-[14px] font-medium text-[#010a04] sm:h-[46px] sm:rounded-[12px] sm:px-[15px] sm:text-[16px]"
           >
             <SelectValue placeholder={t("tournaments.chooseClub")} />

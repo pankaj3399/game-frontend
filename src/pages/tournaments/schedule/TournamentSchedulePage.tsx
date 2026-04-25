@@ -151,6 +151,7 @@ export default function TournamentSchedulePage() {
             </AlertDialogTitle>
             <AlertDialogDescription>
               {t("tournaments.scheduleRescheduleWarningDescription", {
+                count: controller.scoredMatchesCount,
                 round: controller.round,
                 scoredMatches: controller.scoredMatchesCount,
               })}

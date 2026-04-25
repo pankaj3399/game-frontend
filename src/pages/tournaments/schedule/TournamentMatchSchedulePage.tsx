@@ -1,19 +1,25 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, Navigate, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import type { Locale } from "date-fns";
 import { enUS } from "date-fns/locale";
 import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { getErrorMessage } from "@/lib/errors";
 import { getDateFnsLocale } from "@/lib/dateFnsLocale";
+import { queryKeys } from "@/lib/api/queryKeys";
 import { ChevronLeft, IconPlus } from "@/icons/figma-icons";
 import {
   useRecordTournamentMatchScore,
   useTournamentById,
   useTournamentMatches,
 } from "@/pages/tournaments/hooks";
-import type { TournamentScheduleMatch } from "@/models/tournament/types";
+import type {
+  RecordTournamentMatchScoreResponse,
+  TournamentMatchesResponse,
+  TournamentScheduleMatch,
+} from "@/models/tournament/types";
 import { MatchScheduleCard } from "@/pages/tournaments/schedule/components/MatchScheduleCard";
 import { buildMatchSchedulePageModel } from "@/pages/tournaments/schedule/utils/matchScheduleViewModel";
 import {
@@ -122,7 +128,9 @@ export default function TournamentMatchSchedulePage() {
   const [savingMatchId, setSavingMatchId] = useState<string | null>(null);
   const [saveErrorsByMatchId, setSaveErrorsByMatchId] = useState<Record<string, string>>({});
   const [isCreatingNextRound, setIsCreatingNextRound] = useState(false);
+  const persistInFlightRef = useRef<Promise<PersistScoreResult> | null>(null);
 
+  const queryClient = useQueryClient();
   const tournamentQuery = useTournamentById(id ?? null, Boolean(id));
   const matchesQuery = useTournamentMatches(id ?? null, Boolean(id));
   const recordScoreMutation = useRecordTournamentMatchScore();
@@ -191,49 +199,113 @@ export default function TournamentMatchSchedulePage() {
     );
   };
 
+  type PersistScoreResult = {
+    ok: boolean;
+    mutationResult?: RecordTournamentMatchScoreResponse;
+    latestData?: TournamentMatchesResponse;
+  };
+
+  const mergeMutationResultIntoMatches = (
+    base: TournamentMatchesResponse | null | undefined,
+    mutationResult: RecordTournamentMatchScoreResponse | undefined
+  ): TournamentMatchesResponse | null => {
+    if (!base || !mutationResult) return base ?? null;
+    return {
+      ...base,
+      matches: base.matches.map((match) =>
+        match.id === mutationResult.match.id
+          ? ({
+              ...match,
+              status: mutationResult.match.status,
+            } as TournamentScheduleMatch)
+          : match
+      ),
+    };
+  };
+
+  const pickLatestMatchesData = (args: {
+    refetchData?: TournamentMatchesResponse;
+    mutationResult?: RecordTournamentMatchScoreResponse;
+    cacheData?: TournamentMatchesResponse;
+  }): TournamentMatchesResponse | undefined => {
+    if (args.refetchData) return args.refetchData;
+    const mergedFromMutation = mergeMutationResultIntoMatches(
+      args.cacheData,
+      args.mutationResult
+    );
+    if (mergedFromMutation) return mergedFromMutation;
+    return args.cacheData;
+  };
+
   const persistEditedScore = async ({
     trackPerMatchState,
   }: {
     trackPerMatchState: boolean;
-  }): Promise<boolean> => {
-    if (!editingMatch) return true;
+  }): Promise<PersistScoreResult> => {
+    if (persistInFlightRef.current) {
+      return persistInFlightRef.current;
+    }
+    if (!editingMatch) return { ok: true };
     const freshMatch = matchesQuery.data?.matches.find((m) => m.id === editingMatch.id) ?? null;
-    if (!freshMatch) { toast.error(t("tournaments.matchesLoadError")); return false; }
-    if (freshMatch.status === "cancelled") { toast.error(t("tournaments.matchStatusCancelled")); return false; }
+    if (!freshMatch) { toast.error(t("tournaments.matchesLoadError")); return { ok: false }; }
+    if (freshMatch.status === "cancelled") { toast.error(t("tournaments.matchStatusCancelled")); return { ok: false }; }
 
     const payload = buildScorePayload(scoreRows, freshMatch.playMode, t);
-    if (!payload.ok) { toast.error(payload.message ?? t("tournaments.scoreEditorIncomplete")); return false; }
+    if (!payload.ok) { toast.error(payload.message ?? t("tournaments.scoreEditorIncomplete")); return { ok: false }; }
 
-    try {
-      if (trackPerMatchState) {
-        setSavingMatchId(freshMatch.id);
-        setSaveErrorsByMatchId((prev) => {
-          if (!prev[freshMatch.id]) return prev;
-          const rest = { ...prev };
-          delete rest[freshMatch.id];
-          return rest;
+    const runPersist = async (): Promise<PersistScoreResult> => {
+      let mutationResult: RecordTournamentMatchScoreResponse | undefined;
+
+      try {
+        if (trackPerMatchState) {
+          setSavingMatchId(freshMatch.id);
+          setSaveErrorsByMatchId((prev) => {
+            if (!prev[freshMatch.id]) return prev;
+            const rest = { ...prev };
+            delete rest[freshMatch.id];
+            return rest;
+          });
+        }
+        mutationResult = await recordScoreMutation.mutateAsync({
+          tournamentId: tournament.id,
+          matchId: freshMatch.id,
+          input: { playerOneScores: payload.playerOneScores, playerTwoScores: payload.playerTwoScores },
         });
+        toast.success(t("tournaments.scoreEditorSaveSuccess"));
+
+        const cacheData = queryClient.getQueryData<TournamentMatchesResponse>(
+          queryKeys.tournament.matches(tournament.id)
+        );
+
+        return {
+          ok: true,
+          mutationResult,
+          latestData: pickLatestMatchesData({
+            mutationResult,
+            cacheData: cacheData ?? matchesQuery.data,
+          }),
+        };
+      } catch (error: unknown) {
+        const message = getErrorMessage(error) ?? t("tournaments.liveModalScoreSaveError");
+        if (trackPerMatchState) setSaveErrorsByMatchId((prev) => ({ ...prev, [freshMatch.id]: message }));
+        toast.error(message);
+        return { ok: false };
+      } finally {
+        if (trackPerMatchState) setSavingMatchId((prev) => (prev === freshMatch.id ? null : prev));
       }
-      await recordScoreMutation.mutateAsync({
-        tournamentId: tournament.id,
-        matchId: freshMatch.id,
-        input: { playerOneScores: payload.playerOneScores, playerTwoScores: payload.playerTwoScores },
-      });
-      toast.success(t("tournaments.scoreEditorSaveSuccess"));
-      return true;
-    } catch (error: unknown) {
-      const message = getErrorMessage(error) ?? t("tournaments.liveModalScoreSaveError");
-      if (trackPerMatchState) setSaveErrorsByMatchId((prev) => ({ ...prev, [freshMatch.id]: message }));
-      toast.error(message);
-      return false;
+    };
+
+    persistInFlightRef.current = runPersist();
+    try {
+      return await persistInFlightRef.current;
     } finally {
-      if (trackPerMatchState) setSavingMatchId((prev) => (prev === freshMatch.id ? null : prev));
+      persistInFlightRef.current = null;
     }
   };
 
   const saveEditedScore = async () => {
-    const ok = await persistEditedScore({ trackPerMatchState: true });
-    if (ok) closeEditor();
+    const result = await persistEditedScore({ trackPerMatchState: true });
+    if (result.ok) closeEditor();
   };
 
   const handleToggleInlineEdit = async (match: TournamentScheduleMatch) => {
@@ -241,8 +313,8 @@ export default function TournamentMatchSchedulePage() {
     if (editingMatch?.id === match.id) { await saveEditedScore(); return; }
     if (editingMatch && editingMatch.id !== match.id) {
       if (savingMatchId === editingMatch.id) return;
-      const ok = await persistEditedScore({ trackPerMatchState: true });
-      if (!ok) return;
+      const result = await persistEditedScore({ trackPerMatchState: true });
+      if (!result.ok) return;
       openEditor(match);
       return;
     }
@@ -255,13 +327,20 @@ export default function TournamentMatchSchedulePage() {
     try {
       let effectiveView = view;
       if (editingMatch) {
-        const ok = await persistEditedScore({ trackPerMatchState: false });
-        if (!ok) return;
+        const saveResult = await persistEditedScore({ trackPerMatchState: false });
+        if (!saveResult.ok) return;
         closeEditor();
-        let latestMatchesData = matchesQuery.data;
+        let latestMatchesData = saveResult.latestData;
         try {
           const refreshed = await matchesQuery.refetch();
-          latestMatchesData = refreshed.data ?? matchesQuery.data;
+          latestMatchesData = pickLatestMatchesData({
+            refetchData: refreshed.data,
+            mutationResult: saveResult.mutationResult,
+            cacheData:
+              queryClient.getQueryData<TournamentMatchesResponse>(
+                queryKeys.tournament.matches(tournament.id)
+              ) ?? matchesQuery.data,
+          });
         } catch (error) {
           console.error("[TournamentMatchSchedulePage] Failed to refetch after score save.", {
             tournamentId: tournament.id,

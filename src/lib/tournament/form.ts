@@ -117,24 +117,12 @@ type UpdatePayloadField = (typeof UPDATE_PAYLOAD_FIELDS)[number];
 type UpdatePayloadBody = Omit<CreateTournamentInput, "status">;
 
 function pickUpdatePayloadFields(payload: CreateTournamentInput): UpdatePayloadBody {
-  return {
-    club: payload.club,
-    name: payload.name,
-    sponsor: payload.sponsor,
-    date: payload.date,
-    startTime: payload.startTime,
-    endTime: payload.endTime,
-    playMode: payload.playMode,
-    tournamentMode: payload.tournamentMode,
-    entryFee: payload.entryFee,
-    minMember: payload.minMember,
-    maxMember: payload.maxMember,
-    totalRounds: payload.totalRounds,
-    duration: payload.duration,
-    breakDuration: payload.breakDuration,
-    foodInfo: payload.foodInfo,
-    descriptionInfo: payload.descriptionInfo,
-  };
+  return UPDATE_PAYLOAD_FIELDS.reduce<Partial<UpdatePayloadBody>>((acc, field) => {
+    const key = field as UpdatePayloadField;
+    (acc as Record<UpdatePayloadField, UpdatePayloadBody[UpdatePayloadField]>)[key] =
+      payload[key];
+    return acc;
+  }, {}) as UpdatePayloadBody;
 }
 
 /**

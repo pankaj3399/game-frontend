@@ -24,7 +24,11 @@ const Login = () => {
     }
 
     setSubmittingProvider(provider);
-    window.location.assign(authUrl);
+    try {
+      window.location.assign(authUrl);
+    } catch {
+      setSubmittingProvider(null);
+    }
   };
 
   const socialButtonClassName =

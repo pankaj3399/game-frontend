@@ -75,9 +75,9 @@ export function MatchScheduleCard({
             { Icon: IconCalendarDays, label: dateLabel },
             { Icon: IconClock, label: timeLabel },
             { Icon: IconMap, label: courtName },
-          ].map(({ Icon, label }) => (
+          ].map(({ Icon, label }, index) => (
             <span
-              key={label}
+              key={`${match.id}-meta-${index}`}
               className="inline-flex min-w-0 items-center gap-1.5 text-[12px] text-[#010a04]/50"
             >
               <Icon size={12} className="shrink-0" />
@@ -156,52 +156,50 @@ export function MatchScheduleCard({
             const side = playerIdx === 0 ? "one" : "two";
             const sideKey = playerIdx === 0 ? "playerOne" : "playerTwo";
             return (
-              <>
-                <div
-                  key={`${match.id}-edit-${side}`}
-                  className="flex items-center justify-between gap-3 rounded-[10px] px-2.5 py-2"
-                >
-                  <div className="flex min-w-0 flex-1 items-center gap-2.5">
-                    <span
-                      className={cn(
-                        "flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gradient-to-br text-[10px] font-semibold text-[#010a04]/70",
-                        tone
-                      )}
-                    >
-                      {initialsFromName(name)}
-                    </span>
-                    <span className="truncate text-[14px] font-medium text-[#010a04]">{name}</span>
-                  </div>
-
-                  <div className="flex shrink-0 items-center gap-1">
-                    {editableRows.map((row, rowIndex) => {
-                      const value = sideKey === "playerOne" ? row.playerOne : row.playerTwo;
-                      const options = getScoreSelectOptions(row, sideKey, match.playMode, rowIndex);
-                      return (
-                        <Select
-                          key={`${row.id}-${side}`}
-                          value={value === "" ? SCORE_SELECT_EMPTY_VALUE : value}
-                          onValueChange={(v) => onScoreInputChange(row.id, sideKey, v, rowIndex)}
-                        >
-                          <SelectTrigger
-                            aria-label={t("tournaments.scoreInputLabel", { playerName: name, setNumber: rowIndex + 1 })}
-                            className="h-[30px] w-16 rounded-[6px] border border-[#010a04]/[0.14] bg-white px-1.5 text-center text-[13px] font-semibold text-[#010a04] focus:border-[#067429]"
-                          >
-                            <SelectValue placeholder="–" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {options.map((opt) => (
-                              <SelectItem key={`${row.id}-${side}-${opt.value}`} value={opt.value}>
-                                {opt.label}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      );
-                    })}
-                  </div>
+              <div
+                key={`${match.id}-edit-${side}`}
+                className="flex items-center justify-between gap-3 rounded-[10px] px-2.5 py-2"
+              >
+                <div className="flex min-w-0 flex-1 items-center gap-2.5">
+                  <span
+                    className={cn(
+                      "flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gradient-to-br text-[10px] font-semibold text-[#010a04]/70",
+                      tone
+                    )}
+                  >
+                    {initialsFromName(name)}
+                  </span>
+                  <span className="truncate text-[14px] font-medium text-[#010a04]">{name}</span>
                 </div>
-              </>
+
+                <div className="flex shrink-0 items-center gap-1">
+                  {editableRows.map((row, rowIndex) => {
+                    const value = sideKey === "playerOne" ? row.playerOne : row.playerTwo;
+                    const options = getScoreSelectOptions(row, sideKey, match.playMode, rowIndex);
+                    return (
+                      <Select
+                        key={`${row.id}-${side}`}
+                        value={value === "" ? SCORE_SELECT_EMPTY_VALUE : value}
+                        onValueChange={(v) => onScoreInputChange(row.id, sideKey, v, rowIndex)}
+                      >
+                        <SelectTrigger
+                          aria-label={t("tournaments.scoreInputLabel", { playerName: name, setNumber: rowIndex + 1 })}
+                          className="h-[30px] w-16 rounded-[6px] border border-[#010a04]/[0.14] bg-white px-1.5 text-center text-[13px] font-semibold text-[#010a04] focus:border-[#067429]"
+                        >
+                          <SelectValue placeholder="–" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {options.map((opt) => (
+                            <SelectItem key={`${row.id}-${side}-${opt.value}`} value={opt.value}>
+                              {opt.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    );
+                  })}
+                </div>
+              </div>
             );
           })}
         </div>
