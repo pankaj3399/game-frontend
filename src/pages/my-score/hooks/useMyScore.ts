@@ -11,6 +11,8 @@ import {
 interface MyScoreFilters {
   mode: MyScoreFilterMode;
   range: MyScoreDateRange;
+  page: number;
+  limit: number;
 }
 
 async function fetchMyScore(filters: MyScoreFilters): Promise<MyScoreResponse> {
@@ -18,6 +20,8 @@ async function fetchMyScore(filters: MyScoreFilters): Promise<MyScoreResponse> {
     params: {
       mode: filters.mode,
       range: filters.range,
+      page: filters.page,
+      limit: filters.limit,
     },
   });
 
@@ -29,5 +33,6 @@ export function useMyScore(filters: MyScoreFilters, enabled = true) {
     queryKey: queryKeys.user.myScore(filters),
     queryFn: () => fetchMyScore(filters),
     enabled,
+    placeholderData: (previousData) => previousData,
   });
 }

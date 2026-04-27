@@ -788,6 +788,8 @@
     "share": "Share",
     "shareSuccess": "Score view link copied to clipboard.",
     "shareError": "Unable to copy score view link.",
+    "paginationInfo": "Showing {{from}}–{{to}} of {{total}}",
+    "pageAriaLabel": "Go to page",
     "empty": "No matches found for the selected filters.",
     "filters": {
       "all": "All",
@@ -802,6 +804,98 @@
       "opponent": "Opponent",
       "myScore": "My Score",
       "opponentScore": "Opponent Score"
+    }
+  },
+  "recordScorePage": {
+    "title": "Record Score",
+    "subtitle": "Choose how you want to capture your match result",
+    "goBack": "Go back",
+    "cards": {
+      "validate": {
+        "title": "Validate Score",
+        "description": "Scan your opponent's QR code to verify and register the result instantly"
+      },
+      "enter": {
+        "title": "Enter Score",
+        "description": "Manually submit your result for tournament fixtures or separate matches"
+      }
+    },
+    "toasts": {
+      "qrComingSoon": "QR camera validation is being connected. Use the shared validation link for now."
+    },
+    "validate": {
+      "title": "Validate Score",
+      "description": "Scan opponent's QR code to verify the match result",
+      "loading": "Validating QR token...",
+      "ready": "QR is valid. Please continue to submit the confirmed score.",
+      "meta": "Validation Details",
+      "match": "Match ID",
+      "tournament": "Tournament ID",
+      "requestBy": "Requested by",
+      "expiresAt": "Expires at",
+      "scanButton": "Scan Opponent's QR Code",
+      "scanHint": "When camera flow is connected, scanning will automatically continue after reading the QR code.",
+      "scannedInfoTitle": "What gets scanned",
+      "scannedInfoBody": "The QR code contains your opponent's player ID, match score results, and the date the score was recorded. After validation, you'll be redirected to submit and complete the match.",
+      "cancel": "Cancel",
+      "confirm": "Validate & Continue",
+      "confirming": "Validating...",
+      "success": "Score confirmed successfully.",
+      "errors": {
+        "noToken": "Open this page from a shared validation link or scan a QR code.",
+        "invalidToken": "This QR token is invalid, expired, or already used.",
+        "confirmFailed": "Failed to confirm score from QR."
+      }
+    },
+    "enter": {
+      "title": "Enter Match Score",
+      "validateTitle": "Validate Match Score",
+      "selectPlaceholder": "Choose tournament or match",
+      "tournamentHint": "Generate QR and ask your opponent to scan and confirm before score is saved.",
+      "confirmModeHint": "You are confirming opponent-shared score. Submit to finalize the match.",
+      "validatedMatchOnlyHint": "This score must be submitted for the validated match only.",
+      "independentHint": "Use this when the match is not part of any tournament.",
+      "independentMatch": "Independent match",
+      "matchTypeLabel": "Scoring preset",
+      "modeSingles": "Singles",
+      "modeDoubles": "Doubles",
+      "matchScores": "Match Scores",
+      "myScore": "My score",
+      "opponentScore": "Opponent's score",
+      "setPlaceholder": "Set {{set}}",
+      "cancel": "Cancel",
+      "submit": "Submit Score",
+      "confirmSubmit": "Confirm Score",
+      "submitting": "Submitting...",
+      "generateQr": "Generate QR",
+      "saveChanges": "Save Changes",
+      "generatingQr": "Generating QR...",
+      "qrGenerated": "QR generated successfully. Ask your opponent to scan and confirm.",
+      "qrGeneratedState": "QR Generated",
+      "qrPreviewTapToEnlarge": "Tap to enlarge",
+      "qrPreviewTitle": "Opponent Validation QR",
+      "qrPreviewEmpty": "Generate a QR first to preview it.",
+      "qrPreviewValidateFallback": "Validate score",
+      "qrPreviewHelp": "Ask your opponent to scan this QR in Validate Score.",
+      "unsavedQrChangesHint": "Scores changed. Save Changes to regenerate the QR and validation link.",
+      "unsavedChangesInline": "unsaved changes",
+      "qrShareTitle": "Share this QR with your opponent for score confirmation.",
+      "openValidationLink": "Open validation link",
+      "qrExpiresAt": "QR expires at: {{expiresAt}}",
+      "liveMatchDetected": "Live match detected in {{tournament}}.",
+      "success": "Score submitted successfully.",
+      "errors": {
+        "invalid": "Please enter valid scores before submitting.",
+        "noLiveMatch": "No live match found. Start an active tournament match first.",
+        "noTournamentMatchSelected": "Please select a tournament match to generate QR.",
+        "independentNoQr": "Independent match is not part of a tournament. QR generation is unavailable.",
+        "qrGenerateFailed": "Could not generate score QR."
+      },
+      "matches": {
+        "tennisTitans": "Tennis Titans Tournament (Pre-selected)",
+        "clubDoublesNight": "Club Doubles Night",
+        "separateIndividual": "Separate Individual Match"
+      }
     }
   },
   "about": {

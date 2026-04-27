@@ -1,129 +1,116 @@
-import { format, parseISO } from "date-fns";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router-dom";
 import { toast } from "sonner";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { getErrorMessage } from "@/lib/errors";
-import { getDateFnsLocale } from "@/lib/dateFnsLocale";
+
 import type {
   MyScoreDateRange,
-  MyScoreEntry,
   MyScoreFilterMode,
 } from "@/models/myScore/types";
+
 import { myScoreDateRangeSchema } from "@/models/myScore/types";
+import { PAGE_SIZE } from "./constants";
+import {
+  MyScoreDesktopTable,
+  MyScoreHeaderControls,
+  MyScoreMobileCards,
+  MyScorePagination,
+  MyScoreSummaryStrip,
+  MyScorePageSkeleton,
+} from "./components";
+import {
+  buildPaginationItems,
+  formatDateForMyScore,
+  formatScoreValue,
+  parseModeFromSearch,
+  parsePageFromSearch,
+  parseRangeFromSearch,
+} from "./helpers";
 import { useMyScore } from "./hooks";
 
-const FILTER_MODES: MyScoreFilterMode[] = ["all", "singles", "doubles"];
-
-const DATE_RANGES: MyScoreDateRange[] = ["last30Days", "allTime"];
-
-function parseModeFromSearch(search: string): MyScoreFilterMode {
-  const rawMode = new URLSearchParams(search).get("mode");
-  return rawMode && FILTER_MODES.includes(rawMode as MyScoreFilterMode)
-    ? (rawMode as MyScoreFilterMode)
-    : "all";
-}
-
-function parseRangeFromSearch(search: string): MyScoreDateRange {
-  const rawRange = new URLSearchParams(search).get("range");
-  const parsedRange = myScoreDateRangeSchema.safeParse(rawRange);
-  return parsedRange.success ? parsedRange.data : "last30Days";
-}
-
-function formatPlayedAt(playedAt: string, language: string): string {
-  try {
-    const parsed = parseISO(playedAt);
-    if (!Number.isFinite(parsed.getTime())) {
-      return "-";
-    }
-
-    return format(parsed, "PP", {
-      locale: getDateFnsLocale(language),
-    });
-  } catch {
-    return "-";
-  }
-}
-
-function formatScore(value: number | null): string {
-  if (value == null || !Number.isFinite(value)) {
-    return "-";
-  }
-
-  return String(value);
-}
-
-function tournamentBadgeLabel(entry: MyScoreEntry): string {
-  const name = entry.tournament.name.trim();
-  if (!name) {
-    return "?";
-  }
-
-  const tokens = name.split(/\s+/).filter(Boolean);
-  const first = tokens[0]?.[0] ?? "?";
-  const second = tokens[1]?.[0] ?? "";
-  return `${first}${second}`.toUpperCase();
-}
-
 export default function MyScorePage() {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const location = useLocation();
+
   const [mode, setMode] = useState<MyScoreFilterMode>(() =>
-    parseModeFromSearch(location.search)
-  );
-  const [range, setRange] = useState<MyScoreDateRange>(() =>
-    parseRangeFromSearch(location.search)
+    parseModeFromSearch(location.search),
   );
 
-  const myScoreQuery = useMyScore({ mode, range });
+  const [range, setRange] = useState<MyScoreDateRange>(() =>
+    parseRangeFromSearch(location.search),
+  );
+
+  const [page, setPage] = useState<number>(() =>
+    parsePageFromSearch(location.search),
+  );
+
+  const myScoreQuery = useMyScore({
+    mode,
+    range,
+    page,
+    limit: PAGE_SIZE,
+  });
+
+  const maxPage = myScoreQuery.data?.pagination.totalPages ?? 1;
+  const effectivePage = Math.min(page, maxPage);
 
   const onShare = async () => {
     try {
       const baseUrl = `${window.location.origin}${window.location.pathname}`;
       const shareUrl = new URL(baseUrl);
+
       shareUrl.searchParams.set("mode", mode);
       shareUrl.searchParams.set("range", range);
-
-      if (!navigator.clipboard || typeof navigator.clipboard.writeText !== "function") {
-        throw new Error("Clipboard API unavailable");
-      }
+      shareUrl.searchParams.set("page", String(effectivePage));
 
       await navigator.clipboard.writeText(shareUrl.toString());
+
       toast.success(t("myScorePage.shareSuccess"));
     } catch {
       toast.error(t("myScorePage.shareError"));
     }
   };
 
+  const pagination = myScoreQuery.data?.pagination;
+  const currentPage = Math.min(page, pagination?.totalPages ?? 1);
+
+  const paginationItems = useMemo(
+    () => buildPaginationItems(currentPage, pagination?.totalPages ?? 1),
+    [currentPage, pagination?.totalPages],
+  );
+
+  const from =
+    pagination?.total === 0
+      ? 0
+      : (currentPage - 1) * (pagination?.limit ?? PAGE_SIZE) + 1;
+
+  const to = Math.min(
+    currentPage * (pagination?.limit ?? PAGE_SIZE),
+    pagination?.total ?? 0,
+  );
+
+  const onPageChange = (nextPage: number) => {
+    if (
+      !pagination ||
+      nextPage < 1 ||
+      nextPage > pagination.totalPages ||
+      nextPage === currentPage
+    ) {
+      return;
+    }
+
+    setPage(nextPage);
+  };
+
   if (myScoreQuery.isLoading) {
-    return (
-      <div className="min-h-[calc(100vh-56px)] bg-[#f8fbf8] px-5 pb-10 pt-[30px] sm:px-6 sm:pt-[45px]">
-        <div className="mx-auto max-w-[992px] rounded-[12px] border border-[rgba(1,10,4,0.08)] bg-white p-6 text-sm text-[#6a6a6a] shadow-[0_3px_15px_rgba(0,0,0,0.06)]">
-          {t("myScorePage.loading")}
-        </div>
-      </div>
-    );
+    return <MyScorePageSkeleton />;
   }
 
   if (myScoreQuery.isError || !myScoreQuery.data) {
     return (
-      <div className="min-h-[calc(100vh-56px)] bg-[#f8fbf8] px-5 pb-10 pt-[30px] sm:px-6 sm:pt-[45px]">
-        <div className="mx-auto max-w-[992px] rounded-[12px] border border-[#f1b3b3] bg-[#fff7f7] p-6 text-sm text-[#a02626] shadow-[0_3px_15px_rgba(0,0,0,0.06)]">
+      <div className="min-h-screen bg-[#dfe2e0] px-4 pb-10 pt-7 sm:px-6">
+        <div className="mx-auto w-full max-w-[1120px] rounded-[10px] border border-[#f1b3b3] bg-[#fff7f7] p-4 text-sm text-[#a02626] shadow-[0_2px_8px_rgba(0,0,0,0.05)]">
           {getErrorMessage(myScoreQuery.error) ?? t("myScorePage.loadError")}
         </div>
       </div>
@@ -133,145 +120,56 @@ export default function MyScorePage() {
   const { summary, entries } = myScoreQuery.data;
 
   return (
-    <div className="min-h-[calc(100vh-56px)] bg-[#f8fbf8] px-5 pb-10 pt-[30px] sm:px-6 sm:pt-[45px] lg:min-h-[calc(100vh-60px)]">
-      <div className="mx-auto max-w-[992px]">
-        <section className="mb-[14px] rounded-[12px] border border-[rgba(1,10,4,0.08)] bg-white px-[18px] py-[14px] shadow-[0_3px_15px_rgba(0,0,0,0.06)]">
-          <div className="grid grid-cols-1 gap-2 text-[18px] sm:grid-cols-3">
-            <p className="font-medium text-[#010a04]">
-              {t("myScorePage.totalMatches")}: <span className="font-bold text-[#0a6925]">{summary.totalMatches}</span>
-            </p>
-            <p className="font-medium text-[#010a04]">
-              {t("myScorePage.totalWins")}: <span className="font-bold text-[#0a6925]">{summary.totalWins}</span>
-            </p>
-            <p className="font-medium text-[#010a04]">
-              {t("myScorePage.glicko3")}: <span className="font-bold text-[#0a6925]">{summary.glicko2.rating}{"\u00B1"}{summary.glicko2.rd}</span>
-            </p>
-          </div>
-        </section>
+    <div className="min-h-screen bg-[#dfe2e0] px-4 pb-10 pt-7 ">
+      <div className="mx-auto w-full max-w-[1120px] min-w-0 space-y-3">
+        <MyScoreSummaryStrip summary={summary} />
 
-        <section className="overflow-hidden rounded-[12px] border border-[rgba(1,10,4,0.08)] bg-white shadow-[0_3px_15px_rgba(0,0,0,0.06)]">
-          <header className="flex flex-col gap-3 px-[16px] py-3 sm:flex-row sm:items-center sm:justify-end sm:px-[18px] lg:justify-between lg:pb-[10px] lg:pt-[18px]">
-            <h1 className="sr-only text-[30px] font-semibold leading-none text-[#010a04] lg:not-sr-only lg:block">
-              {t("myScorePage.title")}
-            </h1>
-            <div className="flex flex-wrap items-center gap-2">
-              <div className="flex h-[30px] items-center rounded-[6px] bg-[#010a04]/[0.05] p-[3px]">
-                {FILTER_MODES.map((value) => {
-                  const selected = mode === value;
+        <MyScoreHeaderControls
+          mode={mode}
+          range={range}
+          onChangeMode={(nextMode) => {
+            setMode(nextMode);
+            setPage(1);
+          }}
+          onChangeRange={(nextRange) => {
+            const parsed = myScoreDateRangeSchema.safeParse(nextRange);
 
-                  return (
-                    <button
-                      key={value}
-                      type="button"
-                      aria-pressed={selected}
-                      onClick={() => setMode(value)}
-                      className={`h-full rounded-[5px] px-3 text-[12px] font-medium transition-colors ${
-                        selected
-                          ? "bg-white text-[#010a04] shadow-[0_0_4px_rgba(0,0,0,0.04),0_4px_8px_rgba(0,0,0,0.06)]"
-                          : "text-[#010a04]/70"
-                      }`}
-                    >
-                      {t(`myScorePage.filters.${value}`)}
-                    </button>
-                  );
-                })}
-              </div>
-
-              <Select
-                value={range}
-                onValueChange={(next) => {
-                  const parsedRange = myScoreDateRangeSchema.safeParse(next);
-                  if (parsedRange.success) {
-                    setRange(parsedRange.data);
-                  }
-                }}
-              >
-                <SelectTrigger className="h-[30px] rounded-[6px] border-[rgba(1,10,4,0.12)] px-[10px] text-[12px]">
-                  <SelectValue placeholder={t("myScorePage.filters.last30Days")} />
-                </SelectTrigger>
-                <SelectContent>
-                  {DATE_RANGES.map((value) => (
-                    <SelectItem key={value} value={value}>
-                      {t(`myScorePage.filters.${value}`)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              <button
-                type="button"
-                onClick={onShare}
-                className="inline-flex h-[30px] items-center justify-center rounded-[8px] bg-[#010a04] px-[15px] text-[12px] font-medium text-white transition-colors hover:bg-[#172017]"
-              >
-                {t("myScorePage.share")}
-              </button>
+            if (parsed.success) {
+              setRange(parsed.data);
+              setPage(1);
+            }
+          }}
+          onShare={onShare}
+        >
+          {entries.length > 0 ? (
+            <>
+              <MyScoreDesktopTable
+                entries={entries}
+                formatPlayedAt={formatDateForMyScore}
+                formatScore={formatScoreValue}
+              />
+              <MyScoreMobileCards
+                entries={entries}
+                formatPlayedAt={formatDateForMyScore}
+                formatScore={formatScoreValue}
+              />
+            </>
+          ) : (
+            <div className="px-6 py-14 text-center">
+              <p className="text-[14px] text-[#010a04]/55">{t("myScorePage.empty")}</p>
             </div>
-          </header>
+          )}
 
-          <div className="overflow-x-auto">
-            {entries.length > 0 ? (
-              <Table className="min-w-[760px] w-full table-fixed border-collapse">
-                <colgroup>
-                  <col className="w-[16%]" />
-                  <col className="w-[32%]" />
-                  <col className="w-[32%]" />
-                  <col className="w-[10%]" />
-                  <col className="w-[10%]" />
-                </colgroup>
-                <TableHeader className="border-b border-[rgba(0,0,0,0.06)] bg-[#010a04]/[0.04]">
-                  <TableRow className="hover:bg-transparent">
-                    <TableHead scope="col" className="h-auto px-[16px] py-2 text-left text-[12px] font-normal text-[#010a04]/80 sm:px-[18px]">
-                      {t("myScorePage.table.date")}
-                    </TableHead>
-                    <TableHead scope="col" className="h-auto px-2 py-2 text-left text-[12px] font-normal text-[#010a04]/80">
-                      {t("myScorePage.table.tournament")}
-                    </TableHead>
-                    <TableHead scope="col" className="h-auto px-2 py-2 text-left text-[12px] font-normal text-[#010a04]/80">
-                      {t("myScorePage.table.opponent")}
-                    </TableHead>
-                    <TableHead scope="col" className="h-auto px-2 py-2 text-left text-[12px] font-normal text-[#010a04]/80">
-                      {t("myScorePage.table.myScore")}
-                    </TableHead>
-                    <TableHead scope="col" className="h-auto px-[16px] py-2 text-left text-[12px] font-normal text-[#010a04]/80 sm:px-[18px]">
-                      {t("myScorePage.table.opponentScore")}
-                    </TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {entries.map((entry) => (
-                    <TableRow key={entry.id} className="border-b border-[rgba(0,0,0,0.06)] text-[14px] text-[#010a04] last:border-b-0 hover:bg-transparent">
-                      <TableCell className="px-[16px] py-[11px] align-middle sm:px-[18px]">
-                        {formatPlayedAt(entry.playedAt, i18n.language)}
-                      </TableCell>
-                      <TableCell className="px-2 py-[11px] align-middle">
-                        <div className="flex min-w-0 items-center gap-2">
-                          <span className="inline-flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-[6px] bg-[#d9d9d9] text-[10px] font-semibold text-[#010a04]/75">
-                            {tournamentBadgeLabel(entry)}
-                          </span>
-                          <p className="truncate">{entry.tournament.name}</p>
-                        </div>
-                      </TableCell>
-                      <TableCell className="px-2 py-[11px] align-middle">
-                        <div className="flex min-w-0 items-center gap-2">
-                          <span className="h-[17px] w-[17px] shrink-0 rounded-full bg-[#d9d9d9]" aria-hidden="true" />
-                          <p className="truncate">{entry.opponent.name}</p>
-                        </div>
-                      </TableCell>
-                      <TableCell className="px-2 py-[11px] align-middle">{formatScore(entry.myScore)}</TableCell>
-                      <TableCell className="px-[16px] py-[11px] align-middle sm:px-[18px]">
-                        {formatScore(entry.opponentScore)}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            ) : (
-              <div className="px-6 py-10 text-center text-[14px] text-[#010a04]/70">
-                {t("myScorePage.empty")}
-              </div>
-            )}
-          </div>
-        </section>
+          <MyScorePagination
+            from={from}
+            to={to}
+            total={pagination?.total ?? 0}
+            currentPage={currentPage}
+            totalPages={pagination?.totalPages ?? 1}
+            items={paginationItems}
+            onPageChange={onPageChange}
+          />
+        </MyScoreHeaderControls>
       </div>
     </div>
   );

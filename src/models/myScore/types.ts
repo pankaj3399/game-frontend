@@ -37,6 +37,12 @@ export const myScoreResponseSchema = z.object({
     mode: myScoreFilterModeSchema,
     range: myScoreDateRangeSchema,
   }),
+  pagination: z.object({
+    page: z.number().int().min(1),
+    limit: z.number().int().min(1),
+    total: z.number().int().min(0),
+    totalPages: z.number().int().min(1),
+  }),
   entries: z.array(myScoreEntrySchema),
 });
 
