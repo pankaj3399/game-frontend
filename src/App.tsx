@@ -12,11 +12,25 @@ const Login = lazy(() => import("./pages/auth/Login"));
 const UserInformation = lazy(() => import("./pages/user/UserInformation"));
 const AuthCallback = lazy(() => import("./pages/auth/AuthCallback"));
 const SettingsPage = lazy(() => import("./pages/profile/SettingsPage"));
-const TournamentListPage = lazy(() => import('./pages/tournaments/TournamentListPage'))
-const TournamentDetailsPage = lazy(() => import('./pages/tournaments/TournamentDetailsPage'))
-const TournamentSchedulePage = lazy(() => import('./pages/tournaments/schedule/TournamentSchedulePage'))
+const TournamentListPage = lazy(
+  () => import("./pages/tournaments/TournamentListPage"),
+);
+const TournamentDetailsPage = lazy(
+  () => import("./pages/tournaments/TournamentDetailsPage"),
+);
+const TournamentSchedulePage = lazy(
+  () => import("./pages/tournaments/schedule/TournamentSchedulePage"),
+);
 const MyScorePage = lazy(() => import("./pages/my-score/MyScorePage"));
-const PlaceholderPage = lazy(() => import("./pages/PlaceholderPage"));
+const RecordScorePage = lazy(
+  () => import("./pages/record-score/RecordScorePage"),
+);
+const EnterMatchScorePage = lazy(
+  () => import("./pages/record-score/EnterMatchScorePage"),
+);
+const ValidateScorePage = lazy(
+  () => import("./pages/record-score/ValidateScorePage"),
+);
 const ClubsListPage = lazy(() => import("./pages/clubs/ClubsListPage"));
 const ClubDetailPage = lazy(() => import("./pages/clubs/ClubDetailPage"));
 const ManageClubPage = lazy(() => import("./pages/clubs/ManageClubPage"));
@@ -68,12 +82,26 @@ function App() {
               }
             >
               <Route path="/profile" element={<SettingsPage />} />
-              
+
               <Route path="/tournaments" element={<TournamentListPage />} />
-              <Route path="/tournaments/:id" element={<TournamentDetailsPage />} />
-              <Route path="/tournaments/:id/schedule" element={<TournamentSchedulePage />} />
+              <Route
+                path="/tournaments/:id"
+                element={<TournamentDetailsPage />}
+              />
+              <Route
+                path="/tournaments/:id/schedule"
+                element={<TournamentSchedulePage />}
+              />
               <Route path="/my-score" element={<MyScorePage />} />
-              <Route path="/record-score" element={<PlaceholderPage />} />
+              <Route path="/record-score" element={<RecordScorePage />} />
+              <Route
+                path="/record-score/manual"
+                element={<EnterMatchScorePage />}
+              />
+              <Route
+                path="/record-score/validate"
+                element={<ValidateScorePage />}
+              />
               <Route path="/clubs/manage" element={<ManageClubPage />} />
               <Route
                 path="/clubs/manage/sponsors/:clubId"

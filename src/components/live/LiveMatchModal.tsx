@@ -1,6 +1,6 @@
 import { type ReactNode, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { toast } from "sonner";
+import { useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { PlayerNameText } from "@/components/shared/PlayerNameText";
 import {
@@ -18,6 +18,15 @@ import { getDateFnsLocale } from "@/lib/dateFnsLocale";
 import type { TournamentLiveMatchItem } from "@/models/tournament/types";
 import { useTournamentLiveMatch, useTournamentMatches } from "@/pages/tournaments/hooks";
 import { parseIsoDateSafely } from "@/utils/date";
+
+const LIVE_MATCH_MODAL_EXCLUDED_PATHS = new Set([
+  "/record-score/manual",
+  "/record-score/validate",
+]);
+
+function shouldSuppressLiveMatchModal(pathname: string): boolean {
+  return LIVE_MATCH_MODAL_EXCLUDED_PATHS.has(pathname);
+}
 
 function playerDisplayName(
   player: { name: string | null; alias: string | null },
@@ -84,18 +93,32 @@ function MatchMetaRow({ label, value, icon }: MatchMetaRowProps) {
   );
 }
 
-function LiveMatchEnterScoreButton({ enterScoreLabel }: { enterScoreLabel: string }) {
-  const { t } = useTranslation();
+function LiveMatchEnterScoreButton({
+  enterScoreLabel,
+  matchId,
+  tournamentId,
+  onNavigateAway,
+}: {
+  enterScoreLabel: string;
+  matchId: string;
+  tournamentId: string | null;
+  onNavigateAway: () => void;
+}) {
+  const navigate = useNavigate();
 
   return (
     <Button
       type="button"
-      // TODO(GAME-582): Restore real score-entry flow from the live modal instead of this temporary stub.
-      onClick={() =>
-        toast.info(t("common.comingSoon"), {
-          id: "live-match-enter-score",
-        })
-      }
+      onClick={() => {
+        onNavigateAway();
+        const params = new URLSearchParams();
+        params.set("matchId", matchId);
+        if (tournamentId) {
+          params.set("tournamentId", tournamentId);
+        }
+        const query = params.toString();
+        navigate(`/record-score/manual${query ? `?${query}` : ""}`);
+      }}
       className="h-11 w-full rounded-[10px] bg-[#067429] text-[15px] font-semibold text-white shadow-sm hover:bg-[#055a21]"
     >
       {enterScoreLabel}
@@ -105,9 +128,11 @@ function LiveMatchEnterScoreButton({ enterScoreLabel }: { enterScoreLabel: strin
 
 export function LiveMatchModal() {
   const { t, i18n } = useTranslation();
+  const { pathname } = useLocation();
   const [dismissedMatchId, setDismissedMatchId] = useState<string | null>(null);
+  const isModalSuppressedForRoute = shouldSuppressLiveMatchModal(pathname);
 
-  const liveMatchQuery = useTournamentLiveMatch(true);
+  const liveMatchQuery = useTournamentLiveMatch(!isModalSuppressedForRoute);
 
   const liveMatch = liveMatchQuery.data?.liveMatch ?? null;
   const nextMatch = liveMatchQuery.data?.nextMatch ?? null;
@@ -115,8 +140,12 @@ export function LiveMatchModal() {
   const liveTournamentId = liveMatch?.tournament.id ?? null;
   const tournamentMatchesQuery = useTournamentMatches(
     liveTournamentId,
-    liveTournamentId !== null
+    !isModalSuppressedForRoute && liveTournamentId !== null
   );
+
+  if (isModalSuppressedForRoute) {
+    return null;
+  }
 
   const liveTimeLabel = formatMatchTime(
     liveMatch?.startTime ?? null,
@@ -239,7 +268,12 @@ export function LiveMatchModal() {
               </div>
             </div>
 
-            <LiveMatchEnterScoreButton enterScoreLabel={t("tournaments.liveModalEnterScore")} />
+            <LiveMatchEnterScoreButton
+              enterScoreLabel={t("tournaments.liveModalEnterScore")}
+              matchId={liveMatch.id}
+              tournamentId={liveTournamentId}
+              onNavigateAway={() => handleOpenChange(false)}
+            />
 
             {nextMatch ? (
               <section className="rounded-[10px] border border-[#e2e8f0] bg-white p-4 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">

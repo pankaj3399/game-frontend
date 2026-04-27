@@ -27,7 +27,9 @@ export interface ScoreSelectOption {
 export const SCORE_SELECT_EMPTY_VALUE = "__DASH__";
 
 const NORMAL_SET_NUMERIC_OPTIONS = [0, 1, 2, 3, 4, 5, 6, 7] as const;
-const TIE_BREAK_LOSER_SCORE_MAX = 97;
+// Keep options realistic and usable in dropdowns; very long deuce tie-breaks are
+// still accepted when already present as current values.
+const TIE_BREAK_LOSER_SCORE_MAX = 21;
 const TIE_BREAK_NUMERIC_OPTIONS = Array.from(
   { length: TIE_BREAK_LOSER_SCORE_MAX + 1 },
   (_, index) => index

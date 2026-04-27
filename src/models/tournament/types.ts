@@ -7,7 +7,7 @@ import { z } from "zod";
 export function wireJsonNullableString() {
   return z.preprocess(
     (val: unknown) => (val === undefined ? null : val),
-    z.union([z.string(), z.null()])
+    z.union([z.string(), z.null()]),
   ).optional().default(null);
 }
 
@@ -23,30 +23,42 @@ export function wireJsonNullableNumber() {
       }
       return null;
     },
-    z.union([z.number(), z.null()])
+    z.union([z.number(), z.null()]),
   ).optional().default(null);
 }
 
 export function wireJsonNullable<T extends z.ZodTypeAny>(schema: T) {
   return z.preprocess(
     (val: unknown) => (val === undefined ? null : val),
-    z.union([schema, z.null()])
+    z.union([schema, z.null()]),
   ).optional().default(null);
 }
 
 export const tournamentStatusSchema = z.enum(["active", "draft"]);
 export const tournamentModeSchema = z.enum(["singleDay", "unscheduled"]);
-export const tournamentPlayModeSchema = z.enum(["TieBreak10", "1set", "3setTieBreak10", "3set", "5set"]);
+export const tournamentPlayModeSchema = z.enum([
+  "TieBreak10",
+  "1set",
+  "3setTieBreak10",
+  "3set",
+  "5set",
+]);
 export const tournamentListViewSchema = z.enum(["published", "drafts"]);
 export const tournamentWhenFilterSchema = z.enum(["future", "past"]);
-export const tournamentDistanceFilterSchema = z.enum(["under50", "between50And80", "over80"]);
+export const tournamentDistanceFilterSchema = z.enum([
+  "under50",
+  "between50And80",
+  "over80",
+]);
 
 export type TournamentStatus = z.infer<typeof tournamentStatusSchema>;
 export type TournamentMode = z.infer<typeof tournamentModeSchema>;
 export type TournamentPlayMode = z.infer<typeof tournamentPlayModeSchema>;
 export type TournamentListView = z.infer<typeof tournamentListViewSchema>;
 export type TournamentWhenFilter = z.infer<typeof tournamentWhenFilterSchema>;
-export type TournamentDistanceFilter = z.infer<typeof tournamentDistanceFilterSchema>;
+export type TournamentDistanceFilter = z.infer<
+  typeof tournamentDistanceFilterSchema
+>;
 
 export const tournamentListClubSchema = z.object({
   id: z.string(),
@@ -90,7 +102,13 @@ export const tournamentPermissionsSchema = z.object({
   isParticipant: z.boolean(),
 });
 
-export const tournamentMatchStatusSchema = z.enum(["completed", "inProgress", "pendingScore", "scheduled", "cancelled"]);
+export const tournamentMatchStatusSchema = z.enum([
+  "completed",
+  "inProgress",
+  "pendingScore",
+  "scheduled",
+  "cancelled",
+]);
 export const tournamentScheduleModeSchema = z.enum(["singles", "doubles"]);
 
 export const tournamentMatchPlayerSchema = tournamentParticipantSchema
@@ -114,7 +132,7 @@ export const tournamentMatchPlayerSchema = tournamentParticipantSchema
       z.object({
         rating: wireJsonNullableNumber(),
         rd: wireJsonNullableNumber(),
-      })
+      }),
     ),
   });
 
@@ -142,6 +160,7 @@ export const tournamentMatchScoreSchema = z.object({
 export const tournamentLiveMatchItemSchema = z.object({
   id: z.string(),
   mode: tournamentScheduleModeSchema,
+  playMode: tournamentPlayModeSchema,
   status: tournamentMatchStatusSchema,
   startTime: z.string().nullable(),
   tournament: z.object({
@@ -156,6 +175,7 @@ export const tournamentLiveMatchItemSchema = z.object({
 export const tournamentLiveMatchResponseSchema = z.object({
   liveMatch: tournamentLiveMatchItemSchema.nullable(),
   nextMatch: tournamentLiveMatchItemSchema.nullable(),
+  matches: z.array(tournamentLiveMatchItemSchema).default([]),
 });
 
 export const recordTournamentMatchScoreInputSchema = z
@@ -163,10 +183,14 @@ export const recordTournamentMatchScoreInputSchema = z
     playerOneScores: z.array(tournamentMatchScoreValueSchema).min(1).max(25),
     playerTwoScores: z.array(tournamentMatchScoreValueSchema).min(1).max(25),
   })
-  .refine((value) => value.playerOneScores.length === value.playerTwoScores.length, {
-    message: "playerOneScores and playerTwoScores must have the same number of sets",
-    path: ["playerTwoScores"],
-  });
+  .refine(
+    (value) => value.playerOneScores.length === value.playerTwoScores.length,
+    {
+      message:
+        "playerOneScores and playerTwoScores must have the same number of sets",
+      path: ["playerTwoScores"],
+    },
+  );
 
 export const recordTournamentMatchScoreResponseSchema = z.object({
   message: z.string(),
@@ -182,8 +206,97 @@ export const recordTournamentMatchScoreResponseSchema = z.object({
       rating: z.number(),
       rd: z.number(),
       vol: z.number(),
-    })
+    }),
   ),
+});
+
+export const generateTournamentScoreQrResponseSchema = z.object({
+  message: z.string(),
+  flow: z.enum(["tournament", "independent"]).optional(),
+  match: z
+    .object({
+      id: z.string(),
+      tournamentId: wireJsonNullableString(),
+    })
+    .optional(),
+  qr: z.object({
+    requestId: z.string(),
+    token: z.string(),
+    dataUrl: z.string(),
+    validationUrl: z.string().url(),
+    expiresAt: z.string(),
+  }),
+});
+
+export const validateTournamentScoreQrResponseSchema = z.object({
+  message: z.string(),
+  valid: z.boolean(),
+  reason: z.string(),
+  request: z
+    .object({
+      id: z.string(),
+      flow: z.enum(["tournament", "independent"]).optional(),
+      tournamentId: wireJsonNullableString(),
+      matchId: z.string(),
+      requestByUserId: z.string(),
+      opponentUserId: wireJsonNullableString(),
+      playerOneScores: z.array(tournamentMatchScoreValueSchema),
+      playerTwoScores: z.array(tournamentMatchScoreValueSchema),
+      playMode: tournamentPlayModeSchema,
+      matchType: tournamentScheduleModeSchema,
+      expiresAt: z.string(),
+    })
+    .nullable(),
+});
+
+export const confirmTournamentScoreQrInputSchema = z
+  .object({
+    token: z.string().trim().min(1),
+  })
+  .strict();
+
+export const confirmTournamentScoreQrResponseSchema = z.object({
+  message: z.string(),
+  match: z.object({
+    id: z.string(),
+    tournamentId: wireJsonNullableString(),
+    status: z.enum(["completed", "pendingScore"]),
+  }),
+  tournamentCompleted: z.boolean(),
+  ratings: z.array(
+    z.object({
+      userId: z.string(),
+      rating: z.number(),
+      rd: z.number(),
+      vol: z.number(),
+    }),
+  ),
+  request: z.object({
+    id: z.string(),
+    consumedAt: z.string(),
+  }),
+});
+
+export const activeTournamentScoreQrSessionResponseSchema = z.object({
+  message: z.string(),
+  session: z
+    .object({
+      requestId: z.string(),
+      token: z.string(),
+      flow: z.enum(["tournament", "independent"]),
+      tournamentId: wireJsonNullableString(),
+      matchId: z.string(),
+      requestByUserId: z.string(),
+      opponentUserId: wireJsonNullableString(),
+      playerOneScores: z.array(tournamentMatchScoreValueSchema),
+      playerTwoScores: z.array(tournamentMatchScoreValueSchema),
+      playMode: tournamentPlayModeSchema,
+      matchType: tournamentScheduleModeSchema,
+      expiresAt: z.string(),
+      validationUrl: z.string().url(),
+      qrDataUrl: z.string(),
+    })
+    .nullable(),
 });
 
 export const tournamentScheduleMatchSchema = z.object({
@@ -219,21 +332,20 @@ export const tournamentMatchesResponseSchema = z.object({
   matches: z.array(tournamentScheduleMatchSchema),
 });
 
-export const tournamentScheduleInputSchema = z
-  .object({
-    matchDurationMinutes: matchDurationMinutesSchema().optional(),
-    breakTimeMinutes: z.number().int().min(0).optional(),
-    matchesPerPlayer: z.number().int().min(1).max(20),
-    startTime: z.string(),
-    mode: tournamentScheduleModeSchema,
-    availableCourts: z.array(
-      z.object({
-        id: z.string(),
-        name: z.string(),
-        selected: z.boolean(),
-      })
-    ),
-  });
+export const tournamentScheduleInputSchema = z.object({
+  matchDurationMinutes: matchDurationMinutesSchema().optional(),
+  breakTimeMinutes: z.number().int().min(0).optional(),
+  matchesPerPlayer: z.number().int().min(1).max(20),
+  startTime: z.string(),
+  mode: tournamentScheduleModeSchema,
+  availableCourts: z.array(
+    z.object({
+      id: z.string(),
+      name: z.string(),
+      selected: z.boolean(),
+    }),
+  ),
+});
 
 export const tournamentScheduleParticipantSchema = z.object({
   id: z.string(),
@@ -302,7 +414,7 @@ export const generateTournamentDoublesPairsResponseSchema = z.object({
     z.object({
       team: z.number().int().min(1),
       players: z.array(tournamentSchedulePairPlayerSchema).length(2),
-    })
+    }),
   ),
   unpaired: z.array(tournamentSchedulePairPlayerSchema),
 });
@@ -334,7 +446,10 @@ function durationMinutesSchema() {
     .int()
     .min(5)
     .max(120)
-    .refine((value) => value % 5 === 0, "duration must be in 5-minute intervals");
+    .refine(
+      (value) => value % 5 === 0,
+      "duration must be in 5-minute intervals",
+    );
 }
 
 function matchDurationMinutesSchema() {
@@ -345,11 +460,13 @@ function matchDurationMinutesSchema() {
     .max(120)
     .refine(
       (value) => value % 5 === 0,
-      "matchDurationMinutes must be in 5-minute intervals"
+      "matchDurationMinutes must be in 5-minute intervals",
     );
 }
 
-function normalizeMemberRange<T extends { minMember: number; maxMember: number }>(value: T): T {
+function normalizeMemberRange<
+  T extends { minMember: number; maxMember: number },
+>(value: T): T {
   const minMember = Math.min(value.minMember, value.maxMember);
   const maxMember = Math.max(value.minMember, value.maxMember);
   return { ...value, minMember, maxMember };
@@ -463,28 +580,30 @@ export const updateTournamentInputSchema = tournamentInputBaseSchema
     {
       path: ["minMember"],
       message: "minMember must be less than or equal to maxMember",
-    }
+    },
   );
 
-export const backendCreateTournamentInputSchema = z.object({
-  club: z.string(),
-  name: z.string(),
-  status: z.enum(["draft", "active"]),
-  sponsor: z.string().optional(),
-  date: z.string().nullable().optional(),
-  startTime: z.string().nullable().optional(),
-  endTime: z.string().nullable().optional(),
-  playMode: tournamentPlayModeSchema,
-  tournamentMode: tournamentModeSchema,
-  entryFee: z.number(),
-  minMember: memberCountSchema,
-  maxMember: memberCountSchema,
-  totalRounds: totalRoundsSchema,
-  duration: durationMinutesSchema(),
-  breakDuration: z.number().int().min(0).max(120),
-  foodInfo: foodInfoSchema.nullable().optional(),
-  descriptionInfo: z.string().nullable().optional(),
-}).transform(normalizeMemberRange);
+export const backendCreateTournamentInputSchema = z
+  .object({
+    club: z.string(),
+    name: z.string(),
+    status: z.enum(["draft", "active"]),
+    sponsor: z.string().optional(),
+    date: z.string().nullable().optional(),
+    startTime: z.string().nullable().optional(),
+    endTime: z.string().nullable().optional(),
+    playMode: tournamentPlayModeSchema,
+    tournamentMode: tournamentModeSchema,
+    entryFee: z.number(),
+    minMember: memberCountSchema,
+    maxMember: memberCountSchema,
+    totalRounds: totalRoundsSchema,
+    duration: durationMinutesSchema(),
+    breakDuration: z.number().int().min(0).max(120),
+    foodInfo: foodInfoSchema.nullable().optional(),
+    descriptionInfo: z.string().nullable().optional(),
+  })
+  .transform(normalizeMemberRange);
 
 export const backendUpdateTournamentInputSchema = z
   .object({
@@ -515,7 +634,7 @@ export const backendUpdateTournamentInputSchema = z
     {
       path: ["minMember"],
       message: "minMember must be less than or equal to maxMember",
-    }
+    },
   );
 
 const createTournamentSummarySchema = z.object({
@@ -581,9 +700,13 @@ export type TournamentListFilters = z.infer<typeof tournamentListFiltersSchema>;
 export type TournamentPagination = z.infer<typeof tournamentPaginationSchema>;
 export type TournamentsResponse = z.infer<typeof tournamentsResponseSchema>;
 export type TournamentDetail = z.infer<typeof backendTournamentDetailSchema>;
-export type TournamentDetailResponse = z.infer<typeof tournamentDetailResponseSchema>;
+export type TournamentDetailResponse = z.infer<
+  typeof tournamentDetailResponseSchema
+>;
 export type TournamentMatchStatus = z.infer<typeof tournamentMatchStatusSchema>;
-export type TournamentScheduleMode = z.infer<typeof tournamentScheduleModeSchema>;
+export type TournamentScheduleMode = z.infer<
+  typeof tournamentScheduleModeSchema
+>;
 export type TournamentMatchPlayer = z.infer<typeof tournamentMatchPlayerSchema>;
 export type TournamentMatchCourt = z.infer<typeof tournamentMatchCourtSchema>;
 export type TournamentScheduleMatch = z.infer<typeof tournamentScheduleMatchSchema>;
@@ -596,6 +719,21 @@ export type RecordTournamentMatchScoreResponse = z.infer<typeof recordTournament
 export type TournamentScheduleInput = z.infer<typeof tournamentScheduleInputSchema>;
 export type TournamentScheduleParticipant = z.infer<typeof tournamentScheduleParticipantSchema>;
 export type TournamentScheduleResponse = z.infer<typeof tournamentScheduleResponseSchema>;
+export type GenerateTournamentScoreQrResponse = z.infer<
+  typeof generateTournamentScoreQrResponseSchema
+>;
+export type ValidateTournamentScoreQrResponse = z.infer<
+  typeof validateTournamentScoreQrResponseSchema
+>;
+export type ConfirmTournamentScoreQrInput = z.infer<
+  typeof confirmTournamentScoreQrInputSchema
+>;
+export type ConfirmTournamentScoreQrResponse = z.infer<
+  typeof confirmTournamentScoreQrResponseSchema
+>;
+export type ActiveTournamentScoreQrSessionResponse = z.infer<
+  typeof activeTournamentScoreQrSessionResponseSchema
+>;
 export type GenerateTournamentScheduleInput = z.infer<typeof generateTournamentScheduleInputSchema>;
 export type GenerateTournamentScheduleResponse = z.infer<typeof generateTournamentScheduleResponseSchema>;
 export type CancelTournamentScheduleRoundResponse = z.infer<
@@ -612,17 +750,35 @@ export type BackendTournamentDetail = z.infer<typeof backendTournamentDetailSche
 export type BackendTournamentDetailResponse = z.infer<typeof backendTournamentDetailResponseSchema>;
 export type CreateTournamentInput = z.infer<typeof createTournamentInputSchema>;
 export type UpdateTournamentInput = z.infer<typeof updateTournamentInputSchema>;
-export type BackendCreateTournamentInput = z.infer<typeof backendCreateTournamentInputSchema>;
-export type BackendUpdateTournamentInput = z.infer<typeof backendUpdateTournamentInputSchema>;
-export type CreateTournamentResponse = z.infer<typeof createTournamentResponseSchema>;
-export type UpdateTournamentResponse = z.infer<typeof updateTournamentResponseSchema>;
-export type JoinTournamentResponse = z.infer<typeof joinTournamentResponseSchema>;
-export type LeaveTournamentResponse = z.infer<typeof leaveTournamentResponseSchema>;
+export type BackendCreateTournamentInput = z.infer<
+  typeof backendCreateTournamentInputSchema
+>;
+export type BackendUpdateTournamentInput = z.infer<
+  typeof backendUpdateTournamentInputSchema
+>;
+export type CreateTournamentResponse = z.infer<
+  typeof createTournamentResponseSchema
+>;
+export type UpdateTournamentResponse = z.infer<
+  typeof updateTournamentResponseSchema
+>;
+export type JoinTournamentResponse = z.infer<
+  typeof joinTournamentResponseSchema
+>;
+export type LeaveTournamentResponse = z.infer<
+  typeof leaveTournamentResponseSchema
+>;
 
-export function isTournamentWhenFilter(value: string): value is TournamentWhenFilter {
+export function isTournamentWhenFilter(
+  value: string,
+): value is TournamentWhenFilter {
   return value === "future" || value === "past";
 }
 
-export function isTournamentDistanceFilter(value: string): value is TournamentDistanceFilter {
-  return value === "under50" || value === "between50And80" || value === "over80";
+export function isTournamentDistanceFilter(
+  value: string,
+): value is TournamentDistanceFilter {
+  return (
+    value === "under50" || value === "between50And80" || value === "over80"
+  );
 }
