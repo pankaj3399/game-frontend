@@ -126,7 +126,12 @@ export function filtersReducer(
         filters: {
           ...state.filters,
           ...action.payload.filters,
-          when: action.payload.filters.when ?? state.filters.when ?? "future",
+          // Respect explicit persisted "all" (when omitted/undefined), and only
+          // fall back to current/default when "when" was not provided at all.
+          when:
+            "when" in action.payload.filters
+              ? action.payload.filters.when
+              : state.filters.when ?? "future",
           page: 1,
         },
       };

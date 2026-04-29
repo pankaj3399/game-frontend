@@ -119,6 +119,8 @@ export function useMapboxSearch(searchQuery: string) {
     const currentRequestId = requestIdRef.current;
 
     if (!trimmed) {
+      // Avoid triggering cascading renders by updating state here
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setResults([]);
       setIsLoading(false);
       setError(null);

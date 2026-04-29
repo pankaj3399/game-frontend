@@ -64,8 +64,6 @@ export const tournamentSponsorSchema = z.object({
 export const tournamentCourtSchema = z.object({
   id: z.string(),
   name: z.string(),
-  type: z.string().nullable(),
-  placement: z.string().nullable(),
 });
 
 export const tournamentParticipantSchema = z.object({
@@ -189,6 +187,9 @@ export const tournamentScheduleMatchSchema = z.object({
   ]),
   side1: tournamentMatchSideSchema,
   side2: tournamentMatchSideSchema,
+  isHistorical: z.boolean().optional(),
+  detachedFromRound: wireJsonNullableNumber().optional(),
+  detachedFromSlot: wireJsonNullableNumber().optional(),
 });
 
 export const tournamentScheduleInfoSchema = z.object({

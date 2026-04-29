@@ -49,6 +49,10 @@ export function MatchScheduleCard({
   const tbd = t("tournaments.scheduledTbd");
   const { date: dateLabel, time: timeLabel } = matchScheduleDateTimeLabels(match.startTime, locale, tbd);
   const columns = scoreColumns(match);
+  const historicalBadgeLabel = t("tournaments.matchHistoricalBadge", {
+    round: match.detachedFromRound ?? "?",
+    defaultValue: "From previous round (R{{round}})",
+  });
 
   const isLive = match.status === "inProgress";
   const isPendingScore = match.status === "pendingScore";
@@ -107,9 +111,14 @@ export function MatchScheduleCard({
         )}
       </div>
 
-      {/* Status badge */}
-      {hasStatusBadge && (
-        <div className="mb-3 flex min-h-[26px] items-center">
+      {/* Historical + status badges */}
+      {(match.isHistorical || hasStatusBadge) && (
+        <div className="mb-3 flex min-h-[26px] flex-wrap items-center gap-2">
+          {match.isHistorical && (
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-[#eef2ff] px-2.5 py-1 text-[11px] font-medium text-[#1e3a8a]">
+              {historicalBadgeLabel}
+            </span>
+          )}
           {isLive && (
             <span className="inline-flex items-center gap-1.5 rounded-full bg-[#ffeee9] px-2.5 py-1 text-[11px] font-medium text-[#d92100]">
               <span className="h-1.5 w-1.5 rounded-full bg-[#d92100]" />

@@ -157,7 +157,9 @@ export function useTournamentSchedulePageController({
     () => (matchesQuery.data?.matches ?? []).filter((match) => match.round === round),
     [matchesQuery.data?.matches, round]
   );
-  const isReschedulingExistingRound = roundMatches.length > 0;
+  // Prefer server schedule summary to detect rescheduling even if match list doesn't include everything yet.
+  const isReschedulingExistingRound =
+    roundMatches.length > 0 || (summaryCurrentRound > 0 && round <= summaryCurrentRound);
   const hasRecordedScoresInRound = useMemo(
     () =>
       roundMatches.some((match: TournamentScheduleMatch) => {
@@ -167,7 +169,7 @@ export function useTournamentSchedulePageController({
       }),
     [roundMatches]
   );
-  const scoredMatchesCount = useMemo(
+  const scoredMatchesCountBase = useMemo(
     () =>
       roundMatches.filter((match: TournamentScheduleMatch) => {
         const p1 = match.score.playerOneScores?.length ?? 0;
@@ -176,6 +178,34 @@ export function useTournamentSchedulePageController({
       }).length,
     [roundMatches]
   );
+
+  // Backend emits a deterministic confirmation-required message when a reschedule would overwrite scored matches
+  // unless `allowRescheduleWithScores` is confirmed.
+  const RESCHEDULE_WITH_SCORES_CONFIRMATION_PREFIX =
+    "RESCHEDULE_WITH_SCORES_CONFIRMATION_REQUIRED:";
+
+  const parseBackendRescheduleConfirmation = (
+    message: string
+  ): { round: number; scoredMatches: number } | null => {
+    // Example message:
+    // RESCHEDULE_WITH_SCORES_CONFIRMATION_REQUIRED: Round 2 has 3 scored match(es). Confirm ...
+    const escapedPrefix = RESCHEDULE_WITH_SCORES_CONFIRMATION_PREFIX.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const match = message.match(
+      new RegExp(
+        `${escapedPrefix}\\s*Round\\s+(\\d+)\\s+has\\s+(\\d+)\\s+scored match(?:\\(es\\))?`,
+        "i"
+      )
+    );
+    if (!match) return null;
+
+    return {
+      round: Number.parseInt(match[1], 10),
+      scoredMatches: Number.parseInt(match[2], 10),
+    };
+  };
+
+  const [backendScoredMatchesCountOverride, setBackendScoredMatchesCountOverride] = useState<number | null>(null);
+  const scoredMatchesCount = backendScoredMatchesCountOverride ?? scoredMatchesCountBase;
 
   const canSubmit =
     selectedCourtIds.length > 0 &&
@@ -409,35 +439,48 @@ export function useTournamentSchedulePageController({
       return;
     }
 
-    if (isReschedulingExistingRound && hasRecordedScoresInRound) {
-      setIsRescheduleWarningOpen(true);
-      return;
-    }
-
     try {
       await submitGenerateSchedule(false);
     } catch (error: unknown) {
+      const message = getErrorMessage(error) ?? null;
+      if (
+        message &&
+        message.startsWith(RESCHEDULE_WITH_SCORES_CONFIRMATION_PREFIX)
+      ) {
+        const parsed = parseBackendRescheduleConfirmation(message);
+        if (parsed && parsed.round === round) {
+          setBackendScoredMatchesCountOverride(parsed.scoredMatches);
+          setIsRescheduleWarningOpen(true);
+          return;
+        }
+      }
+
       toast.error(getErrorMessage(error) ?? t("tournaments.scheduleGenerateError"));
     }
   }, [
-    hasRecordedScoresInRound,
     id,
     isReschedulingExistingRound,
     scheduleRoundGate,
     submitGenerateSchedule,
+    round,
+    parseBackendRescheduleConfirmation,
+    RESCHEDULE_WITH_SCORES_CONFIRMATION_PREFIX,
     t,
   ]);
 
   const onCancelRescheduleWarning = useCallback(() => {
     setIsRescheduleWarningOpen(false);
+    setBackendScoredMatchesCountOverride(null);
   }, []);
 
   const onConfirmRescheduleWarning = useCallback(async () => {
     if (!id) {
       setIsRescheduleWarningOpen(false);
+      setBackendScoredMatchesCountOverride(null);
       return;
     }
     try {
+      setBackendScoredMatchesCountOverride(null);
       await submitGenerateSchedule(true);
       setIsRescheduleWarningOpen(false);
     } catch (error: unknown) {

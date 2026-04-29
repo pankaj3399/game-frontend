@@ -220,7 +220,9 @@ export function TournamentScheduleConfigCard({
         >
           {isGenerating
             ? t("tournaments.scheduleGenerating")
-            : t("tournaments.scheduleGenerateButton")}
+            : isReschedulingExistingRound
+              ? t("tournaments.scheduleRescheduleWarningConfirm")
+              : t("tournaments.scheduleGenerateButton")}
         </Button>
         {scheduleRoundGate.blocked && !isReschedulingExistingRound ? (
           <p className="mt-2 text-[12px] text-[#a02626]">

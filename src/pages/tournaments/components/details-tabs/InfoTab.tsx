@@ -72,9 +72,8 @@ export function InfoTab({
             />
 
             <ClubInfo
+              clubId={club?.id}
               clubName={club?.name ?? t("tournaments.unknownClub")}
-              canEdit={tournament.permissions.canEdit}
-              onEdit={() => setIsEditModalOpen(true)}
               onGetDirection={
                 club
                   ? () => {

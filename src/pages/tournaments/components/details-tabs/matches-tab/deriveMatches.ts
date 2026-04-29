@@ -1,5 +1,5 @@
 import { isValid, parseISO, type Locale } from "date-fns";
-import type { TournamentScheduleMatch } from "@/models/tournament/types";
+import type { TournamentDetail, TournamentScheduleMatch } from "@/models/tournament/types";
 import { teamSideDisplayName } from "@/pages/tournaments/schedule/utils/matchTeamDisplay";
 import { withBracketedElo } from "./ratingSummary";
 import type { DerivedMatch, MatchCounts, MatchStatus } from "./types";
@@ -136,6 +136,7 @@ export function statusClassName(status: MatchStatus) {
 /* -------------------------------------------------------------------------- */
 
 export function buildMatchViewModel(
+  tournament: TournamentDetail,
   matches: TournamentScheduleMatch[],
   currentUserId: string | null,
   t: (key: string, options?: Record<string, unknown>) => string,
@@ -164,13 +165,22 @@ export function buildMatchViewModel(
     );
 
     const court = match.court;
-    const courtName =
+
+    // Tournament detail may provide court metadata; prefer it when match.court.name is missing/empty.
+    const detailedCourt =
+      tournament.courts.find((item) => item.name === court.name) ??
+      (court.id ? tournament.courts.find((item) => item.id === court.id) : null) ??
+      null;
+    const courtLabel =
       court.name?.trim() ||
+      detailedCourt?.name?.trim() ||
       (typeof court.number === "number"
         ? t("tournaments.courtFallback", { number: court.number })
         : null) ||
       court.id?.trim() ||
       t("tournaments.courtTBD");
+    // Matches UI now shows only court name next to the location icon.
+    const locationNameText = courtLabel;
 
     const playerA = withBracketedElo(
       teamSideDisplayName(match, 0, t),
@@ -189,7 +199,8 @@ export function buildMatchViewModel(
       mode: match.mode ?? "singles",
       playerA,
       playerB,
-      courtName,
+      courtLabel,
+      locationNameText,
       status: match.status,
       round: match.round,
       isMine,

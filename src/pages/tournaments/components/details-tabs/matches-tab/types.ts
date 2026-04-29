@@ -7,7 +7,8 @@ export interface DerivedMatch {
   mode: TournamentScheduleMode;
   playerA: string;
   playerB: string;
-  courtName: string;
+  courtLabel: string;
+  locationNameText: string;
   status: MatchStatus;
   round: number;
   isMine: boolean;
