@@ -20,17 +20,28 @@ import {
 import useMatchEditor from "@/pages/tournaments/schedule/hooks/useMatchEditor";
 import usePersistMatchScore from "@/pages/tournaments/schedule/hooks/usePersistMatchScore";
 import type {
-  RecordTournamentMatchScoreResponse,
   TournamentMatchesResponse,
   TournamentScheduleMatch,
   GenerateTournamentScheduleInput,
 } from "@/models/tournament/types";
 import { MatchScheduleCard } from "@/pages/tournaments/schedule/components/MatchScheduleCard";
 import { buildMatchSchedulePageModel } from "@/pages/tournaments/schedule/utils/matchScheduleViewModel";
+import { pickLatestMatchesData } from "@/pages/tournaments/schedule/utils/pickLatestMatchesData";
 // score row type is internal to editor hook; not needed here
 import { capCourtsForParticipants } from "@/pages/tournaments/schedule/helpers/scheduleParticipants";
 import MatchScheduleSkeleton from "./components/MatchScheduleSkeleton";
 import { RoundLoadingSkeleton } from "./components/RoundLoadingSkeleton";
+
+const RESCHEDULE_WITH_SCORES_CONFIRMATION_PREFIX =
+  "RESCHEDULE_WITH_SCORES_CONFIRMATION_REQUIRED:";
+const ESCAPED_RESCHEDULE_PREFIX = RESCHEDULE_WITH_SCORES_CONFIRMATION_PREFIX.replace(
+  /[.*+?^${}()|[\]\\]/g,
+  "\\$&"
+);
+const RESCHEDULE_WITH_SCORES_CONFIRMATION_REGEX = new RegExp(
+  `${ESCAPED_RESCHEDULE_PREFIX}\\s*Round\\s+(\\d+)\\s+has\\s+(\\d+)\\s+scored match`,
+  "i"
+);
 
 // ---------------------------------------------------------------------------
 // Page
@@ -95,25 +106,16 @@ export default function TournamentMatchSchedulePage() {
     },
   });
   
-  const RESCHEDULE_WITH_SCORES_CONFIRMATION_PREFIX =
-    "RESCHEDULE_WITH_SCORES_CONFIRMATION_REQUIRED:";
-
   const parseBackendRescheduleConfirmation = useCallback(
     (message: string): { round: number; scoredMatches: number } | null => {
-      const escapedPrefix = RESCHEDULE_WITH_SCORES_CONFIRMATION_PREFIX.replace(
-        /[.*+?^${}()|[\]\\]/g,
-        "\\$&"
-      );
-      const match = message.match(
-        new RegExp(`${escapedPrefix}\\s*Round\\s+(\\d+)\\s+has\\s+(\\d+)\\s+scored match`, "i")
-      );
+      const match = message.match(RESCHEDULE_WITH_SCORES_CONFIRMATION_REGEX);
       if (!match) return null;
       return {
         round: Number.parseInt(match[1], 10),
         scoredMatches: Number.parseInt(match[2], 10),
       };
     },
-    [RESCHEDULE_WITH_SCORES_CONFIRMATION_PREFIX]
+    []
   );
 
   const buildReschedulePayload = useCallback(
@@ -303,39 +305,6 @@ export default function TournamentMatchSchedulePage() {
     !scheduleQuery.isError;
 
   
-
-  const mergeMutationResultIntoMatches = (
-    base: TournamentMatchesResponse | null | undefined,
-    mutationResult: RecordTournamentMatchScoreResponse | undefined
-  ): TournamentMatchesResponse | null => {
-    if (!base || !mutationResult) return base ?? null;
-    return {
-      ...base,
-      matches: base.matches.map((match) =>
-        match.id === mutationResult.match.id
-          ? ({
-              ...match,
-              status: mutationResult.match.status,
-            } as TournamentScheduleMatch)
-          : match
-      ),
-    };
-  };
-
-  const pickLatestMatchesData = (args: {
-    refetchData?: TournamentMatchesResponse;
-    mutationResult?: RecordTournamentMatchScoreResponse;
-    cacheData?: TournamentMatchesResponse;
-  }): TournamentMatchesResponse | undefined => {
-    if (args.refetchData) return args.refetchData;
-    const mergedFromMutation = mergeMutationResultIntoMatches(
-      args.cacheData,
-      args.mutationResult
-    );
-    if (mergedFromMutation) return mergedFromMutation;
-    return args.cacheData;
-  };
-
   // Persistence is handled via `usePersistMatchScore` and `useMatchEditor` callbacks.
 
   const handleToggleInlineEdit = async (match: TournamentScheduleMatch) => {

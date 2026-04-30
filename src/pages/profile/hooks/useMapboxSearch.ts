@@ -60,8 +60,7 @@ async function searchMapbox(
     placeName: f.properties.name ?? "",
     fullAddress:
       f.properties.full_address ??
-      [f.properties.name, f.properties.place_formatted].filter(Boolean).join(", ") ??
-      "",
+      [f.properties.name, f.properties.place_formatted].filter(Boolean).join(", "),
     coordinates: f.geometry.coordinates,
   }));
 }

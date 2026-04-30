@@ -11,6 +11,7 @@ import type {
   TournamentScheduleMatch,
 } from "@/models/tournament/types";
 import { buildScorePayload, type ScoreEditorRow } from "@/pages/tournaments/schedule/utils/matchScheduleScore";
+import { pickLatestMatchesData } from "@/pages/tournaments/schedule/utils/pickLatestMatchesData";
 
 type PersistScoreResult = {
   ok: boolean;
@@ -33,38 +34,6 @@ export function usePersistMatchScore({
   const [savingMatchId, setSavingMatchId] = useState<string | null>(null);
   const [saveErrorsByMatchId, setSaveErrorsByMatchId] = useState<Record<string, string>>({});
   const inFlightRef = useRef<Map<string, Promise<PersistScoreResult>>>(new Map());
-
-  const mergeMutationResultIntoMatches = useCallback(
-    (
-      base: TournamentMatchesResponse | null | undefined,
-      mutationResult: RecordTournamentMatchScoreResponse | undefined
-    ): TournamentMatchesResponse | null => {
-      if (!base || !mutationResult) return base ?? null;
-      return {
-        ...base,
-        matches: base.matches.map((match) =>
-          match.id === mutationResult.match.id
-            ? ({
-                ...match,
-                status: mutationResult.match.status,
-              } as TournamentScheduleMatch)
-            : match
-        ),
-      };
-    },
-    []
-  );
-
-  const pickLatestMatchesData = useCallback((args: {
-    refetchData?: TournamentMatchesResponse;
-    mutationResult?: RecordTournamentMatchScoreResponse;
-    cacheData?: TournamentMatchesResponse;
-  }): TournamentMatchesResponse | undefined => {
-    if (args.refetchData) return args.refetchData;
-    const mergedFromMutation = mergeMutationResultIntoMatches(args.cacheData, args.mutationResult);
-    if (mergedFromMutation) return mergedFromMutation;
-    return args.cacheData;
-  }, [mergeMutationResultIntoMatches]);
 
   const persistMatchScore = useCallback(
     async (match: TournamentScheduleMatch, rows: ScoreEditorRow[], trackPerMatchState: boolean): Promise<PersistScoreResult> => {
@@ -130,7 +99,7 @@ export function usePersistMatchScore({
         }
       }
     },
-    [matchesQuery, pickLatestMatchesData, queryClient, recordScoreMutation, t, tournament]
+    [matchesQuery, queryClient, recordScoreMutation, t, tournament]
   );
 
   return {
