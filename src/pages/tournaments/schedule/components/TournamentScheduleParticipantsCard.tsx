@@ -29,14 +29,22 @@ export function TournamentScheduleParticipantsCard({
   onReorderParticipant,
 }: TournamentScheduleParticipantsCardProps) {
   const { t } = useTranslation();
+  const unpairedCount = mode === "doubles" && doublesPairs ? doublesPairs.unpaired.length : 0;
 
   return (
     <div className="rounded-[12px] border border-[rgba(1,10,4,0.08)] bg-white px-[15px] py-5 shadow-[0_3px_15px_rgba(0,0,0,0.06)] sm:px-5">
       <div className="mb-4 flex flex-col gap-3 sm:mb-3">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
-          <h3 className="text-[20px] font-medium text-[#010a04]">
-            {t("tournaments.scheduleParticipantsTitle")}
-          </h3>
+          <div className="flex flex-wrap items-center gap-2">
+            <h3 className="text-[20px] font-medium text-[#010a04]">
+              {t("tournaments.scheduleParticipantsTitle")}
+            </h3>
+            {unpairedCount > 0 ? (
+              <span className="inline-flex items-center rounded-full border border-[#067429]/20 bg-[#f2fbf4] px-2.5 py-1 text-[12px] font-medium text-[#067429]">
+                {t("tournaments.scheduleUnpairedMembersCount", { count: unpairedCount })}
+              </span>
+            ) : null}
+          </div>
           <SchedulePlayingModeControl
             mode={mode}
             doublesLocked={participants.length < 2 && mode !== "doubles"}

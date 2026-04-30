@@ -1,8 +1,9 @@
-import { useState } from "react";
-import { Link, Navigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Navigate,useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/api/queryKeys";
 import { useTranslation } from "react-i18next";
+import { TW_BREAKPOINT_LG_PX, useMinWidth } from "@/lib/hooks/useMediaQuery";
 import {
   useAdminClubs,
   useClubStaff,
@@ -66,7 +67,9 @@ function deriveSubscriptionStatus(
 
 export default function ManageClubPage() {
   const { t } = useTranslation();
+  const isDesktop = useMinWidth(TW_BREAKPOINT_LG_PX, { defaultValue: true });
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const hasSuperAdminAccess = useHasRoleOrAbove(ROLES.SUPER_ADMIN);
   const { user } = useAuth();
   const {
@@ -86,6 +89,7 @@ export default function ManageClubPage() {
   const [editingMember, setEditingMember] = useState<ClubStaffMember | null>(null);
   const [removingMember, setRemovingMember] = useState<ClubStaffMember | null>(null);
   const [requestRenewalModalOpen, setRequestRenewalModalOpen] = useState(false);
+  const [pendingClubId, setPendingClubId] = useState<string | null>(null);
 
   const clubs = adminClubsData?.clubs ?? [];
   const subscriptionsByClubId = new Map(
@@ -129,6 +133,12 @@ export default function ManageClubPage() {
     setPremiumExpiryModalOpen,
   } = useManageClubState(isSidebarDataLoading ? [] : clubsWithSubscriptionStatus);
 
+  useEffect(() => {
+    if (pendingClubId === effectiveClubId) {
+      setPendingClubId(null);
+    }
+  }, [effectiveClubId, pendingClubId]);
+
   const { data: staffData, isLoading: staffLoading } = useClubStaff(
     isSidebarDataLoading ? null : effectiveClubId
   );
@@ -137,6 +147,8 @@ export default function ManageClubPage() {
     effectiveClubId !== null &&
     staffLoading &&
     staffData === undefined;
+  const isSwitchingClubOnMobile =
+    !isDesktop && pendingClubId !== null && pendingClubId !== effectiveClubId;
   const requestClubSubscriptionRenewal =
     useRequestClubSubscriptionRenewal(effectiveClubId);
   const updateClubSubscription = useUpdateClubSubscription(effectiveClubId);
@@ -372,12 +384,20 @@ export default function ManageClubPage() {
   return (
     <div className="flex min-h-[calc(100vh-60px)] justify-center bg-[#f8fbf8] px-6 py-[22px]">
       <div className="flex w-full max-w-[1088px] flex-col gap-[25px]">
-        <Link
-          to="/clubs"
+        <button
+          type="button"
+          onClick={() => {
+            if (isDesktop || mobileView === "clubs") {
+              navigate("/clubs");
+            } else {
+              // mobileView === "staff" on mobile → go back to clubs view
+              setMobileView("clubs");
+            }
+          }}
           className="inline-flex w-fit items-center gap-1 text-sm font-medium text-muted-foreground hover:text-foreground"
         >
           ← {t("clubs.goBack")}
-        </Link>
+        </button>
         <div className="flex flex-col gap-[25px] lg:flex-row lg:gap-[34px]">
         {!clubsLoading && clubsError && adminClubsData != null && (
           <div className="rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive" role="alert">
@@ -411,6 +431,9 @@ export default function ManageClubPage() {
               statusFilter={statusFilter}
               onStatusFilterChange={setStatusFilter}
               onClubSelect={(clubId) => {
+                if (!isDesktop) {
+                  setPendingClubId(clubId);
+                }
                 setSelectedClubId(clubId);
                 setMobileView("staff");
                 void queryClient.invalidateQueries({
@@ -432,7 +455,7 @@ export default function ManageClubPage() {
                 <div className="flex flex-col items-center justify-center py-16 text-center">
                   <p className="text-muted-foreground">{t("manageClub.selectClubToManage")}</p>
                 </div>
-              ) : isInitialClubDetailLoading ? (
+              ) : isInitialClubDetailLoading || isSwitchingClubOnMobile ? (
                 <MainContentSkeleton />
               ) : (
                 <>

@@ -147,7 +147,7 @@ export function TournamentTable({
 
       <div className="hidden overflow-x-auto border-y border-black/10 lg:block">
         <Table className="min-w-[860px] table-fixed">
-          <TableCaption className="sr-only">{listHeading}</TableCaption>
+          <TableCaption className="sr-only text-lg">{listHeading}</TableCaption>
           <TableHeader>
             <TableRow className="h-[35px] border-black/10 bg-black/5 hover:bg-black/5">
               <TableHead className="h-[35px] w-12 px-4 py-0 text-left text-xs font-normal text-foreground/80">

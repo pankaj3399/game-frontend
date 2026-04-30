@@ -1,7 +1,7 @@
 import { Link, Navigate, useParams, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useState } from "react";
-import { ChevronLeft, Share2 } from "@/icons/figma-icons";
+import { ChevronLeft, PencilEdit01Icon, Share2 } from "@/icons/figma-icons";
 import { Upload01Icon } from "@/icons/figma-icons";
 import { Button } from "@/components/ui/button";
 import {
@@ -18,6 +18,7 @@ import { useAuth } from "@/pages/auth/hooks";
 import { TournamentDetailsPageSkeleton } from "@/pages/tournaments/components/TournamentDetailsLoadingSkeletons";
 import { TournamentDetailsTabs } from "@/pages/tournaments/components/details-tabs/TournamentDetailsTabs";
 import { resolveTournamentDetailsTab } from "@/pages/tournaments/components/details-tabs/tabConfig";
+import { CreateTournamentModal } from "@/pages/tournaments/components/CreateTournamentModal";
 import {
   useTournamentById,
   useJoinTournament,
@@ -78,6 +79,7 @@ export default function TournamentDetailsPage() {
   const [searchParams] = useSearchParams();
   const { user } = useAuth();
   const [showLeaveWoConfirm, setShowLeaveWoConfirm] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
   const joinTournament = useJoinTournament();
   const leaveTournament = useLeaveTournament();
   const updateTournament = useUpdateTournament();
@@ -112,6 +114,7 @@ export default function TournamentDetailsPage() {
 
   const tournament = data.tournament;
   const sponsorWebsiteUrl = tournament.sponsor ? getSafeLink(tournament.sponsor.link) : null;
+  const canEditTournament = tournament.permissions.canEdit;
   const onParticipationAction = async () => {
     const isParticipant = tournament.permissions.isParticipant;
 
@@ -233,34 +236,55 @@ export default function TournamentDetailsPage() {
           </div>
         </div>
 
-        <div className="flex flex-col gap-5 pb-3 sm:gap-6 sm:pb-4 lg:flex-row lg:items-start lg:justify-between">
-          <div className="flex min-w-0 items-center gap-4 sm:gap-5">
-            <div className="flex h-10 w-10 shrink-0 overflow-hidden rounded-[10px] bg-[#e4dbcc]">
-              <img src="/tennis-ball.png" alt="" className="h-full w-full object-cover" />
+        <div className="flex flex-col gap-5 pb-3 sm:gap-6 sm:pb-4 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex w-full min-w-0 flex-1 items-center justify-between gap-4 sm:gap-5">
+            <div className="flex min-w-0 items-center gap-4 sm:gap-5">
+              <div className="flex h-10 w-10 shrink-0 overflow-hidden rounded-[10px] bg-[#e4dbcc]">
+                <img src="/tennis-ball.png" alt="" className="h-full w-full object-cover" />
+              </div>
+              <h1 className="truncate text-[20px] font-semibold leading-[1.2] text-[#010a04] sm:text-[26px] lg:text-[34px]">
+                {tournament.name}
+              </h1>
             </div>
-            <h1 className="truncate text-[20px] font-semibold leading-[1.2] text-[#010a04] sm:text-[26px] lg:text-[34px]">
-              {tournament.name}
-            </h1>
+            
+            {canEditTournament && (
+              <Button
+                type="button"
+                size="sm"
+                onClick={() => setShowEditModal(true)}
+                className="h-8 shrink-0 gap-1.5 rounded-[10px] bg-brand-primary px-3 text-[13px] font-medium text-white hover:bg-brand-primary/90"
+              >
+                <PencilEdit01Icon size={14} className="text-white" />
+                {t("tournaments.editInfo")}
+              </Button>
+            )}
           </div>
 
-          {tournament.sponsor ? (
-            <div className="flex flex-wrap items-center gap-3 self-start pt-0.5 sm:pt-1">
-              <p className="text-[14px] font-normal text-[#010a04]/60">{t("tournaments.sponsoredBy")}:</p>
+          <div className="flex flex-wrap items-center justify-start gap-3 lg:justify-end">
+            {tournament.sponsor ? (
               <div className="flex min-w-0 items-center gap-[10px]">
+                <p className="text-[14px] font-normal text-[#010a04]/60">{t("tournaments.sponsoredBy")}:</p>
                 <TournamentHeaderSponsorLogo
                   sponsor={tournament.sponsor}
                   websiteUrl={sponsorWebsiteUrl}
                   t={t}
                 />
               </div>
-            </div>
-          ) : null}
+            ) : null}
+          </div>
         </div>
 
         <TournamentDetailsTabs
           tournament={tournament}
           currentUserId={user?.id ?? null}
           onParticipationAction={onParticipationAction}
+        />
+
+        <CreateTournamentModal
+          open={showEditModal}
+          onOpenChange={setShowEditModal}
+          mode="edit"
+          tournamentId={tournament.id}
         />
 
         <AlertDialog open={showLeaveWoConfirm} onOpenChange={setShowLeaveWoConfirm}>

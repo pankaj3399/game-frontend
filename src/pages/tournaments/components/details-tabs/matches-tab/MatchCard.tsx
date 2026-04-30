@@ -48,8 +48,8 @@ export function MatchCard({ match, t }: MatchCardProps) {
     "relative flex size-5 shrink-0 items-center justify-center rounded-full border border-border bg-muted text-[10px] font-semibold leading-none text-foreground ring-2 ring-background";
 
   return (
-    <div className="rounded-[12px] border border-border bg-card p-4">
-      <div className="flex items-start gap-3">
+    <div className="flex h-full flex-col rounded-[12px] border border-border bg-card p-4">
+      <div className="flex flex-1 items-start gap-3">
         <div
           className="mt-0.5 flex shrink-0"
           aria-hidden
@@ -80,18 +80,18 @@ export function MatchCard({ match, t }: MatchCardProps) {
               </span>
             </span>
           </p>
-
-          <div className="mt-3 flex items-center gap-2">
-            <span
-              className={`rounded px-2 py-0.5 text-[11px] font-semibold ${statusClassName(match.status)}`}
-            >
-              {t(MATCH_STATUS_KEYS[match.status])}
-            </span>
-            <span className="rounded bg-foreground px-2 py-0.5 text-[11px] font-semibold text-background">
-              {t("tournaments.roundNumber", { round: match.round })}
-            </span>
-          </div>
         </div>
+      </div>
+
+      <div className="ml-8 mt-auto flex items-center gap-2 pt-3">
+        <span
+          className={`rounded px-2 py-0.5 text-[11px] font-semibold ${statusClassName(match.status)}`}
+        >
+          {t(MATCH_STATUS_KEYS[match.status])}
+        </span>
+        <span className="rounded bg-foreground px-2 py-0.5 text-[11px] font-semibold text-background">
+          {t("tournaments.roundNumber", { round: match.round })}
+        </span>
       </div>
     </div>
   );

@@ -6,13 +6,12 @@ import { enUS } from "date-fns/locale";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import RescheduleWarningDialog from "@/pages/tournaments/schedule/components/RescheduleWarningDialog";
 import { getErrorMessage } from "@/lib/errors";
 import { getDateFnsLocale } from "@/lib/dateFnsLocale";
 import { queryKeys } from "@/lib/api/queryKeys";
 import { ChevronLeft, IconPlus } from "@/icons/figma-icons";
 import {
-  useGenerateTournamentSchedule,
+  useCancelTournamentScheduleRound,
   useTournamentSchedule,
   useTournamentById,
   useTournamentMatches,
@@ -22,26 +21,13 @@ import usePersistMatchScore from "@/pages/tournaments/schedule/hooks/usePersistM
 import type {
   TournamentMatchesResponse,
   TournamentScheduleMatch,
-  GenerateTournamentScheduleInput,
 } from "@/models/tournament/types";
 import { MatchScheduleCard } from "@/pages/tournaments/schedule/components/MatchScheduleCard";
 import { buildMatchSchedulePageModel } from "@/pages/tournaments/schedule/utils/matchScheduleViewModel";
 import { pickLatestMatchesData } from "@/pages/tournaments/schedule/utils/pickLatestMatchesData";
 // score row type is internal to editor hook; not needed here
-import { capCourtsForParticipants } from "@/pages/tournaments/schedule/helpers/scheduleParticipants";
 import MatchScheduleSkeleton from "./components/MatchScheduleSkeleton";
 import { RoundLoadingSkeleton } from "./components/RoundLoadingSkeleton";
-
-const RESCHEDULE_WITH_SCORES_CONFIRMATION_PREFIX =
-  "RESCHEDULE_WITH_SCORES_CONFIRMATION_REQUIRED:";
-const ESCAPED_RESCHEDULE_PREFIX = RESCHEDULE_WITH_SCORES_CONFIRMATION_PREFIX.replace(
-  /[.*+?^${}()|[\]\\]/g,
-  "\\$&"
-);
-const RESCHEDULE_WITH_SCORES_CONFIRMATION_REGEX = new RegExp(
-  `${ESCAPED_RESCHEDULE_PREFIX}\\s*Round\\s+(\\d+)\\s+has\\s+(\\d+)\\s+scored match`,
-  "i"
-);
 
 // ---------------------------------------------------------------------------
 // Page
@@ -54,9 +40,6 @@ export default function TournamentMatchSchedulePage() {
   const [searchParams] = useSearchParams();
 
   const [isCreatingNextRound, setIsCreatingNextRound] = useState(false);
-  const [isRescheduleWarningOpen, setIsRescheduleWarningOpen] = useState(false);
-  const [rescheduleScoredMatchesCount, setRescheduleScoredMatchesCount] = useState(0);
-  const [rescheduleTargetRound, setRescheduleTargetRound] = useState<number | null>(null);
   const parsedRound = Number.parseInt(searchParams.get("round") ?? "1", 10);
   const selectedRoundFromQuery = Number.isFinite(parsedRound) && parsedRound > 0 ? parsedRound : 1;
 
@@ -75,14 +58,11 @@ export default function TournamentMatchSchedulePage() {
     [t]
   );
 
-  const queryClient = useQueryClient();
   const tournamentQuery = useTournamentById(id ?? null, Boolean(id));
   const matchesQuery = useTournamentMatches(id ?? null, Boolean(id));
   const scheduleQuery = useTournamentSchedule(id ?? null, Boolean(id));
-  const generateScheduleMutation = useGenerateTournamentSchedule();
-  const tournamentMode = tournamentQuery.data?.tournament?.tournamentMode;
-  const tournamentDuration = tournamentQuery.data?.tournament?.duration;
-  const tournamentBreakDuration = tournamentQuery.data?.tournament?.breakDuration;
+  const cancelRoundMutation = useCancelTournamentScheduleRound();
+  const queryClient = useQueryClient();
 
   const persistHook = usePersistMatchScore({
     tournament: tournamentQuery.data?.tournament,
@@ -105,160 +85,31 @@ export default function TournamentMatchSchedulePage() {
       return res.ok;
     },
   });
-  
-  const parseBackendRescheduleConfirmation = useCallback(
-    (message: string): { round: number; scoredMatches: number } | null => {
-      const match = message.match(RESCHEDULE_WITH_SCORES_CONFIRMATION_REGEX);
-      if (!match) return null;
-      return {
-        round: Number.parseInt(match[1], 10),
-        scoredMatches: Number.parseInt(match[2], 10),
-      };
-    },
-    []
-  );
-
-  const buildReschedulePayload = useCallback(
-    (allowRescheduleWithScores: boolean, roundOverride?: number): GenerateTournamentScheduleInput | null => {
-      const scheduleInput = scheduleQuery.data?.scheduleInput;
-      const participants = scheduleQuery.data?.participants ?? [];
-      if (!scheduleInput || participants.length === 0) return null;
-
-      const round = roundOverride ?? 1;
-
-      const selectedCourtIds = (scheduleInput.availableCourts ?? [])
-        .filter((c) => c.selected)
-        .map((c) => c.id);
-
-      const effectiveCourtIds = capCourtsForParticipants(
-        selectedCourtIds,
-        scheduleInput.mode,
-        participants.length
-      );
-
-      if (effectiveCourtIds.length < 1) {
-        return null;
-      }
-
-      const participantOrder = participants
-        .slice()
-        .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
-        .map((p) => p.id);
-
-      if (participantOrder.length < 2) {
-        return null;
-      }
-
-      return {
-        round,
-        mode: scheduleInput.mode,
-        matchesPerPlayer: scheduleInput.matchesPerPlayer,
-        startTime: scheduleInput.startTime,
-        courtIds: effectiveCourtIds,
-        participantOrder,
-        ...(tournamentMode === "singleDay"
-          ? {
-              matchDurationMinutes: scheduleInput.matchDurationMinutes ?? tournamentDuration ?? 60,
-              breakTimeMinutes: scheduleInput.breakTimeMinutes ?? tournamentBreakDuration ?? 5,
-            }
-          : {}),
-        allowRescheduleWithScores,
-      };
-    },
-    [scheduleQuery.data, tournamentBreakDuration, tournamentDuration, tournamentMode]
-  );
-
-  const onCancelRescheduleWarning = useCallback(() => {
-    setIsRescheduleWarningOpen(false);
-    setRescheduleScoredMatchesCount(0);
-    setRescheduleTargetRound(null);
-  }, []);
-
-  const syncTournamentStateAfterReschedule = useCallback(
-    async (tournamentId: string) => {
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: queryKeys.tournament.schedule(tournamentId) }),
-        queryClient.invalidateQueries({ queryKey: queryKeys.tournament.matches(tournamentId) }),
-        queryClient.invalidateQueries({ queryKey: queryKeys.tournament.detail(tournamentId) }),
-      ]);
-    },
-    [queryClient]
-  );
-
-  const onConfirmRescheduleWarning = useCallback(async () => {
-    if (!id) return;
-    const round = rescheduleTargetRound ?? selectedRoundFromQuery;
-    const payload = buildReschedulePayload(true, round);
-    if (!payload) {
-      toast.error(i18nText.scheduleGenerateError);
-      onCancelRescheduleWarning();
-      return;
-    }
-
-    try {
-      await generateScheduleMutation.mutateAsync({ id, payload });
-      await syncTournamentStateAfterReschedule(id);
-      setIsRescheduleWarningOpen(false);
-      setRescheduleTargetRound(null);
-      toast.success(t("tournaments.scheduleGenerated", { round: payload.round }));
-      navigate(`/tournaments/${id}/match-schedule?round=${payload.round}`);
-    } catch (error: unknown) {
-      toast.error(getErrorMessage(error) ?? i18nText.scheduleGenerateError);
-    }
-  }, [
-    buildReschedulePayload,
-    generateScheduleMutation,
-    i18nText.scheduleGenerateError,
-    id,
-    navigate,
-    onCancelRescheduleWarning,
-    rescheduleTargetRound,
-    syncTournamentStateAfterReschedule,
-    t,
-    selectedRoundFromQuery,
-  ]);
 
   const onStartReschedule = useCallback(async () => {
     if (!id) return;
     const round = selectedRoundFromQuery;
-    const payload = buildReschedulePayload(false, round);
-    if (!payload || payload.participantOrder.length < 2) {
-      toast.error(i18nText.scheduleGenerateError);
+    const activeRound = matchesQuery.data?.schedule.currentRound;
+
+    if (activeRound != null && round !== activeRound) {
+      toast.error(t("tournaments.scheduleRoundCancelError"));
       return;
     }
 
-    setRescheduleTargetRound(round);
-    setIsRescheduleWarningOpen(false);
     try {
-      await generateScheduleMutation.mutateAsync({ id, payload });
-      await syncTournamentStateAfterReschedule(id);
-      toast.success(t("tournaments.scheduleGenerated", { round }));
-      navigate(`/tournaments/${id}/match-schedule?round=${round}`);
+      await cancelRoundMutation.mutateAsync({ id, round });
+      toast.success(t("tournaments.scheduleRoundCancelled", { round }));
+      navigate(`/tournaments/${id}/schedule?round=${round}`);
     } catch (error: unknown) {
-      const message = getErrorMessage(error) ?? "";
-      const parsed = parseBackendRescheduleConfirmation(message);
-      if (
-        message.startsWith(RESCHEDULE_WITH_SCORES_CONFIRMATION_PREFIX) &&
-        parsed &&
-        parsed.round === round
-      ) {
-        setRescheduleScoredMatchesCount(parsed.scoredMatches);
-        setIsRescheduleWarningOpen(true);
-        return;
-      }
-
-      toast.error(getErrorMessage(error) ?? i18nText.scheduleGenerateError);
+      toast.error(getErrorMessage(error) ?? t("tournaments.scheduleRoundCancelError"));
     }
   }, [
-    buildReschedulePayload,
-    generateScheduleMutation,
-    i18nText.scheduleGenerateError,
+    cancelRoundMutation,
     id,
     navigate,
-    parseBackendRescheduleConfirmation,
-    syncTournamentStateAfterReschedule,
     t,
     selectedRoundFromQuery,
+    matchesQuery.data?.schedule.currentRound,
   ]);
 
   if (!id) return <Navigate to="/tournaments" replace />;
@@ -389,19 +240,6 @@ export default function TournamentMatchSchedulePage() {
 
   return (
     <div className="mx-auto w-full max-w-5xl px-4 pb-12 pt-8 sm:px-6">
-      <RescheduleWarningDialog
-        open={isRescheduleWarningOpen}
-        onOpenChange={(nextOpen) => {
-          if (!nextOpen) onCancelRescheduleWarning();
-        }}
-        round={rescheduleTargetRound ?? view.selectedRound}
-        scoredMatches={rescheduleScoredMatchesCount}
-        isPending={generateScheduleMutation.isPending}
-        onCancel={onCancelRescheduleWarning}
-        onConfirm={() => void onConfirmRescheduleWarning()}
-        t={t}
-      />
-
       {/* Header */}
       <div className="mb-6 flex items-center gap-2.5 sm:gap-3">
         <Button
@@ -445,7 +283,7 @@ export default function TournamentMatchSchedulePage() {
                     variant="outline"
                     onClick={() => void onStartReschedule()}
                     disabled={
-                      generateScheduleMutation.isPending ||
+                      cancelRoundMutation.isPending ||
                       isCreatingNextRound ||
                       isPersisting ||
                       savingMatchId != null ||

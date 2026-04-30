@@ -45,6 +45,16 @@ export function requiredSetCountForPlayMode(playMode: TournamentPlayMode): numbe
   return 1;
 }
 
+function setsNeededToWin(playMode: TournamentPlayMode): number {
+  if (playMode === "5set") {
+    return 3;
+  }
+  if (playMode === "3set" || playMode === "3setTieBreak10") {
+    return 2;
+  }
+  return 1;
+}
+
 export function scoreColumns(match: TournamentScheduleMatch): ScoreColumn[] {
   const playerOneScores = match.score.playerOneScores;
   const playerTwoScores = match.score.playerTwoScores;
@@ -186,39 +196,8 @@ function constrainedOppositeScores(
     return [null];
   }
 
-  if (rule === "normal") {
-    if (selectedValue <= 4) {
-      return [6];
-    }
-    if (selectedValue === 5) {
-      return [7];
-    }
-    if (selectedValue === 6) {
-      return [0, 1, 2, 3, 4, 7];
-    }
-    if (selectedValue === 7) {
-      return [5, 6];
-    }
-    return [];
-  }
-
-  if (selectedValue <= 8) {
-    return [10];
-  }
-  if (selectedValue === 9) {
-    return [11];
-  }
-  const deuceWinner = selectedValue;
-  const validLoserScores = [0, 1, 2, 3, 4, 5, 6, 7, 8];
-  if (deuceWinner > 8) {
-    const deuceOpposites = [deuceWinner - 2, deuceWinner - 1].filter(
-      (value) => value >= 0 && value <= 99
-    );
-    return uniqueScoreValues([...validLoserScores, ...deuceOpposites]).filter(
-      (value): value is number => typeof value === "number"
-    );
-  }
-  return validLoserScores;
+  const candidateScores = rule === "normal" ? NORMAL_SET_NUMERIC_OPTIONS : TIE_BREAK_NUMERIC_OPTIONS;
+  return candidateScores.filter((candidate) => normalizeNumericSetPair(rule, selectedValue, candidate));
 }
 
 function baseOptionsForRule(rule: ScoreSetRule): Array<MatchScoreValue | null> {
@@ -343,6 +322,64 @@ export function createScoreEditorRows(match: TournamentScheduleMatch): ScoreEdit
   return rows;
 }
 
+function resolveSetWinnerFromValues(
+  first: MatchScoreValue,
+  second: MatchScoreValue,
+  setRule: ScoreSetRule
+): ScoreWinnerSide {
+  if (first === "wo" && second !== "wo") {
+    return "two";
+  }
+  if (second === "wo" && first !== "wo") {
+    return "one";
+  }
+  if (typeof first === "number" && typeof second === "number" && normalizeNumericSetPair(setRule, first, second)) {
+    return first > second ? "one" : "two";
+  }
+  return null;
+}
+
+export function visibleScoreEditorRows(
+  rows: ScoreEditorRow[],
+  playMode: TournamentPlayMode
+): ScoreEditorRow[] {
+  const maxSetCount = requiredSetCountForPlayMode(playMode);
+  const targetSetWins = setsNeededToWin(playMode);
+  let playerOneSetWins = 0;
+  let playerTwoSetWins = 0;
+
+  for (let index = 0; index < Math.min(rows.length, maxSetCount); index += 1) {
+    const row = rows[index];
+    if (!row) break;
+
+    const first = parseScoreInputValue(row.playerOne.trim());
+    const second = parseScoreInputValue(row.playerTwo.trim());
+    if (first == null || second == null) {
+      return rows.slice(0, index + 1);
+    }
+    if (first === "wo" && second === "wo") {
+      return rows.slice(0, index + 1);
+    }
+
+    const setWinner = resolveSetWinnerFromValues(first, second, scoreRuleForSet(playMode, index));
+    if (setWinner == null) {
+      return rows.slice(0, index + 1);
+    }
+
+    if (setWinner === "one") {
+      playerOneSetWins += 1;
+    } else {
+      playerTwoSetWins += 1;
+    }
+
+    if (playerOneSetWins >= targetSetWins || playerTwoSetWins >= targetSetWins) {
+      return rows.slice(0, index + 1);
+    }
+  }
+
+  return rows.slice(0, maxSetCount);
+}
+
 export interface ScorePayloadBuildResult {
   ok: boolean;
   playerOneScores: MatchScoreValue[];
@@ -356,6 +393,7 @@ export function buildScorePayload(
   t: (key: string, options?: Record<string, unknown>) => string
 ): ScorePayloadBuildResult {
   const requiredRows = requiredSetCountForPlayMode(playMode);
+  const requiredSetWins = setsNeededToWin(playMode);
 
   if (rows.length === 0 || requiredRows < 1) {
     return {
@@ -366,17 +404,10 @@ export function buildScorePayload(
     };
   }
 
-  if (rows.length < requiredRows) {
-    return {
-      ok: false,
-      playerOneScores: [],
-      playerTwoScores: [],
-      message: t("tournaments.scoreEditorIncomplete"),
-    };
-  }
-
   const playerOneScores: MatchScoreValue[] = [];
   const playerTwoScores: MatchScoreValue[] = [];
+  let playerOneSetWins = 0;
+  let playerTwoSetWins = 0;
 
   for (let index = 0; index < requiredRows; index += 1) {
     const row = rows[index];
@@ -444,6 +475,17 @@ export function buildScorePayload(
 
     playerOneScores.push(first);
     playerTwoScores.push(second);
+
+    const setWinner = resolveSetWinnerFromValues(first, second, setRule);
+    if (setWinner === "one") {
+      playerOneSetWins += 1;
+    } else if (setWinner === "two") {
+      playerTwoSetWins += 1;
+    }
+
+    if (playerOneSetWins >= requiredSetWins || playerTwoSetWins >= requiredSetWins) {
+      break;
+    }
   }
 
   if (playerOneScores.length === 0 || playerTwoScores.length === 0) {
@@ -452,6 +494,15 @@ export function buildScorePayload(
       playerOneScores: [],
       playerTwoScores: [],
       message: t("tournaments.scoreEditorNoSets"),
+    };
+  }
+
+  if (playerOneSetWins < requiredSetWins && playerTwoSetWins < requiredSetWins) {
+    return {
+      ok: false,
+      playerOneScores: [],
+      playerTwoScores: [],
+      message: t("tournaments.scoreEditorIncomplete"),
     };
   }
 

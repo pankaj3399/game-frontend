@@ -1,8 +1,6 @@
-import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { TournamentDetail } from "@/models/tournament/types";
 import { TabsContent } from "@/components/ui/tabs";
-import { CreateTournamentModal } from "@/pages/tournaments/components/CreateTournamentModal";
 import { ClubInfo } from "./info-tab/ClubInfo";
 import { DescriptionSection } from "./info-tab/DescriptionSection";
 import { FoodSection } from "./info-tab/FoodSection";
@@ -22,7 +20,6 @@ export function InfoTab({
   onParticipationAction,
 }: InfoTabProps) {
   const { t, i18n } = useTranslation();
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const descriptionExpansion = useExpandable(true);
   const playersExpansion = useExpandable(true);
   const {
@@ -109,13 +106,17 @@ export function InfoTab({
           </section>
 
           <FoodSection hasFoodInfo={hasFoodInfo} foodInfoTrimmed={foodInfoTrimmed} t={t} />
-
+          
           <PlayersList
+            key={tournament.id}
+            tournamentId={tournament.id}
             participants={tournament.participants}
             participantSummary={participantSummary}
             hasParticipants={hasParticipants}
             isPlayersCollapsible={isPlayersCollapsible}
             isPlayersListExpanded={isPlayersExpanded}
+            canEditPairs={tournament.permissions.canEdit}
+            isCurrentUserParticipant={tournament.permissions.isParticipant}
             onToggle={togglePlayersExpanded}
             t={t}
           />
@@ -126,17 +127,9 @@ export function InfoTab({
           tournament={tournament}
           spotPercentage={spotPercentage}
           onParticipationAction={onParticipationAction}
-          onEdit={() => setIsEditModalOpen(true)}
           t={t}
         />
       </div>
-
-      <CreateTournamentModal
-        open={isEditModalOpen}
-        onOpenChange={setIsEditModalOpen}
-        mode="edit"
-        tournamentId={tournament.id}
-      />
     </TabsContent>
   );
 }

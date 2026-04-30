@@ -23,7 +23,9 @@ export function ClubsListHeader({
   return (
     <div className="flex flex-col gap-3">
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-        <h1 className="text-xl font-semibold text-foreground">{t("clubs.allClubs")}</h1>
+        <h1 className="sr-only text-xl font-semibold text-foreground lg:not-sr-only lg:block">
+          {t("clubs.allClubs")}
+        </h1>
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
           <div className="relative w-full sm:w-[320px] lg:w-[360px]">
             <Input

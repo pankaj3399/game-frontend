@@ -30,14 +30,13 @@ import {
 } from "@/components/ui/table";
 import {
   DragDropVerticalIcon,
-  IconPlus,
   PencilEdit01Icon,
   Delete01Icon,
+  UserCircle2,
 } from "@/icons/figma-icons";
 import { cn } from "@/lib/utils";
 import type {
   GenerateTournamentDoublesPairsResponse,
-  TournamentSchedulePairPlayer,
   TournamentScheduleMode,
 } from "@/models/tournament/types";
 import type { ScheduleParticipantRow } from "../helpers/scheduleParticipants";
@@ -47,18 +46,13 @@ interface ScheduleParticipantsTableProps {
   mode: TournamentScheduleMode;
   participants: ScheduleParticipantRow[];
   doublesPairs: GenerateTournamentDoublesPairsResponse | null;
-  /** True while doubles pairs are being requested; shows layout skeletons instead of a loading label on the tab. */
   doublesPairsLoading?: boolean;
   onRemoveParticipant: (id: string) => void;
   onReorderParticipant: (activeId: string, overId: string) => void;
   onEditParticipant: (id: string) => void;
 }
 
-function playerToneClass(player: TournamentSchedulePairPlayer): string {
-  return avatarToneClass(`${player.id}:${player.alias ?? player.name ?? ""}`);
-}
-
-function participantToneClass(participant: ScheduleParticipantRow): string {
+function participantToneClass(participant: Pick<ScheduleParticipantRow, "id" | "alias" | "name">): string {
   return avatarToneClass(`${participant.id}:${participant.alias ?? participant.name ?? ""}`);
 }
 
@@ -68,28 +62,6 @@ function glickoSkillLevel(participant: ScheduleParticipantRow) {
     ? Math.round(participant.rd)
     : 200;
   return `${rating}±${rd}`;
-}
-
-interface DoublesPlayerChipProps {
-  player: TournamentSchedulePairPlayer;
-  fallbackName: string;
-}
-
-function DoublesPlayerChip({ player, fallbackName }: DoublesPlayerChipProps) {
-  const displayName = player.alias ?? player.name ?? fallbackName;
-
-  return (
-    <div className="flex min-w-0 flex-1 items-center gap-3">
-      <span
-        className={`flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-full bg-gradient-to-br ${playerToneClass(
-          player
-        )} text-[11px] font-semibold text-[#010a04]/80`}
-      >
-        {initialsFromName(displayName)}
-      </span>
-      <PlayerNameText name={displayName} className="text-[14px] font-medium text-[#010a04]" focusable />
-    </div>
-  );
 }
 
 function DoublesPairSkeleton({ index }: { index: number }) {
@@ -368,52 +340,50 @@ export function ScheduleParticipantsTable({
               Array.isArray(teamRow.players) && teamRow.players.length > 1
                 ? teamRow.players[1]
                 : null;
-
             return (
               <article
                 key={teamRow.id}
                 className="animate-in fade-in zoom-in-95 rounded-[10px] border border-[rgba(0,0,0,0.12)] px-[15px] py-[15px] duration-300 fill-mode-both"
               >
-                <p className="mb-3.5 text-[12px] font-medium uppercase text-[#010a04]/70">
+                <p className="mb-3 text-[12px] font-medium uppercase text-[#010a04]/70">
                   {t("tournaments.schedulePairLabel", { n: teamRow.teamNumber })}
                 </p>
-                <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3.5">
-                  {firstPlayer ? (
-                    <DoublesPlayerChip
-                      player={firstPlayer}
-                      fallbackName={t("tournaments.unknownPlayer")}
-                    />
-                  ) : (
-                    <span className="truncate text-[14px] font-medium text-[#010a04]/55">
-                      {t("tournaments.unknownPlayer")}
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex min-w-0 items-center gap-2.5">
+                    <div
+                      className={`flex h-[32px] w-[32px] shrink-0 items-center justify-center rounded-full bg-gradient-to-br ${participantToneClass(
+                        firstPlayer ?? { id: "unknown", alias: null, name: null }
+                      )}`}
+                    >
+                      <UserCircle2 size={24} className="text-white/80" />
+                    </div>
+                    <span className="min-w-0 leading-tight">
+                      <span className="block truncate text-[14px] font-medium text-[#010a04]">
+                        {firstPlayer?.alias ?? firstPlayer?.name ?? t("tournaments.unknownPlayer")}
+                      </span>
                     </span>
-                  )}
-                  <IconPlus size={15} className="text-[#010a04]/60" />
-                  {secondPlayer ? (
-                    <DoublesPlayerChip
-                      player={secondPlayer}
-                      fallbackName={t("tournaments.unknownPlayer")}
-                    />
-                  ) : (
-                    <span className="truncate text-[14px] font-medium text-[#010a04]/55">
-                      {t("tournaments.unknownPlayer")}
+                  </div>
+                  <span className="shrink-0 text-[14px] font-medium text-[#010a04]/40">+</span>
+                  <div className="flex min-w-0 items-center gap-2.5">
+                    <div
+                      className={`flex h-[32px] w-[32px] shrink-0 items-center justify-center rounded-full bg-gradient-to-br ${participantToneClass(
+                        secondPlayer ?? { id: "unknown", alias: null, name: null }
+                      )}`}
+                    >
+                      <UserCircle2 size={24} className="text-white/80" />
+                    </div>
+                    <span className="min-w-0 leading-tight">
+                      <span className="block truncate text-[14px] font-medium text-[#010a04]">
+                        {secondPlayer?.alias ?? secondPlayer?.name ?? t("tournaments.unknownPlayer")}
+                      </span>
                     </span>
-                  )}
+                  </div>
                 </div>
               </article>
             );
           })}
         </div>
 
-        {doublesPairs.unpaired.length > 0 ? (
-          <div className="rounded-[10px] border border-dashed border-[#010a04]/20 bg-[#010a04]/[0.02] px-4 py-3 text-[13px] text-[#010a04]/75">
-            {t("tournaments.scheduleUnpairedList", {
-              names: doublesPairs.unpaired
-                .map((player) => player.alias ?? player.name ?? t("tournaments.unknownPlayer"))
-                .join(", "),
-            })}
-          </div>
-        ) : null}
       </div>
     );
   }

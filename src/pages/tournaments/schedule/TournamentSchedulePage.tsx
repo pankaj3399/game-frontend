@@ -127,7 +127,7 @@ export default function TournamentSchedulePage() {
         mode={controller.mode}
         participants={controller.participants}
         doublesPairs={controller.doublesPairs}
-        doublesPairsLoading={controller.generateDoublesPairsMutation.isPending}
+        doublesPairsLoading={false}
         onPlayingModeChange={controller.onPlayingModeChange}
         onEditParticipant={() => controller.onEditParticipant()}
         onRemoveParticipant={controller.onRemoveParticipant}

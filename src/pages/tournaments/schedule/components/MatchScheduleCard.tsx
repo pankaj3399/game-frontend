@@ -14,6 +14,7 @@ import {
   getScoreSelectOptions,
   SCORE_SELECT_EMPTY_VALUE,
   scoreColumns,
+  visibleScoreEditorRows,
   type ScoreEditorRow,
 } from "@/pages/tournaments/schedule/utils/matchScheduleScore";
 import { teamSideDisplayName } from "@/pages/tournaments/schedule/utils/matchTeamDisplay";
@@ -49,6 +50,7 @@ export function MatchScheduleCard({
   const tbd = t("tournaments.scheduledTbd");
   const { date: dateLabel, time: timeLabel } = matchScheduleDateTimeLabels(match.startTime, locale, tbd);
   const columns = scoreColumns(match);
+  const editableRowsToRender = visibleScoreEditorRows(editableRows, match.playMode);
   const historicalBadgeLabel = t("tournaments.matchHistoricalBadge", {
     round: match.detachedFromRound ?? "?",
     defaultValue: "From previous round (R{{round}})",
@@ -62,7 +64,7 @@ export function MatchScheduleCard({
   return (
     <article
       className={cn(
-        "rounded-[14px] border px-4 py-4",
+        "flex h-full min-h-[172px] flex-col rounded-[14px] border px-4 py-4",
         isLive
           ? "border-[#067429] bg-[#eef8f1]"
           : isPendingScore
@@ -111,46 +113,20 @@ export function MatchScheduleCard({
         )}
       </div>
 
-      {/* Historical + status badges */}
-      {(match.isHistorical || hasStatusBadge) && (
-        <div className="mb-3 flex min-h-[26px] flex-wrap items-center gap-2">
-          {match.isHistorical && (
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-[#eef2ff] px-2.5 py-1 text-[11px] font-medium text-[#1e3a8a]">
-              {historicalBadgeLabel}
-            </span>
-          )}
-          {isLive && (
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-[#ffeee9] px-2.5 py-1 text-[11px] font-medium text-[#d92100]">
-              <span className="h-1.5 w-1.5 rounded-full bg-[#d92100]" />
-              {t("tournaments.liveLabel")}
-            </span>
-          )}
-          {isPendingScore && (
-            <span className="inline-flex items-center rounded-full bg-[#fef3c7] px-2.5 py-1 text-[11px] font-medium text-[#b45309]">
-              {t("tournaments.matchStatusPendingScore")}
-            </span>
-          )}
-          {isCancelled && (
-            <span className="inline-flex items-center rounded-full bg-[#010a04]/[0.06] px-2.5 py-1 text-[11px] font-medium text-[#010a04]/50">
-              {t("tournaments.matchStatusCancelled")}
-            </span>
-          )}
-        </div>
-      )}
+      <div className="flex min-h-0 flex-1 flex-col">
+        {saveErrorMessage && (
+          <p className="mb-2.5 rounded-[8px] bg-[#fff1f1] px-3 py-2 text-[12px] font-medium text-[#a02626]" role="status" aria-live="polite">
+            {saveErrorMessage}
+          </p>
+        )}
 
-      {saveErrorMessage && (
-        <p className="mb-2.5 rounded-[8px] bg-[#fff1f1] px-3 py-2 text-[12px] font-medium text-[#a02626]" role="status" aria-live="polite">
-          {saveErrorMessage}
-        </p>
-      )}
-
-      {/* Score editor (inline) */}
-      {isEditing && canEditScores ? (
-        <div className="flex flex-col gap-0.5">
+        {/* Score editor (inline) */}
+        {isEditing && canEditScores ? (
+          <div className="flex flex-col gap-0.5">
           {/* Set labels */}
-          {editableRows.length > 0 && (
+          {editableRowsToRender.length > 0 && (
             <div className="mb-1 flex justify-end gap-1 pr-2.5">
-              {editableRows.map((_, i) => (
+              {editableRowsToRender.map((_, i) => (
                 <span
                   key={`${match.id}-set-lbl-${i}`}
                   className="w-16 text-center text-[9px] font-semibold uppercase tracking-[0.05em] text-[#010a04]/40"
@@ -182,7 +158,7 @@ export function MatchScheduleCard({
                 </div>
 
                 <div className="flex shrink-0 items-center gap-1">
-                  {editableRows.map((row, rowIndex) => {
+                  {editableRowsToRender.map((row, rowIndex) => {
                     const value = sideKey === "playerOne" ? row.playerOne : row.playerTwo;
                     const options = getScoreSelectOptions(row, sideKey, match.playMode, rowIndex);
                     return (
@@ -211,17 +187,45 @@ export function MatchScheduleCard({
               </div>
             );
           })}
+          </div>
+        ) : (
+          <MatchCardReadOnlyRows
+            matchId={match.id}
+            tone={tone}
+            columns={columns}
+            rows={[
+              { name: firstPlayer, side: "one" },
+              { name: secondPlayer, side: "two" },
+            ]}
+          />
+        )}
+      </div>
+
+      {/* Historical + status badges */}
+      {(match.isHistorical || hasStatusBadge) && (
+        <div className="mt-auto flex min-h-[26px] flex-wrap items-center gap-2 pt-3">
+          {match.isHistorical && (
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-[#eef2ff] px-2.5 py-1 text-[11px] font-medium text-[#1e3a8a]">
+              {historicalBadgeLabel}
+            </span>
+          )}
+          {isLive && (
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-[#ffeee9] px-2.5 py-1 text-[11px] font-medium text-[#d92100]">
+              <span className="h-1.5 w-1.5 rounded-full bg-[#d92100]" />
+              {t("tournaments.liveLabel")}
+            </span>
+          )}
+          {isPendingScore && (
+            <span className="inline-flex items-center rounded-full bg-[#fef3c7] px-2.5 py-1 text-[11px] font-medium text-[#b45309]">
+              {t("tournaments.matchStatusPendingScore")}
+            </span>
+          )}
+          {isCancelled && (
+            <span className="inline-flex items-center rounded-full bg-[#010a04]/[0.06] px-2.5 py-1 text-[11px] font-medium text-[#010a04]/50">
+              {t("tournaments.matchStatusCancelled")}
+            </span>
+          )}
         </div>
-      ) : (
-        <MatchCardReadOnlyRows
-          matchId={match.id}
-          tone={tone}
-          columns={columns}
-          rows={[
-            { name: firstPlayer, side: "one" },
-            { name: secondPlayer, side: "two" },
-          ]}
-        />
       )}
     </article>
   );

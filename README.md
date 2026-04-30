@@ -73,3 +73,30 @@ export default defineConfig([
   },
 ])
 ```
+
+## Development tooling (local conventions)
+
+- Frontend: use Yarn (v1) for installs and scripts. Example:
+
+```bash
+# install deps
+yarn install
+
+# start dev
+yarn dev
+
+# build
+yarn build
+```
+
+- Backend: use the legacy Yarn v1 from `npx` to ensure a consistent install environment:
+
+```bash
+# install deps with the specific yarn version
+npx yarn@1.22.22 install
+
+# build backend
+npx yarn@1.22.22 build
+```
+
+Add these steps to your local workflow to keep consistent behavior across environments.

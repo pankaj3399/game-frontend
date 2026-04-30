@@ -49,7 +49,7 @@ const navItems = [
     icon: ClipboardIcon,
   },
   { path: "/profile", labelKey: "settings.nav.settings", icon: Settings01Icon },
-  { path: "/clubs", labelKey: "manageClub.allClubs", icon: PeopleIcon },
+  { path: "/clubs", labelKey: "settings.nav.clubs", icon: PeopleIcon },
   { path: "/sponsors", labelKey: "settings.nav.sponsors", icon: ShieldIcon },
   {
     path: "/about",
@@ -98,7 +98,7 @@ function NavLinks({
   compact?: boolean;
 }) {
   const isInline = variant === "inline";
-  const iconSize = isInline && compact ? 16 : 17;
+  const iconSize = isInline && compact ? 15 : isInline ? 16 : 17;
 
   return (
     <>
@@ -122,8 +122,8 @@ function NavLinks({
               "flex items-center leading-none whitespace-nowrap transition-opacity",
               isInline
                 ? compact
-                  ? "gap-1 text-[12px] tracking-tight 2xl:gap-1.5 2xl:text-[13px]"
-                  : "gap-1.5 text-[14px] 2xl:gap-2 2xl:text-[15px]"
+                  ? "gap-1 text-[11px] tracking-tight lg:text-[12px] xl:gap-1.5 xl:text-[13px]"
+                  : "gap-1.5 text-[12px] lg:gap-1.5 lg:text-[13px] xl:gap-2 xl:text-[14px]"
                 : "gap-1.5 text-[14px]",
               isActive
                 ? "font-medium text-white opacity-100"
@@ -180,12 +180,12 @@ export function AppNavbar() {
             <button
               type="button"
               className={cn(
-                "flex h-[34px] items-center justify-center gap-[7px] rounded-[8px] bg-white/25 px-[10px] font-medium text-white transition-colors hover:bg-white/30",
-                isGermanUi ? "text-[13px]" : "text-[14px]"
+                "flex h-[32px] lg:h-[34px] items-center justify-center gap-1 lg:gap-[7px] rounded-[8px] bg-white/25 px-2 lg:px-[10px] font-medium text-white transition-colors hover:bg-white/30",
+                isGermanUi ? "text-[12px] lg:text-[13px]" : "text-[13px] lg:text-[14px]"
               )}
             >
-              <UserIcon size={17} className="shrink-0 text-white" />
-              <span className={cn("truncate", isGermanUi ? "max-w-[102px]" : "max-w-[120px]")}>
+              <UserIcon size={16} className="shrink-0 text-white lg:h-[17px] lg:w-[17px]" />
+              <span className={cn("truncate", isGermanUi ? "max-w-[70px] lg:max-w-[102px]" : "max-w-[90px] lg:max-w-[120px]")}>
                 {user?.alias?.trim() ||
                   user?.name?.trim() ||
                   t("profile.title")}
@@ -255,10 +255,10 @@ export function AppNavbar() {
       ) : (
         <Link
           to="/login"
-          className="flex h-[34px] shrink-0 items-center justify-center gap-[7px] rounded-[8px] bg-brand-accent px-[20px] text-[14px] font-medium text-[#010a04] transition-colors hover:bg-brand-accent-hover"
+          className="flex h-[32px] lg:h-[34px] shrink-0 items-center justify-center gap-1 lg:gap-[7px] rounded-[8px] bg-brand-accent px-3 lg:px-[20px] text-[13px] lg:text-[14px] font-medium text-[#010a04] transition-colors hover:bg-brand-accent-hover"
           onClick={onAfterNavigate}
         >
-          <UserIcon size={17} className="text-[#010a04]" />
+          <UserIcon size={16} className="text-[#010a04] lg:h-[17px] lg:w-[17px]" />
           {t("common.login")}
         </Link>
       )}
@@ -270,8 +270,14 @@ export function AppNavbar() {
       className="sticky top-0 z-50 h-[56px] w-full lg:h-[60px]"
       style={{ backgroundColor: "var(--brand-primary)" }}
     >
-      <div className="mx-auto flex h-full w-full max-w-[1440px] min-w-0 items-center justify-between gap-3 px-5 lg:px-10 xl:px-[96px]">
-        <div className="flex h-[33px] w-[169px] shrink-0 items-center lg:h-[39px] lg:w-[200px]">
+      <div className="relative mx-auto flex h-full w-full max-w-[1440px] items-center justify-between gap-2 px-3 lg:gap-3 lg:px-6 xl:px-[96px]">
+        <div className="pointer-events-none absolute inset-x-0 flex justify-center lg:hidden">
+          <span className="max-w-[56vw] truncate text-center text-[24px] font-semibold leading-[56px] text-white">
+            {pageTitle}
+          </span>
+        </div>
+
+        <div className="flex min-w-0 shrink items-center gap-2 lg:h-[33px] lg:w-[150px] xl:h-[39px] xl:w-[200px]">
           <Link
             to="/"
             className="inline-flex shrink-0 items-center"
@@ -280,15 +286,15 @@ export function AppNavbar() {
             <img
               src={tb10LogoImage}
               alt="TB10 v1.6"
-              className="block h-[33px] w-auto shrink-0 lg:h-[39px]"
+              className="block h-[28px] w-auto shrink-0 md:h-[33px] xl:h-[39px]"
             />
           </Link>
         </div>
 
         <nav
           className={cn(
-            "hidden min-w-0 flex-1 items-center justify-center gap-y-1 overflow-hidden xl:flex",
-            isGermanUi ? "gap-x-3 2xl:gap-x-5" : "gap-x-5 2xl:gap-x-7"
+            "hidden flex-1 items-center justify-center lg:flex",
+            isGermanUi ? "lg:gap-x-3 xl:gap-x-5" : "lg:gap-x-4 xl:gap-x-7"
           )}
         >
           <NavLinks
@@ -299,14 +305,14 @@ export function AppNavbar() {
           />
         </nav>
 
-        <div className="flex shrink-0 items-center justify-end gap-2 sm:gap-3">
-          <div className={cn("hidden min-w-0 items-center gap-3 xl:flex", isGermanUi ? "xl:gap-2.5" : "xl:gap-[14px]")}>
+        <div className="flex shrink-0 items-center justify-end gap-2 lg:gap-3">
+          <div className={cn("hidden items-center lg:flex", isGermanUi ? "lg:gap-2.5" : "lg:gap-3")}>
             {!isAuthenticated && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <button
                     type="button"
-                    className="flex h-[34px] w-[90px] items-center justify-between rounded-[8px] border-[1.2px] border-white/20 pl-[12px] pr-[8px] text-[14px] font-medium text-white transition-colors hover:bg-white/10"
+                    className="flex h-[32px] w-[80px] lg:h-[34px] lg:w-[90px] items-center justify-between rounded-[8px] border-[1.2px] border-white/20 pl-[10px] pr-[6px] lg:pl-[12px] lg:pr-[8px] text-[13px] lg:text-[14px] font-medium text-white transition-colors hover:bg-white/10"
                     aria-label={t("common.language")}
                   >
                     {languageLabel}
@@ -340,7 +346,7 @@ export function AppNavbar() {
             <SheetTrigger asChild>
               <button
                 type="button"
-                className="flex items-center justify-center p-0 text-white xl:hidden"
+                className="flex items-center justify-center p-0 text-white lg:hidden"
                 aria-label={t("common.openMenu")}
               >
                 <Menu01Icon size={30} className="text-white" aria-hidden />

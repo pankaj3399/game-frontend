@@ -137,7 +137,7 @@ export function TournamentScheduleConfigCard({
 
         <div className="space-y-2">
           <p id="schedule-matches-per-player-label" className="text-[12px] font-medium uppercase text-[#010a04]/70">
-            {t("tournaments.scheduleMatchesPerPlayer")}
+            {t("tournaments.scheduleGamesPerPlayer")}
           </p>
           <Select
             value={String(matchesPerPlayer)}

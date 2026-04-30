@@ -95,6 +95,16 @@ export const tournamentMatchPlayerSchema = tournamentParticipantSchema
     alias: true,
   })
   .extend({
+    /**
+     * Snapshot rating at match generation/start time.
+     * Preferred for rendering historical "rating going into this match" values.
+     */
+    snapshotElo: wireJsonNullable(
+      z.object({
+        rating: wireJsonNullableNumber(),
+        rd: wireJsonNullableNumber(),
+      })
+    ),
     elo: wireJsonNullable(
       z.object({
         rating: wireJsonNullableNumber(),
@@ -265,6 +275,11 @@ export const generateTournamentScheduleResponseSchema = z.object({
   }),
 });
 
+export const cancelTournamentScheduleRoundResponseSchema = z.object({
+  message: z.string(),
+  round: z.number().int().min(1),
+});
+
 export const generateTournamentDoublesPairsInputSchema = z.object({
   participantOrder: z.array(z.string()).min(2),
 });
@@ -285,6 +300,21 @@ export const generateTournamentDoublesPairsResponseSchema = z.object({
     })
   ),
   unpaired: z.array(tournamentSchedulePairPlayerSchema),
+});
+
+export const tournamentDoublesPairsSchema = z.record(z.string(), z.string());
+
+export const tournamentDoublesPairsResponseSchema = z.object({
+  doublesPairs: tournamentDoublesPairsSchema,
+});
+
+export const saveTournamentDoublesPairsInputSchema = z.object({
+  doublesPairs: tournamentDoublesPairsSchema,
+});
+
+export const saveTournamentDoublesPairsResponseSchema = z.object({
+  message: z.string(),
+  doublesPairs: tournamentDoublesPairsSchema,
 });
 
 const memberCountSchema = z.coerce.number().int().min(1);
@@ -374,6 +404,7 @@ export const backendTournamentDetailSchema = z.object({
   descriptionInfo: z.string(),
   status: tournamentStatusSchema,
   participants: z.array(tournamentParticipantSchema),
+  doublesPairs: tournamentDoublesPairsSchema,
   progress: tournamentProgressSchema,
   permissions: tournamentPermissionsSchema,
   createdAt: wireJsonNullableString(),
@@ -560,9 +591,16 @@ export type TournamentScheduleParticipant = z.infer<typeof tournamentSchedulePar
 export type TournamentScheduleResponse = z.infer<typeof tournamentScheduleResponseSchema>;
 export type GenerateTournamentScheduleInput = z.infer<typeof generateTournamentScheduleInputSchema>;
 export type GenerateTournamentScheduleResponse = z.infer<typeof generateTournamentScheduleResponseSchema>;
+export type CancelTournamentScheduleRoundResponse = z.infer<
+  typeof cancelTournamentScheduleRoundResponseSchema
+>;
 export type GenerateTournamentDoublesPairsInput = z.infer<typeof generateTournamentDoublesPairsInputSchema>;
 export type TournamentSchedulePairPlayer = z.infer<typeof tournamentSchedulePairPlayerSchema>;
 export type GenerateTournamentDoublesPairsResponse = z.infer<typeof generateTournamentDoublesPairsResponseSchema>;
+export type TournamentDoublesPairs = z.infer<typeof tournamentDoublesPairsSchema>;
+export type TournamentDoublesPairsResponse = z.infer<typeof tournamentDoublesPairsResponseSchema>;
+export type SaveTournamentDoublesPairsInput = z.infer<typeof saveTournamentDoublesPairsInputSchema>;
+export type SaveTournamentDoublesPairsResponse = z.infer<typeof saveTournamentDoublesPairsResponseSchema>;
 export type BackendTournamentDetail = z.infer<typeof backendTournamentDetailSchema>;
 export type BackendTournamentDetailResponse = z.infer<typeof backendTournamentDetailResponseSchema>;
 export type CreateTournamentInput = z.infer<typeof createTournamentInputSchema>;

@@ -2,6 +2,7 @@ import { useTranslation } from "react-i18next";
 import type { ClubListItem } from "@/pages/clubs/hooks";
 import { ClubCard } from "./ClubCard";
 import { Button } from "@/components/ui/button";
+import { ClubsListSkeleton } from "./ClubsListSkeleton";
 
 interface ClubsGridProps {
   clubs: ClubListItem[];
@@ -30,9 +31,7 @@ export function ClubsGrid({
     }
 
     if (isLoading) {
-      return (
-        <p className="mt-6 text-sm text-muted-foreground">{t("common.loading")}</p>
-      );
+      return <ClubsListSkeleton />;
     }
 
     if (trimmedQuery.length > 0) {

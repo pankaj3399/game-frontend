@@ -55,9 +55,16 @@ function getSidePlayerIds(match: TournamentScheduleMatch, side: 0 | 1): string[]
 }
 
 function applyScoreAdvantageBySide(match: TournamentScheduleMatch, scoreAdvantageById: Map<string, number>) {
+  if (match.playMode !== "TieBreak10" && match.playMode !== "3setTieBreak10") {
+    return;
+  }
+
   const playerOneTotal = getNumericScoreTotal(match.score.playerOneScores);
   const playerTwoTotal = getNumericScoreTotal(match.score.playerTwoScores);
-  const scoreDelta = playerOneTotal - playerTwoTotal;
+  const scoreDelta = Math.abs(playerOneTotal - playerTwoTotal);
+  if (scoreDelta <= 0) {
+    return;
+  }
 
   const sideOneIds = getSidePlayerIds(match, 0);
   const sideTwoIds = getSidePlayerIds(match, 1);
@@ -66,11 +73,17 @@ function applyScoreAdvantageBySide(match: TournamentScheduleMatch, scoreAdvantag
     return;
   }
 
-  for (const id of sideOneIds) {
-    scoreAdvantageById.set(id, (scoreAdvantageById.get(id) ?? 0) + scoreDelta);
+  if (playerOneTotal > playerTwoTotal) {
+    for (const id of sideOneIds) {
+      scoreAdvantageById.set(id, (scoreAdvantageById.get(id) ?? 0) + scoreDelta);
+    }
+    return;
   }
-  for (const id of sideTwoIds) {
-    scoreAdvantageById.set(id, (scoreAdvantageById.get(id) ?? 0) - scoreDelta);
+
+  if (playerTwoTotal > playerOneTotal) {
+    for (const id of sideTwoIds) {
+      scoreAdvantageById.set(id, (scoreAdvantageById.get(id) ?? 0) + scoreDelta);
+    }
   }
 }
 

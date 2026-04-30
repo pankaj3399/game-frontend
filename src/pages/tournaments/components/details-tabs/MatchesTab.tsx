@@ -25,10 +25,13 @@ export function MatchesTab({ tournament, currentUserId }: MatchesTabProps) {
   const matchesQuery = useTournamentMatches(tournament.id, true);
   const scheduleMatches = matchesQuery.data?.matches ?? [];
   const scheduleInfo = matchesQuery.data?.schedule ?? null;
+  const activeScheduleMatches = scheduleMatches.filter(
+    (match) => match.isHistorical !== true
+  );
   const hasGeneratedSchedule =
-    scheduleMatches.length > 0 ||
+    activeScheduleMatches.length > 0 ||
     (scheduleInfo != null && scheduleInfo.currentRound > 0);
-  const latestGeneratedRound = scheduleMatches.reduce(
+  const latestGeneratedRound = activeScheduleMatches.reduce(
     (maxRound, match) => Math.max(maxRound, match.round),
     scheduleInfo?.currentRound ?? 0
   );
@@ -39,7 +42,9 @@ export function MatchesTab({ tournament, currentUserId }: MatchesTabProps) {
   );
   const latestRoundMatches =
     latestGeneratedRound >= 1
-      ? scheduleMatches.filter((match) => match.round === latestGeneratedRound)
+      ? activeScheduleMatches.filter(
+          (match) => match.round === latestGeneratedRound
+        )
       : [];
   const latestRoundCompleted =
     latestGeneratedRound >= 1 &&

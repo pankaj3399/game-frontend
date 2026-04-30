@@ -6,11 +6,19 @@ import {
   generateTournamentDoublesPairsResponseSchema,
   generateTournamentScheduleInputSchema,
   generateTournamentScheduleResponseSchema,
+  saveTournamentDoublesPairsInputSchema,
+  saveTournamentDoublesPairsResponseSchema,
+  tournamentDoublesPairsResponseSchema,
+  cancelTournamentScheduleRoundResponseSchema,
   tournamentScheduleResponseSchema,
+  type CancelTournamentScheduleRoundResponse,
   type GenerateTournamentDoublesPairsInput,
   type GenerateTournamentDoublesPairsResponse,
   type GenerateTournamentScheduleInput,
   type GenerateTournamentScheduleResponse,
+  type SaveTournamentDoublesPairsInput,
+  type SaveTournamentDoublesPairsResponse,
+  type TournamentDoublesPairsResponse,
   type TournamentScheduleResponse,
 } from "@/models/tournament/types";
 
@@ -37,6 +45,28 @@ async function generateDoublesPairs(
   return generateTournamentDoublesPairsResponseSchema.parse(response.data);
 }
 
+async function cancelScheduleRound(
+  id: string,
+  round: number
+): Promise<CancelTournamentScheduleRoundResponse> {
+  const response = await api.delete(`/api/schedule/${id}/round/${round}`);
+  return cancelTournamentScheduleRoundResponseSchema.parse(response.data);
+}
+
+async function fetchDoublesPairs(id: string): Promise<TournamentDoublesPairsResponse> {
+  const response = await api.get(`/api/tournaments/${id}/doubles-pairs`);
+  return tournamentDoublesPairsResponseSchema.parse(response.data);
+}
+
+async function saveDoublesPairs(
+  id: string,
+  payload: SaveTournamentDoublesPairsInput
+): Promise<SaveTournamentDoublesPairsResponse> {
+  const parsedPayload = saveTournamentDoublesPairsInputSchema.parse(payload);
+  const response = await api.put(`/api/tournaments/${id}/doubles-pairs`, parsedPayload);
+  return saveTournamentDoublesPairsResponseSchema.parse(response.data);
+}
+
 export function useTournamentSchedule(id: string | null, enabled = true) {
   return useQuery({
     queryKey: queryKeys.tournament.schedule(id),
@@ -45,6 +75,19 @@ export function useTournamentSchedule(id: string | null, enabled = true) {
         throw new Error("Tournament id is required");
       }
       return fetchTournamentSchedule(id);
+    },
+    enabled: Boolean(id) && enabled,
+  });
+}
+
+export function useDoublesPairs(id: string | null, enabled = true) {
+  return useQuery({
+    queryKey: queryKeys.tournament.doublesPairs(id),
+    queryFn: () => {
+      if (!id) {
+        throw new Error("Tournament id is required");
+      }
+      return fetchDoublesPairs(id);
     },
     enabled: Boolean(id) && enabled,
   });
@@ -70,6 +113,35 @@ export function useGenerateTournamentDoublesPairs() {
   return useMutation({
     mutationFn: ({ id, payload }: { id: string; payload: GenerateTournamentDoublesPairsInput }) =>
       generateDoublesPairs(id, payload),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.tournament.schedule(variables.id) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.tournament.matches(variables.id) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.tournament.detail(variables.id) });
+    },
+  });
+}
+
+export function useSaveDoublesPairs() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, payload }: { id: string; payload: SaveTournamentDoublesPairsInput }) =>
+      saveDoublesPairs(id, payload),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.tournament.doublesPairs(variables.id) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.tournament.detail(variables.id) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.tournament.schedule(variables.id) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.tournament.matches(variables.id) });
+    },
+  });
+}
+
+export function useCancelTournamentScheduleRound() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, round }: { id: string; round: number }) =>
+      cancelScheduleRound(id, round),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.tournament.schedule(variables.id) });
       queryClient.invalidateQueries({ queryKey: queryKeys.tournament.matches(variables.id) });

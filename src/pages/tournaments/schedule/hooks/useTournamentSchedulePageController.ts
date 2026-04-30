@@ -1,15 +1,15 @@
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { getErrorMessage } from "@/lib/errors";
 import type {
   GenerateTournamentDoublesPairsResponse,
+  TournamentSchedulePairPlayer,
   TournamentScheduleMatch,
   TournamentScheduleMode,
 } from "@/models/tournament/types";
 import {
-  useGenerateTournamentDoublesPairs,
   useGenerateTournamentSchedule,
   useTournamentById,
   useTournamentMatches,
@@ -44,8 +44,6 @@ type ScheduleFieldOverrides = {
   mode: TournamentScheduleMode;
   participants: ScheduleParticipantRow[];
   selectedCourtIds: string[];
-  doublesPairs: GenerateTournamentDoublesPairsResponse | null;
-  doublesPairsKey: string | null;
 };
 
 type ScheduleOverrides = Partial<ScheduleFieldOverrides>;
@@ -54,6 +52,73 @@ type TournamentScopedOverrides = {
   tournamentId: string | null;
   values: ScheduleOverrides;
 };
+
+type DoublesPartnerById = Record<string, string>;
+
+function sanitizeDoublesPartnerById(
+  partnerById: DoublesPartnerById,
+  participantIds: string[]
+): DoublesPartnerById {
+  const validIds = new Set(participantIds);
+  const next: DoublesPartnerById = {};
+
+  for (const participantId of participantIds) {
+    const partnerId = partnerById[participantId];
+    if (!partnerId || partnerId === participantId || !validIds.has(partnerId)) {
+      continue;
+    }
+    if (partnerById[partnerId] !== participantId) {
+      continue;
+    }
+    next[participantId] = partnerId;
+  }
+
+  return next;
+}
+
+function asPairPlayer(participant: ScheduleParticipantRow): TournamentSchedulePairPlayer {
+  return {
+    id: participant.id,
+    name: participant.name,
+    alias: participant.alias,
+    skillLabel: participant.skillLabel,
+    rating: participant.rating,
+  };
+}
+
+function buildDoublesPairsResponse(
+  participants: ScheduleParticipantRow[],
+  partnerById: DoublesPartnerById
+): GenerateTournamentDoublesPairsResponse {
+  const byId = new Map(participants.map((participant) => [participant.id, participant]));
+  const used = new Set<string>();
+  const teams: GenerateTournamentDoublesPairsResponse["teams"] = [];
+  const unpaired: TournamentSchedulePairPlayer[] = [];
+
+  let teamNumber = 1;
+  for (const participant of participants) {
+    if (used.has(participant.id)) {
+      continue;
+    }
+    const partnerId = partnerById[participant.id];
+    const partner = partnerId ? byId.get(partnerId) : undefined;
+    if (partner && !used.has(partner.id) && partnerById[partner.id] === participant.id) {
+      teams.push({
+        team: teamNumber,
+        players: [asPairPlayer(participant), asPairPlayer(partner)],
+      });
+      teamNumber += 1;
+      used.add(participant.id);
+      used.add(partner.id);
+      continue;
+    }
+
+    used.add(participant.id);
+    unpaired.push(asPairPlayer(participant));
+  }
+
+  return { teams, unpaired };
+}
 
 export function useTournamentSchedulePageController({
   id,
@@ -66,14 +131,12 @@ export function useTournamentSchedulePageController({
   const tournamentDetailQuery = useTournamentById(id, Boolean(id));
   const matchesQuery = useTournamentMatches(id, Boolean(id));
   const generateScheduleMutation = useGenerateTournamentSchedule();
-  const generateDoublesPairsMutation = useGenerateTournamentDoublesPairs();
 
   const [overrideState, setOverrideState] = useState<TournamentScopedOverrides>({
     tournamentId: null,
     values: {},
   });
   const [isRescheduleWarningOpen, setIsRescheduleWarningOpen] = useState(false);
-  const latestDoublesRequestIdRef = useRef(0);
 
   const updateOverrides = useCallback(
     (updater: (current: ScheduleOverrides) => ScheduleOverrides) => {
@@ -128,10 +191,20 @@ export function useTournamentSchedulePageController({
   const startTime = scopedOverrides.startTime ?? scheduleInput?.startTime ?? "09:00";
   const mode = scopedOverrides.mode ?? scheduleInput?.mode ?? "singles";
   const participants = scopedOverrides.participants ?? defaultParticipants;
-  const participantOrderKey = participantOrderIds(participants).join(",");
   const selectedCourtIds = scopedOverrides.selectedCourtIds ?? defaultSelectedCourtIds;
-  const doublesPairs = scopedOverrides.doublesPairs ?? null;
-  const doublesPairsKey = scopedOverrides.doublesPairsKey ?? null;
+  const doublesPartnerById = useMemo(
+    () =>
+      sanitizeDoublesPartnerById(
+        tournamentDetailQuery.data?.tournament.doublesPairs ?? {},
+        participants.map((participant) => participant.id)
+      ),
+    [participants, tournamentDetailQuery.data?.tournament.doublesPairs]
+  );
+  const doublesPairs: GenerateTournamentDoublesPairsResponse | null = useMemo(
+    () => (mode === "doubles" ? buildDoublesPairsResponse(participants, doublesPartnerById) : null),
+    [doublesPartnerById, mode, participants]
+  );
+  const doublesUnpairedCount = mode === "doubles" ? (doublesPairs?.unpaired.length ?? participants.length) : 0;
 
   const queryRound = parseRoundQueryParam(searchParams);
   const summaryCurrentRound = scheduleQuery.data?.scheduleSummary.currentRound ?? 0;
@@ -211,6 +284,7 @@ export function useTournamentSchedulePageController({
     selectedCourtIds.length > 0 &&
     meetsTournamentMinimum &&
     canGenerateSchedule(mode, participants.length) &&
+    (mode !== "doubles" || doublesUnpairedCount === 0) &&
     (!scheduleRoundGate.blocked || isReschedulingExistingRound) &&
     !matchesQuery.isLoading &&
     !generateScheduleMutation.isPending;
@@ -270,23 +344,12 @@ export function useTournamentSchedulePageController({
         updateOverrides((current) => ({
           ...current,
           mode: "singles",
-          doublesPairsKey: null,
         }));
         return;
       }
 
-      if (generateDoublesPairsMutation.isPending || participants.length < 2) {
-        if (participants.length < 2) {
-          toast.warning(t("tournaments.scheduleDoublesBlockedMinParticipants"));
-        }
-        return;
-      }
-
-      if (doublesPairs && doublesPairsKey === participantOrderKey) {
-        updateOverrides((current) => ({
-          ...current,
-          mode: "doubles",
-        }));
+      if (participants.length < 2) {
+        toast.warning(t("tournaments.scheduleDoublesBlockedMinParticipants"));
         return;
       }
 
@@ -294,57 +357,43 @@ export function useTournamentSchedulePageController({
         ...current,
         mode: "doubles",
       }));
-      const callId = latestDoublesRequestIdRef.current + 1;
-      latestDoublesRequestIdRef.current = callId;
-      try {
-        const response = await generateDoublesPairsMutation.mutateAsync({
-          id,
-          payload: {
-            participantOrder: participantOrderIds(participants),
-          },
-        });
-        updateOverrides((current) => {
-          const isStale =
-            latestDoublesRequestIdRef.current !== callId || current.mode !== "doubles";
-          if (isStale) {
-            return current;
-          }
-          return {
-            ...current,
-            doublesPairs: response,
-            doublesPairsKey: participantOrderKey,
-          };
-        });
-      } catch (error: unknown) {
-        updateOverrides((current) => {
-          const isStale =
-            latestDoublesRequestIdRef.current !== callId || current.mode !== "doubles";
-          if (isStale) {
-            return current;
-          }
-          return {
-            ...current,
-            mode: "singles",
-            doublesPairsKey: null,
-          };
-        });
-        if (latestDoublesRequestIdRef.current === callId) {
-          toast.error(getErrorMessage(error) ?? t("tournaments.schedulePairsError"));
-        }
-      }
     },
     [
-      doublesPairs,
-      doublesPairsKey,
-      generateDoublesPairsMutation,
-      id,
       mode,
-      participantOrderKey,
       participants,
       updateOverrides,
       t,
     ]
   );
+
+  const resolveParticipantOrderForGeneration = useCallback(() => {
+    const baseOrder = participantOrderIds(participants);
+    if (mode !== "doubles") {
+      return baseOrder;
+    }
+
+    const ordered: string[] = [];
+    const used = new Set<string>();
+
+    for (const participantId of baseOrder) {
+      if (used.has(participantId)) {
+        continue;
+      }
+
+      const partnerId = doublesPartnerById[participantId];
+      if (partnerId && !used.has(partnerId) && baseOrder.includes(partnerId)) {
+        ordered.push(participantId, partnerId);
+        used.add(participantId);
+        used.add(partnerId);
+        continue;
+      }
+
+      ordered.push(participantId);
+      used.add(participantId);
+    }
+
+    return ordered;
+  }, [doublesPartnerById, mode, participants]);
 
   const buildGeneratePayload = useCallback(
     (allowRescheduleWithScores: boolean) => {
@@ -361,7 +410,7 @@ export function useTournamentSchedulePageController({
           matchesPerPlayer,
           startTime: clampedStartTime,
           courtIds: effectiveCourtIds,
-          participantOrder: participantOrderIds(participants),
+          participantOrder: resolveParticipantOrderForGeneration(),
           ...(isScheduledTournament
             ? {
                 matchDurationMinutes,
@@ -382,6 +431,7 @@ export function useTournamentSchedulePageController({
       mode,
       participants,
       round,
+      resolveParticipantOrderForGeneration,
       selectedCourtIds,
     ]
   );
@@ -438,6 +488,14 @@ export function useTournamentSchedulePageController({
       );
       return;
     }
+    if (mode === "doubles" && doublesUnpairedCount > 0) {
+      toast.error(
+        t("tournaments.scheduleDoublesBlockedUnpaired", {
+          count: doublesUnpairedCount,
+        })
+      );
+      return;
+    }
 
     try {
       await submitGenerateSchedule(false);
@@ -466,6 +524,8 @@ export function useTournamentSchedulePageController({
     parseBackendRescheduleConfirmation,
     RESCHEDULE_WITH_SCORES_CONFIRMATION_PREFIX,
     t,
+    mode,
+    doublesUnpairedCount,
   ]);
 
   const onCancelRescheduleWarning = useCallback(() => {
@@ -494,8 +554,6 @@ export function useTournamentSchedulePageController({
       const baseParticipants = current.participants ?? defaultParticipants;
       return {
         ...current,
-        doublesPairs: null,
-        doublesPairsKey: null,
         participants: removeParticipant(baseParticipants, participantId),
       };
     });
@@ -506,8 +564,6 @@ export function useTournamentSchedulePageController({
       const baseParticipants = current.participants ?? defaultParticipants;
       return {
         ...current,
-        doublesPairs: null,
-        doublesPairsKey: null,
         participants: reorderParticipantsById(baseParticipants, activeId, overId),
       };
     });
@@ -522,7 +578,6 @@ export function useTournamentSchedulePageController({
     tournamentDetailQuery,
     matchesQuery,
     generateScheduleMutation,
-    generateDoublesPairsMutation,
     scheduleTimeBounds,
     isScheduledTournament,
     matchDurationMinutes,
@@ -532,6 +587,7 @@ export function useTournamentSchedulePageController({
     participants,
     selectedCourtIds,
     doublesPairs,
+    doublesPartnerById,
     round,
     clampedStartTime,
     availableCourts,

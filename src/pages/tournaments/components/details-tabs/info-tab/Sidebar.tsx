@@ -1,5 +1,4 @@
 import { Button } from "@/components/ui/button";
-import { Pencil } from "@/icons/figma-icons";
 import { cn } from "@/lib/utils";
 import type { TournamentDetail } from "@/models/tournament/types";
 import { useOptimisticTournamentParticipation } from "@/pages/tournaments/hooks/useOptimisticTournamentParticipation";
@@ -10,7 +9,6 @@ interface SidebarProps {
   tournament: TournamentDetail;
   spotPercentage: number;
   onParticipationAction: () => Promise<void>;
-  onEdit: () => void;
   t: TFunction;
 }
 
@@ -19,7 +17,6 @@ export function Sidebar({
   tournament,
   spotPercentage,
   onParticipationAction,
-  onEdit,
   t,
 }: SidebarProps) {
   const mutation = useOptimisticTournamentParticipation({
@@ -28,7 +25,7 @@ export function Sidebar({
   });
 
   const { permissions, progress, minMember, maxMember } = tournament;
-  const { canJoin, canLeave, canEdit, isParticipant } = permissions;
+  const { canJoin, canLeave, isParticipant } = permissions;
   const pendingIntent =
     mutation.isPending && typeof mutation.variables?.nextIsParticipant === "boolean"
       ? mutation.variables.nextIsParticipant
@@ -54,7 +51,7 @@ export function Sidebar({
   return (
     <aside className={cn("xl:sticky xl:top-7", className)}>
       <div className="rounded-[12px] border border-[#dddddd] bg-transparent px-5 py-[22px] shadow-[0_6px_16px_rgba(0,0,0,0.12)]">
-        <p className="text-[20px] font-medium text-[#010a04]">{t("tournaments.matchProgress")}</p>
+        <p className="text-[20px] font-medium text-[#010a04]">{t("tournaments.participantsProgress")}</p>
 
         <div className="mt-6 space-y-[18px]">
           <div className="space-y-2">
@@ -106,16 +103,6 @@ export function Sidebar({
             </Button>
           ) : null}
 
-          {canEdit && (
-            <Button
-              variant="outline"
-              className="h-[42px] w-full gap-[11px] rounded-[10px] border border-[#010a04] bg-transparent text-[16px] font-medium text-[#010a04] hover:bg-[#010a04]/[0.02]"
-              onClick={onEdit}
-            >
-              <Pencil size={18} className="text-[#010a04]" />
-              {t("tournaments.editInfo")}
-            </Button>
-          )}
         </div>
       </div>
     </aside>

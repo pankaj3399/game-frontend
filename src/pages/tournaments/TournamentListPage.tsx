@@ -87,7 +87,7 @@ function TournamentListContent() {
   const listHeading =
     activeTab === TournamentTab.Drafts
       ? t("tournaments.tabDrafts")
-      : t("tournaments.allTournaments");
+      : t("tournaments.Tournaments");
   const handleFiltersChange = (next: { when: string; distance: string; clubId?: string }) => {
     setWhenFromValue(next.when);
     setDistanceFromValue(next.distance);
@@ -100,7 +100,7 @@ function TournamentListContent() {
         <div className="overflow-hidden rounded-[12px] border border-[rgba(1,10,4,0.08)] bg-white shadow-[0px_3px_15px_0px_rgba(0,0,0,0.06)]">
           <div className="px-4 pb-4 pt-5 sm:px-5 lg:py-4">
             <div className="flex items-center justify-between gap-3 lg:hidden">
-              <h1 className="text-[21px] font-semibold leading-[1.15] text-[#010a04]">
+              <h1 className=" font-semibold  text-[#010a04]">
                 {listHeading}
               </h1>
               <div className="flex items-center gap-2">
@@ -152,7 +152,7 @@ function TournamentListContent() {
             </div>
 
             <div className="hidden flex-col gap-4 lg:flex lg:flex-row lg:items-start lg:justify-between lg:gap-6">
-              <h1 className="text-lg font-semibold leading-tight text-foreground sm:text-xl">
+              <h1 className="text-2xl font-semibold text-foreground ">
                 {listHeading}
               </h1>
               <TournamentActions
