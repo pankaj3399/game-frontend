@@ -194,10 +194,10 @@ export default function TournamentMatchSchedulePage() {
     }
 
     try {
-      setIsRescheduleWarningOpen(false);
-      setRescheduleTargetRound(null);
       await generateScheduleMutation.mutateAsync({ id, payload });
       await syncTournamentStateAfterReschedule(id);
+      setIsRescheduleWarningOpen(false);
+      setRescheduleTargetRound(null);
       toast.success(t("tournaments.scheduleGenerated", { round: payload.round }));
       navigate(`/tournaments/${id}/match-schedule?round=${payload.round}`);
     } catch (error: unknown) {

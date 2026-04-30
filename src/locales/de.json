@@ -745,6 +745,7 @@
     "clubSponsors": "Vereinssponsoren",
     "noClubSponsors": "Dieser Verein hat noch keine Sponsoren.",
     "viewSponsorDetails": "Details anzeigen: {{name}}",
+    "clubLinkAria": "Verein {{clubName}}",
     "getDirection": "Route anzeigen",
     "time": "Uhrzeit",
     "timeRange": "{{start}} – {{end}}",

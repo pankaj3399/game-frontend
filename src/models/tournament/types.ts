@@ -188,8 +188,8 @@ export const tournamentScheduleMatchSchema = z.object({
   side1: tournamentMatchSideSchema,
   side2: tournamentMatchSideSchema,
   isHistorical: z.boolean().optional(),
-  detachedFromRound: wireJsonNullableNumber().optional(),
-  detachedFromSlot: wireJsonNullableNumber().optional(),
+  detachedFromRound: wireJsonNullableNumber(),
+  detachedFromSlot: wireJsonNullableNumber(),
 });
 
 export const tournamentScheduleInfoSchema = z.object({

@@ -28,7 +28,8 @@ interface MapboxGeocodeResponse {
 
 async function searchMapbox(
   query: string,
-  accessToken: string
+  accessToken: string,
+  signal?: AbortSignal
 ): Promise<MapboxFeature[]> {
   const trimmed = query.trim();
   if (!trimmed) return [];
@@ -40,17 +41,21 @@ async function searchMapbox(
     autocomplete: "true",
   });
 
-  const res = await fetch(`${MAPBOX_GEOCODE_URL}?${params}`);
+  const res = await fetch(`${MAPBOX_GEOCODE_URL}?${params}`, { signal });
   if (!res.ok) {
     throw new Error("Mapbox geocoding request failed");
   }
 
-  const data: MapboxGeocodeResponse = await res.json();
-  if (!data.features || !Array.isArray(data.features)) {
-    return [];
+  const data: unknown = await res.json();
+  if (!data || typeof data !== "object") {
+    throw new Error(`Malformed Mapbox response: ${JSON.stringify(data)}`);
+  }
+  const typedData = data as Partial<MapboxGeocodeResponse>;
+  if (!typedData.features || !Array.isArray(typedData.features)) {
+    throw new Error(`Malformed Mapbox response: ${JSON.stringify(data)}`);
   }
 
-  return data.features.map((f) => ({
+  return typedData.features.map((f) => ({
     id: f.id,
     placeName: f.properties.name ?? "",
     fullAddress:
@@ -66,6 +71,7 @@ export function useMapboxSearch(searchQuery: string) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const requestIdRef = useRef(0);
+  const abortControllerRef = useRef<AbortController | null>(null);
   const debouncedSearchQuery = useDebouncedValue(searchQuery, DEBOUNCE_MS);
 
   const accessToken = import.meta.env.REACT_APP_MAPBOX_API_KEY as string | undefined;
@@ -88,15 +94,24 @@ export function useMapboxSearch(searchQuery: string) {
 
       setIsLoading(true);
       setError(null);
+      abortControllerRef.current?.abort();
+      const controller = new AbortController();
+      abortControllerRef.current = controller;
 
       try {
-        const features = await searchMapbox(trimmed, accessToken);
+        const features = await searchMapbox(trimmed, accessToken, controller.signal);
         if (requestId !== requestIdRef.current) {
           return;
         }
         setResults(features);
       } catch (err) {
         if (requestId !== requestIdRef.current) {
+          return;
+        }
+        if (
+          (err instanceof DOMException && err.name === "AbortError") ||
+          (err instanceof Error && err.name === "AbortError")
+        ) {
           return;
         }
         setError(err instanceof Error ? err.message : "Search failed");
@@ -113,6 +128,12 @@ export function useMapboxSearch(searchQuery: string) {
   useEffect(() => {
     requestIdRef.current += 1;
   }, [searchQuery]);
+
+  useEffect(() => {
+    return () => {
+      abortControllerRef.current?.abort();
+    };
+  }, []);
 
   useEffect(() => {
     const trimmed = debouncedSearchQuery.trim();

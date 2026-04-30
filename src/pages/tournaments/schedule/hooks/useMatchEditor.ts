@@ -43,7 +43,11 @@ export function useMatchEditor(options?: UseMatchEditorOptions) {
 
   const save = useCallback(async (): Promise<boolean> => {
     if (!editingMatch) return true;
-    if (!options?.onSave) return true;
+    if (!options?.onSave) {
+      setSaveError("No save handler configured");
+      setIsSaving(false);
+      return false;
+    }
     setIsSaving(true);
     setSaveError(null);
     try {

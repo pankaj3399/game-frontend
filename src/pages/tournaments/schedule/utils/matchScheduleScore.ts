@@ -208,10 +208,15 @@ function constrainedOppositeScores(
   if (selectedValue === 9) {
     return [11];
   }
-  const deuceWinner = selectedValue + 2;
+  const deuceWinner = selectedValue;
   const validLoserScores = [0, 1, 2, 3, 4, 5, 6, 7, 8];
-  if (deuceWinner <= 99 && !validLoserScores.includes(deuceWinner)) {
-    return [...validLoserScores, deuceWinner];
+  if (deuceWinner > 8) {
+    const deuceOpposites = [deuceWinner - 2, deuceWinner - 1].filter(
+      (value) => value >= 0 && value <= 99
+    );
+    return uniqueScoreValues([...validLoserScores, ...deuceOpposites]).filter(
+      (value): value is number => typeof value === "number"
+    );
   }
   return validLoserScores;
 }

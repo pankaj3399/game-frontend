@@ -32,7 +32,7 @@ export function usePersistMatchScore({
   const [isPersisting, setIsPersisting] = useState(false);
   const [savingMatchId, setSavingMatchId] = useState<string | null>(null);
   const [saveErrorsByMatchId, setSaveErrorsByMatchId] = useState<Record<string, string>>({});
-  const inFlightRef = useRef<Promise<PersistScoreResult> | null>(null);
+  const inFlightRef = useRef<Map<string, Promise<PersistScoreResult>>>(new Map());
 
   const mergeMutationResultIntoMatches = useCallback(
     (
@@ -68,7 +68,8 @@ export function usePersistMatchScore({
 
   const persistMatchScore = useCallback(
     async (match: TournamentScheduleMatch, rows: ScoreEditorRow[], trackPerMatchState: boolean): Promise<PersistScoreResult> => {
-      if (inFlightRef.current) return inFlightRef.current;
+      const inFlightForMatch = inFlightRef.current.get(match.id);
+      if (inFlightForMatch) return inFlightForMatch;
       const freshMatch = matchesQuery.data?.matches.find((m) => m.id === match.id) ?? null;
       if (!freshMatch) { toast.error(t("tournaments.matchesLoadError")); return { ok: false }; }
       if (freshMatch.status === "cancelled") { toast.error(t("tournaments.matchStatusCancelled")); return { ok: false }; }
@@ -118,12 +119,15 @@ export function usePersistMatchScore({
       };
 
       setIsPersisting(true);
-      inFlightRef.current = run();
+      const runPromise = run();
+      inFlightRef.current.set(freshMatch.id, runPromise);
       try {
-        return await inFlightRef.current;
+        return await runPromise;
       } finally {
-        inFlightRef.current = null;
-        setIsPersisting(false);
+        inFlightRef.current.delete(freshMatch.id);
+        if (inFlightRef.current.size === 0) {
+          setIsPersisting(false);
+        }
       }
     },
     [matchesQuery, pickLatestMatchesData, queryClient, recordScoreMutation, t, tournament]

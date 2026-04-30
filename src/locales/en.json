@@ -746,6 +746,7 @@
     "clubSponsors": "Club Sponsors",
     "noClubSponsors": "This club has no sponsors yet.",
     "viewSponsorDetails": "View Details: {{name}}",
+    "clubLinkAria": "{{clubName}} club",
     "getDirection": "Get Direction",
     "time": "Time",
     "timeRange": "{{start}} – {{end}}",

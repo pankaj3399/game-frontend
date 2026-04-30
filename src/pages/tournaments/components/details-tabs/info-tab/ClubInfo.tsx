@@ -24,7 +24,7 @@ export function ClubInfo({ clubId, clubName, onGetDirection, t }: ClubInfoProps)
               <Link
                 to={`/clubs/${clubId}`}
                 className="block min-w-0 rounded-[6px] text-left outline-none transition-opacity hover:opacity-80 focus-visible:ring-2 focus-visible:ring-[#010a04]/20"
-                aria-label={`${clubName} ${t("tournaments.club")}`}
+                aria-label={t("tournaments.clubLinkAria", { clubName })}
               >
                 <p className="min-w-0 break-words text-[14px] font-medium leading-snug text-[#010a04] sm:text-[16px] sm:leading-5">
                   {clubName}
