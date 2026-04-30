@@ -316,21 +316,21 @@ export function useTournamentSchedulePageController({
     const ordered: string[] = [];
     const used = new Set<string>();
 
-    for (const id of baseOrder) {
-      if (used.has(id)) {
+    for (const participantId of baseOrder) {
+      if (used.has(participantId)) {
         continue;
       }
 
-      const partnerId = doublesPartnerById[id];
+      const partnerId = doublesPartnerById[participantId];
       if (partnerId && !used.has(partnerId) && baseOrder.includes(partnerId)) {
-        ordered.push(id, partnerId);
-        used.add(id);
+        ordered.push(participantId, partnerId);
+        used.add(participantId);
         used.add(partnerId);
         continue;
       }
 
-      ordered.push(id);
-      used.add(id);
+      ordered.push(participantId);
+      used.add(participantId);
     }
 
     return ordered;

@@ -143,9 +143,7 @@ export function LiveMatchModal() {
   const hasTournamentContext = liveMatch != null && liveTournamentId !== null;
   const isRoundDataReady =
     !hasTournamentContext ||
-    (tournamentMatchesQuery.isSuccess &&
-      liveMatch != null &&
-      liveMatch.tournament.name.trim().length > 0);
+    tournamentMatchesQuery.isSuccess;
   const dialogOpen =
     liveMatch != null &&
     dismissedMatchId !== liveMatch.id &&

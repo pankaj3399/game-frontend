@@ -35,7 +35,7 @@ export function loadDoublesPartnerById(tournamentId: string): DoublesPartnerById
     const raw = window.localStorage.getItem(storageKey(tournamentId));
     if (!raw) return {};
     const parsed = JSON.parse(raw) as unknown;
-    if (!parsed || typeof parsed !== "object") return {};
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return {};
     return parsed as DoublesPartnerById;
   } catch {
     return {};
