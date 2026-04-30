@@ -67,7 +67,7 @@ function deriveSubscriptionStatus(
 
 export default function ManageClubPage() {
   const { t } = useTranslation();
-  const isDesktop = useMinWidth(TW_BREAKPOINT_LG_PX, { defaultValue: true });
+  const isDesktop = useMinWidth(TW_BREAKPOINT_LG_PX, { defaultValue: false });
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const hasSuperAdminAccess = useHasRoleOrAbove(ROLES.SUPER_ADMIN);

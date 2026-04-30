@@ -48,7 +48,12 @@ export type TournamentListView = z.infer<typeof tournamentListViewSchema>;
 export type TournamentWhenFilter = z.infer<typeof tournamentWhenFilterSchema>;
 export type TournamentDistanceFilter = z.infer<typeof tournamentDistanceFilterSchema>;
 
-export const tournamentClubSchema = z.object({
+export const tournamentListClubSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+});
+
+export const tournamentDetailClubSchema = z.object({
   id: z.string(),
   name: z.string(),
   address: wireJsonNullableString(),
@@ -353,7 +358,7 @@ function normalizeMemberRange<T extends { minMember: number; maxMember: number }
 export const tournamentListItemSchema = z.object({
   id: z.string(),
   name: z.string(),
-  club: wireJsonNullable(tournamentClubSchema),
+  club: wireJsonNullable(tournamentListClubSchema),
   date: wireJsonNullableString(),
   status: tournamentStatusSchema,
   sponsor: wireJsonNullable(tournamentSponsorSchema),
@@ -384,7 +389,7 @@ export const tournamentsResponseSchema = z.object({
 export const backendTournamentDetailSchema = z.object({
   id: z.string(),
   name: z.string(),
-  club: wireJsonNullable(tournamentClubSchema),
+  club: wireJsonNullable(tournamentDetailClubSchema),
   sponsor: wireJsonNullable(tournamentSponsorSchema),
   clubSponsors: z.array(tournamentSponsorSchema),
   date: wireJsonNullableString(),
@@ -564,7 +569,7 @@ export const tournamentDetailResponseSchema = z.object({
   tournament: backendTournamentDetailSchema,
 });
 
-export type TournamentClub = z.infer<typeof tournamentClubSchema>;
+export type TournamentClub = z.infer<typeof tournamentDetailClubSchema>;
 export type TournamentSponsor = z.infer<typeof tournamentSponsorSchema>;
 export type ClubSponsorSummary = z.infer<typeof tournamentSponsorSchema>;
 export type TournamentCourt = z.infer<typeof tournamentCourtSchema>;

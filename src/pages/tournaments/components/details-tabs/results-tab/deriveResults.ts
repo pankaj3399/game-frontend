@@ -55,10 +55,6 @@ function getSidePlayerIds(match: TournamentScheduleMatch, side: 0 | 1): string[]
 }
 
 function applyScoreAdvantageBySide(match: TournamentScheduleMatch, scoreAdvantageById: Map<string, number>) {
-  if (match.playMode !== "TieBreak10" && match.playMode !== "3setTieBreak10") {
-    return;
-  }
-
   const playerOneTotal = getNumericScoreTotal(match.score.playerOneScores);
   const playerTwoTotal = getNumericScoreTotal(match.score.playerTwoScores);
   const scoreDelta = Math.abs(playerOneTotal - playerTwoTotal);
