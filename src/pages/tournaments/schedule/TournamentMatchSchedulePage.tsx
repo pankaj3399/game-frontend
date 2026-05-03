@@ -324,6 +324,7 @@ export default function TournamentMatchSchedulePage() {
               key={match.id}
               match={match}
               locale={dateLocale}
+              timeZone={tournament.timezone}
               t={t}
               canEditScores={canEditScores}
               isEditing={editingMatch?.id === match.id}

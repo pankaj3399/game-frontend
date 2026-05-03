@@ -17,6 +17,7 @@ interface PlayerMatchesBoardProps {
   matches: TournamentScheduleMatch[];
   currentUserId: string | null;
   language: string;
+  timeZone?: string | null;
   t: TFunction;
 }
 
@@ -68,10 +69,12 @@ function aggregateMatchWinner(columns: ScoreColumn[]): "one" | "two" | null {
 function PlayerMatchCard({
   match,
   language,
+  timeZone,
   t,
 }: {
   match: TournamentScheduleMatch;
   language: string;
+  timeZone?: string | null;
   t: TFunction;
 }) {
   const unknown = t("tournaments.unknownPlayer");
@@ -91,7 +94,8 @@ function PlayerMatchCard({
   const tone = AVATAR_TONES[toneIndex]!;
   const locale = getDateFnsLocale(language) ?? enUS;
   const tbd = t("tournaments.scheduledTbd");
-  const { date: dateLabel, time: timeLabel } = matchScheduleDateTimeLabels(match.startTime, locale, tbd);
+  const { date: dateLabel, time: timeLabel, timeZone: timeZoneLabel } =
+    matchScheduleDateTimeLabels(match.startTime, locale, tbd, timeZone);
   const trimmedCourtName = match.court.name?.trim();
   const courtLabel =
     (trimmedCourtName && trimmedCourtName.length > 0
@@ -140,7 +144,14 @@ function PlayerMatchCard({
           </span>
           <span className="flex min-w-0 items-center gap-1.5">
             <IconClock size={14} className="shrink-0 text-muted-foreground" />
-            <span className="truncate">{timeLabel}</span>
+            <span className="inline-flex min-w-0 items-baseline gap-1">
+              <span className="truncate">{timeLabel}</span>
+              {timeZoneLabel ? (
+                <span className="shrink-0 text-[10px] font-medium leading-none text-muted-foreground/70">
+                  {timeZoneLabel}
+                </span>
+              ) : null}
+            </span>
           </span>
           <span className="flex min-w-0 items-center gap-1.5">
             <IconMap size={14} className="shrink-0 text-muted-foreground" />
@@ -201,6 +212,7 @@ export function PlayerMatchesBoard({
   matches,
   currentUserId,
   language,
+  timeZone,
   t,
 }: PlayerMatchesBoardProps) {
   const [userSelectedMode, setUserSelectedMode] = useState<TournamentScheduleMode | null>(null);
@@ -295,7 +307,13 @@ export function PlayerMatchesBoard({
       ) : (
         <div className="grid gap-3 sm:grid-cols-2">
           {filteredMatches.map((match) => (
-            <PlayerMatchCard key={match.id} match={match} language={language} t={t} />
+            <PlayerMatchCard
+              key={match.id}
+              match={match}
+              language={language}
+              timeZone={timeZone}
+              t={t}
+            />
           ))}
         </div>
       )}

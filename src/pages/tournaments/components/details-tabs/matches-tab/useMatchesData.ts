@@ -24,8 +24,27 @@ export function useMatchesData({
   const locale = getDateFnsLocale(language);
 
   const matches = useMemo(
-    () => deriveMatches(tournament, scheduleMatches, currentUserId, t, locale, tournament.date, tournament.startTime),
-    [tournament, scheduleMatches, currentUserId, t, locale, tournament.date, tournament.startTime]
+    () =>
+      deriveMatches(
+        tournament,
+        scheduleMatches,
+        currentUserId,
+        t,
+        locale,
+        tournament.date,
+        tournament.startTime,
+        tournament.timezone
+      ),
+    [
+      tournament,
+      scheduleMatches,
+      currentUserId,
+      t,
+      locale,
+      tournament.date,
+      tournament.startTime,
+      tournament.timezone,
+    ]
   );
 
   const filteredMatches = useMemo(

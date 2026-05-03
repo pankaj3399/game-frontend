@@ -105,6 +105,7 @@ export function MatchesTab({ tournament, currentUserId }: MatchesTabProps) {
           matches={scheduleMatches}
           currentUserId={currentUserId}
           language={i18n.language}
+          timeZone={tournament.timezone}
           t={t}
         />
       </TabsContent>
