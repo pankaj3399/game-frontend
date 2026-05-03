@@ -72,11 +72,16 @@ const pathToTitleKey: Record<string, string> = {
   "/about": "settings.nav.about",
   "/information": "signup.title",
   "/admin/sponsors": "admin.platformSponsors.navTitle",
+  "/admin/clubs-subscriptions": "admin.subscriptionManagementCta",
   "/admin": "admin.title",
 };
 
 function getPageTitle(pathname: string, t: (key: string) => string): string {
-  for (const [path, key] of Object.entries(pathToTitleKey)) {
+  const titleEntries = Object.entries(pathToTitleKey).sort(
+    ([pathA], [pathB]) => pathB.length - pathA.length
+  );
+
+  for (const [path, key] of titleEntries) {
     if (pathname.startsWith(path)) return t(key);
   }
   return t("profile.title");

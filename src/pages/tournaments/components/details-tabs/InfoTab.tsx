@@ -44,6 +44,7 @@ export function InfoTab({
     spotPercentage,
     formattedDate,
     formattedTime,
+    formattedTimeZone,
   } = useTournamentInfo({
     tournament,
     t,
@@ -100,6 +101,7 @@ export function InfoTab({
               tournament={tournament}
               formattedDate={formattedDate}
               formattedTime={formattedTime}
+              formattedTimeZone={formattedTimeZone}
               feeText={feeText}
               t={t}
             />

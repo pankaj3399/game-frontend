@@ -8,16 +8,37 @@ interface TournamentMetaProps {
   tournament: TournamentDetail;
   formattedDate: string;
   formattedTime: string;
+  formattedTimeZone: string | null;
   feeText: string;
   t: TFunction;
 }
 
-export function TournamentMeta({ tournament, formattedDate, formattedTime, feeText, t }: TournamentMetaProps) {
+export function TournamentMeta({
+  tournament,
+  formattedDate,
+  formattedTime,
+  formattedTimeZone,
+  feeText,
+  t,
+}: TournamentMetaProps) {
   return (
     <div className="mt-5 grid grid-cols-2 gap-x-3 gap-y-4 sm:mt-[25px] sm:gap-x-8 sm:gap-y-5">
       <InfoItem icon={Calendar} value={formattedDate} label={t("tournaments.date")} />
 
-      <InfoItem icon={Clock3} value={formattedTime} label={t("tournaments.time")} />
+      <InfoItem
+        icon={Clock3}
+        value={
+          <span className="inline-flex max-w-full flex-wrap items-baseline gap-x-1.5 gap-y-0.5">
+            <span>{formattedTime}</span>
+            {formattedTimeZone ? (
+              <span className="text-[11px] font-medium leading-none text-[#010a04]/45 sm:text-[12px]">
+                {formattedTimeZone}
+              </span>
+            ) : null}
+          </span>
+        }
+        label={t("tournaments.time")}
+      />
 
       <div className="flex items-start gap-3 sm:gap-6">
         <GameModeIcon aria-hidden className="mt-[1px] h-5 w-5 shrink-0 text-[#010a04] sm:h-6 sm:w-6" />

@@ -89,9 +89,9 @@ export default function AdminPlatformSponsorsPage() {
   return (
     <div className="min-h-[calc(100vh-4rem)] bg-[#f4f7f6] px-4 py-6 sm:px-6 md:py-8">
       <div className="mx-auto w-full max-w-[992px] rounded-[15px] border border-black/10 bg-white shadow-[0px_3px_15px_0px_rgba(0,0,0,0.06)]">
-        <div className="flex items-center justify-between px-5 pt-4 pb-[14px]">
-          <h1 className="text-xl font-semibold leading-tight text-[#010a04]">
-            <span className="">{t("admin.platformSponsors.pageTitle")}</span>
+        <div className="flex items-center justify-end px-5 py-3 lg:justify-between lg:pb-[14px] lg:pt-4">
+          <h1 className="sr-only text-xl font-semibold leading-tight text-[#010a04] lg:not-sr-only lg:block">
+            {t("admin.platformSponsors.pageTitle")}
           </h1>
 
           <Button

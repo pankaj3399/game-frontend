@@ -13,11 +13,9 @@ export default function AllSponsorsPage() {
     <div className="flex min-h-[calc(100vh-4rem)] justify-center bg-gray-50">
       <div className="mx-auto w-full max-w-6xl p-4 sm:p-6">
         <div className="rounded-xl border border-border bg-white p-6 shadow-sm">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <h1 className="text-2xl font-bold text-foreground">
-              {t("sponsors.allSponsors")}
-            </h1>
-          </div>
+          <h1 className="sr-only text-2xl font-bold text-foreground lg:not-sr-only lg:mb-6 lg:block">
+            {t("sponsors.allSponsors")}
+          </h1>
 
           {isLoading ? (
             <div className="flex justify-center py-16">

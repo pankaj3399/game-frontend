@@ -99,10 +99,18 @@ function TournamentListContent() {
       <div className="mx-auto w-full max-w-[440px] flex-1 px-3 pb-6 pt-6 sm:max-w-none sm:px-4 sm:pb-8 sm:pt-7 lg:max-w-[1060px] lg:px-6 lg:py-8">
         <div className="overflow-hidden rounded-[12px] border border-[rgba(1,10,4,0.08)] bg-white shadow-[0px_3px_15px_0px_rgba(0,0,0,0.06)]">
           <div className="px-4 pb-4 pt-5 sm:px-5 lg:py-4">
-            <div className="flex items-center justify-between gap-3 lg:hidden">
-              <h1 className=" font-semibold  text-[#010a04]">
-                {listHeading}
-              </h1>
+            <h1 className="sr-only lg:hidden">{listHeading}</h1>
+            <div className="flex flex-wrap items-center justify-between gap-2 lg:hidden">
+              <TournamentFilters
+                open={filtersOpen && !isDesktop}
+                onOpenChange={setFiltersOpen}
+                filters={{
+                  when: filters.when,
+                  distance: filters.distance,
+                  clubId: filters.clubId,
+                }}
+                onFiltersChange={handleFiltersChange}
+              />
               <div className="flex items-center gap-2">
                 <RoleGuard requireRoleOrAbove={ROLES.ORGANISER}>
                   {activeTab === TournamentTab.Published ? (
@@ -138,21 +146,8 @@ function TournamentListContent() {
               </div>
             </div>
 
-            <div className="mt-3 lg:hidden">
-              <TournamentFilters
-                open={filtersOpen && !isDesktop}
-                onOpenChange={setFiltersOpen}
-                filters={{
-                  when: filters.when,
-                  distance: filters.distance,
-                  clubId: filters.clubId,
-                }}
-                onFiltersChange={handleFiltersChange}
-              />
-            </div>
-
             <div className="hidden flex-col gap-4 lg:flex lg:flex-row lg:items-start lg:justify-between lg:gap-6">
-              <h1 className="text-2xl font-semibold text-foreground ">
+              <h1 className="text-2xl font-semibold text-foreground">
                 {listHeading}
               </h1>
               <TournamentActions
@@ -275,4 +270,3 @@ function TournamentListContent() {
     </div>
   );
 }
-

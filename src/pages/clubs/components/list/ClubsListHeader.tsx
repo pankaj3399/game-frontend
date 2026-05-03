@@ -26,7 +26,7 @@ export function ClubsListHeader({
         <h1 className="sr-only text-xl font-semibold text-foreground lg:not-sr-only lg:block">
           {t("clubs.allClubs")}
         </h1>
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+        <div className="flex w-full flex-col gap-2 sm:flex-row sm:items-center lg:w-auto lg:justify-end">
           <div className="relative w-full sm:w-[320px] lg:w-[360px]">
             <Input
               value={query}

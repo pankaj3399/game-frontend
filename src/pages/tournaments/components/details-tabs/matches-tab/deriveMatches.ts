@@ -1,6 +1,7 @@
 import { isValid, parseISO, type Locale } from "date-fns";
 import type { TournamentDetail, TournamentScheduleMatch } from "@/models/tournament/types";
 import { teamSideDisplayName } from "@/pages/tournaments/schedule/utils/matchTeamDisplay";
+import { formatTimeZoneAbbreviation } from "@/utils/display";
 import { withBracketedElo } from "./ratingSummary";
 import type { DerivedMatch, MatchCounts, MatchStatus } from "./types";
 
@@ -11,6 +12,8 @@ import type { DerivedMatch, MatchCounts, MatchStatus } from "./types";
 type ScheduleInput = {
   date: Date | null;
   time: Date | null;
+  isAbsolute: boolean;
+  source: string | null;
 };
 
 const TIME_ONLY_PATTERN = /^([01]?\d|2[0-3]):([0-5]\d)(?::([0-5]\d))?$/;
@@ -21,11 +24,19 @@ function createDateFormatter(locale?: Locale) {
   });
 }
 
-function createTimeFormatter(locale?: Locale) {
+function createTimeFormatter(locale?: Locale, timeZone?: string) {
   return new Intl.DateTimeFormat(locale?.code ?? "en-US", {
+    ...(timeZone ? { timeZone } : {}),
     hour: "2-digit",
     minute: "2-digit",
     hourCycle: "h23",
+  });
+}
+
+function createZonedDateFormatter(locale?: Locale, timeZone?: string) {
+  return new Intl.DateTimeFormat(locale?.code ?? "en-US", {
+    ...(timeZone ? { timeZone } : {}),
+    dateStyle: "short",
   });
 }
 
@@ -77,6 +88,8 @@ function resolveFallbackScheduleInput(
   return {
     date: parsedDate,
     time: parsedTime,
+    isAbsolute: false,
+    source: null,
   };
 }
 
@@ -86,7 +99,7 @@ function resolveScheduleInput(
 ): ScheduleInput {
   const parsedStart = parseDateSafe(matchStartTime);
   if (parsedStart) {
-    return { date: parsedStart, time: parsedStart };
+    return { date: parsedStart, time: parsedStart, isAbsolute: true, source: matchStartTime };
   }
 
   return fallbackSchedule;
@@ -95,16 +108,23 @@ function resolveScheduleInput(
 function formatSchedule(
   input: ScheduleInput,
   tbdLabel: string,
-  locale?: Locale
+  locale?: Locale,
+  timeZone?: string | null
 ): string {
-  const dateFormatter = createDateFormatter(locale);
-  const timeFormatter = createTimeFormatter(locale);
+  const normalizedTimeZone = timeZone?.trim() || undefined;
+  const shouldUseTimeZone = input.isAbsolute && normalizedTimeZone;
+  const dateFormatter = shouldUseTimeZone
+    ? createZonedDateFormatter(locale, normalizedTimeZone)
+    : createDateFormatter(locale);
+  const timeFormatter = createTimeFormatter(locale, shouldUseTimeZone ? normalizedTimeZone : undefined);
 
   const dateLabel = input.date ? dateFormatter.format(input.date) : tbdLabel;
   const timeLabel = input.time ? timeFormatter.format(input.time) : tbdLabel;
+  const timeZoneLabel =
+    input.time && timeZone ? formatTimeZoneAbbreviation(timeZone, input.source ?? undefined) : null;
 
   if (!input.date && !input.time) return tbdLabel;
-  return `${timeLabel} (${dateLabel})`;
+  return `${timeLabel}${timeZoneLabel ? ` ${timeZoneLabel}` : ""} (${dateLabel})`;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -142,7 +162,8 @@ export function buildMatchViewModel(
   t: (key: string, options?: Record<string, unknown>) => string,
   locale: Locale | undefined,
   fallbackDate: string | null,
-  fallbackTime: string | null
+  fallbackTime: string | null,
+  timeZone?: string | null
 ): DerivedMatch[] {
   const tbdLabel = t("tournaments.scheduledTbd");
   const fallbackScheduleInput = resolveFallbackScheduleInput(
@@ -161,7 +182,8 @@ export function buildMatchViewModel(
     const scheduledText = formatSchedule(
       scheduleInput,
       tbdLabel,
-      locale
+      locale,
+      timeZone
     );
 
     const court = match.court;

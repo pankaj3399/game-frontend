@@ -43,7 +43,7 @@ export default function AboutPage() {
     >
       <div className="mx-auto w-full max-w-[880px] min-w-0">
         <div className="rounded-[12px] border border-[#010a0414] bg-white p-5 shadow-[0_3px_15px_0_rgba(0,0,0,0.06)]">
-          <h1 className="mb-5 text-[20px] font-semibold leading-[1] text-[#010a04]">
+          <h1 className="sr-only text-[20px] font-semibold leading-[1] text-[#010a04] lg:not-sr-only lg:mb-5 lg:block">
             {t("about.title")}
           </h1>
 

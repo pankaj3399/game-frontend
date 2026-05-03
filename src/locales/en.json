@@ -110,7 +110,7 @@
       "settings": "Settings",
       "clubs": "Clubs",
       "sponsors": "TB10 Sponsors",
-      "about": "About"
+      "about": "About TB10"
     },
     "saveChanges": "Save Changes",
     "saveSuccess": "Changes saved successfully",
@@ -781,7 +781,7 @@
     "loadError": "Failed to load score history.",
     "totalMatches": "Total Matches",
     "totalWins": "Total Wins",
-    "glicko2": "G2 Skill Level",
+    "glicko3": "G3 Skill Level",
     "share": "Share",
     "shareSuccess": "Score view link copied to clipboard.",
     "shareError": "Unable to copy score view link.",

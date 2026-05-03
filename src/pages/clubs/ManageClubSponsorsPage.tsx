@@ -103,9 +103,9 @@ export default function ManageClubSponsorsPage() {
 
   return (
     <div className="min-h-[calc(100vh-4rem)] bg-[#f4f7f6] px-4 py-6 sm:px-6 md:py-8">
-      <div className="mx-auto w-full max-w-[374px] rounded-[15px] border border-black/10 bg-white px-[15px] py-5 shadow-[0px_3px_15px_0px_rgba(0,0,0,0.06)] sm:max-w-[992px] sm:px-0 sm:py-0">
-        <div className="flex items-center justify-between sm:px-5 sm:pt-4 sm:pb-[14px]">
-          <h1 className="text-xl font-semibold leading-tight text-[#010a04]">
+      <div className="mx-auto w-full max-w-[374px] rounded-[15px] border border-black/10 bg-white px-[15px] py-3 shadow-[0px_3px_15px_0px_rgba(0,0,0,0.06)] sm:max-w-[992px] sm:px-0 sm:py-0">
+        <div className="flex items-center justify-end sm:px-5 sm:py-3 lg:justify-between lg:pb-[14px] lg:pt-4">
+          <h1 className="sr-only text-xl font-semibold leading-tight text-[#010a04] lg:not-sr-only lg:block">
             {t("sponsors.title")}
           </h1>
 
@@ -121,7 +121,7 @@ export default function ManageClubSponsorsPage() {
         </div>
 
         {showPremiumBanner && (
-          <div className="mt-4 rounded-[8px] border border-brand-primary/30 bg-brand-primary/5 px-4 py-3 text-sm text-[#010a04]/80 sm:mx-5 sm:mt-0 sm:mb-4">
+          <div className="mt-3 rounded-[8px] border border-brand-primary/30 bg-brand-primary/5 px-4 py-3 text-sm text-[#010a04]/80 sm:mx-5 sm:mb-4 sm:mt-0">
             {t("sponsors.premiumRequired")}
           </div>
         )}

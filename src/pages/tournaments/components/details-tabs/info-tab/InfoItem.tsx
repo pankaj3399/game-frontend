@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import type { ComponentType } from "react";
 import type { IconProps } from "@/icons/figma-icons";
 
@@ -6,7 +7,7 @@ type FigmaIconComponent = ComponentType<IconProps>;
 interface InfoItemProps {
   icon: FigmaIconComponent;
   label: string;
-  value: string;
+  value: ReactNode;
   valueClassName?: string;
 }
 

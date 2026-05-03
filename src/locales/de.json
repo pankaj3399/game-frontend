@@ -110,7 +110,7 @@
       "settings": "Einstellungen",
       "clubs": "Vereine",
       "sponsors": "TB10 Sponsoren",
-      "about": "Über uns"
+      "about": "Über TB10"
     },
     "saveChanges": "Änderungen speichern",
     "saveSuccess": "Änderungen erfolgreich gespeichert",
@@ -780,7 +780,7 @@
     "loadError": "Punktverlauf konnte nicht geladen werden.",
     "totalMatches": "Spiele insgesamt",
     "totalWins": "Siege insgesamt",
-    "glicko2": "G2 Spielniveau",
+    "glicko3": "G3 Spielniveau",
     "share": "Teilen",
     "shareSuccess": "Link zur Punkteansicht wurde kopiert.",
     "shareError": "Link zur Punkteansicht konnte nicht kopiert werden.",
@@ -801,7 +801,7 @@
     }
   },
   "about": {
-    "title": "Über uns",
+    "title": "Über TB10",
     "allowsYouTo": "TB10 ermöglicht Ihnen",
     "allowsYouToItem1": "Turniere zu finden und daran teilzunehmen",
     "allowsYouToItem2": "Ihre Punktzahlen zu erfassen",

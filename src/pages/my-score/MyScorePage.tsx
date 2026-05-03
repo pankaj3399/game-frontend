@@ -144,17 +144,16 @@ export default function MyScorePage() {
               {t("myScorePage.totalWins")}: <span className="font-bold text-[#0a6925]">{summary.totalWins}</span>
             </p>
             <p className="font-medium text-[#010a04]">
-              {t("myScorePage.glicko2")}: <span className="font-bold text-[#0a6925]">{summary.glicko2.rating}{"\u00B1"}{summary.glicko2.rd}</span>
+              {t("myScorePage.glicko3")}: <span className="font-bold text-[#0a6925]">{summary.glicko2.rating}{"\u00B1"}{summary.glicko2.rd}</span>
             </p>
           </div>
         </section>
 
         <section className="overflow-hidden rounded-[12px] border border-[rgba(1,10,4,0.08)] bg-white shadow-[0_3px_15px_rgba(0,0,0,0.06)]">
-          <header className="flex flex-col gap-3 px-[16px] pb-[10px] pt-[18px] sm:flex-row sm:items-center sm:justify-between sm:px-[18px]">
-            <h1 className="text-[30px] font-semibold leading-none tracking-[-0.01em] text-[#010a04]">
+          <header className="flex flex-col gap-3 px-[16px] py-3 sm:flex-row sm:items-center sm:justify-end sm:px-[18px] lg:justify-between lg:pb-[10px] lg:pt-[18px]">
+            <h1 className="sr-only text-[30px] font-semibold leading-none text-[#010a04] lg:not-sr-only lg:block">
               {t("myScorePage.title")}
             </h1>
-
             <div className="flex flex-wrap items-center gap-2">
               <div className="flex h-[30px] items-center rounded-[6px] bg-[#010a04]/[0.05] p-[3px]">
                 {FILTER_MODES.map((value) => {

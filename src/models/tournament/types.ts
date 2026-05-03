@@ -21,7 +21,7 @@ export function wireJsonNullableNumber() {
         const n = Number(val);
         if (Number.isFinite(n)) return n;
       }
-      return val;
+      return null;
     },
     z.union([z.number(), z.null()])
   );

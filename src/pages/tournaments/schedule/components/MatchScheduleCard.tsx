@@ -23,6 +23,7 @@ import { AVATAR_TONES, hashSeed, initialsFromName } from "@/pages/tournaments/sc
 export interface MatchScheduleCardProps {
   match: TournamentScheduleMatch;
   locale: Locale;
+  timeZone?: string | null;
   t: (key: string, options?: Record<string, unknown>) => string;
   canEditScores: boolean;
   isEditing: boolean;
@@ -39,7 +40,7 @@ export interface MatchScheduleCardProps {
 }
 
 export function MatchScheduleCard({
-  match, locale, t, canEditScores, isEditing, editableRows,
+  match, locale, timeZone, t, canEditScores, isEditing, editableRows,
   isSavePending, saveErrorMessage, onToggleEdit, onScoreInputChange,
 }: MatchScheduleCardProps) {
   const unknown = t("tournaments.unknownPlayer");
@@ -48,7 +49,8 @@ export function MatchScheduleCard({
   const courtName = match.court.name ?? t("tournaments.courtTBD");
   const tone = AVATAR_TONES[hashSeed(match.id) % AVATAR_TONES.length] ?? AVATAR_TONES[0];
   const tbd = t("tournaments.scheduledTbd");
-  const { date: dateLabel, time: timeLabel } = matchScheduleDateTimeLabels(match.startTime, locale, tbd);
+  const { date: dateLabel, time: timeLabel, timeZone: timeZoneLabel } =
+    matchScheduleDateTimeLabels(match.startTime, locale, tbd, timeZone);
   const columns = scoreColumns(match);
   const editableRowsToRender = visibleScoreEditorRows(editableRows, match.playMode);
   const historicalBadgeLabel = t("tournaments.matchHistoricalBadge", {
@@ -78,16 +80,23 @@ export function MatchScheduleCard({
       <div className="mb-2.5 flex flex-wrap items-center gap-2">
         <div className="flex min-w-0 flex-[999_1_0%] flex-wrap items-center gap-x-3 gap-y-1">
           {[
-            { Icon: IconCalendarDays, label: dateLabel },
-            { Icon: IconClock, label: timeLabel },
-            { Icon: IconMap, label: courtName },
-          ].map(({ Icon, label }, index) => (
+            { Icon: IconCalendarDays, label: dateLabel, timeZone: null },
+            { Icon: IconClock, label: timeLabel, timeZone: timeZoneLabel },
+            { Icon: IconMap, label: courtName, timeZone: null },
+          ].map(({ Icon, label, timeZone }, index) => (
             <span
               key={`${match.id}-meta-${index}`}
               className="inline-flex min-w-0 items-center gap-1.5 text-[12px] text-[#010a04]/50"
             >
               <Icon size={12} className="shrink-0" />
-              <span className="truncate">{label}</span>
+              <span className="inline-flex min-w-0 items-baseline gap-1">
+                <span className="truncate">{label}</span>
+                {timeZone ? (
+                  <span className="shrink-0 text-[10px] font-medium leading-none text-[#010a04]/35">
+                    {timeZone}
+                  </span>
+                ) : null}
+              </span>
             </span>
           ))}
         </div>

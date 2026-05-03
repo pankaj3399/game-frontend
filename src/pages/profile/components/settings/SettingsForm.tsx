@@ -67,8 +67,8 @@ export function SettingsForm({ user }: { user: AuthUser }) {
 
   return (
     <>
-      <div className="mb-5 flex items-center justify-between gap-3">
-        <h2 className="text-[20px] font-semibold leading-none text-[#010a04]">
+      <div className="mb-4 flex items-center justify-end gap-3 lg:mb-5 lg:justify-between">
+        <h2 className="sr-only text-[20px] font-semibold leading-none text-[#010a04] lg:not-sr-only lg:block">
           {t("settings.title")}
         </h2>
         <Button

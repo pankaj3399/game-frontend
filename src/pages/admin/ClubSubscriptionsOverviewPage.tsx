@@ -132,8 +132,10 @@ export default function ClubSubscriptionsOverviewPage() {
     <div className="flex min-h-[calc(100vh-4rem)] justify-center bg-brand-primary/[0.03]">
       <div className="mx-auto w-full max-w-[430px] p-3 md:max-w-6xl md:p-6">
         <div className="overflow-hidden rounded-xl border border-tableBorder bg-card shadow-table">
-          <div className="flex flex-col gap-3 border-b border-border bg-card px-4 py-4 md:flex-row md:items-center md:justify-between md:px-6">
-            <h1 className="text-lg font-semibold text-foreground md:text-3xl">Subscription Management</h1>
+          <div className="flex flex-col gap-3 border-b border-border bg-card px-3 py-3 md:flex-row md:items-center md:justify-end md:px-6 md:py-4 lg:justify-between">
+            <h1 className="sr-only text-lg font-semibold text-foreground lg:not-sr-only lg:block lg:text-3xl">
+              Subscription Management
+            </h1>
             <div className="flex w-full items-center gap-2 md:w-auto md:gap-3">
               <div className="relative min-w-0 flex-1 md:w-[280px] md:flex-none">
                 <Search01Icon

@@ -2,7 +2,8 @@ import { useMemo } from "react";
 import type { TFunction } from "i18next";
 import { getDateFnsLocale } from "@/lib/dateFnsLocale";
 import type { TournamentDetail } from "@/models/tournament/types";
-import { formatDateDisplay, formatTimeRangeDisplay } from "@/utils/display";
+import { formatDateDisplay, formatTimeRangeDisplay, formatTimeZoneAbbreviation } from "@/utils/display";
+import { formatTimeTo24Hour } from "@/utils/time";
 import { UI_LIMITS } from "./constants";
 
 interface UseTournamentInfoArgs {
@@ -52,6 +53,12 @@ export function useTournamentInfo({ tournament, t, language, isDescriptionExpand
       t("tournaments.unscheduled"),
       (start, end) => t("tournaments.timeRange", { start, end })
     );
+    const hasScheduledTime = Boolean(
+      formatTimeTo24Hour(tournament.startTime) || formatTimeTo24Hour(tournament.endTime)
+    );
+    const formattedTimeZone = hasScheduledTime
+      ? formatTimeZoneAbbreviation(tournament.timezone, tournament.date)
+      : null;
 
     return {
       feeText,
@@ -66,6 +73,7 @@ export function useTournamentInfo({ tournament, t, language, isDescriptionExpand
       spotPercentage,
       formattedDate,
       formattedTime,
+      formattedTimeZone,
     };
   }, [isDescriptionExpanded, language, t, tournament]);
 }
