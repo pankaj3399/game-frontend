@@ -8,7 +8,7 @@ export function wireJsonNullableString() {
   return z.preprocess(
     (val: unknown) => (val === undefined ? null : val),
     z.union([z.string(), z.null()])
-  );
+  ).optional().default(null);
 }
 
 export function wireJsonNullableNumber() {
@@ -24,14 +24,14 @@ export function wireJsonNullableNumber() {
       return null;
     },
     z.union([z.number(), z.null()])
-  );
+  ).optional().default(null);
 }
 
 export function wireJsonNullable<T extends z.ZodTypeAny>(schema: T) {
   return z.preprocess(
     (val: unknown) => (val === undefined ? null : val),
     z.union([schema, z.null()])
-  );
+  ).optional().default(null);
 }
 
 export const tournamentStatusSchema = z.enum(["active", "draft"]);
