@@ -103,7 +103,7 @@ function NavLinks({
   compact?: boolean;
 }) {
   const isInline = variant === "inline";
-  const iconSize = isInline && compact ? 15 : isInline ? 16 : 17;
+  const iconSize = isInline && compact ? 15 : isInline ? 16 : 18;
 
   return (
     <>
@@ -124,18 +124,32 @@ function NavLinks({
             to={path}
             onClick={onNavigate}
             className={cn(
-              "flex items-center leading-none whitespace-nowrap transition-opacity",
+              "flex items-center leading-none whitespace-nowrap transition-colors",
               isInline
                 ? compact
                   ? "gap-1 text-[11px] tracking-tight lg:text-[12px] xl:gap-1.5 xl:text-[13px]"
                   : "gap-1.5 text-[12px] lg:gap-1.5 lg:text-[13px] xl:gap-2 xl:text-[14px]"
-                : "gap-1.5 text-[14px]",
-              isActive
-                ? "font-medium text-white opacity-100"
-                : "font-medium text-white opacity-80 hover:opacity-100",
+                : "group h-10 gap-3 rounded-[10px] px-3 text-[14px]",
+              isInline
+                ? isActive
+                  ? "font-medium text-white opacity-100"
+                  : "font-medium text-white opacity-80 hover:opacity-100"
+                : isActive
+                  ? "bg-white/12 font-semibold text-white"
+                  : "font-medium text-white/85 hover:bg-white/8 hover:text-white",
             )}
           >
-            <Icon size={iconSize} className="shrink-0 text-white" />
+            <Icon
+              size={iconSize}
+              className={cn(
+                "shrink-0",
+                isInline
+                  ? "text-white"
+                  : isActive
+                    ? "text-white"
+                    : "text-white/75 group-hover:text-white",
+              )}
+            />
             {t(labelKey)}
           </Link>
         );
@@ -176,6 +190,53 @@ export function AppNavbar() {
   const pageTitle = getPageTitle(location.pathname, t);
 
   const closeMobileMenu = () => setMobileMenuOpen(false);
+
+  const handleMobileLogout = () => {
+    closeMobileMenu();
+    window.requestAnimationFrame(() => {
+      void handleLogout();
+    });
+  };
+
+  const renderLanguageButtons = (onAfterChange?: () => void) => (
+    <>
+      <p className="mb-2.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-white/55">
+        {t("common.language")}
+      </p>
+      <div className="flex gap-2">
+        <button
+          type="button"
+          className={cn(
+            "h-9 flex-1 rounded-[9px] border px-3 text-[13px] font-semibold transition-colors",
+            normalizedLanguage === "en"
+              ? "border-white bg-white text-brand-primary shadow-sm"
+              : "border-white/20 text-white/85 hover:border-white/40 hover:bg-white/10 hover:text-white",
+          )}
+          onClick={() => {
+            handleLanguageChange("en");
+            onAfterChange?.();
+          }}
+        >
+          ENG
+        </button>
+        <button
+          type="button"
+          className={cn(
+            "h-9 flex-1 rounded-[9px] border px-3 text-[13px] font-semibold transition-colors",
+            normalizedLanguage === "de"
+              ? "border-white bg-white text-brand-primary shadow-sm"
+              : "border-white/20 text-white/85 hover:border-white/40 hover:bg-white/10 hover:text-white",
+          )}
+          onClick={() => {
+            handleLanguageChange("de");
+            onAfterChange?.();
+          }}
+        >
+          DEU
+        </button>
+      </div>
+    </>
+  );
 
   const renderAuthSection = (onAfterNavigate?: () => void) => (
     <>
@@ -270,14 +331,63 @@ export function AppNavbar() {
     </>
   );
 
+  const renderMobileAuthSection = () => (
+    <>
+      {isAuthenticated ? (
+        <div className="flex flex-col gap-5">
+          <div className="flex min-w-0 items-center gap-3">
+            <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-white/12">
+              <UserIcon size={18} className="text-white" />
+            </span>
+            <p className="min-w-0 truncate text-[14px] font-semibold leading-tight text-white">
+              {user?.alias?.trim() || user?.name?.trim() || t("profile.title")}
+            </p>
+          </div>
+
+          <RoleGuard requireRoleOrAbove={ROLES.SUPER_ADMIN}>
+            <Link
+              to="/admin"
+              className="flex h-9 w-full items-center justify-center rounded-[9px] border border-white/15 px-3 text-[13px] font-semibold text-white transition-colors hover:bg-white/10"
+              onClick={closeMobileMenu}
+            >
+              {t("admin.nav.admin")}
+            </Link>
+          </RoleGuard>
+
+          <div>{renderLanguageButtons(closeMobileMenu)}</div>
+
+          <button
+            type="button"
+            className="flex h-9 w-full items-center justify-center rounded-[9px] border border-white/15 px-3 text-[13px] font-semibold text-white transition-colors hover:border-white/30 hover:bg-white/10"
+            onClick={handleMobileLogout}
+          >
+            {t("common.logout")}
+          </button>
+        </div>
+      ) : (
+        <div className="flex flex-col gap-5">
+          <div>{renderLanguageButtons(closeMobileMenu)}</div>
+          <Link
+            to="/login"
+            className="flex h-10 w-full items-center justify-center gap-2 rounded-[9px] bg-brand-accent px-3 text-[14px] font-semibold text-[#010a04] transition-colors hover:bg-brand-accent-hover"
+            onClick={closeMobileMenu}
+          >
+            <UserIcon size={16} className="text-[#010a04]" />
+            {t("common.login")}
+          </Link>
+        </div>
+      )}
+    </>
+  );
+
   return (
     <header
       className="sticky top-0 z-50 h-[56px] w-full lg:h-[60px]"
       style={{ backgroundColor: "var(--brand-primary)" }}
     >
       <div className="relative mx-auto flex h-full w-full max-w-[1440px] items-center justify-between gap-2 px-3 lg:gap-3 lg:px-6 xl:px-[96px]">
-        <div className="pointer-events-none absolute inset-x-0 flex justify-center lg:hidden">
-          <span className="max-w-[56vw] truncate text-center text-[24px] font-semibold leading-[56px] text-white">
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 flex justify-center lg:hidden">
+          <span className="mb-[14px] max-w-[56vw] truncate text-center text-[24px] font-semibold leading-none text-[#F4C95D]">
             {pageTitle}
           </span>
         </div>
@@ -359,69 +469,24 @@ export function AppNavbar() {
             </SheetTrigger>
             <SheetContent
               side="right"
-              className="w-[min(90vw,22rem)] min-w-[18rem] border-0 bg-brand-primary p-0"
+              className="w-[min(88vw,21rem)] min-w-[18rem] gap-0 border-l border-white/10 bg-brand-primary p-0 text-white shadow-[-14px_0_40px_rgba(0,0,0,0.22)]"
               showCloseButton={true}
+              closeButtonClassName="text-white hover:bg-white/10 focus:ring-white/40 focus:ring-offset-brand-primary data-[state=open]:!bg-white/10"
             >
-              <SheetHeader className="border-b border-white/20 px-4 py-4">
-                <SheetTitle className="text-lg font-semibold text-white">
+              <SheetHeader className="border-b border-white/10 px-4 py-5 pr-12">
+                <SheetTitle className="truncate text-[18px] font-semibold leading-none text-white">
                   {pageTitle}
                 </SheetTitle>
               </SheetHeader>
-              <nav className="flex flex-col gap-3 p-4">
+              <nav className="flex flex-col gap-1 px-4 py-5">
                 <NavLinks
                   location={location}
                   t={t}
                   onNavigate={closeMobileMenu}
                 />
               </nav>
-              <div className="border-t border-white/20 px-4 py-4">
-                {!isAuthenticated && (
-                  <>
-                    <p className="mb-2 text-xs font-medium uppercase tracking-wide text-white/60">
-                      {t("common.language")}
-                    </p>
-                    <div className="flex gap-2">
-                      <button
-                        type="button"
-                        className={cn(
-                          "flex-1 rounded-[8px] border px-3 py-2 text-[14px] font-medium transition-colors",
-                          normalizedLanguage === "en"
-                            ? "border-white bg-white/20 text-white"
-                            : "border-white/20 text-white/90 hover:bg-white/10",
-                        )}
-                        onClick={() => {
-                          handleLanguageChange("en");
-                          closeMobileMenu();
-                        }}
-                      >
-                        ENG
-                      </button>
-                      <button
-                        type="button"
-                        className={cn(
-                          "flex-1 rounded-[8px] border px-3 py-2 text-[14px] font-medium transition-colors",
-                          normalizedLanguage === "de"
-                            ? "border-white bg-white/20 text-white"
-                            : "border-white/20 text-white/90 hover:bg-white/10",
-                        )}
-                        onClick={() => {
-                          handleLanguageChange("de");
-                          closeMobileMenu();
-                        }}
-                      >
-                        DEU
-                      </button>
-                    </div>
-                  </>
-                )}
-                <div
-                  className={cn(
-                    "flex w-full min-w-0 flex-col gap-2 [&_button]:w-full [&_a]:flex [&_a]:w-full [&_a]:justify-center",
-                    !isAuthenticated && "mt-4",
-                  )}
-                >
-                  {renderAuthSection(closeMobileMenu)}
-                </div>
+              <div className="mt-auto border-t border-white/10 px-4 py-5">
+                {renderMobileAuthSection()}
               </div>
             </SheetContent>
           </Sheet>

@@ -1,11 +1,12 @@
 import type { Locale } from "date-fns";
+import type { CSSProperties } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import {
-  IconCalendarDays, IconClock, IconMap,
+  IconCalendarDays, IconClock, IconMap, PencilEdit01Icon,
 } from "@/icons/figma-icons";
 import type { TournamentScheduleMatch } from "@/models/tournament/types";
 import { matchScheduleDateTimeLabels } from "@/pages/tournaments/schedule/utils/matchScheduleLabels";
@@ -62,23 +63,27 @@ export function MatchScheduleCard({
   const isPendingScore = match.status === "pendingScore";
   const isCancelled = match.status === "cancelled";
   const hasStatusBadge = isLive || isPendingScore || isCancelled;
+  const scoreGridStyle = {
+    "--score-column-count": Math.max(editableRowsToRender.length, 1),
+    gridTemplateColumns: `repeat(${Math.max(editableRowsToRender.length, 1)}, minmax(calc(3ch + 1rem), max-content))`,
+  } as CSSProperties;
 
   return (
     <article
       className={cn(
-        "flex h-full min-h-[172px] flex-col rounded-[14px] border px-4 py-4",
+        "flex h-full min-w-0 flex-col rounded-[14px] border px-4 py-4 shadow-[0_1px_2px_rgba(1,10,4,0.04)]",
         isLive
-          ? "border-[#067429] bg-[#eef8f1]"
+          ? "border-[#067429]/30 bg-[#f6fbf7]"
           : isPendingScore
-            ? "border-[#b45309] bg-[#fff7ed]"
+            ? "border-[#b45309]/25 bg-[#fffaf3]"
             : isCancelled
-              ? "border-transparent bg-[#010a04]/[0.03]"
-              : "border-transparent bg-[#010a04]/[0.03]"
+              ? "border-[#010a04]/[0.06] bg-white"
+              : "border-[#010a04]/[0.06] bg-white"
       )}
     >
       {/* Header: metadata + edit button */}
-      <div className="mb-2.5 flex flex-wrap items-center gap-2">
-        <div className="flex min-w-0 flex-[999_1_0%] flex-wrap items-center gap-x-3 gap-y-1">
+      <div className="mb-2.5 grid grid-cols-[minmax(0,1fr)_auto] items-start gap-2">
+        <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1">
           {[
             { Icon: IconCalendarDays, label: dateLabel, timeZone: null },
             { Icon: IconClock, label: timeLabel, timeZone: timeZoneLabel },
@@ -107,12 +112,15 @@ export function MatchScheduleCard({
             onClick={() => void onToggleEdit(match)}
             disabled={isSavePending || isCancelled}
             className={cn(
-              "ml-auto h-7 shrink-0 self-center rounded-[7px] px-3 text-[12px] font-medium max-[380px]:w-full max-[380px]:justify-center",
+              "h-7 min-w-0 justify-self-end rounded-[7px] px-2.5 text-[12px] font-medium shadow-none",
               isEditing
                 ? "bg-[#067429] text-white hover:bg-[#055d21]"
                 : "border border-[#010a04]/[0.12] bg-white text-[#010a04] hover:bg-[#010a04]/[0.04]"
             )}
           >
+            {!isEditing && !isSavePending ? (
+              <PencilEdit01Icon size={13} aria-hidden className="text-current" />
+            ) : null}
             {isSavePending
               ? t("tournaments.saving")
               : isEditing
@@ -131,72 +139,80 @@ export function MatchScheduleCard({
 
         {/* Score editor (inline) */}
         {isEditing && canEditScores ? (
-          <div className="flex flex-col gap-0.5">
-          {/* Set labels */}
-          {editableRowsToRender.length > 0 && (
-            <div className="mb-1 flex justify-end gap-1 pr-2.5 max-[430px]:pr-0">
-              {editableRowsToRender.map((_, i) => (
-                <span
-                  key={`${match.id}-set-lbl-${i}`}
-                  className="w-12 text-center text-[9px] font-semibold uppercase tracking-[0.05em] text-[#010a04]/40 sm:w-16"
+          <div className="flex min-w-0 flex-col gap-0.5">
+            {[firstPlayer, secondPlayer].map((name, playerIdx) => {
+              const side = playerIdx === 0 ? "one" : "two";
+              const sideKey = playerIdx === 0 ? "playerOne" : "playerTwo";
+              return (
+                <div
+                  key={`${match.id}-edit-${side}`}
+                  className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 rounded-[10px] px-2.5 py-2"
                 >
-                  S{i + 1}
-                </span>
-              ))}
-            </div>
-          )}
+                  <div className="flex min-w-[80px] flex-1 items-center gap-2.5">
+                    <span
+                      className={cn(
+                        "flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gradient-to-br text-[10px] font-semibold text-[#010a04]/70",
+                        tone
+                      )}
+                    >
+                      {initialsFromName(name)}
+                    </span>
+                    <span className="truncate text-[14px] font-medium leading-tight text-[#010a04]">{name}</span>
+                  </div>
 
-          {[firstPlayer, secondPlayer].map((name, playerIdx) => {
-            const side = playerIdx === 0 ? "one" : "two";
-            const sideKey = playerIdx === 0 ? "playerOne" : "playerTwo";
-            return (
-              <div
-                key={`${match.id}-edit-${side}`}
-                className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 rounded-[10px] px-2.5 py-2 max-[430px]:px-0"
-              >
-                <div className="flex min-w-0 flex-1 items-center gap-2.5">
-                  <span
-                    className={cn(
-                      "flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gradient-to-br text-[10px] font-semibold text-[#010a04]/70",
-                      tone
-                    )}
+                  <div
+                    className="flex min-w-0 flex-col gap-1 justify-self-end"
                   >
-                    {initialsFromName(name)}
-                  </span>
-                  <span className="truncate text-[14px] font-medium text-[#010a04]">{name}</span>
-                </div>
-
-                <div className="flex min-w-0 shrink-0 items-center justify-end gap-1 max-[430px]:w-full">
-                  {editableRowsToRender.map((row, rowIndex) => {
-                    const value = sideKey === "playerOne" ? row.playerOne : row.playerTwo;
-                    const options = getScoreSelectOptions(row, sideKey, match.playMode, rowIndex);
-                    return (
-                      <Select
-                        key={`${row.id}-${side}`}
-                        value={value === "" ? SCORE_SELECT_EMPTY_VALUE : value}
-                        onValueChange={(v) => onScoreInputChange(row.id, sideKey, v, rowIndex)}
+                    {playerIdx === 0 ? (
+                      <div
+                        className="inline-grid min-w-0 gap-1"
+                        style={scoreGridStyle}
                       >
-                        <SelectTrigger
-                          hideIcon
-                          aria-label={t("tournaments.scoreInputLabel", { playerName: name, setNumber: rowIndex + 1 })}
-                          className="h-[30px] w-11 justify-center gap-0 rounded-[6px] border border-[#010a04]/[0.14] bg-white px-1.5 text-center text-[13px] font-semibold text-[#010a04] focus:border-[#067429] sm:w-12 *:data-[slot=select-value]:justify-center *:data-[slot=select-value]:text-center"
+                        {editableRowsToRender.map((_, i) => (
+                          <span
+                            key={`${match.id}-set-lbl-${i}`}
+                            className="min-w-0 text-center text-[9px] font-semibold uppercase tracking-[0.05em] text-[#010a04]/35"
+                          >
+                            S{i + 1}
+                          </span>
+                        ))}
+                      </div>
+                    ) : null}
+                    <div
+                      className="inline-grid min-w-0 gap-1"
+                      style={scoreGridStyle}
+                    >
+                    {editableRowsToRender.map((row, rowIndex) => {
+                      const value = sideKey === "playerOne" ? row.playerOne : row.playerTwo;
+                      const options = getScoreSelectOptions(row, sideKey, match.playMode, rowIndex);
+                      return (
+                        <Select
+                          key={`${row.id}-${side}`}
+                          value={value === "" ? SCORE_SELECT_EMPTY_VALUE : value}
+                          onValueChange={(v) => onScoreInputChange(row.id, sideKey, v, rowIndex)}
                         >
-                          <SelectValue placeholder="–" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {options.map((opt) => (
-                            <SelectItem key={`${row.id}-${side}-${opt.value}`} value={opt.value}>
-                              {opt.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    );
-                  })}
+                          <SelectTrigger
+                            hideIcon
+                            aria-label={t("tournaments.scoreInputLabel", { playerName: name, setNumber: rowIndex + 1 })}
+                            className="h-8 min-w-[calc(3ch+1rem)] justify-center gap-0 rounded-[6px] border border-[#010a04]/[0.14] bg-white px-1 text-center text-[13px] font-semibold text-[#010a04] shadow-none focus:border-[#067429] *:data-[slot=select-value]:justify-center *:data-[slot=select-value]:text-center"
+                          >
+                            <SelectValue placeholder="–" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {options.map((opt) => (
+                              <SelectItem key={`${row.id}-${side}-${opt.value}`} value={opt.value}>
+                                {opt.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      );
+                    })}
+                    </div>
+                  </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
           </div>
         ) : (
           <MatchCardReadOnlyRows
