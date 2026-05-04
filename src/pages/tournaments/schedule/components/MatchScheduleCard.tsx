@@ -134,11 +134,11 @@ export function MatchScheduleCard({
           <div className="flex flex-col gap-0.5">
           {/* Set labels */}
           {editableRowsToRender.length > 0 && (
-            <div className="mb-1 flex justify-end gap-1 pr-2.5">
+            <div className="mb-1 flex justify-end gap-1 pr-2.5 max-[430px]:pr-0">
               {editableRowsToRender.map((_, i) => (
                 <span
                   key={`${match.id}-set-lbl-${i}`}
-                  className="w-16 text-center text-[9px] font-semibold uppercase tracking-[0.05em] text-[#010a04]/40"
+                  className="w-12 text-center text-[9px] font-semibold uppercase tracking-[0.05em] text-[#010a04]/40 sm:w-16"
                 >
                   S{i + 1}
                 </span>
@@ -152,7 +152,7 @@ export function MatchScheduleCard({
             return (
               <div
                 key={`${match.id}-edit-${side}`}
-                className="flex items-center justify-between gap-3 rounded-[10px] px-2.5 py-2"
+                className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 rounded-[10px] px-2.5 py-2 max-[430px]:px-0"
               >
                 <div className="flex min-w-0 flex-1 items-center gap-2.5">
                   <span
@@ -166,7 +166,7 @@ export function MatchScheduleCard({
                   <span className="truncate text-[14px] font-medium text-[#010a04]">{name}</span>
                 </div>
 
-                <div className="flex shrink-0 items-center gap-1">
+                <div className="flex min-w-0 shrink-0 items-center justify-end gap-1 max-[430px]:w-full">
                   {editableRowsToRender.map((row, rowIndex) => {
                     const value = sideKey === "playerOne" ? row.playerOne : row.playerTwo;
                     const options = getScoreSelectOptions(row, sideKey, match.playMode, rowIndex);
@@ -177,8 +177,9 @@ export function MatchScheduleCard({
                         onValueChange={(v) => onScoreInputChange(row.id, sideKey, v, rowIndex)}
                       >
                         <SelectTrigger
+                          hideIcon
                           aria-label={t("tournaments.scoreInputLabel", { playerName: name, setNumber: rowIndex + 1 })}
-                          className="h-[30px] w-16 rounded-[6px] border border-[#010a04]/[0.14] bg-white px-1.5 text-center text-[13px] font-semibold text-[#010a04] focus:border-[#067429]"
+                          className="h-[30px] w-11 justify-center gap-0 rounded-[6px] border border-[#010a04]/[0.14] bg-white px-1.5 text-center text-[13px] font-semibold text-[#010a04] focus:border-[#067429] sm:w-12 *:data-[slot=select-value]:justify-center *:data-[slot=select-value]:text-center"
                         >
                           <SelectValue placeholder="–" />
                         </SelectTrigger>
