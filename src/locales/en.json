@@ -755,7 +755,7 @@
     "cancelledCount": "{{cancelled}} Cancelled",
     "noResultsYet": "No results yet.",
     "noMyResults": "You are not in this tournament's results.",
-    "allResults": "All Results",
+    "allResults": "Results",
     "myScoreFilterSignInHint": "Sign in to filter the table to your row.",
     "resultsPosition": "Position",
     "resultsPlayers": "Players",
