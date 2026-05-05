@@ -58,7 +58,7 @@ export function MatchesActions({
   const meetsMemberMinimum = enrolledParticipantCount >= minTournamentMembers;
   const blockScheduleInput = showScheduleInputButton && !meetsMemberMinimum;
 
-  const viewSchedulePath = `/tournaments/${tournamentId}/match-schedule?round=${Math.max(1, round)}`;
+  const viewSchedulePath = `/tournaments/${tournamentId}?tab=matches&round=${Math.max(1, round)}`;
 
   let scheduleInputPath = "";
   let scheduleInputLabel = "";

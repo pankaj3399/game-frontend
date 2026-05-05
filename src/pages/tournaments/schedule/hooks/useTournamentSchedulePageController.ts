@@ -458,7 +458,7 @@ export function useTournamentSchedulePageController({
       });
 
       toast.success(t("tournaments.scheduleGenerated", { round }));
-      navigate(`/tournaments/${id}/match-schedule?round=${response.schedule.round}`);
+      navigate(`/tournaments/${id}?tab=matches&round=${response.schedule.round}`);
     },
     [
       buildGeneratePayload,

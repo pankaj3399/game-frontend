@@ -19,6 +19,7 @@ import {
   type ScoreEditorRow,
 } from "@/pages/tournaments/schedule/utils/matchScheduleScore";
 import { teamSideDisplayName } from "@/pages/tournaments/schedule/utils/matchTeamDisplay";
+import { teamEloRating } from "@/pages/tournaments/components/details-tabs/matches-tab/ratingSummary";
 import { AVATAR_TONES, hashSeed, initialsFromName } from "@/pages/tournaments/schedule/utils/avatarUtils";
 
 export interface MatchScheduleCardProps {
@@ -47,6 +48,12 @@ export function MatchScheduleCard({
   const unknown = t("tournaments.unknownPlayer");
   const firstPlayer = teamSideDisplayName(match, 0, t) || unknown;
   const secondPlayer = teamSideDisplayName(match, 1, t) || unknown;
+  
+  const firstPlayerRating = teamEloRating(match.side1);
+  const secondPlayerRating = teamEloRating(match.side2);
+  const firstPlayerSubtext = firstPlayerRating != null ? `G3: ${firstPlayerRating}` : undefined;
+  const secondPlayerSubtext = secondPlayerRating != null ? `G3: ${secondPlayerRating}` : undefined;
+
   const courtName = match.court.name ?? t("tournaments.courtTBD");
   const tone = AVATAR_TONES[hashSeed(match.id) % AVATAR_TONES.length] ?? AVATAR_TONES[0];
   const tbd = t("tournaments.scheduledTbd");
@@ -58,10 +65,12 @@ export function MatchScheduleCard({
     round: match.detachedFromRound ?? "?",
     defaultValue: "From previous round (R{{round}})",
   });
+  const roundLabel = t("tournaments.roundNumber", { round: match.round });
 
   const isLive = match.status === "inProgress";
   const isPendingScore = match.status === "pendingScore";
   const isCancelled = match.status === "cancelled";
+  const isFromPreviousRound = match.detachedFromRound != null;
   const hasStatusBadge = isLive || isPendingScore || isCancelled;
   const scoreGridStyle = {
     "--score-column-count": Math.max(editableRowsToRender.length, 1),
@@ -104,13 +113,16 @@ export function MatchScheduleCard({
               </span>
             </span>
           ))}
+          <span className="inline-flex shrink-0 rounded-full bg-[#010a04]/[0.06] px-2 py-0.5 text-[11px] font-semibold text-[#010a04]/60">
+            {roundLabel}
+          </span>
         </div>
-        {canEditScores && !isCancelled && (
+        {canEditScores && !isCancelled && !isFromPreviousRound && (
           <Button
             type="button"
             size="sm"
             onClick={() => void onToggleEdit(match)}
-            disabled={isSavePending || isCancelled}
+            disabled={isSavePending || isCancelled || isFromPreviousRound}
             className={cn(
               "h-7 min-w-0 justify-self-end rounded-[7px] px-2.5 text-[12px] font-medium shadow-none",
               isEditing
@@ -138,9 +150,12 @@ export function MatchScheduleCard({
         )}
 
         {/* Score editor (inline) */}
-        {isEditing && canEditScores ? (
+        {isEditing && canEditScores && !isFromPreviousRound ? (
           <div className="flex min-w-0 flex-col gap-0.5">
-            {[firstPlayer, secondPlayer].map((name, playerIdx) => {
+            {[
+              { name: firstPlayer, subtext: firstPlayerSubtext, idx: 0 },
+              { name: secondPlayer, subtext: secondPlayerSubtext, idx: 1 },
+            ].map(({ name, subtext, idx: playerIdx }) => {
               const side = playerIdx === 0 ? "one" : "two";
               const sideKey = playerIdx === 0 ? "playerOne" : "playerTwo";
               return (
@@ -157,7 +172,16 @@ export function MatchScheduleCard({
                     >
                       {initialsFromName(name)}
                     </span>
-                    <span className="truncate text-[14px] font-medium leading-tight text-[#010a04]">{name}</span>
+                    <div className="flex min-w-0 flex-col">
+                      <span className="truncate text-[14px] font-medium leading-tight text-[#010a04]">
+                        {name}
+                      </span>
+                      {subtext != null ? (
+                        <span className="truncate text-[11px] font-medium leading-tight text-[rgb(1,10,4)]/50">
+                          {subtext}
+                        </span>
+                      ) : null}
+                    </div>
                   </div>
 
                   <div
@@ -198,7 +222,14 @@ export function MatchScheduleCard({
                           >
                             <SelectValue placeholder="–" />
                           </SelectTrigger>
-                          <SelectContent>
+                          <SelectContent
+                            position="popper"
+                            align="center"
+                            sideOffset={6}
+                            collisionPadding={12}
+                            showScrollButtons={false}
+                            className="max-h-64"
+                          >
                             {options.map((opt) => (
                               <SelectItem key={`${row.id}-${side}-${opt.value}`} value={opt.value}>
                                 {opt.label}
@@ -220,8 +251,8 @@ export function MatchScheduleCard({
             tone={tone}
             columns={columns}
             rows={[
-              { name: firstPlayer, side: "one" },
-              { name: secondPlayer, side: "two" },
+              { name: firstPlayer, subtext: firstPlayerSubtext, side: "one" },
+              { name: secondPlayer, subtext: secondPlayerSubtext, side: "two" },
             ]}
           />
         )}

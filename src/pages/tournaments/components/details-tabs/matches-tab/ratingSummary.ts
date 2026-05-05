@@ -13,7 +13,7 @@ function normalizedRatings(team: Array<TournamentMatchPlayer | null>) {
   const ratings: number[] = [];
 
   for (const player of team) {
-    const rating = player?.snapshotElo?.rating;
+    const rating = player?.snapshotElo?.rating ?? player?.elo?.rating;
     if (typeof rating === "number" && Number.isFinite(rating)) {
       ratings.push(rating);
     }

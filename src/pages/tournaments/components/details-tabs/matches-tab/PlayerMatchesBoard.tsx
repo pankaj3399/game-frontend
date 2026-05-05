@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { enUS } from "date-fns/locale";
 import type { TFunction } from "i18next";
 import { SwitchToggle } from "@/components/ui/switch-toggle";
@@ -11,7 +11,7 @@ import { matchScheduleDateTimeLabels } from "@/pages/tournaments/schedule/utils/
 import { scoreColumns, type ScoreColumn } from "@/pages/tournaments/schedule/utils/matchScheduleScore";
 import { teamSideDisplayName } from "@/pages/tournaments/schedule/utils/matchTeamDisplay";
 import { AVATAR_TONES, hashSeed } from "@/pages/tournaments/schedule/utils/avatarUtils";
-import { withBracketedElo } from "./ratingSummary";
+import { teamEloRating } from "./ratingSummary";
 
 interface PlayerMatchesBoardProps {
   matches: TournamentScheduleMatch[];
@@ -78,18 +78,14 @@ function PlayerMatchCard({
   t: TFunction;
 }) {
   const unknown = t("tournaments.unknownPlayer");
-  const teamOneBase = teamSideDisplayName(match, 0, t) || unknown;
-  const teamTwoBase = teamSideDisplayName(match, 1, t) || unknown;
-  const teamOne = withBracketedElo(
-    teamOneBase,
-    match.side1,
-    (rating) => `(${t("tournaments.matchRatingElo", { value: rating })})`
-  );
-  const teamTwo = withBracketedElo(
-    teamTwoBase,
-    match.side2,
-    (rating) => `(${t("tournaments.matchRatingElo", { value: rating })})`
-  );
+  const teamOne = teamSideDisplayName(match, 0, t) || unknown;
+  const teamTwo = teamSideDisplayName(match, 1, t) || unknown;
+
+  const teamOneRating = teamEloRating(match.side1);
+  const teamTwoRating = teamEloRating(match.side2);
+  const teamOneSubtext = teamOneRating != null ? `G3: ${teamOneRating}` : undefined;
+  const teamTwoSubtext = teamTwoRating != null ? `G3: ${teamTwoRating}` : undefined;
+
   const toneIndex = hashSeed(match.id) % AVATAR_TONES.length;
   const tone = AVATAR_TONES[toneIndex]!;
   const locale = getDateFnsLocale(language) ?? enUS;
@@ -157,6 +153,9 @@ function PlayerMatchCard({
             <IconMap size={14} className="shrink-0 text-muted-foreground" />
             <span className="truncate">{courtLabel}</span>
           </span>
+          <span className="inline-flex shrink-0 rounded-full bg-muted px-2 py-0.5 text-[11px] font-semibold text-muted-foreground">
+            {t("tournaments.roundNumber", { round: match.round })}
+          </span>
         </div>
 
         <div className="flex shrink-0 flex-col items-end gap-1">
@@ -185,6 +184,7 @@ function PlayerMatchCard({
           {
             name: teamOne,
             side: "one",
+            subtext: teamOneSubtext,
             nameSuffix:
               match.status === "completed" && winningSide === "one" ? (
                 <span className="shrink-0 text-[13px] font-medium text-primary">
@@ -195,6 +195,7 @@ function PlayerMatchCard({
           {
             name: teamTwo,
             side: "two",
+            subtext: teamTwoSubtext,
             nameSuffix:
               match.status === "completed" && winningSide === "two" ? (
                 <span className="shrink-0 text-[13px] font-medium text-primary">
@@ -231,7 +232,25 @@ export function PlayerMatchesBoard({
   const singlesAvailable = matches.some((m) => (m.mode ?? "singles") === "singles");
   const doublesAvailable = matches.some((m) => (m.mode ?? "singles") === "doubles");
 
-  const modeFilteredMatches = matches.filter((match) => (match.mode ?? "singles") === selectedMode);
+  const sortedMatches = useMemo(() => {
+    return matches.slice().sort((left, right) => {
+      // Real matches first, historical/rescheduled matches last
+      const leftIsHistorical = left.detachedFromRound != null;
+      const rightIsHistorical = right.detachedFromRound != null;
+      if (leftIsHistorical !== rightIsHistorical) {
+        return leftIsHistorical ? 1 : -1;
+      }
+      // Within same category, cancelled matches go after non-cancelled
+      if (left.status === "cancelled" && right.status !== "cancelled") return 1;
+      if (left.status !== "cancelled" && right.status === "cancelled") return -1;
+      // Then sort by round
+      if (left.round !== right.round) return left.round - right.round;
+      // Finally by slot
+      return left.slot - right.slot;
+    });
+  }, [matches]);
+
+  const modeFilteredMatches = sortedMatches.filter((match) => (match.mode ?? "singles") === selectedMode);
 
   const onlyMyMatchesActive = Boolean(currentUserId) && wantOnlyMyMatches;
 

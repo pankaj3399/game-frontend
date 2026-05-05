@@ -1,7 +1,11 @@
-import { useState } from "react";
 import type { TFunction } from "i18next";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { ChevronDown } from "@/icons/figma-icons";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import type { MatchCounts } from "./types";
 
@@ -25,17 +29,6 @@ export function MatchesProgress({
   t,
 }: MatchesProgressProps) {
   const clampedProgress = Math.max(0, Math.min(100, counts.progressPct));
-  const [roundMenuOpen, setRoundMenuOpen] = useState(false);
-
-  const triggerLabel =
-    roundFilter === "all"
-      ? t("tournaments.matchesListAllRoundsSubtitle")
-      : t("tournaments.roundNumber", { round: roundFilter });
-
-  const pickRound = (next: OrganiserRoundFilter) => {
-    onRoundFilterChange(next);
-    setRoundMenuOpen(false);
-  };
 
   return (
     <div className="rounded-xl border border-[#e5e7eb] bg-white p-4 sm:p-5">
@@ -44,56 +37,34 @@ export function MatchesProgress({
           {t("tournaments.matchesProgressTitle")}
         </h3>
         {availableRounds.length > 0 ? (
-          <Popover open={roundMenuOpen} onOpenChange={setRoundMenuOpen}>
-            <PopoverTrigger asChild>
-              <button
-                type="button"
-                className={cn(
-                  "group inline-flex max-w-full shrink-0 cursor-pointer items-center gap-0.5 rounded-md",
-                  "border border-[#010a04]/[0.06] bg-[#f4f6f8] px-1.5 py-0.5 text-left text-xs text-[#374151]",
-                  "transition-colors",
-                  "hover:border-[#010a04]/12 hover:bg-[#eef1f4]",
-                  "focus:outline-none",
-                  "focus-visible:border-[#067429]/40 focus-visible:bg-[#067429]/[0.08] focus-visible:ring-0",
-                  "data-[state=open]:border-[#010a04]/14 data-[state=open]:bg-[#e8ecef]"
-                )}
-                aria-label={t("tournaments.matchesRoundFilterAria")}
-                aria-haspopup="menu"
-                aria-expanded={roundMenuOpen}
-              >
-                <span className="min-w-0">{triggerLabel}</span>
-                <ChevronDown
-                  size={11}
-                  className={cn(
-                    "shrink-0 opacity-45 transition-[transform,opacity] duration-200 group-hover:opacity-75",
-                    roundMenuOpen && "rotate-180 opacity-80"
-                  )}
-                  aria-hidden
-                />
-              </button>
-            </PopoverTrigger>
-            <PopoverContent
+          <Select
+            value={roundFilter === "all" ? "all" : String(roundFilter)}
+            onValueChange={(value) =>
+              onRoundFilterChange(value === "all" ? "all" : Number.parseInt(value, 10))
+            }
+          >
+            <SelectTrigger
+              aria-label={t("tournaments.matchesRoundFilterAria")}
+              className={cn(
+                "h-auto w-auto max-w-full rounded-md border border-[#010a04]/[0.06] bg-[#f4f6f8] px-1.5 py-0.5 text-xs text-[#374151] shadow-none hover:border-[#010a04]/12 hover:bg-[#eef1f4] focus-visible:border-[#067429]/40 focus-visible:bg-[#067429]/[0.08] focus-visible:ring-0"
+              )}
+            >
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent
+              position="popper"
               align="start"
               sideOffset={6}
-              className="w-auto min-w-[10rem] max-w-[16rem] border-[#e5e7eb] p-1 shadow-sm"
+              className="max-h-64 min-w-[10rem] max-w-[16rem] border-[#e5e7eb] p-1 shadow-sm"
             >
-              <div className="flex flex-col gap-0.5" role="menu">
-                <RoundMenuItem
-                  active={roundFilter === "all"}
-                  onClick={() => pickRound("all")}
-                  label={t("tournaments.matchesProgressFilterAll")}
-                />
-                {availableRounds.map((round) => (
-                  <RoundMenuItem
-                    key={round}
-                    active={roundFilter === round}
-                    onClick={() => pickRound(round)}
-                    label={t("tournaments.roundNumber", { round })}
-                  />
-                ))}
-              </div>
-            </PopoverContent>
-          </Popover>
+              <SelectItem value="all">{t("tournaments.matchesProgressFilterAll")}</SelectItem>
+              {availableRounds.map((round) => (
+                <SelectItem key={round} value={String(round)}>
+                  {t("tournaments.roundNumber", { round })}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         ) : null}
       </div>
 
@@ -143,32 +114,5 @@ export function MatchesProgress({
         ) : null}
       </div>
     </div>
-  );
-}
-
-function RoundMenuItem({
-  active,
-  onClick,
-  label,
-}: {
-  active: boolean;
-  onClick: () => void;
-  label: string;
-}) {
-  return (
-    <button
-      type="button"
-      role="menuitem"
-      aria-current={active ? "true" : undefined}
-      onClick={onClick}
-      className={cn(
-        "w-full rounded-md px-2.5 py-1.5 text-left text-[13px] transition-colors",
-        active
-          ? "bg-[#010a04]/[0.06] font-medium text-[#111827]"
-          : "text-[#374151] hover:bg-[#f9fafb]"
-      )}
-    >
-      {label}
-    </button>
   );
 }

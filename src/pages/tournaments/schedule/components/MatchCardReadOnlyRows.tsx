@@ -11,6 +11,7 @@ export type MatchCardReadOnlyRow = {
   name: string;
   side: "one" | "two";
   nameSuffix?: ReactNode;
+  subtext?: ReactNode;
 };
 
 type Props = {
@@ -50,16 +51,30 @@ export function MatchCardReadOnlyRows({ matchId, tone, columns, rows }: Props) {
             </span>
 
             {row.nameSuffix != null ? (
-              <span className="flex min-w-0 flex-wrap items-baseline gap-x-1.5 gap-y-0.5">
-                <span className="truncate text-[14px] font-medium leading-snug text-[#010a04]">
+              <div className="flex min-w-0 flex-col">
+                <span className="flex min-w-0 flex-wrap items-baseline gap-x-1.5 gap-y-0.5">
+                  <span className="truncate text-[14px] font-medium leading-snug text-[#010a04]">
+                    {row.name}
+                  </span>
+                  {row.nameSuffix}
+                </span>
+                {row.subtext != null ? (
+                  <span className="truncate text-[11px] font-medium leading-tight text-[rgb(1,10,4)]/50">
+                    {row.subtext}
+                  </span>
+                ) : null}
+              </div>
+            ) : (
+              <div className="flex min-w-0 flex-col">
+                <span className="truncate text-[14px] font-medium leading-tight text-[#010a04]">
                   {row.name}
                 </span>
-                {row.nameSuffix}
-              </span>
-            ) : (
-              <span className="truncate text-[14px] font-medium leading-tight text-[#010a04]">
-                {row.name}
-              </span>
+                {row.subtext != null ? (
+                  <span className="truncate text-[11px] font-medium leading-tight text-[rgb(1,10,4)]/50">
+                    {row.subtext}
+                  </span>
+                ) : null}
+              </div>
             )}
           </div>
 

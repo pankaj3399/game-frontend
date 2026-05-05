@@ -42,6 +42,7 @@ export function usePersistMatchScore({
       const freshMatch = matchesQuery.data?.matches.find((m) => m.id === match.id) ?? null;
       if (!freshMatch) { toast.error(t("tournaments.matchesLoadError")); return { ok: false }; }
       if (freshMatch.status === "cancelled") { toast.error(t("tournaments.matchStatusCancelled")); return { ok: false }; }
+      if (freshMatch.detachedFromRound != null) { toast.error(t("tournaments.matchStatusCancelled")); return { ok: false }; }
       if (!tournament?.id) { toast.error(t("tournaments.matchesLoadError")); return { ok: false }; }
 
       const payload = buildScorePayload(rows, freshMatch.playMode, t);

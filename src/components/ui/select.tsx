@@ -61,8 +61,11 @@ function SelectContent({
   children,
   position = "item-aligned",
   align = "center",
+  showScrollButtons = true,
   ...props
-}: React.ComponentProps<typeof SelectPrimitive.Content>) {
+}: React.ComponentProps<typeof SelectPrimitive.Content> & {
+  showScrollButtons?: boolean
+}) {
   const contentProps =
     position === "popper"
       ? { position, align, ...props }
@@ -79,7 +82,7 @@ function SelectContent({
         )}
         {...contentProps}
       >
-        <SelectScrollUpButton />
+        {showScrollButtons ? <SelectScrollUpButton /> : null}
         <SelectPrimitive.Viewport
           className={cn(
             "p-1",
@@ -89,7 +92,7 @@ function SelectContent({
         >
           {children}
         </SelectPrimitive.Viewport>
-        <SelectScrollDownButton />
+        {showScrollButtons ? <SelectScrollDownButton /> : null}
       </SelectPrimitive.Content>
     </SelectPrimitive.Portal>
   )
