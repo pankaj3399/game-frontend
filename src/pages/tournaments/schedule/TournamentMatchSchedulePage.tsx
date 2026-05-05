@@ -241,37 +241,31 @@ export default function TournamentMatchSchedulePage() {
   return (
     <div className="mx-auto w-full max-w-5xl px-4 pb-12 pt-8 sm:px-6">
       {/* Header */}
-      <div className="mb-6 flex items-center gap-2.5 sm:gap-3">
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          aria-label={i18nText.goBack}
-          onClick={() => navigate(`/tournaments/${id}?tab=matches`)}
-          className="h-8 w-8 shrink-0 rounded-[8px] border border-[#010a04]/[0.10] bg-white p-0 text-[#010a04] shadow-none hover:bg-[#010a04]/[0.04]"
-        >
-          <ChevronLeft size={16} />
-        </Button>
-
-        <div className="flex min-w-0 flex-1 items-center gap-2">
-          <h1 className="min-w-0 text-[18px] font-semibold leading-tight tracking-tight text-[#010a04] sm:text-[20px]">
-            {i18nText.matchScheduleTitle}
-          </h1>
-          <span
-            className="inline-flex shrink-0 items-center rounded-[6px] border border-[#010a04]/[0.09] bg-[#010a04]/[0.04] px-2 py-0.5 text-[11px] font-semibold tabular-nums text-[#010a04]/55"
-            aria-label={t("tournaments.roundNumber", { round: view.selectedRound })}
+      <div className="mb-6 flex flex-col gap-3 md:flex-row md:items-center md:gap-3">
+        <div className="flex min-w-0 items-center gap-2.5 md:flex-1">
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            aria-label={i18nText.goBack}
+            onClick={() => navigate(`/tournaments/${id}?tab=matches`)}
+            className="h-8 w-8 shrink-0 rounded-[8px] border border-[#010a04]/[0.10] bg-white p-0 text-[#010a04] shadow-none hover:bg-[#010a04]/[0.04]"
           >
-            R{view.selectedRound}
-          </span>
+            <ChevronLeft size={16} />
+          </Button>
+
+          <h1 className="min-w-0 text-[20px] font-semibold leading-tight tracking-tight text-[#010a04] sm:text-[22px]">
+            {i18nText.matchScheduleTitle} R{view.selectedRound}
+          </h1>
         </div>
 
         {canEditScores && (
-          <div className="flex shrink-0 items-center gap-2">
+          <div className="grid min-w-0 grid-cols-1 gap-2 min-[420px]:grid-cols-2 md:flex md:shrink-0 md:items-center">
             {view.hasReachedFinalRound ? (
               <Button
                 type="button"
                 onClick={() => navigate(`/tournaments/${id}?tab=results`)}
-                className="h-[34px] rounded-[8px] bg-[#111827] px-3.5 text-[13px] font-medium text-white shadow-none hover:bg-black"
+                className="h-[34px] min-w-0 rounded-[8px] bg-[#111827] px-3.5 text-[13px] font-medium text-white shadow-none hover:bg-black"
               >
                 {i18nText.viewResults}
               </Button>
@@ -289,7 +283,7 @@ export default function TournamentMatchSchedulePage() {
                       savingMatchId != null ||
                       editingMatch != null
                     }
-                    className="h-[34px] rounded-[8px] border border-[#010a04]/[0.12] bg-white px-3.5 text-[13px] font-medium text-[#010a04] shadow-none hover:bg-[#010a04]/[0.04]"
+                    className="h-[34px] min-w-0 rounded-[8px] border border-[#010a04]/[0.12] bg-white px-3.5 text-[13px] font-medium text-[#010a04] shadow-none hover:bg-[#010a04]/[0.04]"
                   >
                     {i18nText.rescheduleConfirm}
                   </Button>
@@ -299,7 +293,7 @@ export default function TournamentMatchSchedulePage() {
                   type="button"
                   onClick={() => void handleCreateNextRound()}
                   disabled={isCreatingNextRound || isPersisting || savingMatchId != null}
-                  className="h-[34px] gap-1.5 rounded-[8px] bg-[#067429] px-3.5 text-[13px] font-medium text-white shadow-none hover:bg-[#055d21]"
+                  className="h-[34px] min-w-0 gap-1.5 rounded-[8px] bg-[#067429] px-3.5 text-[13px] font-medium text-white shadow-none hover:bg-[#055d21]"
                 >
                   <IconPlus size={14} className="text-white" aria-hidden />
                   {i18nText.newRound}
