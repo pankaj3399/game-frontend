@@ -115,19 +115,19 @@ export function ResultsTable({
       </div>
 
       <div className="mt-6 hidden overflow-x-auto md:block">
-        <table className="w-full min-w-[660px] border-collapse">
+        <table className="w-full min-w-[660px] table-fixed border-collapse">
           <thead>
             <tr className="border-b border-[#e5e7eb] bg-[#f9fafb]">
-              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-[#6b7280]">
+              <th className="w-[160px] px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-[#6b7280]">
                 {t("tournaments.resultsPosition")}
               </th>
-              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-[#6b7280]">
+              <th className="w-[45%] px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-[#6b7280]">
                 {t("tournaments.resultsPlayers")}
               </th>
-              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-[#6b7280]">
+              <th className="w-[120px] px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-[#6b7280]">
                 {t("tournaments.resultsWins")}
               </th>
-              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-[#6b7280]">
+              <th className="w-[180px] px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-[#6b7280]">
                 {t("tournaments.resultsTotalScoreAdvantage")}
               </th>
             </tr>
@@ -159,7 +159,7 @@ export function ResultsTable({
                     </span>
                     <PlayerNameText
                       name={`${result.name}${result.hasLeft ? ` (${t("tournaments.participantLeft")})` : ""}`}
-                      className="text-sm font-medium text-[#111827]"
+                      className="flex-1 text-sm font-medium text-[#111827]"
                       focusable
                     />
                   </div>

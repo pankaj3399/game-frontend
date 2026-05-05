@@ -18,7 +18,7 @@ export function PlayerNameText({ name, className, focusable = false }: PlayerNam
       aria-label={value}
       tabIndex={focusable ? 0 : undefined}
     >
-      {name}
+      {value}
     </span>
   );
 }
