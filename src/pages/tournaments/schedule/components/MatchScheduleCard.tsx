@@ -123,7 +123,7 @@ export function MatchScheduleCard({
             type="button"
             size="sm"
             onClick={() => void onToggleEdit(match)}
-            disabled={isSavePending || isCancelled || isFromPreviousRound}
+            disabled={isSavePending}
             className={cn(
               "h-7 min-w-0 justify-self-end rounded-[7px] px-2.5 text-[12px] font-medium shadow-none",
               isEditing
@@ -178,7 +178,7 @@ export function MatchScheduleCard({
                         {name}
                       </span>
                       {subtext != null ? (
-                        <span className="truncate text-[11px] font-medium leading-tight text-[rgb(1,10,4)]/50">
+                        <span className="truncate text-[11px] font-medium leading-tight text-[#010a04]/50">
                           {subtext}
                         </span>
                       ) : null}
