@@ -271,7 +271,7 @@ export function OrganiserMatchesBoard({ tournament }: { tournament: TournamentDe
   }
 
   return (
-    <div className="container">
+    <div className="space-y-4">
       <div className="flex justify-end">
         {showActionButton && (
           <Button
@@ -297,7 +297,9 @@ export function OrganiserMatchesBoard({ tournament }: { tournament: TournamentDe
       {matchesQuery.isFetching && filteredMatches.length === 0 ? (
         <RoundLoadingSkeleton />
       ) : filteredMatches.length === 0 ? (
-      <div className="empty">{t("tournaments.noMatchesAvailable")}</div>
+        <div className="rounded-xl border border-dashed border-border bg-card p-8 text-sm text-muted-foreground">
+          {t("tournaments.noMatchesAvailable")}
+        </div>
       ) : (
         <div className="grid gap-3 lg:grid-cols-2">
           {filteredMatches.map((match) => (

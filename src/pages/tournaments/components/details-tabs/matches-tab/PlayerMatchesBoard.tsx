@@ -5,13 +5,7 @@ import { SwitchToggle } from "@/components/ui/switch-toggle";
 import { getDateFnsLocale } from "@/lib/dateFnsLocale";
 import { cn } from "@/lib/utils";
 import type { TournamentScheduleMatch, TournamentScheduleMode } from "@/models/tournament/types";
-import { IconCalendarDays, IconClock, IconMap } from "@/icons/figma-icons";
-import { MatchCardReadOnlyRows } from "@/pages/tournaments/schedule/components/MatchCardReadOnlyRows";
-import { matchScheduleDateTimeLabels } from "@/pages/tournaments/schedule/utils/matchScheduleLabels";
-import { scoreColumns, type ScoreColumn } from "@/pages/tournaments/schedule/utils/matchScheduleScore";
-import { teamSideDisplayName } from "@/pages/tournaments/schedule/utils/matchTeamDisplay";
-import { AVATAR_TONES, hashSeed } from "@/pages/tournaments/schedule/utils/avatarUtils";
-import { teamEloRating } from "./ratingSummary";
+import { MatchScheduleCard } from "@/pages/tournaments/schedule/components/MatchScheduleCard";
 
 interface PlayerMatchesBoardProps {
   matches: TournamentScheduleMatch[];
@@ -42,173 +36,6 @@ function isCurrentUserInMatch(match: TournamentScheduleMatch, currentUserId: str
   return false;
 }
 
-/** Best-of style: side with more sets won (uses per-set winners from {@link scoreColumns}). */
-function aggregateMatchWinner(columns: ScoreColumn[]): "one" | "two" | null {
-  let setsOne = 0;
-  let setsTwo = 0;
-  for (const col of columns) {
-    if (col.winner === "one") {
-      setsOne += 1;
-    }
-    if (col.winner === "two") {
-      setsTwo += 1;
-    }
-  }
-  if (setsOne === 0 && setsTwo === 0) {
-    return null;
-  }
-  if (setsOne > setsTwo) {
-    return "one";
-  }
-  if (setsTwo > setsOne) {
-    return "two";
-  }
-  return null;
-}
-
-function PlayerMatchCard({
-  match,
-  language,
-  timeZone,
-  t,
-}: {
-  match: TournamentScheduleMatch;
-  language: string;
-  timeZone?: string | null;
-  t: TFunction;
-}) {
-  const unknown = t("tournaments.unknownPlayer");
-  const teamOne = teamSideDisplayName(match, 0, t) || unknown;
-  const teamTwo = teamSideDisplayName(match, 1, t) || unknown;
-
-  const teamOneRating = teamEloRating(match.side1);
-  const teamTwoRating = teamEloRating(match.side2);
-  const teamOneSubtext = teamOneRating != null ? `G3: ${teamOneRating}` : undefined;
-  const teamTwoSubtext = teamTwoRating != null ? `G3: ${teamTwoRating}` : undefined;
-
-  const toneIndex = hashSeed(match.id) % AVATAR_TONES.length;
-  const tone = AVATAR_TONES[toneIndex]!;
-  const locale = getDateFnsLocale(language) ?? enUS;
-  const tbd = t("tournaments.scheduledTbd");
-  const { date: dateLabel, time: timeLabel, timeZone: timeZoneLabel } =
-    matchScheduleDateTimeLabels(match.startTime, locale, tbd, timeZone);
-  const trimmedCourtName = match.court.name?.trim();
-  const courtLabel =
-    (trimmedCourtName && trimmedCourtName.length > 0
-      ? trimmedCourtName
-      : null) ??
-    (match.court.number != null ? t("tournaments.courtFallback", { number: match.court.number }) : null) ??
-    match.court.id ??
-    t("tournaments.courtTBD");
-
-  const columns = scoreColumns(match);
-  const winningSide = aggregateMatchWinner(columns);
-
-  const isLive = match.status === "inProgress";
-  const isPendingScore = match.status === "pendingScore";
-  const isCancelled = match.status === "cancelled";
-
-  return (
-    <article
-      className={cn(
-        "relative rounded-[12px] border bg-card px-[15px] py-[15px] shadow-sm",
-        isLive
-          ? "border-destructive/35 shadow-[0_8px_18px_-12px_hsl(var(--destructive)/0.65)]"
-          : isPendingScore
-            ? "border-primary/35 shadow-[0_8px_18px_-12px_hsl(var(--primary)/0.55)]"
-            : isCancelled
-              ? "border-border/90"
-              : "border-border/80"
-      )}
-    >
-      <div
-        className={cn(
-          "absolute inset-0 pointer-events-none rounded-[12px]",
-          isLive
-            ? "bg-destructive/[0.05]"
-            : isPendingScore
-              ? "bg-primary/[0.05]"
-              : "bg-transparent"
-        )}
-        aria-hidden
-      />
-      <div className="mb-[14px] flex items-start justify-between gap-3">
-        <div className="flex min-w-0 flex-wrap items-center gap-3 text-[13px] text-muted-foreground">
-          <span className="flex min-w-0 items-center gap-1.5">
-            <IconCalendarDays size={14} className="shrink-0 text-muted-foreground" />
-            <span className="truncate">{dateLabel}</span>
-          </span>
-          <span className="flex min-w-0 items-center gap-1.5">
-            <IconClock size={14} className="shrink-0 text-muted-foreground" />
-            <span className="inline-flex min-w-0 items-baseline gap-1">
-              <span className="truncate">{timeLabel}</span>
-              {timeZoneLabel ? (
-                <span className="shrink-0 text-[10px] font-medium leading-none text-muted-foreground/70">
-                  {timeZoneLabel}
-                </span>
-              ) : null}
-            </span>
-          </span>
-          <span className="flex min-w-0 items-center gap-1.5">
-            <IconMap size={14} className="shrink-0 text-muted-foreground" />
-            <span className="truncate">{courtLabel}</span>
-          </span>
-          <span className="inline-flex shrink-0 rounded-full bg-muted px-2 py-0.5 text-[11px] font-semibold text-muted-foreground">
-            {t("tournaments.roundNumber", { round: match.round })}
-          </span>
-        </div>
-
-        <div className="flex shrink-0 flex-col items-end gap-1">
-          {isLive ? (
-            <span className="inline-flex items-center gap-1 rounded-full border border-destructive/25 bg-destructive/10 px-2 py-0.5 text-[12px] font-medium text-destructive">
-              <span className="inline-block h-[6px] w-[6px] rounded-full bg-destructive" />
-              {t("tournaments.liveLabel")}
-            </span>
-          ) : isPendingScore ? (
-            <span className="rounded-full border border-primary/25 bg-primary/10 px-2 py-0.5 text-[12px] font-medium text-primary">
-              {t("tournaments.matchStatusPendingScore")}
-            </span>
-          ) : isCancelled ? (
-            <span className="rounded-full border border-destructive/20 bg-destructive/10 px-2 py-0.5 text-[12px] font-medium text-destructive">
-              {t("tournaments.matchStatusCancelled")}
-            </span>
-          ) : null}
-        </div>
-      </div>
-
-      <MatchCardReadOnlyRows
-        matchId={match.id}
-        tone={tone}
-        columns={columns}
-        rows={[
-          {
-            name: teamOne,
-            side: "one",
-            subtext: teamOneSubtext,
-            nameSuffix:
-              match.status === "completed" && winningSide === "one" ? (
-                <span className="shrink-0 text-[13px] font-medium text-primary">
-                  {t("tournaments.matchWinnerParenthetical")}
-                </span>
-              ) : undefined,
-          },
-          {
-            name: teamTwo,
-            side: "two",
-            subtext: teamTwoSubtext,
-            nameSuffix:
-              match.status === "completed" && winningSide === "two" ? (
-                <span className="shrink-0 text-[13px] font-medium text-primary">
-                  {t("tournaments.matchWinnerParenthetical")}
-                </span>
-              ) : undefined,
-          },
-        ]}
-      />
-    </article>
-  );
-}
-
 export function PlayerMatchesBoard({
   matches,
   currentUserId,
@@ -219,6 +46,7 @@ export function PlayerMatchesBoard({
   const [userSelectedMode, setUserSelectedMode] = useState<TournamentScheduleMode | null>(null);
   /** User preference; the filter and switch only apply when signed in (see `onlyMyMatchesActive`). */
   const [wantOnlyMyMatches, setWantOnlyMyMatches] = useState(false);
+  const locale = getDateFnsLocale(language) ?? enUS;
 
   const defaultMode: TournamentScheduleMode =
     matches.length === 0 || matches.some((m) => (m.mode ?? "singles") === "singles")
@@ -324,14 +152,21 @@ export function PlayerMatchesBoard({
           {emptyText}
         </div>
       ) : (
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="grid gap-3 lg:grid-cols-2">
           {filteredMatches.map((match) => (
-            <PlayerMatchCard
+            <MatchScheduleCard
               key={match.id}
               match={match}
-              language={language}
+              locale={locale}
               timeZone={timeZone}
               t={t}
+              canEditScores={false}
+              isEditing={false}
+              editableRows={[]}
+              isSavePending={false}
+              saveErrorMessage={null}
+              onToggleEdit={() => {}}
+              onScoreInputChange={() => {}}
             />
           ))}
         </div>
