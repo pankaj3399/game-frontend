@@ -297,7 +297,7 @@ export function OrganiserMatchesBoard({ tournament }: { tournament: TournamentDe
       {matchesQuery.isFetching && filteredMatches.length === 0 ? (
         <RoundLoadingSkeleton />
       ) : filteredMatches.length === 0 ? (
-        <div className="empty">No matches available</div>
+      <div className="empty">{t("tournaments.noMatchesAvailable")}</div>
       ) : (
         <div className="grid gap-3 lg:grid-cols-2">
           {filteredMatches.map((match) => (

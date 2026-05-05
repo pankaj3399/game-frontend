@@ -485,6 +485,7 @@
     "remove": "Entfernen",
     "unscheduled": "Nicht geplant",
     "noTournaments": "Noch keine Turniere.",
+    "noMatches": "Noch keine Spiele.",
     "noDrafts": "Noch keine Entwürfe.",
     "listLoadError": "Turniere konnten nicht geladen werden. Bitte versuchen Sie es erneut.",
     "retry": "Erneut versuchen",
