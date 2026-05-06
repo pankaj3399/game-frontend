@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import type { Locale } from "date-fns";
+import { isValid, parseISO } from "date-fns";
 import { enUS } from "date-fns/locale";
 import { toast } from "sonner";
 
@@ -89,9 +90,9 @@ function compareOrganiserMatchOrder(
 function isOrganiserScoreEditLocked(tournament: TournamentDetail): boolean {
   const deadline = tournament.organiserScoreEditDeadline;
   if (deadline == null || deadline === "") return false;
-  const t = new Date(deadline).getTime();
-  if (!Number.isFinite(t)) return false;
-  return Date.now() > t;
+  const parsedDeadline = parseISO(deadline);
+  if (!isValid(parsedDeadline)) return false;
+  return Date.now() > parsedDeadline.getTime();
 }
 
 /* ---------------- component ---------------- */
