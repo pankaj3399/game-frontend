@@ -2,22 +2,16 @@ import { useEffect, useId, useMemo, useState, type ReactNode } from "react";
 import type { TFunction } from "i18next";
 import { toast } from "sonner";
 import { PlayerNameText } from "@/components/shared/PlayerNameText";
-import { ChevronDown, ChevronUp, UserCircle2 } from "@/icons/figma-icons";
+import { UserCircle2 } from "@/icons/figma-icons";
 import { useAuth } from "@/pages/auth/hooks";
 import type { TournamentParticipant, TournamentSchedulePairPlayer } from "@/models/tournament/types";
 import { useDoublesPairs, useSaveDoublesPairs } from "@/pages/tournaments/hooks";
-import { UI_LIMITS } from "./constants";
-
 interface PlayersListProps {
   tournamentId: string;
   participants: TournamentParticipant[];
-  participantSummary: string;
   hasParticipants: boolean;
-  isPlayersCollapsible: boolean;
-  isPlayersListExpanded: boolean;
   canEditPairs: boolean;
   isCurrentUserParticipant: boolean;
-  onToggle: () => void;
   t: TFunction;
 }
 
@@ -91,20 +85,22 @@ function buildDoublesPairsResponse(
 
 function getPlayersContent({
   participants,
-  participantSummary,
   hasParticipants,
-  isPlayersCollapsible,
-  isPlayersListExpanded,
   safePartnerById,
   currentUserId,
+  participantTilesInteractive,
+  organiserPairingExcludedParticipantId,
   onTogglePartner,
   t,
 }: Omit<
   PlayersListProps,
-  "onToggle" | "tournamentId" | "canEditPairs" | "isCurrentUserParticipant"
+  "tournamentId" | "canEditPairs" | "isCurrentUserParticipant"
 > & {
   safePartnerById: DoublesPartnerById | undefined;
   currentUserId: string | null;
+  participantTilesInteractive: boolean;
+  /** In organiser pairing mode the organiser cannot pair themselves via this UI; omit or null disables. */
+  organiserPairingExcludedParticipantId: string | null;
   onTogglePartner: (participantId: string) => Promise<void>;
 }): ReactNode {
   const partnerById = safePartnerById ?? {};
@@ -113,9 +109,8 @@ function getPlayersContent({
     return <p className="text-[14px] text-[#010a04]/60">{t("tournaments.noPlayersYet")}</p>;
   }
 
-  if (isPlayersListExpanded || !isPlayersCollapsible) {
-    return (
-      <div className="grid grid-cols-2 gap-[10px] sm:gap-[14px]">
+  return (
+    <div className="grid min-w-0 grid-cols-2 gap-[10px] sm:gap-[14px]">
         {participants.map((participant) => {
           const nameTrimmed = participant.name?.trim() ?? "";
           const aliasTrimmed = participant.alias?.trim() ?? "";
@@ -133,22 +128,27 @@ function getPlayersContent({
             ? `${displayName} / ${partnerName}`
             : aliasTrimmed || t("tournaments.participantNoAlias");
 
-          return (
-            <button
-              key={participant.id}
-              type="button"
-              onClick={() => {
-                void onTogglePartner(participant.id);
-              }}
-              className={`flex w-full items-center gap-3 rounded-[12px] border px-3 py-2.5 text-left transition-colors sm:gap-5 sm:px-[15px] sm:py-3 ${
-                isPaired
-                  ? "border-[#067429]/45 bg-[#0a6925]/15"
-                  : isCurrentUser
-                    ? "border-[#067429]/20 bg-[#f2fbf4] hover:bg-[#e4f7e9]"
-                    : "border-[#010a04]/[0.08] bg-white hover:bg-[#f3f4f6]"
-              }`}
-              aria-label={t("tournaments.scheduleDoublesSelectParticipant", { name: displayName })}
-            >
+          const tileInteractive =
+            participantTilesInteractive &&
+            !(
+              organiserPairingExcludedParticipantId != null &&
+              organiserPairingExcludedParticipantId === participant.id
+            );
+
+          const tileClassName = `flex w-full min-w-0 items-center gap-3 rounded-[12px] border px-3 py-2.5 text-left transition-colors sm:gap-5 sm:px-[15px] sm:py-3 ${
+            isPaired
+              ? "border-[#067429]/45 bg-[#0a6925]/15"
+              : isCurrentUser
+                ? tileInteractive
+                  ? "border-[#067429]/20 bg-[#f2fbf4] hover:bg-[#e4f7e9]"
+                  : "border-[#067429]/20 bg-[#f2fbf4]/85 opacity-90"
+                : tileInteractive
+                  ? "border-[#010a04]/[0.08] bg-white hover:bg-[#f3f4f6]"
+                  : "border-[#010a04]/[0.08] bg-white opacity-90"
+          }`;
+
+          const inner = (
+            <>
               <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[20px] border-[1.5px] border-[#010a04] bg-[#dddddd]/60 sm:h-10 sm:w-10">
                 <UserCircle2 size={30} className="text-[#010a04]" />
               </div>
@@ -171,40 +171,67 @@ function getPlayersContent({
                   focusable
                 />
               </div>
+            </>
+          );
+
+          return tileInteractive ? (
+            <button
+              key={participant.id}
+              type="button"
+              onClick={() => {
+                void onTogglePartner(participant.id);
+              }}
+              className={tileClassName}
+              aria-label={t("tournaments.scheduleDoublesSelectParticipant", { name: displayName })}
+            >
+              {inner}
             </button>
+          ) : (
+            <div
+              key={participant.id}
+              className={tileClassName}
+              aria-label={displayName}
+              title={
+                participantTilesInteractive && !tileInteractive
+                  ? t("tournaments.organiserDoublesPairSelfDisabledHint")
+                  : undefined
+              }
+            >
+              {inner}
+            </div>
           );
         })}
-      </div>
-    );
-  }
-
-  const preview = participantSummary.slice(0, UI_LIMITS.DESCRIPTION_PREVIEW);
-  return (
-    <p className="text-[14px] leading-5 text-[#010a04]">
-      {participantSummary.length > UI_LIMITS.DESCRIPTION_PREVIEW ? `${preview}…` : preview}
-    </p>
+    </div>
   );
 }
 
 export function PlayersList({
   tournamentId,
   participants,
-  participantSummary,
   hasParticipants,
-  isPlayersCollapsible,
-  isPlayersListExpanded,
   canEditPairs,
   isCurrentUserParticipant,
-  onToggle,
   t,
 }: PlayersListProps) {
   const { user } = useAuth();
   const doublesPairsQuery = useDoublesPairs(tournamentId, true);
   const saveDoublesPairsMutation = useSaveDoublesPairs();
   const [selectedParticipantId, setSelectedParticipantId] = useState<string | null>(null);
+  const [isOrganiserPairEditMode, setIsOrganiserPairEditMode] = useState(false);
   const id = useId();
   const headingId = `${id}-heading`;
   const contentId = `${id}-content`;
+  const organiserPairModeToggleId = `${id}-organiser-pair-mode`;
+
+  const showOrganiserPairToggle = canEditPairs && hasParticipants;
+
+  const useOrganiserPairingFlow = canEditPairs && isOrganiserPairEditMode;
+  const useParticipantPairingFlow =
+    !useOrganiserPairingFlow && isCurrentUserParticipant;
+
+  const organiserSelfId = user?.id ?? null;
+  const organiserPairingExcludedParticipantId =
+    useOrganiserPairingFlow && isCurrentUserParticipant && organiserSelfId ? organiserSelfId : null;
 
   const safePartnerById = useMemo(
     () => {
@@ -224,6 +251,12 @@ export function PlayersList({
       setSelectedParticipantId(null);
     }
   }, [participants, selectedParticipantId]);
+
+  useEffect(() => {
+    if (!isOrganiserPairEditMode) {
+      setSelectedParticipantId(null);
+    }
+  }, [isOrganiserPairEditMode]);
 
   const pairsPreview = useMemo(
     () => buildDoublesPairsResponse(participants, safePartnerById ?? {}),
@@ -246,6 +279,10 @@ export function PlayersList({
       return;
     }
 
+    if (!(useOrganiserPairingFlow || useParticipantPairingFlow)) {
+      return;
+    }
+
     const partnerById = safePartnerById ?? {};
     const clickedParticipant = participants.find((participant) => participant.id === participantId);
     if (!clickedParticipant) {
@@ -254,9 +291,23 @@ export function PlayersList({
     const clickedParticipantName =
       clickedParticipant.alias?.trim() || clickedParticipant.name?.trim() || t("tournaments.unknownPlayer");
 
-    if (canEditPairs && !isCurrentUserParticipant) {
+    if (useOrganiserPairingFlow) {
       const next = { ...partnerById };
       const currentPartnerId = next[participantId];
+
+      const organiserMustNotPairSelf =
+        Boolean(organiserSelfId) && isCurrentUserParticipant;
+
+      if (organiserMustNotPairSelf) {
+        if (participantId === organiserSelfId) {
+          toast.info(t("tournaments.organiserDoublesPairSelfDisabledHint"));
+          return;
+        }
+        if (selectedParticipantId != null && selectedParticipantId === organiserSelfId) {
+          setSelectedParticipantId(null);
+          return;
+        }
+      }
 
       if (selectedParticipantId == null) {
         if (currentPartnerId) {
@@ -369,45 +420,55 @@ export function PlayersList({
     }
   };
 
+  const participantTilesInteractive =
+    hasParticipants && (useOrganiserPairingFlow || useParticipantPairingFlow);
+
   const playersContent = getPlayersContent({
     participants,
-    participantSummary,
     hasParticipants,
-    isPlayersCollapsible,
-    isPlayersListExpanded,
     safePartnerById,
     currentUserId: user?.id ?? null,
+    participantTilesInteractive,
+    organiserPairingExcludedParticipantId,
     onTogglePartner,
     t,
   });
 
   return (
     <section className="py-4 sm:py-5">
-      <div className="mb-5 flex items-center justify-between">
-        <h3 className="text-[20px] font-semibold text-[#010a04]" id={headingId}>
+      <div className="mb-5 flex min-w-0 flex-wrap items-center justify-between gap-x-3 gap-y-2">
+        <h3 className="min-w-0 text-[20px] font-semibold text-[#010a04]" id={headingId}>
           {t("tournaments.currentPlayers")}
         </h3>
-        {isPlayersCollapsible ? (
-          <button
-            type="button"
-            className="flex h-6 w-6 shrink-0 items-center justify-center rounded-[6px] border border-[#010a04]/25 text-[#010a04] transition-colors hover:bg-[#010a04]/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#010a04]/25"
-            aria-expanded={isPlayersListExpanded}
-            aria-controls={contentId}
-            aria-label={
-              isPlayersListExpanded ? t("tournaments.collapsePlayerList") : t("tournaments.expandPlayerList")
-            }
-            onClick={onToggle}
-          >
-            {isPlayersListExpanded ? (
-              <ChevronUp size={16} className="text-[#010a04]" aria-hidden />
-            ) : (
-              <ChevronDown size={16} className="text-[#010a04]" aria-hidden />
-            )}
-          </button>
+        {showOrganiserPairToggle ? (
+          <div className="flex shrink-0 items-center gap-2">
+            <span id={`${organiserPairModeToggleId}-description`} className="sr-only">
+              {t("tournaments.organiserDoublesPairEditModeDescription")}
+            </span>
+            <button
+              type="button"
+              id={organiserPairModeToggleId}
+              aria-pressed={isOrganiserPairEditMode}
+              aria-describedby={`${organiserPairModeToggleId}-description`}
+              title={t("tournaments.organiserDoublesPairEditModeDescription")}
+              onClick={() => {
+                setIsOrganiserPairEditMode((v) => !v);
+              }}
+              className={`rounded-[6px] border px-2.5 py-1 text-[12px] font-semibold uppercase tracking-wide transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#010a04]/25 ${
+                isOrganiserPairEditMode
+                  ? "border-[#067429]/45 bg-[#0a6925]/15 text-[#0a6925]"
+                  : "border-[#010a04]/25 text-[#010a04] hover:bg-[#010a04]/[0.06]"
+              }`}
+            >
+              {isOrganiserPairEditMode
+                ? t("tournaments.organiserDoublesPairModeOn")
+                : t("tournaments.organiserDoublesPairModeOff")}
+            </button>
+          </div>
         ) : null}
       </div>
 
-      <div id={contentId} aria-labelledby={headingId}>
+      <div id={contentId} aria-labelledby={headingId} className="min-w-0">
         {playersContent}
       </div>
 

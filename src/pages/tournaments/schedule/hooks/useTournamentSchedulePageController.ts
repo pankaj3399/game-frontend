@@ -204,7 +204,6 @@ export function useTournamentSchedulePageController({
     () => (mode === "doubles" ? buildDoublesPairsResponse(participants, doublesPartnerById) : null),
     [doublesPartnerById, mode, participants]
   );
-  const doublesUnpairedCount = mode === "doubles" ? (doublesPairs?.unpaired.length ?? participants.length) : 0;
 
   const queryRound = parseRoundQueryParam(searchParams);
   const summaryCurrentRound = scheduleQuery.data?.scheduleSummary.currentRound ?? 0;
@@ -284,7 +283,6 @@ export function useTournamentSchedulePageController({
     selectedCourtIds.length > 0 &&
     meetsTournamentMinimum &&
     canGenerateSchedule(mode, participants.length) &&
-    (mode !== "doubles" || doublesUnpairedCount === 0) &&
     (!scheduleRoundGate.blocked || isReschedulingExistingRound) &&
     !matchesQuery.isLoading &&
     !generateScheduleMutation.isPending;
@@ -488,14 +486,6 @@ export function useTournamentSchedulePageController({
       );
       return;
     }
-    if (mode === "doubles" && doublesUnpairedCount > 0) {
-      toast.error(
-        t("tournaments.scheduleDoublesBlockedUnpaired", {
-          count: doublesUnpairedCount,
-        })
-      );
-      return;
-    }
 
     try {
       await submitGenerateSchedule(false);
@@ -525,7 +515,6 @@ export function useTournamentSchedulePageController({
     RESCHEDULE_WITH_SCORES_CONFIRMATION_PREFIX,
     t,
     mode,
-    doublesUnpairedCount,
   ]);
 
   const onCancelRescheduleWarning = useCallback(() => {
