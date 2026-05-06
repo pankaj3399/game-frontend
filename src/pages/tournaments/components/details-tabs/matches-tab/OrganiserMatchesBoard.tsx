@@ -126,11 +126,11 @@ export function OrganiserMatchesBoard({ tournament }: { tournament: TournamentDe
   }, [allMatches]);
 
   const latestGeneratedRound = Math.max(
-    matchesQuery.data?.schedule.currentRound ?? 0,
-    availableRounds.at(-1) ?? 0
+    1,
+    matchesQuery.data?.schedule.currentRound ?? 1
   );
 
-  const currentRound = Math.max(1, latestGeneratedRound || 1);
+  const currentRound = latestGeneratedRound;
 
   const filteredMatches = useMemo(() => {
     const source =
