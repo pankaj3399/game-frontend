@@ -32,12 +32,6 @@ export function useTournamentInfo({ tournament, t, language, isDescriptionExpand
         : `${descriptionText.slice(0, UI_LIMITS.DESCRIPTION_PREVIEW)}…`;
 
     const hasParticipants = tournament.participants.length > 0;
-    const participantSummary = hasParticipants
-      ? tournament.participants
-          .map((participant) => participant.name ?? participant.alias ?? t("tournaments.unknownPlayer"))
-          .join(", ")
-      : "";
-    const isPlayersCollapsible = participantSummary.length > UI_LIMITS.DESCRIPTION_PREVIEW;
 
     const spotPercentage = Math.max(0, Math.min(100, tournament.progress.percentage));
 
@@ -68,8 +62,6 @@ export function useTournamentInfo({ tournament, t, language, isDescriptionExpand
       descriptionDisplay,
       isDescriptionCollapsible,
       hasParticipants,
-      participantSummary,
-      isPlayersCollapsible,
       spotPercentage,
       formattedDate,
       formattedTime,

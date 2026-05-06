@@ -21,15 +21,10 @@ export function InfoTab({
 }: InfoTabProps) {
   const { t, i18n } = useTranslation();
   const descriptionExpansion = useExpandable(true);
-  const playersExpansion = useExpandable(true);
   const {
     expanded: isDescriptionExpanded,
     toggle: toggleDescriptionExpanded,
   } = descriptionExpansion;
-  const {
-    expanded: isPlayersExpanded,
-    toggle: togglePlayersExpanded,
-  } = playersExpansion;
 
   const {
     feeText,
@@ -39,8 +34,6 @@ export function InfoTab({
     descriptionDisplay,
     isDescriptionCollapsible,
     hasParticipants,
-    participantSummary,
-    isPlayersCollapsible,
     spotPercentage,
     formattedDate,
     formattedTime,
@@ -113,13 +106,9 @@ export function InfoTab({
             key={tournament.id}
             tournamentId={tournament.id}
             participants={tournament.participants}
-            participantSummary={participantSummary}
             hasParticipants={hasParticipants}
-            isPlayersCollapsible={isPlayersCollapsible}
-            isPlayersListExpanded={isPlayersExpanded}
             canEditPairs={tournament.permissions.canEdit}
             isCurrentUserParticipant={tournament.permissions.isParticipant}
-            onToggle={togglePlayersExpanded}
             t={t}
           />
         </div>

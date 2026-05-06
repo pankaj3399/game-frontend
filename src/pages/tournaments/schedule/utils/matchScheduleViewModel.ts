@@ -6,6 +6,26 @@ import {
   resolveMatchViewSelectedRound,
 } from "@/pages/tournaments/schedule/helpers/tournamentRoundWorkflow";
 
+/** Within one round: still open → completed → historical → cancelled. */
+function compareMatchesForRoundView(
+  a: TournamentScheduleMatch,
+  b: TournamentScheduleMatch
+): number {
+  const tier = (m: TournamentScheduleMatch): number => {
+    if (m.status === "cancelled") return 3;
+    if (m.detachedFromRound != null) return 2;
+    const open =
+      m.status === "scheduled" || m.status === "inProgress" || m.status === "pendingScore";
+    if (open) return 0;
+    return 1;
+  };
+
+  const ta = tier(a);
+  const tb = tier(b);
+  if (ta !== tb) return ta - tb;
+  return a.slot - b.slot;
+}
+
 export interface MatchSchedulePageModel {
   selectedRound: number;
   roundMatches: TournamentScheduleMatch[];
@@ -40,7 +60,7 @@ export function buildMatchSchedulePageModel(
   const roundMatches = allMatches
     .filter((match) => match.round === selectedRound)
     .slice()
-    .sort((left, right) => left.slot - right.slot);
+    .sort(compareMatchesForRoundView);
   const nextRound = Math.max(1, roundModel.latestGeneratedRound + 1);
   const nextRoundGate = getPreviousRoundGate(nextRound, allMatches);
   const canCreateNextRound =

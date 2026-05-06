@@ -414,6 +414,8 @@ export const backendTournamentDetailSchema = z.object({
   permissions: tournamentPermissionsSchema,
   createdAt: wireJsonNullableString(),
   updatedAt: wireJsonNullableString(),
+  completedAt: wireJsonNullableString(),
+  organiserScoreEditDeadline: wireJsonNullableString(),
 }).transform(normalizeMemberRange);
 
 export const backendTournamentDetailResponseSchema = z.object({

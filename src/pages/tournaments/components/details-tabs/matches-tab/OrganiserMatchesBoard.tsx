@@ -61,6 +61,39 @@ function parseRoundFilter(searchParams: URLSearchParams): OrganiserRoundFilter {
     : "all";
 }
 
+/**
+ * Ordering: current-round matches still open → other open matches → finished (incl. historical) → cancelled.
+ */
+function compareOrganiserMatchOrder(
+  a: TournamentScheduleMatch,
+  b: TournamentScheduleMatch,
+  currentRound: number
+): number {
+  const tier = (m: TournamentScheduleMatch): number => {
+    if (m.status === "cancelled") return 4;
+    if (m.detachedFromRound != null) return 3;
+    const open =
+      m.status === "scheduled" || m.status === "inProgress" || m.status === "pendingScore";
+    if (m.round === currentRound && open) return 0;
+    if (open) return 1;
+    return 2;
+  };
+
+  const ta = tier(a);
+  const tb = tier(b);
+  if (ta !== tb) return ta - tb;
+  if (a.round !== b.round) return a.round - b.round;
+  return a.slot - b.slot;
+}
+
+function isOrganiserScoreEditLocked(tournament: TournamentDetail): boolean {
+  const deadline = tournament.organiserScoreEditDeadline;
+  if (deadline == null || deadline === "") return false;
+  const t = new Date(deadline).getTime();
+  if (!Number.isFinite(t)) return false;
+  return Date.now() > t;
+}
+
 /* ---------------- component ---------------- */
 
 export function OrganiserMatchesBoard({ tournament }: { tournament: TournamentDetail }) {
@@ -92,37 +125,27 @@ export function OrganiserMatchesBoard({ tournament }: { tournament: TournamentDe
     return Array.from(set).sort((a, b) => a - b);
   }, [allMatches]);
 
-  const filteredMatches = useMemo(() => {
-    const source =
-      roundFilter === "all"
-        ? allMatches
-        : allMatches.filter((m) => m.round === roundFilter);
-
-    return [...source].sort((a, b) => {
-      const aHist = a.detachedFromRound != null;
-      const bHist = b.detachedFromRound != null;
-
-      if (aHist !== bHist) return aHist ? 1 : -1;
-
-      if (a.status === "cancelled" && b.status !== "cancelled") return 1;
-      if (a.status !== "cancelled" && b.status === "cancelled") return -1;
-
-      if (a.round !== b.round) return a.round - b.round;
-
-      return a.slot - b.slot;
-    });
-  }, [allMatches, roundFilter]);
-
-  const counts = useMemo(() => countMatches(filteredMatches), [filteredMatches]);
-
-  /* ---------------- ROUND STATE ---------------- */
-
   const latestGeneratedRound = Math.max(
     matchesQuery.data?.schedule.currentRound ?? 0,
     availableRounds.at(-1) ?? 0
   );
 
   const currentRound = Math.max(1, latestGeneratedRound || 1);
+
+  const filteredMatches = useMemo(() => {
+    const source =
+      roundFilter === "all"
+        ? allMatches
+        : allMatches.filter((m) => m.round === roundFilter);
+
+    return [...source].sort((a, b) =>
+      compareOrganiserMatchOrder(a, b, currentRound)
+    );
+  }, [allMatches, roundFilter, currentRound]);
+
+  const counts = useMemo(() => countMatches(filteredMatches), [filteredMatches]);
+
+  /* ---------------- ROUND STATE ---------------- */
 
   const configuredTotalRounds = Math.max(
     1,
@@ -165,6 +188,8 @@ export function OrganiserMatchesBoard({ tournament }: { tournament: TournamentDe
   const showActionButton =
     canScheduleNextRound || currentRoundMatches.length > 0;
 
+  const organiserScoreEditLocked = isOrganiserScoreEditLocked(tournament);
+
   /* ---------------- MUTATIONS ---------------- */
 
   const { persistMatchScore, isPersisting, savingMatchId, saveErrorsByMatchId } =
@@ -197,8 +222,8 @@ export function OrganiserMatchesBoard({ tournament }: { tournament: TournamentDe
 
   const handleToggleInlineEdit = async (match: TournamentScheduleMatch) => {
     if (
+      organiserScoreEditLocked ||
       match.status === "cancelled" ||
-      match.round !== currentRound ||
       match.detachedFromRound != null
     ) {
       return;
@@ -310,8 +335,8 @@ export function OrganiserMatchesBoard({ tournament }: { tournament: TournamentDe
               timeZone={tournament.timezone}
               t={t}
               canEditScores={
+                !organiserScoreEditLocked &&
                 match.status !== "cancelled" &&
-                match.round === currentRound &&
                 match.detachedFromRound == null
               }
               isEditing={editingMatch?.id === match.id}
