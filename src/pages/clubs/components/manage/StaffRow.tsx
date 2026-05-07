@@ -68,7 +68,7 @@ export function StaffRow({
     <div
       ref={setNodeRef}
       className={cn(
-        "flex items-center justify-between rounded-[12px] border px-[12px] py-[15px] shadow-[0px_0px_6px_0px_rgba(0,0,0,0.02),0px_2px_4px_0px_rgba(0,0,0,0.08)] transition-[opacity,background-color,border-color,box-shadow] duration-200 ease-out",
+        "flex min-w-0 items-center justify-between overflow-hidden rounded-[12px] border px-[12px] py-[15px] shadow-[0px_0px_6px_0px_rgba(0,0,0,0.02),0px_2px_4px_0px_rgba(0,0,0,0.08)] transition-[opacity,background-color,border-color,box-shadow] duration-200 ease-out",
         "select-none",
         isDragging && "opacity-70",
         isMainAdminUpdatePending && "shadow-[0px_0px_0px_1px_rgba(39,82,147,0.16),0px_3px_15px_0px_rgba(39,82,147,0.12)]",
@@ -98,11 +98,16 @@ export function StaffRow({
       >
         <DragDropVerticalIcon size={20} />
       </button>
-      <div className="flex min-w-0 flex-1 items-center gap-[14px]">
+      <div className="flex min-w-0 flex-1 items-center gap-[14px] overflow-hidden">
         <StaffAvatar name={member.name} alias={member.alias} />
-        <div className="min-w-0">
-          <div className="flex items-center gap-[7px]">
-            <p className="truncate text-[16px] font-medium text-[#010a04]">{memberDisplayName}</p>
+        <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
+          <div className="flex w-full min-w-0 items-center gap-[7px]">
+            <p
+              className="block w-0 min-w-0 flex-1 overflow-hidden text-ellipsis whitespace-nowrap text-[16px] font-medium text-[#010a04]"
+              title={memberDisplayName}
+            >
+              {memberDisplayName}
+            </p>
             {isDefault && (
               <span className="inline-flex h-[18px] items-center gap-1 rounded-[5px] bg-[rgba(10,105,37,0.12)] px-[6px] pr-[8px] text-[10px] font-medium text-brand-primary">
                 <CrownIcon size={10} />

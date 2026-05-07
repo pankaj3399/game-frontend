@@ -337,7 +337,7 @@
     "addMemberDisabledHint": "Upgrade to premium to add admins or organisers."
   },
   "clubs": {
-    "allClubs": "All Clubs",
+    "allClubs": "Clubs",
     "searchPlaceholder": "Search clubs by name...",
     "searching": "Searching clubs...",
     "noClubsForQuery": "No clubs found for \"{{query}}\".",
@@ -383,7 +383,6 @@
     "noSponsorsYet": "No sponsors have been added yet.",
     "description": "Description",
     "descriptionPlaceholder": "Brief description of the sponsor or their products...",
-    "allClubs": "All Clubs",
     "selectClub": "Select a club to manage sponsors.",
     "selectClubToManage": "Select a club from the list to manage its sponsors.",
     "newSponsor": "New Sponsor",
