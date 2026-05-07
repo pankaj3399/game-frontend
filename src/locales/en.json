@@ -337,7 +337,7 @@
     "addMemberDisabledHint": "Upgrade to premium to add admins or organisers."
   },
   "clubs": {
-    "allClubs": "All Clubs",
+    "allClubs": "Clubs",
     "searchPlaceholder": "Search clubs by name...",
     "searching": "Searching clubs...",
     "noClubsForQuery": "No clubs found for \"{{query}}\".",
