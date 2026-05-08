@@ -93,6 +93,7 @@ function ModeFilterPills({
           <Button
             key={value}
             variant="ghost"
+            aria-pressed={selected}
             onClick={() => onChangeMode(value)}
             className={cn(
               "h-7 whitespace-nowrap rounded-[6px] px-3 text-[11px] font-medium leading-none transition-all",

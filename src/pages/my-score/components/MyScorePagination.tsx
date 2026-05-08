@@ -60,6 +60,7 @@ export function MyScorePagination({
                 <PaginationItem key={`page-${item}`}>
                   <PaginationLink
                     isActive={item === currentPage}
+                    aria-label={t("myScorePage.pageAriaLabel", { page: item })}
                     onClick={() => onPageChange(item)}
                   >
                     {item}

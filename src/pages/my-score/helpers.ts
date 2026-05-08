@@ -1,13 +1,16 @@
 import { format, parseISO } from "date-fns";
 import { getDateFnsLocale } from "@/lib/dateFnsLocale";
-import { myScoreDateRangeSchema, type MyScoreDateRange, type MyScoreFilterMode } from "@/models/myScore/types";
-import { FILTER_MODES } from "./constants";
+import {
+  myScoreDateRangeSchema,
+  myScoreFilterModeSchema,
+  type MyScoreDateRange,
+  type MyScoreFilterMode,
+} from "@/models/myScore/types";
 
 export function parseModeFromSearch(search: string): MyScoreFilterMode {
   const rawMode = new URLSearchParams(search).get("mode");
-  return rawMode && FILTER_MODES.includes(rawMode as MyScoreFilterMode)
-    ? (rawMode as MyScoreFilterMode)
-    : "all";
+  const parsed = myScoreFilterModeSchema.safeParse(rawMode);
+  return parsed.success ? parsed.data : "all";
 }
 
 export function parseRangeFromSearch(search: string): MyScoreDateRange {
@@ -47,8 +50,6 @@ export function buildPaginationItems(
     1,
     totalPages,
     currentPage,
-    currentPage - 1,
-    currentPage + 1,
   ]);
 
   for (let page = currentPage - 2; page <= currentPage + 2; page += 1) {

@@ -1,6 +1,6 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { getErrorMessage } from "@/lib/errors";
 
@@ -32,6 +32,7 @@ import { useMyScore } from "./hooks";
 export default function MyScorePage() {
   const { t } = useTranslation();
   const location = useLocation();
+  const navigate = useNavigate();
 
   const [mode, setMode] = useState<MyScoreFilterMode>(() =>
     parseModeFromSearch(location.search),
@@ -50,10 +51,37 @@ export default function MyScorePage() {
     range,
     page,
     limit: PAGE_SIZE,
+  }, {
+    onSuccess: (data) => {
+      const maxPage = data.pagination.totalPages;
+      const clampedPage = maxPage === 0 ? 1 : Math.min(page, maxPage);
+      if (clampedPage !== page) {
+        setPage(clampedPage);
+      }
+    },
   });
 
-  const maxPage = myScoreQuery.data?.pagination.totalPages ?? 1;
-  const effectivePage = Math.min(page, maxPage);
+  const serverTotalPages = myScoreQuery.data?.pagination?.totalPages;
+  const effectivePage =
+    serverTotalPages == null
+      ? page
+      : Math.min(page, serverTotalPages === 0 ? 1 : serverTotalPages);
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    params.set("mode", mode);
+    params.set("range", range);
+    params.set("page", String(page));
+
+    const nextSearch = params.toString();
+    const currentSearch = location.search.startsWith("?")
+      ? location.search.slice(1)
+      : location.search;
+
+    if (nextSearch !== currentSearch) {
+      navigate(`${location.pathname}?${nextSearch}`, { replace: true });
+    }
+  }, [location.pathname, location.search, mode, navigate, page, range]);
 
   const onShare = async () => {
     try {
@@ -72,29 +100,27 @@ export default function MyScorePage() {
     }
   };
 
+  const entriesCount = myScoreQuery.data?.entries.length ?? 0;
   const pagination = myScoreQuery.data?.pagination;
-  const currentPage = Math.min(page, pagination?.totalPages ?? 1);
+  const total = pagination?.total ?? entriesCount;
+  const limit = pagination?.limit ?? PAGE_SIZE;
+  const totalPages = pagination?.totalPages ?? Math.max(1, Math.ceil(total / limit));
+  const currentPage = Math.min(page, Math.max(1, totalPages));
+  const showPaginationFooter = Boolean(pagination) || total > 0;
 
   const paginationItems = useMemo(
-    () => buildPaginationItems(currentPage, pagination?.totalPages ?? 1),
-    [currentPage, pagination?.totalPages],
+    () => buildPaginationItems(currentPage, Math.max(1, totalPages)),
+    [currentPage, totalPages],
   );
 
-  const from =
-    pagination?.total === 0
-      ? 0
-      : (currentPage - 1) * (pagination?.limit ?? PAGE_SIZE) + 1;
+  const from = total === 0 ? 0 : (currentPage - 1) * limit + 1;
 
-  const to = Math.min(
-    currentPage * (pagination?.limit ?? PAGE_SIZE),
-    pagination?.total ?? 0,
-  );
+  const to = total === 0 ? 0 : Math.min(currentPage * limit, total);
 
   const onPageChange = (nextPage: number) => {
     if (
-      !pagination ||
       nextPage < 1 ||
-      nextPage > pagination.totalPages ||
+      nextPage > Math.max(1, totalPages) ||
       nextPage === currentPage
     ) {
       return;
@@ -160,15 +186,17 @@ export default function MyScorePage() {
             </div>
           )}
 
-          <MyScorePagination
-            from={from}
-            to={to}
-            total={pagination?.total ?? 0}
-            currentPage={currentPage}
-            totalPages={pagination?.totalPages ?? 1}
-            items={paginationItems}
-            onPageChange={onPageChange}
-          />
+          {showPaginationFooter ? (
+            <MyScorePagination
+              from={from}
+              to={to}
+              total={total}
+              currentPage={currentPage}
+              totalPages={Math.max(1, totalPages)}
+              items={paginationItems}
+              onPageChange={onPageChange}
+            />
+          ) : null}
         </MyScoreHeaderControls>
       </div>
     </div>

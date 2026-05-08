@@ -763,7 +763,7 @@
     "shareSuccess": "Link zur Punkteansicht wurde kopiert.",
     "shareError": "Link zur Punkteansicht konnte nicht kopiert werden.",
     "paginationInfo": "{{from}}–{{to}} von {{total}}",
-    "pageAriaLabel": "Gehe zu Seite",
+    "pageAriaLabel": "Gehe zu Seite {{page}}",
     "empty": "Keine Spiele für die ausgewählten Filter gefunden.",
     "filters": {
       "all": "Alle",
@@ -850,11 +850,6 @@
         "invalid": "Bitte geben Sie vor dem Speichern gültige Ergebnisse ein.",
         "noLiveMatch": "Kein Live-Match gefunden. Starten Sie zuerst ein aktives Turniermatch.",
         "qrGenerateFailed": "Score-QR konnte nicht generiert werden."
-      },
-      "matches": {
-        "tennisTitans": "Tennis Titans Turnier (Vorausgewählt)",
-        "clubDoublesNight": "Club Doppelabend",
-        "separateIndividual": "Separates Einzelmatch"
       }
     }
   },

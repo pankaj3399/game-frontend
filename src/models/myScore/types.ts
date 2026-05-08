@@ -3,9 +3,22 @@ import { z } from "zod";
 export const myScoreFilterModeSchema = z.enum(["all", "singles", "doubles"]);
 export const myScoreDateRangeSchema = z.enum(["last30Days", "allTime"]);
 export const myScoreMatchModeSchema = z.enum(["singles", "doubles"]);
+export const myScoreDefaultPagination = {
+  page: 1,
+  limit: 10,
+  total: 0,
+  totalPages: 0,
+} as const;
 
 export type MyScoreFilterMode = z.infer<typeof myScoreFilterModeSchema>;
 export type MyScoreDateRange = z.infer<typeof myScoreDateRangeSchema>;
+
+export const myScorePaginationSchema = z.object({
+  page: z.number().int().min(1),
+  limit: z.number().int().min(1),
+  total: z.number().int().min(0),
+  totalPages: z.number().int().min(0),
+});
 
 export const myScoreEntrySchema = z.object({
   id: z.string(),
@@ -37,12 +50,7 @@ export const myScoreResponseSchema = z.object({
     mode: myScoreFilterModeSchema,
     range: myScoreDateRangeSchema,
   }),
-  pagination: z.object({
-    page: z.number().int().min(1),
-    limit: z.number().int().min(1),
-    total: z.number().int().min(0),
-    totalPages: z.number().int().min(1),
-  }),
+  pagination: myScorePaginationSchema.optional().default(myScoreDefaultPagination),
   entries: z.array(myScoreEntrySchema),
 });
 
