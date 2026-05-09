@@ -85,7 +85,11 @@ export function MatchSelector({
                 <button
                   key={option.id}
                   type="button"
-                  onClick={() => onMatchChange(option.id)}
+                  onClick={() => {
+                    onMatchChange(option.id);
+                    setIsMatchPopoverOpen(false);
+                    setMatchSearch("");
+                  }}
                   className={`block w-full border-b border-[#010a04]/8 px-3 py-2 text-left text-[13px] last:border-b-0 ${
                     isActive
                       ? "bg-[#067429]/10 font-medium text-[#067429]"
