@@ -58,7 +58,7 @@ export function buildMatchLabel(
     )
     .join(" / ");
 
-  const base = `${match.tournament.name} · ${opponentTeam || t("tournaments.playerFallback")}`;
+  const base = `${match.tournament.name} · ${opponentTeam || t("tournaments.opponentUnknown")}`;
   return match.status === "inProgress"
     ? `${base} (${String(t("tournaments.liveLabel")).toLowerCase()})`
     : base;

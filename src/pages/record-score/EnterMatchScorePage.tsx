@@ -60,12 +60,55 @@ export default function EnterMatchScorePage() {
   return (
     <>
       <div className="relative min-h-[calc(100vh-56px)] bg-[#dfe2e0] px-3 pb-10 pt-5 sm:px-6 sm:pt-8 lg:min-h-[calc(100vh-60px)] lg:pt-9">
-        <div
-          aria-hidden={shouldShowLoadingSkeleton}
-          className={`transition-opacity duration-200 ease-out ${
-            shouldShowLoadingSkeleton ? "pointer-events-none opacity-0" : "opacity-100"
-          }`}
-        >
+        {shouldShowLoadingSkeleton ? (
+          <div className="min-h-[calc(100vh-56px)] px-0 pb-10 pt-0 sm:px-0 sm:pt-0 lg:min-h-[calc(100vh-60px)] lg:pt-0">
+            <div className="mx-auto w-full max-w-[992px]">
+              <div className="mx-auto w-full max-w-[784px]">
+                {mode !== "confirm" ? (
+                  <div className="h-4 w-20 animate-skeleton-soft rounded bg-[#010a04]/10" />
+                ) : null}
+              </div>
+
+              <section className="mx-auto mt-3 w-full max-w-[784px] rounded-[12px] border border-[rgba(1,10,4,0.08)] bg-white p-4 shadow-[0_3px_7.5px_rgba(0,0,0,0.06)] sm:p-[18px]">
+                <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                  <div className="h-7 w-52 animate-skeleton-soft rounded bg-[#010a04]/10 sm:h-8 sm:w-64" />
+                  <div className="h-4 w-36 animate-skeleton-soft rounded bg-[#010a04]/8" />
+                </div>
+
+                <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-start">
+                  <div className="h-[130px] w-[130px] animate-skeleton-soft rounded-[8px] bg-[#010a04]/8" />
+
+                  <div className="min-w-0 flex-1 space-y-3">
+                    <div className="h-[34px] w-full animate-skeleton-soft rounded-[8px] bg-[#010a04]/8" />
+                    <div className="h-4 w-[78%] animate-skeleton-soft rounded bg-[#010a04]/8" />
+                    <div className="h-7 w-40 animate-skeleton-soft rounded bg-[#010a04]/10" />
+
+                    <div className="space-y-2.5">
+                      {Array.from({ length: 2 }).map((_, rowIndex) => (
+                        <div
+                          key={`score-skeleton-row-${rowIndex}`}
+                          className="grid grid-cols-[108px_minmax(0,1fr)] items-center gap-2 sm:grid-cols-[140px_minmax(0,1fr)]"
+                        >
+                          <div className="h-4 w-24 animate-skeleton-soft rounded bg-[#010a04]/8" />
+                          <div className="grid grid-cols-3 gap-2">
+                            {Array.from({ length: 3 }).map((__, colIndex) => (
+                              <div
+                                key={`score-skeleton-cell-${rowIndex}-${colIndex}`}
+                                className="h-[34px] animate-skeleton-soft rounded-[8px] bg-[#010a04]/8"
+                              />
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-4 h-[34px] w-full animate-skeleton-soft rounded-[10px] bg-[#010a04]/10" />
+              </section>
+            </div>
+          </div>
+        ) : (
           <div className="mx-auto w-full max-w-[992px]">
             <div className="mx-auto w-full max-w-[784px]">
               {mode !== "confirm" ? (
@@ -101,7 +144,7 @@ export default function EnterMatchScorePage() {
                   <QrPreview
                     dataUrl={activeQrDataUrl}
                     onOpenLarge={() => setIsQrDialogOpen(true)}
-                    t={(key: string) => t(key)}
+                    t={t}
                     emptyText={
                       mode === "confirm"
                         ? t(
@@ -167,7 +210,7 @@ export default function EnterMatchScorePage() {
 
               <FooterActions
                 mode={mode as "confirm" | "generate"}
-              isSubmittingConfirm={isConfirmSubmitting}
+                isSubmittingConfirm={isConfirmSubmitting}
                 canSubmitConfirmedScore={canSubmitConfirmedScore}
                 onSubmitConfirmedScore={onSubmitConfirmedScore}
                 onGenerateOrOpenValidationLink={onGenerateOrOpenValidationLink}
@@ -179,62 +222,7 @@ export default function EnterMatchScorePage() {
               />
             </section>
           </div>
-        </div>
-
-        <div
-          aria-hidden={!shouldShowLoadingSkeleton}
-          className={`absolute inset-0 transition-opacity duration-200 ease-out ${
-            shouldShowLoadingSkeleton ? "opacity-100" : "pointer-events-none opacity-0"
-          }`}
-        >
-          <div className="min-h-[calc(100vh-56px)] px-3 pb-10 pt-5 sm:px-6 sm:pt-8 lg:min-h-[calc(100vh-60px)] lg:pt-9">
-            <div className="mx-auto w-full max-w-[992px]">
-              <div className="mx-auto w-full max-w-[784px]">
-                {mode !== "confirm" ? (
-                  <div className="h-4 w-20 animate-skeleton-soft rounded bg-[#010a04]/10" />
-                ) : null}
-              </div>
-
-              <section className="mx-auto mt-3 w-full max-w-[784px] rounded-[12px] border border-[rgba(1,10,4,0.08)] bg-white p-4 shadow-[0_3px_7.5px_rgba(0,0,0,0.06)] sm:p-[18px]">
-                <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-                  <div className="h-7 w-52 animate-skeleton-soft rounded bg-[#010a04]/10 sm:h-8 sm:w-64" />
-                  <div className="h-4 w-36 animate-skeleton-soft rounded bg-[#010a04]/8" />
-                </div>
-
-                <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-start">
-                  <div className="h-[130px] w-[130px] animate-skeleton-soft rounded-[8px] bg-[#010a04]/8" />
-
-                  <div className="min-w-0 flex-1 space-y-3">
-                    <div className="h-[34px] w-full animate-skeleton-soft rounded-[8px] bg-[#010a04]/8" />
-                    <div className="h-4 w-[78%] animate-skeleton-soft rounded bg-[#010a04]/8" />
-                    <div className="h-7 w-40 animate-skeleton-soft rounded bg-[#010a04]/10" />
-
-                    <div className="space-y-2.5">
-                      {Array.from({ length: 2 }).map((_, rowIndex) => (
-                        <div
-                          key={`score-skeleton-row-${rowIndex}`}
-                          className="grid grid-cols-[108px_minmax(0,1fr)] items-center gap-2 sm:grid-cols-[140px_minmax(0,1fr)]"
-                        >
-                          <div className="h-4 w-24 animate-skeleton-soft rounded bg-[#010a04]/8" />
-                          <div className="grid grid-cols-3 gap-2">
-                            {Array.from({ length: 3 }).map((__, colIndex) => (
-                              <div
-                                key={`score-skeleton-cell-${rowIndex}-${colIndex}`}
-                                className="h-[34px] animate-skeleton-soft rounded-[8px] bg-[#010a04]/8"
-                              />
-                            ))}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="mt-4 h-[34px] w-full animate-skeleton-soft rounded-[10px] bg-[#010a04]/10" />
-              </section>
-            </div>
-          </div>
-        </div>
+        )}
       </div>
 
       <Dialog open={isQrDialogOpen} onOpenChange={setIsQrDialogOpen}>
@@ -253,7 +241,7 @@ export default function EnterMatchScorePage() {
               <div className="rounded-[12px] border border-[#010a04]/10 bg-white p-3">
                 <img
                   src={activeQrDataUrl}
-                  alt="Large score validation QR"
+                  alt={t("recordScorePage.enter.qrPreviewLargeAlt")}
                   className="h-[360px] w-[360px] max-w-[78vw] object-contain"
                 />
               </div>

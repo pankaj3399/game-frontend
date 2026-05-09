@@ -1,7 +1,7 @@
 type QrPreviewProps = {
   dataUrl: string | null;
   onOpenLarge: () => void;
-  t: (key: string) => string;
+  t: (key: string, options?: Record<string, unknown>) => string;
   emptyText?: string;
 };
 
@@ -16,7 +16,7 @@ export function QrPreview({ dataUrl, onOpenLarge, t, emptyText }: QrPreviewProps
       >
         <img
           src={dataUrl}
-          alt="Generated score validation QR"
+          alt={t("recordScorePage.enter.qrPreviewAlt")}
           className="h-[118px] w-[118px] object-contain"
         />
         <p className="mt-1 text-center text-[11px] text-[#010a04]/55 group-hover:text-[#067429]">
@@ -42,7 +42,7 @@ export function QrPreview({ dataUrl, onOpenLarge, t, emptyText }: QrPreviewProps
           }}
         />
         <p className="relative px-2 text-center text-[11px] font-semibold leading-tight text-[#010a04]/80">
-          {emptyText ?? "No QR generated"}
+          {emptyText ?? t("recordScorePage.enter.qrPreviewEmptyFallback")}
         </p>
       </div>
     </div>

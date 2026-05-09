@@ -35,7 +35,7 @@ export function MatchSelector({
     <Popover
       open={isMatchPopoverOpen}
       onOpenChange={(nextOpen) => {
-        if (isConfirmLocked) return;
+        if (nextOpen && isConfirmLocked) return;
         setIsMatchPopoverOpen(nextOpen);
         if (!nextOpen) {
           setMatchSearch("");

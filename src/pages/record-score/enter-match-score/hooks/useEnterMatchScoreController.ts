@@ -126,7 +126,7 @@ export function useEnterMatchScoreController({
       .map((match) => ({
         id: match.id,
         label: buildMatchLabel(t, match),
-        playMode: match.playMode,
+        playMode: match.playMode ?? "TieBreak10",
         mode: match.mode,
         kind: "tournament" as const,
         tournamentId: match.tournament.id,
@@ -386,7 +386,7 @@ export function useEnterMatchScoreController({
       : Array.from(
           {
             length: Math.max(
-              createRowsForPlayMode(validatedRequest.playMode).length,
+              createRowsForPlayMode(validatedRequest.playMode ?? "TieBreak10").length,
               validatedRequest.playerOneScores.length,
               validatedRequest.playerTwoScores.length,
             ),

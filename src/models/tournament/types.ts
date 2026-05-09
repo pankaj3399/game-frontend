@@ -160,7 +160,7 @@ export const tournamentMatchScoreSchema = z.object({
 export const tournamentLiveMatchItemSchema = z.object({
   id: z.string(),
   mode: tournamentScheduleModeSchema,
-  playMode: tournamentPlayModeSchema,
+  playMode: tournamentPlayModeSchema.optional(),
   status: tournamentMatchStatusSchema,
   startTime: z.string().nullable(),
   tournament: z.object({

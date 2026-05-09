@@ -52,8 +52,32 @@ export default function ValidateScorePage() {
   );
 
   const canContinue = Boolean(
-    validateQuery.data?.valid && validateQuery.data?.request,
+    validateQuery.data?.valid === true && validateQuery.data?.request,
   );
+
+  const scanBusy =
+    Boolean(effectiveToken) &&
+    (validateQuery.isPending || validateQuery.isFetching);
+
+  const showRecoverableFailure =
+    Boolean(effectiveToken) &&
+    !validateQuery.isPending &&
+    !validateQuery.isFetching &&
+    (validateQuery.isError ||
+      (validateQuery.data != null && validateQuery.data.valid === false));
+
+  const validationFailureMessage = validateQuery.isError
+    ? getErrorMessage(validateQuery.error)
+    : validateQuery.data?.message ??
+      t("recordScorePage.validate.errors.invalidToken");
+
+  const handleRetryValidation = () => {
+    setScannedToken("");
+    hasNavigatedRef.current = false;
+    if (tokenFromQuery) {
+      navigate("/record-score/validate", { replace: true });
+    }
+  };
 
   const stopScanner = () => {
     if (scanRafRef.current != null) {
@@ -198,6 +222,7 @@ export default function ValidateScorePage() {
     stopScanner();
     navigate(
       `/record-score/manual?mode=confirm&token=${encodedToken}&matchId=${encodedMatchId}&tournamentId=${encodedTournamentId}`,
+      { replace: true },
     );
   }, [canContinue, effectiveToken, navigate, validateQuery.data?.request]);
 
@@ -237,7 +262,7 @@ export default function ValidateScorePage() {
             </p>
           </header>
 
-          <div className="mt-4">
+          <div className="mt-4 space-y-2">
             <Button
               type="button"
               onClick={() => {
@@ -247,7 +272,7 @@ export default function ValidateScorePage() {
                 setShouldStartScanner(true);
               }}
               className="h-[34px] w-full rounded-[10px] bg-[#010a04] text-[14px] font-medium text-white hover:bg-black"
-              disabled={Boolean(tokenFromQuery)}
+              disabled={Boolean(tokenFromQuery) || scanBusy}
             >
               <ScannerIcon className="mr-2 h-4 w-4 shrink-0" />
               {t(
@@ -255,6 +280,26 @@ export default function ValidateScorePage() {
                 "Scan Opponent's QR Code",
               )}
             </Button>
+
+            {scanBusy ? (
+              <p className="text-center text-[12px] text-[#010a04]/55">
+                {t("recordScorePage.validate.validationLoadingHint")}
+              </p>
+            ) : null}
+
+            {showRecoverableFailure ? (
+              <div className="rounded-[10px] border border-[#c45c5c]/35 bg-[#fdf2f2] px-3 py-2 text-[13px] text-[#7f1d1d]">
+                <p>{validationFailureMessage}</p>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="mt-2 h-[32px] w-full rounded-[8px] border-[#010a04]/20 text-[13px] font-medium"
+                  onClick={handleRetryValidation}
+                >
+                  {t("recordScorePage.validate.retryValidation")}
+                </Button>
+              </div>
+            ) : null}
           </div>
 
           {scannerOpen ? (
