@@ -4,6 +4,13 @@ export { useTournamentMatches } from "./useTournamentMatches";
 export { useTournamentLiveMatch } from "./useTournamentLiveMatch";
 export { useRecordTournamentMatchScore } from "./useTournamentMatchScore";
 export {
+  useGenerateTournamentScoreQr,
+  useGenerateIndependentScoreQr,
+  useActiveTournamentScoreQrSession,
+  useValidateTournamentScoreQr,
+  useConfirmTournamentScoreQr,
+} from "./useTournamentScoreQr";
+export {
   useTournamentSchedule,
   useDoublesPairs,
   useGenerateTournamentSchedule,

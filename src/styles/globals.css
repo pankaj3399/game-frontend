@@ -98,6 +98,8 @@
   --brand-secondary: oklch(0.97 0 0);
   --brand-black: oklch(0.145 0 0);
   --card-surface: #f2f4f3;
+  --scrollbar-thumb: color-mix(in oklch, var(--muted-foreground) 42%, transparent);
+  --scrollbar-thumb-hover: color-mix(in oklch, var(--muted-foreground) 62%, transparent);
 }
 
 .dark {
@@ -140,6 +142,8 @@
   --brand-secondary: oklch(0.269 0 0);
   --brand-black: oklch(0.985 0 0);
   --card-surface: oklch(0.28 0.004 160);
+  --scrollbar-thumb: color-mix(in oklch, var(--muted-foreground) 42%, transparent);
+  --scrollbar-thumb-hover: color-mix(in oklch, var(--muted-foreground) 62%, transparent);
 }
 
 @layer base {
@@ -210,6 +214,30 @@
 
   .clubs-sidebar-scrollbar::-webkit-scrollbar-thumb:hover {
     background-color: color-mix(in oklch, var(--muted-foreground) 62%, transparent);
+  }
+
+  /* Generic thin scrollbar for compact popover lists. */
+  .thin-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: var(--scrollbar-thumb) transparent;
+  }
+
+  .thin-scrollbar::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  .thin-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .thin-scrollbar::-webkit-scrollbar-thumb {
+    background-color: var(--scrollbar-thumb);
+    border-radius: 9999px;
+  }
+
+  .thin-scrollbar::-webkit-scrollbar-thumb:hover {
+    background-color: var(--scrollbar-thumb-hover);
   }
 }
 
