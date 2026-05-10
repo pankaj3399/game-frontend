@@ -31,6 +31,10 @@ export function MatchSelector({
   onMatchChange,
   t,
 }: MatchSelectorProps) {
+  const selectedLabel =
+    effectiveSelectedOption.label ||
+    t("recordScorePage.enter.selectPlaceholder");
+
   return (
     <Popover
       open={isMatchPopoverOpen}
@@ -47,12 +51,10 @@ export function MatchSelector({
           type="button"
           variant="outline"
           disabled={isConfirmLocked}
-          className="h-[34px] w-full justify-between rounded-[8px] border-[#010a04]/10 bg-[#f2f4f3] px-3 text-left text-[14px] font-normal text-[#010a04] hover:bg-[#edf0ef]"
+          className="min-h-[44px] h-auto w-full justify-between rounded-[10px] border-[#010a04]/10 bg-[#f2f4f3] px-3 py-2.5 text-left text-[14px] font-normal text-[#010a04] hover:bg-[#edf0ef] sm:h-[34px] sm:min-h-[34px] sm:rounded-[8px] sm:py-0"
+          title={selectedLabel}
         >
-          <span className="truncate">
-            {effectiveSelectedOption.label ||
-              t("recordScorePage.enter.selectPlaceholder")}
-          </span>
+          <span className="min-w-0 truncate">{selectedLabel}</span>
           <IconChevronDown size={14} className="ml-2 shrink-0 text-[#010a04]/55" />
         </Button>
       </PopoverTrigger>
@@ -93,6 +95,7 @@ export function MatchSelector({
                       ? "bg-[#067429]/10 font-medium text-[#067429]"
                       : "text-[#010a04] hover:bg-[#010a04]/[0.035]"
                   }`}
+                  title={option.label}
                 >
                   <span className="block truncate">{option.label}</span>
                 </button>

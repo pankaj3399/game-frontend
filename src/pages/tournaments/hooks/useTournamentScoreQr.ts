@@ -90,6 +90,21 @@ async function validateTournamentScoreQr(
   return parsed;
 }
 
+async function validateTournamentScoreQrConfirmContext(
+  token: string,
+): Promise<ValidateTournamentScoreQrResponse> {
+  const safeToken = token.trim();
+  if (!safeToken) {
+    throw new Error("QR token is required");
+  }
+
+  const response = await api.post("/api/tournaments/score-qr/confirm-context", {
+    token: safeToken,
+  });
+
+  return validateTournamentScoreQrResponseSchema.parse(response.data);
+}
+
 async function confirmTournamentScoreQr(
   input: ConfirmTournamentScoreQrInput,
 ): Promise<ConfirmTournamentScoreQrResponse> {
@@ -187,6 +202,26 @@ export function useValidateTournamentScoreQr(
       normalized,
     ] as const,
     queryFn: () => validateTournamentScoreQr(normalized),
+    enabled: enabled && normalized.length > 0,
+    staleTime: 15_000,
+    retry: false,
+  });
+}
+
+export function useValidateTournamentScoreQrConfirmContext(
+  token: string | null | undefined,
+  enabled = true,
+) {
+  const normalized = (token ?? "").trim();
+
+  return useQuery({
+    queryKey: [
+      ...queryKeys.tournament.all,
+      "score-qr",
+      "confirm-context",
+      normalized,
+    ] as const,
+    queryFn: () => validateTournamentScoreQrConfirmContext(normalized),
     enabled: enabled && normalized.length > 0,
     staleTime: 15_000,
     retry: false,

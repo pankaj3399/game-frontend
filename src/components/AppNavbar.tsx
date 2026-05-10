@@ -385,14 +385,13 @@ export function AppNavbar() {
       className="sticky top-0 z-50 h-[56px] w-full lg:h-[60px]"
       style={{ backgroundColor: "var(--brand-primary)" }}
     >
-      <div className="relative mx-auto flex h-full w-full max-w-[1440px] items-center justify-between gap-2 px-3 lg:gap-3 lg:px-6 xl:px-[96px]">
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 flex justify-center lg:hidden">
-          <span className="mb-[14px] max-w-[56vw] truncate text-center text-[24px] font-semibold leading-none text-[#F4C95D]">
-            {pageTitle}
-          </span>
-        </div>
-
-        <div className="flex min-w-0 shrink items-center gap-2 lg:h-[33px] lg:w-[150px] xl:h-[39px] xl:w-[200px]">
+      <div
+        className={cn(
+          "relative mx-auto grid h-full w-full max-w-[1440px] grid-cols-[1fr_minmax(0,auto)_1fr] items-center gap-x-2 px-3 lg:gap-x-3 lg:px-6 xl:px-[96px]",
+          isGermanUi ? "lg:gap-x-2.5 xl:gap-x-3" : "lg:gap-x-3 xl:gap-x-4"
+        )}
+      >
+        <div className="flex min-w-0 justify-self-start lg:h-[33px] xl:h-[39px]">
           <Link
             to="/"
             className="inline-flex shrink-0 items-center"
@@ -406,21 +405,26 @@ export function AppNavbar() {
           </Link>
         </div>
 
-        <nav
-          className={cn(
-            "hidden flex-1 items-center justify-center lg:flex",
-            isGermanUi ? "lg:gap-x-3 xl:gap-x-5" : "lg:gap-x-4 xl:gap-x-7"
-          )}
-        >
-          <NavLinks
-            variant="inline"
-            location={location}
-            t={t}
-            compact={isGermanUi}
-          />
-        </nav>
+        <div className="flex min-w-0 w-full max-w-full justify-center justify-self-center overflow-hidden px-1">
+          <span className="block w-full min-w-0 truncate text-center text-[22px] font-semibold leading-none text-[#F4C95D] sm:text-[24px] lg:hidden">
+            {pageTitle}
+          </span>
+          <nav
+            className={cn(
+              "hidden items-center justify-center lg:flex",
+              isGermanUi ? "gap-x-3 xl:gap-x-5" : "gap-x-4 xl:gap-x-7"
+            )}
+          >
+            <NavLinks
+              variant="inline"
+              location={location}
+              t={t}
+              compact={isGermanUi}
+            />
+          </nav>
+        </div>
 
-        <div className="flex shrink-0 items-center justify-end gap-2 lg:gap-3">
+        <div className="flex min-w-0 shrink-0 justify-end justify-self-end gap-2 lg:gap-3">
           <div className={cn("hidden items-center lg:flex", isGermanUi ? "lg:gap-2.5" : "lg:gap-3")}>
             {!isAuthenticated && (
               <DropdownMenu>

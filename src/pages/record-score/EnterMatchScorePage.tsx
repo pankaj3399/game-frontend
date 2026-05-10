@@ -1,5 +1,7 @@
+import { useEffect, useRef } from "react";
 import { Navigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
 import { useAuth } from "@/pages/auth/hooks";
 import {
   Dialog,
@@ -12,6 +14,10 @@ import { FooterActions } from "./enter-match-score/components/FooterActions";
 import { MatchSelector } from "./enter-match-score/components/MatchSelector";
 import { QrPreview } from "./enter-match-score/components/QrPreview";
 import { ScoreGrid } from "./enter-match-score/components/ScoreGrid";
+import {
+  matchRoundDisplayLabel,
+  playModeTranslationKey,
+} from "./enter-match-score/helpers";
 import { useEnterMatchScoreController } from "./enter-match-score/hooks/useEnterMatchScoreController";
 
 export default function EnterMatchScorePage() {
@@ -32,6 +38,7 @@ export default function EnterMatchScorePage() {
     isConfirmLocked,
     isValidatedContextOk,
     shouldRedirectInvalidConfirm,
+    confirmRedirectReason,
     onGoBack,
     onMatchChange,
     effectiveRows,
@@ -53,15 +60,48 @@ export default function EnterMatchScorePage() {
     userId: user?.id ?? null,
   });
 
+  const invalidConfirmToastShownRef = useRef(false);
+  useEffect(() => {
+    if (!shouldRedirectInvalidConfirm || !confirmRedirectReason) return;
+    if (invalidConfirmToastShownRef.current) return;
+    invalidConfirmToastShownRef.current = true;
+    if (confirmRedirectReason === "wrong-user") {
+      toast.error(
+        t(
+          "recordScorePage.enter.errors.confirmLinkWrongUser",
+          "This validation link is not valid for your account.",
+        ),
+      );
+      return;
+    }
+    toast.error(
+      t(
+        "recordScorePage.enter.errors.confirmLinkInvalid",
+        "This QR link is invalid, expired, or already used.",
+      ),
+    );
+  }, [confirmRedirectReason, shouldRedirectInvalidConfirm, t]);
+
+  const matchMetaLabel = `${t(
+    playModeTranslationKey(effectiveSelectedOption.playMode),
+  )} · ${matchRoundDisplayLabel(t, effectiveSelectedOption)}`;
+
   if (shouldRedirectInvalidConfirm) {
     return <Navigate to="/record-score" replace />;
   }
 
   return (
     <>
-      <div className="relative min-h-[calc(100vh-56px)] bg-[#dfe2e0] px-3 pb-10 pt-5 sm:px-6 sm:pt-8 lg:min-h-[calc(100vh-60px)] lg:pt-9">
+      <div className="relative min-h-[calc(100vh-56px)] bg-[#dfe2e0] px-4 pb-8 pt-4 sm:px-6 sm:pb-10 sm:pt-8 lg:min-h-[calc(100vh-60px)] lg:pt-9">
         {shouldShowLoadingSkeleton ? (
-          <div className="min-h-[calc(100vh-56px)] px-0 pb-10 pt-0 sm:px-0 sm:pt-0 lg:min-h-[calc(100vh-60px)] lg:pt-0">
+          <div
+            className="min-h-[calc(100vh-56px)] px-0 pb-10 pt-0 sm:px-0 sm:pt-0 lg:min-h-[calc(100vh-60px)] lg:pt-0"
+            aria-busy="true"
+            aria-live="polite"
+          >
+            <span className="sr-only" role="status">
+              {t("recordScorePage.enter.sessionLoading")}
+            </span>
             <div className="mx-auto w-full max-w-[992px]">
               <div className="mx-auto w-full max-w-[784px]">
                 {mode !== "confirm" ? (
@@ -83,18 +123,18 @@ export default function EnterMatchScorePage() {
                     <div className="h-4 w-[78%] animate-skeleton-soft rounded bg-[#010a04]/8" />
                     <div className="h-7 w-40 animate-skeleton-soft rounded bg-[#010a04]/10" />
 
-                    <div className="space-y-2.5">
+                    <div className="space-y-3 sm:space-y-2.5">
                       {Array.from({ length: 2 }).map((_, rowIndex) => (
                         <div
                           key={`score-skeleton-row-${rowIndex}`}
-                          className="grid grid-cols-[108px_minmax(0,1fr)] items-center gap-2 sm:grid-cols-[140px_minmax(0,1fr)]"
+                          className="rounded-[12px] border border-[#010a04]/[0.06] bg-[#f4f6f5] p-3 sm:grid sm:grid-cols-[140px_minmax(0,1fr)] sm:items-center sm:gap-3 sm:rounded-none sm:border-0 sm:bg-transparent sm:p-0"
                         >
-                          <div className="h-4 w-24 animate-skeleton-soft rounded bg-[#010a04]/8" />
-                          <div className="grid grid-cols-3 gap-2">
+                          <div className="h-4 w-24 animate-skeleton-soft rounded bg-[#010a04]/8 sm:h-4" />
+                          <div className="mt-2 grid grid-cols-3 gap-2.5 sm:mt-0 sm:gap-2">
                             {Array.from({ length: 3 }).map((__, colIndex) => (
                               <div
                                 key={`score-skeleton-cell-${rowIndex}-${colIndex}`}
-                                className="h-[34px] animate-skeleton-soft rounded-[8px] bg-[#010a04]/8"
+                                className="h-[44px] animate-skeleton-soft rounded-[10px] bg-[#010a04]/8 sm:h-[34px] sm:rounded-[8px]"
                               />
                             ))}
                           </div>
@@ -115,17 +155,20 @@ export default function EnterMatchScorePage() {
                 <button
                   type="button"
                   onClick={onGoBack}
-                  className="inline-flex items-center gap-1 text-[12px] font-medium text-[#010a04] transition-opacity hover:opacity-65"
+                  className="-ml-1 inline-flex min-h-[44px] items-center gap-1.5 rounded-lg px-1 py-2 text-[13px] font-medium text-[#010a04] transition-opacity hover:opacity-65 sm:min-h-0 sm:py-0 sm:text-[12px]"
                 >
-                  <IconChevronLeft size={14} className="text-[#010a04]" />
+                  <IconChevronLeft size={16} className="shrink-0 text-[#010a04] sm:size-[14px]" />
                   {t("recordScorePage.goBack")}
                 </button>
               ) : null}
             </div>
 
-            <section className="mx-auto mt-3 w-full max-w-[784px] rounded-[12px] border border-[rgba(1,10,4,0.08)] bg-white p-4 shadow-[0_3px_7.5px_rgba(0,0,0,0.06)] sm:p-[18px]">
-              <div className="mt-2 flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
-                <h1 className="text-xl font-semibold leading-tight tracking-tight text-[#010a04] sm:text-2xl">
+            <section
+              className="mx-auto mt-2 w-full max-w-[784px] rounded-[12px] border border-[rgba(1,10,4,0.08)] bg-white p-4 shadow-[0_3px_7.5px_rgba(0,0,0,0.06)] sm:mt-3 sm:p-[18px]"
+              aria-busy={isGenerating}
+            >
+              <div className="mt-1 flex flex-col gap-1 sm:mt-2 sm:flex-row sm:items-start sm:justify-between">
+                <h1 className="text-[1.125rem] font-semibold leading-snug tracking-tight text-[#010a04] sm:text-2xl">
                   {mode === "confirm"
                     ? t("recordScorePage.enter.validateTitle")
                     : t("recordScorePage.enter.title")}
@@ -139,8 +182,8 @@ export default function EnterMatchScorePage() {
                 ) : null}
               </div>
 
-              <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-start">
-                <div className="shrink-0">
+              <div className="mt-5 flex flex-col gap-5 border-t border-[#010a04]/[0.06] pt-5 sm:mt-4 sm:flex-row sm:items-start sm:gap-6 sm:border-t-0 sm:pt-0">
+                <div className="relative flex shrink-0 justify-center sm:justify-start">
                   <QrPreview
                     dataUrl={activeQrDataUrl}
                     onOpenLarge={() => setIsQrDialogOpen(true)}
@@ -156,8 +199,8 @@ export default function EnterMatchScorePage() {
                   />
                 </div>
 
-                <div className="min-w-0 flex-1 space-y-3">
-                  <div className="space-y-2">
+                <div className="min-w-0 flex-1 space-y-4">
+                  <div className="space-y-2.5">
                     <MatchSelector
                       isConfirmLocked={isConfirmLocked}
                       isMatchPopoverOpen={isMatchPopoverOpen}
@@ -170,7 +213,7 @@ export default function EnterMatchScorePage() {
                       t={t}
                     />
 
-                    <p className="text-[12px] leading-[1.35] text-[#010a04]/55">
+                    <p className="text-[12px] leading-relaxed text-[#010a04]/55 sm:leading-[1.35]">
                       {effectiveSelectedOption.kind === "independent"
                         ? t("recordScorePage.enter.independentHint")
                         : mode === "confirm"
@@ -185,26 +228,38 @@ export default function EnterMatchScorePage() {
                     ) : null}
                   </div>
 
-                  <div>
-                    <h2 className="text-xl font-semibold leading-tight text-[#010a04] sm:text-2xl">
-                      {t("recordScorePage.enter.matchScores")}
-                      {mode === "generate" && hasUnsavedQrChanges ? (
-                        <span className="ml-2 text-[12px] font-medium text-[#010a04]/55 sm:text-[13px]">
-                          ({t("recordScorePage.enter.unsavedChangesInline", "unsaved changes")})
-                        </span>
-                      ) : null}
-                    </h2>
-                  </div>
+                  <div className="relative min-h-[120px] pt-1">
+                    <div className="space-y-4 transition-opacity">
+                      <div className="flex min-w-0 flex-col gap-1.5 sm:flex-row sm:flex-wrap sm:items-baseline sm:justify-between sm:gap-x-4">
+                        <h2 className="min-w-0 text-base font-semibold leading-tight text-[#010a04] sm:text-2xl">
+                          {t("recordScorePage.enter.matchScores")}
+                          {mode === "generate" && hasUnsavedQrChanges ? (
+                            <span className="ml-2 text-[12px] font-medium text-[#010a04]/55 sm:text-[13px]">
+                              ({t("recordScorePage.enter.unsavedChangesInline", "unsaved changes")})
+                            </span>
+                          ) : null}
+                        </h2>
+                        <p
+                          className="min-w-0 max-w-full truncate text-[13px] font-semibold leading-snug text-[#010a04] sm:text-[14px]"
+                          title={matchMetaLabel}
+                        >
+                          {matchMetaLabel}
+                        </p>
+                      </div>
 
-                  <ScoreGrid
-                    rows={effectiveRows}
-                    playMode={effectiveSelectedOption.playMode}
-                    isConfirmLocked={isConfirmLocked}
-                    openScorePickerKey={openScorePickerKey}
-                    setOpenScorePickerKey={setOpenScorePickerKey}
-                    onScoreChange={onScoreChange}
-                    t={t}
-                  />
+                      <ScoreGrid
+                        rows={effectiveRows}
+                        playMode={effectiveSelectedOption.playMode}
+                        playerOneRowLabel={effectiveSelectedOption.playerOneRowLabel}
+                        playerTwoRowLabel={effectiveSelectedOption.playerTwoRowLabel}
+                        isConfirmLocked={isConfirmLocked}
+                        openScorePickerKey={openScorePickerKey}
+                        setOpenScorePickerKey={setOpenScorePickerKey}
+                        onScoreChange={onScoreChange}
+                        t={t}
+                      />
+                    </div>
+                  </div>
                 </div>
               </div>
 

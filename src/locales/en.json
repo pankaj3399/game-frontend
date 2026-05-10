@@ -835,6 +835,10 @@
       "requestBy": "Requested by",
       "expiresAt": "Expires at",
       "scanButton": "Scan Opponent's QR Code",
+      "scanPageBack": "Back to validate score",
+      "checkingCamera": "Checking camera…",
+      "scanRequiresCamera": "QR scanning needs a camera. Use a device with a camera.",
+      "useValidationLinkInstead": "You can open the validation link your opponent shared instead of scanning.",
       "validationLoadingHint": "Checking QR token…",
       "retryValidation": "Try again",
       "noCamera": "No camera detected",
@@ -853,7 +857,8 @@
       "errors": {
         "noToken": "Open this page from a shared validation link or scan a QR code.",
         "invalidToken": "This QR token is invalid, expired, or already used.",
-        "confirmFailed": "Failed to confirm score from QR."
+        "confirmFailed": "Failed to confirm score from QR.",
+        "linkWrongUser": "This QR link is not valid for your account."
       }
     },
     "enter": {
@@ -861,11 +866,14 @@
       "validateTitle": "Validate Match Score",
       "selectPlaceholder": "Choose tournament or match",
       "noMatchesFound": "No matches found.",
-      "tournamentHint": "Generate QR and ask your opponent to scan and confirm before score is saved.",
+      "tournamentHint": "Generate a QR code or share the validation link so your opponent can confirm before the score is saved.",
       "confirmModeHint": "You are confirming opponent-shared score. Submit to finalize the match.",
       "validatedMatchOnlyHint": "This score must be submitted for the validated match only.",
       "independentHint": "Use this when the match is not part of any tournament.",
       "independentMatch": "Independent match",
+      "independentYourTeam": "Your side",
+      "independentOpponentTeam": "Opponent",
+      "validatedMatchFallback": "Validated match",
       "matchTypeLabel": "Scoring preset",
       "modeSingles": "Singles",
       "modeDoubles": "Doubles",
@@ -880,7 +888,7 @@
       "generateQr": "Generate QR",
       "saveChanges": "Save Changes",
       "generatingQr": "Generating QR...",
-      "qrGenerated": "QR generated successfully. Ask your opponent to scan and confirm.",
+      "qrGenerated": "QR and validation link are ready. Your opponent can scan the QR or open the shared link to confirm.",
       "qrGeneratedState": "QR Generated",
       "qrPreviewTapToEnlarge": "Tap to enlarge",
       "qrPreviewAlt": "Generated score validation QR code",
@@ -889,12 +897,17 @@
       "qrPreviewTitle": "Opponent Validation QR",
       "qrPreviewEmpty": "Generate a QR first to preview it.",
       "qrPreviewValidateFallback": "Validate score",
-      "qrPreviewHelp": "Ask your opponent to scan this QR in Validate Score.",
+      "qrPreviewHelp": "Ask your opponent to scan this QR or use the shared validation link in Validate Score.",
       "unsavedQrChangesHint": "Scores changed. Save Changes to regenerate the QR and validation link.",
       "unsavedChangesInline": "unsaved changes",
       "qrShareTitle": "Share this QR with your opponent for score confirmation.",
-      "openValidationLink": "Open validation link",
+      "shareValidationLink": "Copy or share link",
+      "validationLinkShareTitle": "Confirm this score on TB10",
+      "validationLinkShareText": "Open this link to review and confirm the match score.",
+      "validationLinkCopied": "Link copied. Send it to your opponent so they can confirm the score.",
+      "validationLinkCopyFailed": "Could not copy the link. Check browser permissions or copy it from your device share sheet.",
       "qrExpiresAt": "QR expires at: {{expiresAt}}",
+      "sessionLoading": "Loading saved QR for this match…",
       "liveMatchDetected": "Live match detected in {{tournament}}.",
       "success": "Score submitted successfully.",
       "errors": {
@@ -902,7 +915,9 @@
         "noLiveMatch": "No live match found. Start an active tournament match first.",
         "noTournamentMatchSelected": "Please select a tournament match to generate QR.",
         "independentNoQr": "Independent match is not part of a tournament. QR generation is unavailable.",
-        "qrGenerateFailed": "Could not generate score QR."
+        "qrGenerateFailed": "Could not generate score QR.",
+        "confirmLinkWrongUser": "This validation link is not valid for your account.",
+        "confirmLinkInvalid": "This QR link is invalid, expired, or already used."
       }
     }
   },

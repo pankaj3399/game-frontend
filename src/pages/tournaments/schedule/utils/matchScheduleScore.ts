@@ -382,6 +382,28 @@ export function visibleScoreEditorRows(
   return rows.slice(0, maxSetCount);
 }
 
+/** Minimum columns shown at once on record-score (mirrors schedule UX; expands as sets complete). */
+const RECORD_SCORE_MIN_VISIBLE_SETS = 3;
+
+/**
+ * Progressive disclosure like {@link visibleScoreEditorRows}, but never fewer than
+ * {@link RECORD_SCORE_MIN_VISIBLE_SETS} (capped by format max) so longer formats
+ * do not start with a single narrow column.
+ */
+export function visibleScoreEditorRowsForRecordScore(
+  rows: ScoreEditorRow[],
+  playMode: TournamentPlayMode,
+): ScoreEditorRow[] {
+  const progressive = visibleScoreEditorRows(rows, playMode);
+  const maxSet = requiredSetCountForPlayMode(playMode);
+  if (maxSet <= 1) {
+    return progressive;
+  }
+  const minInitial = Math.min(RECORD_SCORE_MIN_VISIBLE_SETS, maxSet);
+  const targetLen = Math.min(maxSet, Math.max(progressive.length, minInitial));
+  return rows.slice(0, targetLen);
+}
+
 export interface ScorePayloadBuildResult {
   ok: boolean;
   playerOneScores: MatchScoreValue[];

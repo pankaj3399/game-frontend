@@ -8,6 +8,7 @@ export {
   useGenerateIndependentScoreQr,
   useActiveTournamentScoreQrSession,
   useValidateTournamentScoreQr,
+  useValidateTournamentScoreQrConfirmContext,
   useConfirmTournamentScoreQr,
 } from "./useTournamentScoreQr";
 export {

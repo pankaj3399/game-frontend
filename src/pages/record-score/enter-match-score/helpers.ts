@@ -3,8 +3,23 @@ import {
   SCORE_SELECT_EMPTY_VALUE,
   requiredSetCountForPlayMode,
 } from "@/pages/tournaments/schedule/utils/matchScheduleScore";
-import type { TournamentLiveMatchItem } from "@/models/tournament/types";
-import type { AllowedPlayMode } from "./types";
+import type {
+  TournamentLiveMatchItem,
+  TournamentMatchPlayer,
+} from "@/models/tournament/types";
+import type { AllowedPlayMode, MatchOption } from "./types";
+
+const PLAY_MODE_I18N_KEYS: Record<AllowedPlayMode, string> = {
+  TieBreak10: "tournaments.playModes.tieBreak10",
+  "1set": "tournaments.playModes.oneSet",
+  "3setTieBreak10": "tournaments.playModes.threeSetTieBreak10",
+  "3set": "tournaments.playModes.threeSet",
+  "5set": "tournaments.playModes.fiveSet",
+};
+
+export function playModeTranslationKey(playMode: AllowedPlayMode): string {
+  return PLAY_MODE_I18N_KEYS[playMode];
+}
 
 export function createRowsForPlayMode(playMode: AllowedPlayMode): ScoreEditorRow[] {
   const setCount = requiredSetCountForPlayMode(playMode);
@@ -39,26 +54,75 @@ export function getScorePickerLabel(
 export function playerDisplayName(
   player: { name: string | null; alias: string | null } | null | undefined,
   fallback: string,
+  truncate: boolean = true,
 ) {
-  const hasName = player?.name?.trim();
-  const hasAlias = player?.alias?.trim();
-  return hasName ? hasName : hasAlias ? hasAlias : fallback;
+  const hasName = normalizeDisplayName(player?.name);
+  const hasAlias = normalizeDisplayName(player?.alias);
+  const displayName = hasName ? hasName : hasAlias ? hasAlias : fallback;
+  
+  if (truncate && displayName !== fallback) {
+    return normalizeDisplayNameForLabel(displayName, 30);
+  }
+  return displayName;
 }
 
-export function buildMatchLabel(
+export function normalizeDisplayName(value: string | null | undefined): string {
+  return (value ?? "").replace(/\s+/g, " ").trim();
+}
+
+export function normalizeDisplayNameForLabel(
+  value: string | null | undefined,
+  maxLength: number = 50,
+): string {
+  const normalized = normalizeDisplayName(value);
+  return normalized.length > maxLength
+    ? `${normalized.substring(0, maxLength)}…`
+    : normalized;
+}
+
+/** Single-line label for a live-match team row (singles or doubles). */
+export function formatLiveMatchTeamLabel(
+  team: TournamentMatchPlayer[],
   t: (key: string, options?: Record<string, unknown>) => string,
-  match: TournamentLiveMatchItem,
-) {
-  const opponentTeam = match.opponentTeam
+): string {
+  const formatted = team
     .map((player, index) =>
       playerDisplayName(
         player,
         t("tournaments.playerFallback", { index: index + 1 }),
       ),
     )
+    .filter(Boolean)
     .join(" / ");
 
-  const base = `${match.tournament.name} · ${opponentTeam || t("tournaments.opponentUnknown")}`;
+  return formatted.trim() ? formatted : t("tournaments.opponentUnknown");
+}
+
+export function matchRoundDisplayLabel(
+  t: (key: string, options?: Record<string, unknown>) => string,
+  option: Pick<MatchOption, "kind" | "round">,
+): string {
+  if (option.kind === "independent") {
+    return t("recordScorePage.enter.independentMatch");
+  }
+
+  return typeof option.round === "number" && Number.isFinite(option.round)
+    ? t("tournaments.roundNumber", { round: option.round })
+    : t("tournaments.liveModalRoundPending");
+}
+
+export function buildMatchLabel(
+  t: (key: string, options?: Record<string, unknown>) => string,
+  match: TournamentLiveMatchItem,
+) {
+  const opponentTeam = formatLiveMatchTeamLabel(match.opponentTeam, t);
+
+  const tournamentName =
+    normalizeDisplayNameForLabel(match.tournament.name, 40) ||
+    t("recordScorePage.enter.validatedMatchFallback", {
+      defaultValue: "Validated match",
+    });
+  const base = `${tournamentName} · ${opponentTeam}`;
   return match.status === "inProgress"
     ? `${base} (${String(t("tournaments.liveLabel")).toLowerCase()})`
     : base;

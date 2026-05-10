@@ -14,6 +14,9 @@ export type MatchOption = {
   kind: "tournament" | "independent";
   tournamentId: string | null;
   matchId: string | null;
+  round: number | null;
+  playerOneRowLabel: string;
+  playerTwoRowLabel: string;
   isLive: boolean;
   isPendingScore: boolean;
 };

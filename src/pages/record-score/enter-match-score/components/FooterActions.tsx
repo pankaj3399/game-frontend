@@ -26,13 +26,13 @@ export function FooterActions({
   t,
 }: FooterActionsProps) {
   return (
-    <footer className="mt-4">
+    <footer className="mt-5 sm:mt-4">
       {mode === "confirm" ? (
         <Button
           type="button"
           onClick={onSubmitConfirmedScore}
           disabled={!canSubmitConfirmedScore || isSubmittingConfirm}
-          className="h-[34px] w-full rounded-[10px] bg-[#067429] text-[14px] font-medium text-white hover:bg-[#056320]"
+          className="min-h-[48px] w-full rounded-[12px] bg-[#067429] text-[15px] font-medium text-white hover:bg-[#056320] sm:h-[34px] sm:min-h-[34px] sm:rounded-[10px] sm:text-[14px]"
         >
           {isSubmittingConfirm
             ? t("recordScorePage.enter.submitting")
@@ -43,7 +43,7 @@ export function FooterActions({
           type="button"
           onClick={onGenerateOrOpenValidationLink}
           disabled={isPrimaryGenerateDisabled}
-          className={`h-[34px] w-full rounded-[10px] text-[14px] font-medium text-white ${
+          className={`min-h-[48px] w-full rounded-[12px] text-[15px] font-medium text-white sm:h-[34px] sm:min-h-[34px] sm:rounded-[10px] sm:text-[14px] ${
             hasUnsavedQrChanges
               ? "bg-[#b45309] hover:bg-[#92400e]"
               : hasValidationLink
@@ -56,7 +56,7 @@ export function FooterActions({
             : hasValidationLink && hasUnsavedQrChanges
               ? t("recordScorePage.enter.saveChanges")
               : hasValidationLink
-                ? t("recordScorePage.enter.openValidationLink")
+                ? t("recordScorePage.enter.shareValidationLink")
                 : t("recordScorePage.enter.generateQr")}
         </Button>
       )}

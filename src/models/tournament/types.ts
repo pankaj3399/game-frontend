@@ -162,6 +162,7 @@ export const tournamentLiveMatchItemSchema = z.object({
   mode: tournamentScheduleModeSchema,
   playMode: tournamentPlayModeSchema.optional(),
   status: tournamentMatchStatusSchema,
+  round: wireJsonNullable(z.number().int().min(1)),
   startTime: z.string().nullable(),
   tournament: z.object({
     id: wireJsonNullableString(),

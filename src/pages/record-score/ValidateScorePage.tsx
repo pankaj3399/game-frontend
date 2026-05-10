@@ -1,55 +1,93 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { useTranslation } from "react-i18next";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { Navigate, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import ScannerIcon from "@/assets/icons/figma/vuesax/bold/scanner.svg?react";
 import { Button } from "@/components/ui/button";
 import { IconChevronLeft } from "@/icons/figma-icons";
-import { getErrorMessage } from "@/lib/errors";
-import { useValidateTournamentScoreQr } from "@/pages/tournaments/hooks";
+import { getErrorMessage, getHttpStatus } from "@/lib/errors";
+import { useValidateTournamentScoreQrConfirmContext } from "@/pages/tournaments/hooks/useTournamentScoreQr";
+import {
+  clearScoreQrToken,
+  readScoreQrToken,
+  storeScoreQrToken,
+} from "./scoreQrTokenSession";
+import { usePromoteScoreQrTokenFromQuery } from "./hooks/usePromoteScoreQrTokenFromQuery";
+import { useScanEnvironment } from "./hooks/useScanEnvironment";
 
-function parseTokenFromRaw(raw: string): string {
-  const trimmed = raw.trim();
-  if (!trimmed) return "";
-
-  if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
-    try {
-      const asUrl = new URL(trimmed);
-      return asUrl.searchParams.get("token")?.trim() ?? "";
-    } catch {
-      return "";
-    }
-  }
-
-  return trimmed;
+/** Animated loading spinner component */
+function LoadingSpinner() {
+  return (
+    <div className="flex items-center justify-center gap-2 py-3">
+      <div className="flex gap-1">
+        {[0, 1, 2].map((i) => (
+          <div
+            key={i}
+            className="h-2 w-2 rounded-full bg-[#010a04]/60"
+            style={{
+              animation: `bounce 1.4s infinite ease-in-out`,
+              animationDelay: `${i * 0.16}s`,
+            }}
+          />
+        ))}
+      </div>
+      <style>{`
+        @keyframes bounce {
+          0%, 80%, 100% { opacity: 0.4; transform: scale(1); }
+          40% { opacity: 1; transform: scale(1.1); }
+        }
+      `}</style>
+    </div>
+  );
 }
 
 export default function ValidateScorePage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchParams] = useSearchParams();
 
   const tokenFromQuery = searchParams.get("token")?.trim() ?? "";
-  const [scannedToken, setScannedToken] = useState("");
-  const [scannerOpen, setScannerOpen] = useState(false);
-  const [shouldStartScanner, setShouldStartScanner] = useState(false);
-  const videoRef = useRef<HTMLVideoElement | null>(null);
-  const streamRef = useRef<MediaStream | null>(null);
-  const scanRafRef = useRef<number | null>(null);
-  const lastScanAtRef = useRef(0);
+  const tokenRef = searchParams.get("qrRef")?.trim() ?? "";
+  const tokenFromRef = readScoreQrToken(tokenRef);
+  const tokenFromNavigationState =
+    typeof (location.state as { scoreQrToken?: unknown } | null)?.scoreQrToken ===
+    "string"
+      ? String((location.state as { scoreQrToken: string }).scoreQrToken).trim()
+      : "";
   const hasNavigatedRef = useRef(false);
-  const scannerStartInFlightRef = useRef(false);
-  const cameraToastShownForAttemptRef = useRef(false);
+  const wrongUserToastShownRef = useRef(false);
+  const { scanEnvironment } = useScanEnvironment();
+
+  usePromoteScoreQrTokenFromQuery();
 
   const effectiveToken = useMemo(
-    () => scannedToken.trim() || tokenFromQuery,
-    [scannedToken, tokenFromQuery],
+    () =>
+      tokenFromRef || tokenFromNavigationState || tokenFromQuery,
+    [tokenFromNavigationState, tokenFromQuery, tokenFromRef],
   );
 
-  const validateQuery = useValidateTournamentScoreQr(
+  const validateQuery = useValidateTournamentScoreQrConfirmContext(
     effectiveToken,
     Boolean(effectiveToken),
   );
+
+  const confirmForbidden =
+    Boolean(effectiveToken) &&
+    !validateQuery.isPending &&
+    validateQuery.isError &&
+    getHttpStatus(validateQuery.error) === 403;
+
+  useEffect(() => {
+    if (!confirmForbidden || wrongUserToastShownRef.current) return;
+    wrongUserToastShownRef.current = true;
+    toast.error(
+      t(
+        "recordScorePage.validate.errors.linkWrongUser",
+        "This QR link is not valid for your account.",
+      ),
+    );
+  }, [confirmForbidden, t]);
 
   const canContinue = Boolean(
     validateQuery.data?.valid === true && validateQuery.data?.request,
@@ -61,6 +99,7 @@ export default function ValidateScorePage() {
 
   const showRecoverableFailure =
     Boolean(effectiveToken) &&
+    !confirmForbidden &&
     !validateQuery.isPending &&
     !validateQuery.isFetching &&
     (validateQuery.isError ||
@@ -72,31 +111,14 @@ export default function ValidateScorePage() {
       t("recordScorePage.validate.errors.invalidToken");
 
   const handleRetryValidation = () => {
-    setScannedToken("");
+    clearScoreQrToken(tokenRef);
     hasNavigatedRef.current = false;
-    if (tokenFromQuery) {
+    if (tokenFromQuery || tokenRef || tokenFromNavigationState) {
       navigate("/record-score/validate", { replace: true });
     }
   };
 
-  const stopScanner = () => {
-    if (scanRafRef.current != null) {
-      window.cancelAnimationFrame(scanRafRef.current);
-      scanRafRef.current = null;
-    }
-
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach((track) => track.stop());
-      streamRef.current = null;
-    }
-
-    if (videoRef.current) {
-      videoRef.current.srcObject = null;
-    }
-  };
-
   const onGoBack = () => {
-    stopScanner();
     if (window.history.length > 1) {
       navigate(-1);
       return;
@@ -104,132 +126,11 @@ export default function ValidateScorePage() {
     navigate("/record-score", { replace: true });
   };
 
-  const startScanner = useCallback(async () => {
+  const handleOpenScanner = () => {
     if (tokenFromQuery) return;
-    if (!videoRef.current) return;
-    if (scannerStartInFlightRef.current) return;
-
-    scannerStartInFlightRef.current = true;
-
-    const showScanAttemptError = (message: string) => {
-      if (cameraToastShownForAttemptRef.current) return;
-      cameraToastShownForAttemptRef.current = true;
-      toast.error(message);
-    };
-
-    stopScanner();
-    setShouldStartScanner(false);
-
-    if (typeof navigator === "undefined" || typeof window === "undefined") {
-      setScannerOpen(false);
-      scannerStartInFlightRef.current = false;
-      return;
-    }
-
-    if (!navigator.mediaDevices?.getUserMedia) {
-      setScannerOpen(false);
-      showScanAttemptError(
-        t("recordScorePage.validate.cameraApiUnavailable"),
-      );
-      scannerStartInFlightRef.current = false;
-      return;
-    }
-
-    if (!("BarcodeDetector" in window)) {
-      setScannerOpen(false);
-      showScanAttemptError(t("recordScorePage.validate.scannerUnsupported"));
-      scannerStartInFlightRef.current = false;
-      return;
-    }
-
-    let stream: MediaStream;
-    try {
-      stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: { ideal: "environment" } },
-        audio: false,
-      });
-    } catch (error: unknown) {
-      setScannerOpen(false);
-      const name = error instanceof Error ? error.name : "";
-      let message: string;
-      if (name === "NotAllowedError") {
-        message = t("recordScorePage.validate.cameraPermissionDenied");
-      } else if (name === "NotFoundError") {
-        message = t("recordScorePage.validate.cameraNotFound");
-      } else if (name === "NotReadableError") {
-        message = t("recordScorePage.validate.cameraInUse");
-      } else {
-        message =
-          getErrorMessage(error) ?? t("recordScorePage.validate.noCamera");
-      }
-      showScanAttemptError(message);
-      scannerStartInFlightRef.current = false;
-      return;
-    }
-
-    try {
-      const DetectorCtor = (
-        window as unknown as {
-          BarcodeDetector: new (options?: {
-            formats?: string[];
-          }) => {
-            detect: (
-              source: HTMLVideoElement,
-            ) => Promise<Array<{ rawValue?: string }>>;
-          };
-        }
-      ).BarcodeDetector;
-      const detector = new DetectorCtor({ formats: ["qr_code"] });
-
-      streamRef.current = stream;
-      videoRef.current.srcObject = stream;
-      await videoRef.current.play();
-
-      const scanLoop = async () => {
-        if (!videoRef.current || !streamRef.current) return;
-
-        const now = Date.now();
-        if (now - lastScanAtRef.current < 250) {
-          scanRafRef.current = window.requestAnimationFrame(scanLoop);
-          return;
-        }
-        lastScanAtRef.current = now;
-
-        try {
-          const detections = await detector.detect(videoRef.current);
-          const payload = detections[0]?.rawValue?.trim() ?? "";
-          const token = parseTokenFromRaw(payload);
-
-          if (token) {
-            setScannedToken(token);
-            stopScanner();
-            setScannerOpen(false);
-            return;
-          }
-        } catch {
-          // Keep scanning; intermittent detection failures can happen while camera warms up.
-        }
-
-        scanRafRef.current = window.requestAnimationFrame(scanLoop);
-      };
-
-      scanRafRef.current = window.requestAnimationFrame(scanLoop);
-      scannerStartInFlightRef.current = false;
-    } catch (error: unknown) {
-      stopScanner();
-      setScannerOpen(false);
-      showScanAttemptError(
-        getErrorMessage(error) ?? t("recordScorePage.validate.noCamera"),
-      );
-      scannerStartInFlightRef.current = false;
-    }
-  }, [t, tokenFromQuery]);
-
-  useEffect(() => {
-    return () => {
-      stopScanner();
-    };
-  }, []);
+    const qs = searchParams.toString();
+    navigate(`/record-score/validate/scan${qs ? `?${qs}` : ""}`);
+  };
 
   useEffect(() => {
     if (!canContinue || !effectiveToken || hasNavigatedRef.current) return;
@@ -237,117 +138,191 @@ export default function ValidateScorePage() {
     if (!req) return;
 
     hasNavigatedRef.current = true;
-    const encodedToken = encodeURIComponent(effectiveToken);
+    const storedRef = storeScoreQrToken(effectiveToken);
     const encodedMatchId = encodeURIComponent(req.matchId);
     const encodedTournamentId = encodeURIComponent(req.tournamentId ?? "");
-    stopScanner();
+    const tokenSearchPart = storedRef
+      ? `qrRef=${encodeURIComponent(storedRef)}`
+      : "";
+    const targetSearch = [
+      "mode=confirm",
+      tokenSearchPart,
+      `matchId=${encodedMatchId}`,
+      `tournamentId=${encodedTournamentId}`,
+    ]
+      .filter(Boolean)
+      .join("&");
     navigate(
-      `/record-score/manual?mode=confirm&token=${encodedToken}&matchId=${encodedMatchId}&tournamentId=${encodedTournamentId}`,
-      { replace: true },
+      `/record-score/manual?${targetSearch}`,
+      storedRef
+        ? { replace: true }
+        : { replace: true, state: { scoreQrToken: effectiveToken } },
     );
-  }, [canContinue, effectiveToken, navigate, validateQuery.data?.request]);
+  }, [
+    canContinue,
+    effectiveToken,
+    navigate,
+    validateQuery.data?.request,
+  ]);
 
-  const videoRefCallback = useCallback(
-    (node: HTMLVideoElement | null) => {
-      videoRef.current = node;
-      if (!node || tokenFromQuery) return;
-      if (shouldStartScanner) {
-        void startScanner();
-      }
-    },
-    [shouldStartScanner, startScanner, tokenFromQuery],
-  );
+  const scanUnavailableMessage = useMemo(() => {
+    switch (scanEnvironment) {
+      case "noCamera":
+        return t(
+          "recordScorePage.validate.scanRequiresCamera",
+          "QR scanning needs a camera. Use a device with a camera, or open the validation link your opponent shared.",
+        );
+      case "noMediaApi":
+        return t("recordScorePage.validate.cameraApiUnavailable");
+      default:
+        return "";
+    }
+  }, [scanEnvironment, t]);
+
+  if (confirmForbidden) {
+    return <Navigate to="/record-score" replace />;
+  }
 
   return (
-    <div className="min-h-[calc(100vh-56px)] bg-[#dfe2e0] px-4 pb-10 pt-5 sm:px-6 sm:pt-8 lg:min-h-[calc(100vh-60px)] lg:pt-9">
-      <div className="mx-auto w-full max-w-[824px]">
+    <div className="min-h-screen bg-gradient-to-b from-[#fafbfa] to-[#f0f2f0] px-4 pb-12 pt-5 sm:px-6 sm:pt-8 lg:pt-10">
+      <div className="mx-auto w-full max-w-[700px]">
+        {/* Back Button */}
         <button
           type="button"
           onClick={onGoBack}
-          className="inline-flex items-center gap-1 text-[12px] font-medium text-[#010a04] transition-opacity hover:opacity-65"
+          className="group inline-flex items-center gap-1.5 text-sm font-medium text-[#010a04]/70 transition-all hover:text-[#010a04] hover:gap-2"
         >
-          <IconChevronLeft size={14} className="text-[#010a04]" />
+          <IconChevronLeft size={16} className="text-[#010a04]/60 transition-colors group-hover:text-[#010a04]" />
           {t("recordScorePage.goBack")}
         </button>
 
-        <section className="mt-2 w-full rounded-[10px] border border-[rgba(1,10,4,0.08)] bg-white px-4 pb-4 pt-3 shadow-[0_3px_7px_rgba(0,0,0,0.06)] sm:px-5 sm:pb-5 sm:pt-4">
-          <header className="text-[#010a04]">
-            <h1 className="text-2xl font-semibold leading-tight tracking-[-0.01em]">
+        {/* Main Card */}
+        <section className="mt-6 w-full overflow-hidden rounded-[16px] border border-[rgba(1,10,4,0.06)] bg-white shadow-[0_4px_16px_rgba(0,0,0,0.08)] transition-all duration-300">
+          {/* Header Section */}
+          <div className="border-b border-[rgba(1,10,4,0.04)] bg-gradient-to-r from-white to-[#f9faf9] px-5 py-6 sm:px-6 sm:py-7">
+            <h1 className="text-3xl font-bold tracking-tight text-[#010a04]">
               {t("recordScorePage.validate.title")}
             </h1>
-            <p className="mt-1 max-w-[680px] text-[13px] text-[#010a04]/62">
+            <p className="mt-2 text-[14px] leading-relaxed text-[#010a04]/65">
               {t(
                 "recordScorePage.validate.description",
                 "Scan opponent's QR code to verify the match result",
               )}
             </p>
-          </header>
-
-          <div className="mt-4 space-y-2">
-            <Button
-              type="button"
-              onClick={() => {
-                if (tokenFromQuery) return;
-                cameraToastShownForAttemptRef.current = false;
-                setScannerOpen(true);
-                setShouldStartScanner(true);
-              }}
-              className="h-[34px] w-full rounded-[10px] bg-[#010a04] text-[14px] font-medium text-white hover:bg-black"
-              disabled={Boolean(tokenFromQuery) || scanBusy}
-            >
-              <ScannerIcon className="mr-2 h-4 w-4 shrink-0" />
-              {t(
-                "recordScorePage.validate.scanButton",
-                "Scan Opponent's QR Code",
-              )}
-            </Button>
-
-            {scanBusy ? (
-              <p className="text-center text-[12px] text-[#010a04]/55">
-                {t("recordScorePage.validate.validationLoadingHint")}
-              </p>
-            ) : null}
-
-            {showRecoverableFailure ? (
-              <div className="rounded-[10px] border border-[#c45c5c]/35 bg-[#fdf2f2] px-3 py-2 text-[13px] text-[#7f1d1d]">
-                <p>{validationFailureMessage}</p>
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="mt-2 h-[32px] w-full rounded-[8px] border-[#010a04]/20 text-[13px] font-medium"
-                  onClick={handleRetryValidation}
-                >
-                  {t("recordScorePage.validate.retryValidation")}
-                </Button>
-              </div>
-            ) : null}
           </div>
 
-          {scannerOpen ? (
-            <div className="mt-3 rounded-[10px] border border-[#010a04]/12 bg-[#f7f8f7] p-2">
-              <video
-                ref={videoRefCallback}
-                autoPlay
-                playsInline
-                muted
-                className="h-[220px] w-full rounded-[8px] bg-black/90 object-cover"
-              />
-            </div>
-          ) : null}
+          {/* Content Section */}
+          <div className="space-y-3 px-5 py-5 sm:px-6 sm:py-6">
+            {/* Scan: requires camera + mediaDevices (BarcodeDetector or jsQR fallback on scan route) */}
+            {scanEnvironment === "checking" ? (
+              <Button
+                type="button"
+                disabled
+                className="h-[44px] w-full cursor-wait rounded-[12px] bg-[#010a04]/85 text-[15px] font-semibold text-white opacity-70"
+              >
+                {t("recordScorePage.validate.checkingCamera", "Checking camera…")}
+              </Button>
+            ) : scanEnvironment === "ready" ? (
+              <Button
+                type="button"
+                onClick={handleOpenScanner}
+                disabled={Boolean(tokenFromQuery) || scanBusy}
+                className={`group h-[44px] w-full rounded-[12px] text-[15px] font-semibold transition-all duration-200 ${
+                  scanBusy
+                    ? "bg-[#010a04] text-white shadow-md"
+                    : "bg-[#010a04] text-white hover:bg-black hover:shadow-lg active:scale-95"
+                }`}
+              >
+                <ScannerIcon className="mr-2 h-5 w-5 shrink-0 transition-transform group-hover:scale-110" />
+                {scanBusy
+                  ? t(
+                      "recordScorePage.validate.validationLoadingHint",
+                      "Validating QR token...",
+                    )
+                  : t(
+                      "recordScorePage.validate.scanButton",
+                      "Scan Opponent's QR Code",
+                    )}
+              </Button>
+            ) : (
+              <div className="space-y-3">
+                <Button
+                  type="button"
+                  disabled
+                  className="h-[44px] w-full cursor-not-allowed rounded-[12px] bg-[#010a04]/85 text-[15px] font-semibold text-white opacity-50"
+                >
+                  <ScannerIcon className="mr-2 h-5 w-5 shrink-0 opacity-90" />
+                  {t(
+                    "recordScorePage.validate.scanButton",
+                    "Scan Opponent's QR Code",
+                  )}
+                </Button>
+                <div className="rounded-[12px] border border-[rgba(1,10,4,0.08)] bg-[#f0f3f2] px-4 py-3 text-[13px] leading-relaxed text-[#010a04]/80">
+                  <p>{scanUnavailableMessage}</p>
+                  <p className="mt-2 text-[#010a04]/70">
+                    {t(
+                      "recordScorePage.validate.useValidationLinkInstead",
+                      "You can open the validation link your opponent shared instead of scanning.",
+                    )}
+                  </p>
+                </div>
+              </div>
+            )}
 
-          <div className="mt-3 rounded-[8px] border border-[#1d8ced] bg-[#f3f8ff] px-3 py-2 text-[14px] leading-snug text-[#0f172a]">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.06em] text-[#1d8ced]">
-              {t(
-                "recordScorePage.validate.scannedInfoTitle",
-                "What gets scanned",
-              )}
-            </p>
-            <p className="mt-1">
-              {t(
-                "recordScorePage.validate.scannedInfoBody",
-                "The QR code contains your opponent's player ID, match score results, and the date the score was recorded. After validation, you'll be redirected to submit and complete the match.",
-              )}
-            </p>
+            {/* Loading State with Animation */}
+            {scanBusy && (
+              <div className="rounded-[12px] bg-[#f0f3f2] px-4 py-3 text-center">
+                <LoadingSpinner />
+              </div>
+            )}
+
+            {/* Error State */}
+            {showRecoverableFailure && (
+              <div className="animate-in fade-in slide-in-from-top-2 rounded-[12px] border border-[#f87171]/30 bg-[#fef2f2] px-4 py-3 transition-all duration-300">
+                <div className="flex gap-2">
+                  <div className="flex-shrink-0 pt-0.5">
+                    <svg className="h-5 w-5 text-[#dc2626]" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-[#991b1b]">
+                      {validationFailureMessage}
+                    </p>
+                    <Button
+                      type="button"
+                      onClick={handleRetryValidation}
+                      className="mt-3 h-[36px] w-full rounded-[10px] border-[#010a04]/20 bg-white text-sm font-medium text-[#010a04] transition-all hover:bg-[#f5f5f5] active:scale-95"
+                      variant="outline"
+                    >
+                      {t("recordScorePage.validate.retryValidation")}
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Info Section */}
+          <div className="border-t border-[rgba(1,10,4,0.04)] bg-[#f9faf9] px-5 py-4 sm:px-6 sm:py-5">
+            <div className="flex gap-3">
+              <div className="flex-shrink-0 pt-0.5">
+                <svg className="h-5 w-5 text-[#010a04]/50" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div className="flex-1">
+                <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-[#010a04]/50">
+                  {t("recordScorePage.validate.scannedInfoTitle", "What gets scanned")}
+                </p>
+                <p className="mt-2 text-[13px] leading-relaxed text-[#010a04]/65">
+                  {t(
+                    "recordScorePage.validate.scannedInfoBody",
+                    "The QR code contains your opponent's player ID, match score results, and the date the score was recorded. After validation, you'll be redirected to submit and complete the match.",
+                  )}
+                </p>
+              </div>
+            </div>
           </div>
         </section>
       </div>

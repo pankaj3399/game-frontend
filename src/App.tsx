@@ -31,6 +31,9 @@ const EnterMatchScorePage = lazy(
 const ValidateScorePage = lazy(
   () => import("./pages/record-score/ValidateScorePage"),
 );
+const ValidateScoreScanPage = lazy(
+  () => import("./pages/record-score/ValidateScoreScanPage"),
+);
 const ClubsListPage = lazy(() => import("./pages/clubs/ClubsListPage"));
 const ClubDetailPage = lazy(() => import("./pages/clubs/ClubDetailPage"));
 const ManageClubPage = lazy(() => import("./pages/clubs/ManageClubPage"));
@@ -97,6 +100,10 @@ function App() {
               <Route
                 path="/record-score/manual"
                 element={<EnterMatchScorePage />}
+              />
+              <Route
+                path="/record-score/validate/scan"
+                element={<ValidateScoreScanPage />}
               />
               <Route
                 path="/record-score/validate"

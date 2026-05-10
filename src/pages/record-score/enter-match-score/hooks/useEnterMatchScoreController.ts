@@ -1,17 +1,16 @@
-import { useEffect, useMemo, useState } from "react";
+import { useLayoutEffect, useMemo, useState } from "react";
 import type { TFunction } from "i18next";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
-import { getErrorMessage } from "@/lib/errors";
-import { getHttpStatus } from "@/lib/errors";
+import { getErrorMessage, getHttpStatus } from "@/lib/errors";
+import { useTournamentLiveMatch } from "@/pages/tournaments/hooks/useTournamentLiveMatch";
 import {
   useActiveTournamentScoreQrSession,
   useConfirmTournamentScoreQr,
   useGenerateIndependentScoreQr,
   useGenerateTournamentScoreQr,
-  useTournamentLiveMatch,
-  useValidateTournamentScoreQr,
-} from "@/pages/tournaments/hooks";
+  useValidateTournamentScoreQrConfirmContext,
+} from "@/pages/tournaments/hooks/useTournamentScoreQr";
 import {
   applyScoreInputChange,
   buildScorePayload,
@@ -23,9 +22,15 @@ import {
   buildMatchLabel,
   createRowsForPlayMode,
   formatExpiry,
+  formatLiveMatchTeamLabel,
   scoreValueToInput,
 } from "../helpers";
 import { INDEPENDENT_MATCH_ID, type MatchOption } from "../types";
+import {
+  buildConfirmScoreQrLocationAfterTokenPromotion,
+  clearScoreQrToken,
+  readScoreQrToken,
+} from "../../scoreQrTokenSession";
 
 function createRowsFromScorePayload(
   playerOneScores: Array<number | "wo">,
@@ -56,17 +61,31 @@ export function useEnterMatchScoreController({
   userId,
 }: UseEnterMatchScoreControllerParams) {
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchParams] = useSearchParams();
 
   const mode = searchParams.get("mode") === "confirm" ? "confirm" : "generate";
-  const confirmedToken = searchParams.get("token")?.trim() ?? "";
+  const confirmedTokenFromQuery = searchParams.get("token")?.trim() ?? "";
+  const confirmedTokenRef = searchParams.get("qrRef")?.trim() ?? "";
+  const confirmedTokenFromRef = readScoreQrToken(confirmedTokenRef);
+  const confirmedTokenFromNavigationState =
+    typeof (location.state as { scoreQrToken?: unknown } | null)?.scoreQrToken ===
+    "string"
+      ? String((location.state as { scoreQrToken: string }).scoreQrToken).trim()
+      : "";
+  const confirmedToken =
+    mode === "confirm"
+      ? confirmedTokenFromRef ||
+        confirmedTokenFromNavigationState ||
+        confirmedTokenFromQuery
+      : "";
   const forcedMatchId = searchParams.get("matchId")?.trim() ?? "";
   const forcedTournamentId = searchParams.get("tournamentId")?.trim() ?? "";
   const preferredGenerateMatchId = mode === "generate" ? forcedMatchId : "";
   const preferredGenerateTournamentId = mode === "generate" ? forcedTournamentId : "";
 
   const liveMatchQuery = useTournamentLiveMatch(true);
-  const validatedScoreQuery = useValidateTournamentScoreQr(
+  const validatedScoreQuery = useValidateTournamentScoreQrConfirmContext(
     confirmedToken,
     mode === "confirm" && Boolean(confirmedToken),
   );
@@ -88,6 +107,31 @@ export function useEnterMatchScoreController({
   const resolvedConfirmTournamentId =
     forcedTournamentId || validatedRequest?.tournamentId || "";
 
+  // Strip `token` from the URL as soon as possible (secret should not live in the address bar).
+  useLayoutEffect(() => {
+    if (mode !== "confirm" || !confirmedTokenFromQuery) return;
+
+    const params = new URLSearchParams(location.search);
+    const rawTokenParam = params.get("token")?.trim() ?? "";
+    if (!rawTokenParam || rawTokenParam !== confirmedTokenFromQuery) return;
+
+    const { search, navigationState } = buildConfirmScoreQrLocationAfterTokenPromotion(
+      params,
+      confirmedTokenFromQuery,
+    );
+
+    navigate(
+      {
+        pathname: location.pathname,
+        search,
+        hash: location.hash,
+      },
+      navigationState != null
+        ? { replace: true, state: navigationState }
+        : { replace: true },
+    );
+  }, [confirmedTokenFromQuery, mode, navigate, location.pathname, location.search, location.hash]);
+
   const liveMatch = liveMatchQuery.data?.liveMatch ?? null;
   const inFlightMatches = useMemo(
     () => liveMatchQuery.data?.matches ?? [],
@@ -105,6 +149,9 @@ export function useEnterMatchScoreController({
       matchId: null,
       isLive: false,
       isPendingScore: false,
+      round: null,
+      playerOneRowLabel: t("recordScorePage.enter.independentYourTeam"),
+      playerTwoRowLabel: t("recordScorePage.enter.independentOpponentTeam"),
     }),
     [t],
   );
@@ -131,6 +178,9 @@ export function useEnterMatchScoreController({
         kind: "tournament" as const,
         tournamentId: match.tournament.id,
         matchId: match.id,
+        round: match.round,
+        playerOneRowLabel: formatLiveMatchTeamLabel(match.myTeam, t),
+        playerTwoRowLabel: formatLiveMatchTeamLabel(match.opponentTeam, t),
         isLive:
           match.status === "inProgress" ||
           (normalizedLiveMatchId != null && match.id === normalizedLiveMatchId),
@@ -178,6 +228,15 @@ export function useEnterMatchScoreController({
       kind: validatedRequest.tournamentId ? "tournament" : "independent",
       tournamentId: validatedRequest.tournamentId,
       matchId: validatedRequest.matchId,
+      round: matchedLiveItem?.round ?? null,
+      playerOneRowLabel:
+        matchedLiveItem != null
+          ? formatLiveMatchTeamLabel(matchedLiveItem.myTeam, t)
+          : t("recordScorePage.enter.myScore"),
+      playerTwoRowLabel:
+        matchedLiveItem != null
+          ? formatLiveMatchTeamLabel(matchedLiveItem.opponentTeam, t)
+          : t("recordScorePage.enter.opponentScore"),
       isLive: false,
       isPendingScore: true,
     } satisfies MatchOption;
@@ -267,20 +326,34 @@ export function useEnterMatchScoreController({
   );
   const hydratedQrSession = activeSessionQuery.data?.session ?? null;
 
-  const [rows, setRows] = useState<ScoreEditorRow[]>(() =>
-    createRowsForPlayMode(effectiveSelectedOption.playMode),
+  const qrSessionMatchesSelection = useMemo(() => {
+    if (!hydratedQrSession) return true;
+    if (effectiveSelectedOption.kind === "independent") {
+      return hydratedQrSession.flow === "independent";
+    }
+    return (
+      hydratedQrSession.flow === "tournament" &&
+      hydratedQrSession.matchId === effectiveSelectedOption.matchId &&
+      (hydratedQrSession.tournamentId ?? "") ===
+        (effectiveSelectedOption.tournamentId ?? "")
+    );
+  }, [effectiveSelectedOption, hydratedQrSession]);
+
+  const scoreDraftMatchKey = effectiveSelectedOption.id;
+  const baselineScoreRows = useMemo(
+    () => createRowsForPlayMode(effectiveSelectedOption.playMode),
+    [effectiveSelectedOption],
   );
 
-  useEffect(() => {
-    if (mode !== "generate") return;
-    if (hydratedQrSession) return;
-    if (hasUnsavedQrChanges) return;
-    setRows((prev) => {
-      const nextTemplate = createRowsForPlayMode(effectiveSelectedOption.playMode);
-      if (prev.length === nextTemplate.length) return prev;
-      return nextTemplate;
-    });
-  }, [mode, hydratedQrSession, hasUnsavedQrChanges, effectiveSelectedOption.playMode]);
+  const [scoreDraftRows, setScoreDraftRows] = useState<{
+    matchKey: string;
+    rows: ScoreEditorRow[];
+  } | null>(null);
+
+  const rows =
+    scoreDraftRows != null && scoreDraftRows.matchKey === scoreDraftMatchKey
+      ? scoreDraftRows.rows
+      : baselineScoreRows;
 
   const isConfirmLocked = mode === "confirm";
   const isValidatedContextOk =
@@ -291,10 +364,29 @@ export function useEnterMatchScoreController({
         (effectiveSelectedOption.tournamentId ?? "") ===
           (resolvedConfirmTournamentId ?? ""),
     );
+  // Only redirect after a real confirm-context response: `data` undefined must not mean "invalid"
+  // (TanStack Query v5 keeps confirm queries `pending` while disabled — avoid treating that as failure).
   const shouldRedirectInvalidConfirm =
     mode === "confirm" &&
-    !validatedScoreQuery.isLoading &&
-    (validatedScoreQuery.isError || !validatedScoreQuery.data?.valid || !validatedRequest);
+    Boolean(confirmedToken) &&
+    !validatedScoreQuery.isPending &&
+    (validatedScoreQuery.isError ||
+      validatedScoreQuery.data?.valid === false ||
+      (validatedScoreQuery.data?.valid === true && !validatedRequest));
+
+  const confirmRedirectReason = useMemo<
+    "wrong-user" | "invalid-link" | null
+  >(() => {
+    if (!shouldRedirectInvalidConfirm) return null;
+    if (validatedScoreQuery.isError && getHttpStatus(validatedScoreQuery.error) === 403) {
+      return "wrong-user";
+    }
+    return "invalid-link";
+  }, [
+    shouldRedirectInvalidConfirm,
+    validatedScoreQuery.error,
+    validatedScoreQuery.isError,
+  ]);
 
   const isGenerating =
     generateTournamentQrMutation.isPending || generateIndependentQrMutation.isPending;
@@ -310,15 +402,15 @@ export function useEnterMatchScoreController({
     Boolean(validatedRequest) &&
     isValidatedContextOk &&
     Boolean(
-      effectiveSelectedOption.tournamentId && effectiveSelectedOption.matchId,
+      effectiveSelectedOption.matchId &&
+        (validatedRequest?.flow === "independent" ||
+          effectiveSelectedOption.tournamentId),
     );
 
   const effectiveValidationUrl = useMemo(() => {
-    if (mode === "confirm" && confirmedToken && typeof window !== "undefined") {
-      return `${window.location.origin}/record-score/validate?token=${encodeURIComponent(confirmedToken)}`;
-    }
+    if (mode === "confirm") return null;
     return generatedValidationUrl;
-  }, [confirmedToken, generatedValidationUrl, mode]);
+  }, [generatedValidationUrl, mode]);
 
   const effectiveExpiresAt = useMemo(
     () =>
@@ -327,9 +419,10 @@ export function useEnterMatchScoreController({
   );
 
   const areMatchOptionsResolving =
-    liveMatchQuery.isLoading || (liveMatchQuery.isFetching && !liveMatchQuery.data);
+    liveMatchQuery.isPending ||
+    (liveMatchQuery.isFetching && !liveMatchQuery.data);
   const hydratedMatchOption = useMemo(() => {
-    if (!hydratedQrSession) return null;
+    if (!hydratedQrSession || !qrSessionMatchesSelection) return null;
     if (hydratedQrSession.flow === "independent") {
       return matchOptions.find((option) => option.kind === "independent") ?? null;
     }
@@ -341,9 +434,9 @@ export function useEnterMatchScoreController({
           (option.tournamentId ?? "") === (hydratedQrSession.tournamentId ?? ""),
       ) ?? null
     );
-  }, [hydratedQrSession, matchOptions]);
+  }, [hydratedQrSession, matchOptions, qrSessionMatchesSelection]);
   const hydratedRows = useMemo(() => {
-    if (!hydratedQrSession) return null;
+    if (!hydratedQrSession || !qrSessionMatchesSelection) return null;
     const restoredRows = createRowsFromScorePayload(
       hydratedQrSession.playerOneScores,
       hydratedQrSession.playerTwoScores,
@@ -354,15 +447,24 @@ export function useEnterMatchScoreController({
     return createRowsForPlayMode(
       hydratedMatchOption?.playMode ?? effectiveSelectedOption.playMode,
     );
-  }, [effectiveSelectedOption.playMode, hydratedMatchOption?.playMode, hydratedQrSession]);
-  const isQrHydrationLoading =
+  }, [
+    effectiveSelectedOption.playMode,
+    hydratedMatchOption?.playMode,
+    hydratedQrSession,
+    qrSessionMatchesSelection,
+  ]);
+  /** True while the active score-QR session for the selected match is loading or mismatched. */
+  const isQrSessionBusy =
     mode === "generate" &&
-    (activeSessionQuery.isLoading || activeSessionQuery.isFetching);
+    Boolean(activeSessionQueryInput) &&
+    (activeSessionQuery.isPending ||
+      (activeSessionQuery.isFetching && !qrSessionMatchesSelection));
   const shouldUseHydratedState =
     mode === "generate" &&
     !generatedValidationUrl &&
     !hasUnsavedQrChanges &&
-    Boolean(hydratedQrSession);
+    Boolean(hydratedQrSession) &&
+    qrSessionMatchesSelection;
   const activeQrDataUrl =
     generatedQrDataUrl ??
     (shouldUseHydratedState ? hydratedQrSession?.qrDataUrl ?? null : null);
@@ -387,8 +489,8 @@ export function useEnterMatchScoreController({
 
   const shouldShowLoadingSkeleton =
     areMatchOptionsResolving ||
-    isQrHydrationLoading ||
-    (mode === "confirm" && validatedScoreQuery.isLoading);
+    (mode === "confirm" && Boolean(confirmedToken) && validatedScoreQuery.isPending) ||
+    (mode === "generate" && Boolean(activeSessionQueryInput) && isQrSessionBusy);
 
   const generateRows = shouldUseHydratedState && hydratedRows ? hydratedRows : rows;
   const effectiveRows =
@@ -427,6 +529,7 @@ export function useEnterMatchScoreController({
     mode === "generate" && hasValidationLink && hasUnsavedQrChanges;
   const isPrimaryGenerateDisabled =
     isGenerating ||
+    isQrSessionBusy ||
     ((isGenerateState || isSaveChangesState) &&
       (!canGenerateQr || !isScoreFormValidForQr));
 
@@ -460,7 +563,10 @@ export function useEnterMatchScoreController({
     );
 
     setSelectedMatchId(nextMatchId);
-    setRows(createRowsForPlayMode(next.playMode));
+    setScoreDraftRows({
+      matchKey: next.id,
+      rows: createRowsForPlayMode(next.playMode),
+    });
     setGeneratedQrDataUrl(null);
     setGeneratedValidationUrl(null);
     setGeneratedExpiresAt(null);
@@ -477,8 +583,9 @@ export function useEnterMatchScoreController({
     value: string,
   ) => {
     const sourceRows = shouldUseHydratedState && hydratedRows ? hydratedRows : rows;
-    setRows(
-      applyScoreInputChange(
+    setScoreDraftRows({
+      matchKey: scoreDraftMatchKey,
+      rows: applyScoreInputChange(
         sourceRows,
         rowId,
         side,
@@ -486,7 +593,7 @@ export function useEnterMatchScoreController({
         effectiveSelectedOption.playMode,
         setIndex,
       ),
-    );
+    });
     if (mode === "generate" && hasValidationLink) {
       setHasUnsavedQrChanges(true);
     }
@@ -542,13 +649,44 @@ export function useEnterMatchScoreController({
     }
   };
 
+  const shareOrCopyValidationUrl = async (url: string) => {
+    if (typeof navigator !== "undefined" && typeof navigator.share === "function") {
+      try {
+        await navigator.share({
+          title: t("recordScorePage.enter.validationLinkShareTitle"),
+          text: t("recordScorePage.enter.validationLinkShareText"),
+          url,
+        });
+        return;
+      } catch (error: unknown) {
+        const name = error instanceof Error ? error.name : "";
+        if (name === "AbortError") {
+          return;
+        }
+        // Fall through to clipboard (share unavailable or failed).
+      }
+    }
+
+    try {
+      await navigator.clipboard.writeText(url);
+      toast.success(t("recordScorePage.enter.validationLinkCopied"));
+    } catch {
+      toast.error(t("recordScorePage.enter.validationLinkCopyFailed"));
+    }
+  };
+
   const onGenerateOrOpenValidationLink = async () => {
     if (mode === "generate" && hasValidationLink && hasUnsavedQrChanges) {
       await onGenerateQr();
       return;
     }
-    if (activeValidationUrl) {
-      window.open(activeValidationUrl, "_blank", "noopener,noreferrer");
+    if (
+      mode === "generate" &&
+      hasValidationLink &&
+      activeValidationUrl &&
+      !hasUnsavedQrChanges
+    ) {
+      await shareOrCopyValidationUrl(activeValidationUrl);
       return;
     }
     await onGenerateQr();
@@ -564,6 +702,7 @@ export function useEnterMatchScoreController({
       await confirmScoreQrMutation.mutateAsync({
         token: confirmedToken,
       });
+      clearScoreQrToken(confirmedTokenRef);
       toast.success(t("recordScorePage.enter.success"));
       navigate("/record-score", { replace: true });
     } catch (error: unknown) {
@@ -598,6 +737,7 @@ export function useEnterMatchScoreController({
     isConfirmLocked,
     isValidatedContextOk,
     shouldRedirectInvalidConfirm,
+    confirmRedirectReason,
     onGoBack,
     onMatchChange,
     effectiveRows,

@@ -809,6 +809,10 @@
       "requestBy": "Angefordert von",
       "expiresAt": "Läuft ab am",
       "scanButton": "QR-Code des Gegners scannen",
+      "scanPageBack": "Zurück zur Punktzahlbestätigung",
+      "checkingCamera": "Kamera wird geprüft…",
+      "scanRequiresCamera": "Zum QR-Scannen wird eine Kamera benötigt. Nutzen Sie ein Gerät mit Kamera.",
+      "useValidationLinkInstead": "Sie können stattdessen den Validierungslink öffnen, den Ihr Gegner geteilt hat.",
       "validationLoadingHint": "QR-Token wird geprüft…",
       "retryValidation": "Erneut versuchen",
       "noCamera": "Keine Kamera erkannt",
@@ -827,7 +831,8 @@
       "errors": {
         "noToken": "Öffnen Sie diese Seite über einen geteilten Validierungslink oder scannen Sie einen QR-Code.",
         "invalidToken": "Dieses QR-Token ist ungültig, abgelaufen oder bereits verwendet.",
-        "confirmFailed": "Score konnte aus dem QR nicht bestätigt werden."
+        "confirmFailed": "Score konnte aus dem QR nicht bestätigt werden.",
+        "linkWrongUser": "Dieser QR-Link ist für Ihr Konto nicht gültig."
       }
     },
     "enter": {
@@ -835,7 +840,14 @@
       "validateTitle": "Match-Ergebnis bestätigen",
       "selectPlaceholder": "Turnier oder Match auswählen",
       "noMatchesFound": "Keine Spiele gefunden.",
-      "tournamentHint": "Das heutige Turnier ist vorausgewählt. Wechseln Sie nur, wenn Sie ein anderes Match melden möchten.",
+      "tournamentHint": "Generieren Sie einen QR-Code oder teilen Sie den Validierungslink, damit der Gegner das Ergebnis vor dem Speichern bestätigen kann.",
+      "confirmModeHint": "Sie bestätigen ein vom Gegner geteiltes Ergebnis. Übermitteln Sie es, um das Match abzuschließen.",
+      "validatedMatchOnlyHint": "Dieses Ergebnis kann nur für das validierte Match eingereicht werden.",
+      "independentHint": "Nutzen Sie dies, wenn das Spiel nicht Teil eines Turniers ist.",
+      "independentMatch": "Einzelnes Match",
+      "independentYourTeam": "Eure Seite",
+      "independentOpponentTeam": "Gegner",
+      "validatedMatchFallback": "Validiertes Match",
       "matchTypeLabel": "Ergebnisprofil",
       "modeSingles": "Einzel",
       "modeDoubles": "Doppel",
@@ -850,7 +862,7 @@
       "generateQr": "QR generieren",
       "saveChanges": "Änderungen speichern",
       "generatingQr": "QR wird generiert...",
-      "qrGenerated": "QR erfolgreich generiert. Bitten Sie Ihren Gegner, ihn zu scannen und zu bestätigen.",
+      "qrGenerated": "QR-Code und Validierungslink sind bereit. Der Gegner kann den QR scannen oder den geteilten Link öffnen, um zu bestätigen.",
       "qrPreviewAlt": "Generierter QR-Code zur Ergebnisvalidierung",
       "qrPreviewEmptyFallback": "Noch kein QR generiert",
       "qrPreviewLargeAlt": "Großer QR-Code zur Ergebnisvalidierung",
@@ -860,13 +872,23 @@
       "qrPreviewHelp": "Bitten Sie Ihren Gegner, diesen QR unter „Punktzahl bestätigen“ zu scannen.",
       "qrPreviewValidateFallback": "Ergebnis bestätigen",
       "unsavedQrChangesHint": "Ergebnisse wurden geändert. Speichern Sie die Änderungen, um QR-Code und Validierungslink neu zu erzeugen.",
+      "shareValidationLink": "Link kopieren oder teilen",
+      "validationLinkShareTitle": "Ergebnis auf TB10 bestätigen",
+      "validationLinkShareText": "Mit diesem Link können Sie das Match-Ergebnis prüfen und bestätigen.",
+      "validationLinkCopied": "Link kopiert. Senden Sie ihn an Ihren Gegner zur Bestätigung.",
+      "validationLinkCopyFailed": "Link konnte nicht kopiert werden. Prüfen Sie die Browserberechtigungen oder verwenden Sie die Teilen-Funktion.",
       "qrExpiresAt": "QR läuft ab um: {{expiresAt}}",
+      "sessionLoading": "QR für dieses Match wird geladen…",
       "liveMatchDetected": "Live-Match in {{tournament}} erkannt.",
       "success": "Ergebnis erfolgreich gespeichert.",
       "errors": {
         "invalid": "Bitte geben Sie vor dem Speichern gültige Ergebnisse ein.",
         "noLiveMatch": "Kein Live-Match gefunden. Starten Sie zuerst ein aktives Turniermatch.",
-        "qrGenerateFailed": "Score-QR konnte nicht generiert werden."
+        "noTournamentMatchSelected": "Bitte wählen Sie ein Turniermatch zum Generieren des QR.",
+        "independentNoQr": "Einzel-Matches gehören nicht zu einem Turnier. QR-Generierung ist nicht verfügbar.",
+        "qrGenerateFailed": "Score-QR konnte nicht generiert werden.",
+        "confirmLinkWrongUser": "Dieser Validierungslink ist für Ihr Konto nicht gültig.",
+        "confirmLinkInvalid": "Dieser QR-Link ist ungültig, abgelaufen oder bereits verwendet."
       }
     }
   },
