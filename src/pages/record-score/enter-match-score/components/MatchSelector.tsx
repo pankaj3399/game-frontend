@@ -73,9 +73,7 @@ export function MatchSelector({
         <div className="thin-scrollbar max-h-64 overflow-y-auto rounded-[8px] border border-[#010a04]/8">
           {filteredMatchOptions.length === 0 ? (
             <p className="px-3 py-2 text-[12px] text-[#010a04]/55">
-              {t("recordScorePage.enter.noMatchesFound", {
-                defaultValue: "No matches found.",
-              })}
+              {t("recordScorePage.enter.noMatchesFound")}
             </p>
           ) : (
             filteredMatchOptions.map((option) => {

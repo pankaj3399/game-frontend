@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { TFunction } from "i18next";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
@@ -270,6 +270,17 @@ export function useEnterMatchScoreController({
   const [rows, setRows] = useState<ScoreEditorRow[]>(() =>
     createRowsForPlayMode(effectiveSelectedOption.playMode),
   );
+
+  useEffect(() => {
+    if (mode !== "generate") return;
+    if (hydratedQrSession) return;
+    if (hasUnsavedQrChanges) return;
+    setRows((prev) => {
+      const nextTemplate = createRowsForPlayMode(effectiveSelectedOption.playMode);
+      if (prev.length === nextTemplate.length) return prev;
+      return nextTemplate;
+    });
+  }, [mode, hydratedQrSession, hasUnsavedQrChanges, effectiveSelectedOption.playMode]);
 
   const isConfirmLocked = mode === "confirm";
   const isValidatedContextOk =
@@ -566,7 +577,8 @@ export function useEnterMatchScoreController({
         return;
       }
       toast.error(
-        getErrorMessage(error) ?? t("recordScorePage.enter.errors.qrGenerateFailed"),
+        getErrorMessage(error) ??
+          t("recordScorePage.validate.errors.confirmFailed"),
       );
     }
   };

@@ -111,23 +111,33 @@ export default function ValidateScorePage() {
 
     scannerStartInFlightRef.current = true;
 
-    const showNoCameraToast = (message?: string) => {
+    const showScanAttemptError = (message: string) => {
       if (cameraToastShownForAttemptRef.current) return;
       cameraToastShownForAttemptRef.current = true;
-      toast.error(message ?? t("recordScorePage.validate.noCamera", "No camera detected"));
+      toast.error(message);
     };
 
     stopScanner();
     setShouldStartScanner(false);
 
-    if (
-      typeof navigator === "undefined" ||
-      !navigator.mediaDevices?.getUserMedia ||
-      typeof window === "undefined" ||
-      !("BarcodeDetector" in window)
-    ) {
+    if (typeof navigator === "undefined" || typeof window === "undefined") {
       setScannerOpen(false);
-      showNoCameraToast();
+      scannerStartInFlightRef.current = false;
+      return;
+    }
+
+    if (!navigator.mediaDevices?.getUserMedia) {
+      setScannerOpen(false);
+      showScanAttemptError(
+        t("recordScorePage.validate.cameraApiUnavailable"),
+      );
+      scannerStartInFlightRef.current = false;
+      return;
+    }
+
+    if (!("BarcodeDetector" in window)) {
+      setScannerOpen(false);
+      showScanAttemptError(t("recordScorePage.validate.scannerUnsupported"));
       scannerStartInFlightRef.current = false;
       return;
     }
@@ -138,9 +148,21 @@ export default function ValidateScorePage() {
         video: { facingMode: { ideal: "environment" } },
         audio: false,
       });
-    } catch {
+    } catch (error: unknown) {
       setScannerOpen(false);
-      showNoCameraToast();
+      const name = error instanceof Error ? error.name : "";
+      let message: string;
+      if (name === "NotAllowedError") {
+        message = t("recordScorePage.validate.cameraPermissionDenied");
+      } else if (name === "NotFoundError") {
+        message = t("recordScorePage.validate.cameraNotFound");
+      } else if (name === "NotReadableError") {
+        message = t("recordScorePage.validate.cameraInUse");
+      } else {
+        message =
+          getErrorMessage(error) ?? t("recordScorePage.validate.noCamera");
+      }
+      showScanAttemptError(message);
       scannerStartInFlightRef.current = false;
       return;
     }
@@ -196,9 +218,8 @@ export default function ValidateScorePage() {
     } catch (error: unknown) {
       stopScanner();
       setScannerOpen(false);
-      showNoCameraToast(
-        getErrorMessage(error) ??
-          t("recordScorePage.validate.noCamera", "No camera detected"),
+      showScanAttemptError(
+        getErrorMessage(error) ?? t("recordScorePage.validate.noCamera"),
       );
       scannerStartInFlightRef.current = false;
     }
