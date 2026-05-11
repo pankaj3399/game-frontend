@@ -10,9 +10,10 @@ import { useScoreQrScanner } from "./hooks/useScoreQrScanner";
 import { storeScoreQrToken } from "./scoreQrTokenSession";
 
 function ScanPageSpinner() {
+  const { t } = useTranslation();
   return (
     <div role="status" aria-live="polite" className="flex items-center justify-center gap-2 py-8">
-      <span className="sr-only">Loading...</span>
+      <span className="sr-only">{t("common.loading", "Loading...")}</span>
       <div className="flex gap-1" aria-hidden="true">
         {[0, 1, 2].map((i) => (
           <div
