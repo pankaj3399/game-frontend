@@ -8,6 +8,7 @@ import {
   confirmTournamentScoreQrResponseSchema,
   generateTournamentScoreQrResponseSchema,
   recordTournamentMatchScoreInputSchema,
+  validateTournamentScoreQrConfirmContextResponseSchema,
   validateTournamentScoreQrResponseSchema,
   type ActiveTournamentScoreQrSessionResponse,
   type ConfirmTournamentScoreQrInput,
@@ -16,6 +17,7 @@ import {
   type RecordTournamentMatchScoreInput,
   type TournamentPlayMode,
   type TournamentScheduleMode,
+  type ValidateTournamentScoreQrConfirmContextResponse,
   type ValidateTournamentScoreQrResponse,
 } from "@/models/tournament/types";
 
@@ -103,7 +105,7 @@ async function validateTournamentScoreQr(
 
 async function validateTournamentScoreQrConfirmContext(
   token: string,
-): Promise<ValidateTournamentScoreQrResponse> {
+): Promise<ValidateTournamentScoreQrConfirmContextResponse> {
   const safeToken = token.trim();
   if (!safeToken) {
     throw new Error("QR token is required");
@@ -113,7 +115,9 @@ async function validateTournamentScoreQrConfirmContext(
     token: safeToken,
   });
 
-  return validateTournamentScoreQrResponseSchema.parse(response.data);
+  return validateTournamentScoreQrConfirmContextResponseSchema.parse(
+    response.data,
+  );
 }
 
 async function confirmTournamentScoreQr(

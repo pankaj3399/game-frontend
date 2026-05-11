@@ -250,6 +250,14 @@ export const validateTournamentScoreQrResponseSchema = z.object({
     .nullable(),
 });
 
+/**
+ * `/score-qr/confirm-context` is a pre-confirmation validation endpoint.
+ * It intentionally returns the same `{ valid, reason, request }` payload
+ * shape as token validation (not the `/score-qr/confirm` mutation shape).
+ */
+export const validateTournamentScoreQrConfirmContextResponseSchema =
+  validateTournamentScoreQrResponseSchema;
+
 export const confirmTournamentScoreQrInputSchema = z
   .object({
     token: z.string().trim().min(1),
@@ -725,6 +733,9 @@ export type GenerateTournamentScoreQrResponse = z.infer<
 >;
 export type ValidateTournamentScoreQrResponse = z.infer<
   typeof validateTournamentScoreQrResponseSchema
+>;
+export type ValidateTournamentScoreQrConfirmContextResponse = z.infer<
+  typeof validateTournamentScoreQrConfirmContextResponseSchema
 >;
 export type ConfirmTournamentScoreQrInput = z.infer<
   typeof confirmTournamentScoreQrInputSchema
