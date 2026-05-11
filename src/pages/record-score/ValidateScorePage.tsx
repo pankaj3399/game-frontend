@@ -246,7 +246,11 @@ export default function ValidateScorePage() {
               <Button
                 type="button"
                 onClick={handleOpenScanner}
-                disabled={Boolean(tokenFromQuery) || scanBusy}
+                disabled={
+                  Boolean(tokenFromQuery) ||
+                  Boolean(tokenFromScoreQrQuery) ||
+                  scanBusy
+                }
                 className={`group h-[44px] w-full rounded-[12px] text-[15px] font-semibold transition-all duration-200 ${
                   scanBusy
                     ? "bg-[#010a04] text-white shadow-md"

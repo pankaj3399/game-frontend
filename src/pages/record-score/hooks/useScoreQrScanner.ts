@@ -91,9 +91,9 @@ export function useScoreQrScanner({
         message = t("recordScorePage.validate.cameraInUse");
       } else {
         message =
-          getErrorMessage(error) ?? t("recordScorePage.validate.noCamera");
+          getErrorMessage(error) || t("recordScorePage.validate.noCamera");
       }
-      showScanAttemptError(message);
+      showScanAttemptError(message.trim() || t("recordScorePage.validate.noCamera"));
       scannerStartInFlightRef.current = false;
       return;
     }
@@ -201,7 +201,8 @@ export function useScoreQrScanner({
     } catch (error: unknown) {
       stopScanner();
       showScanAttemptError(
-        getErrorMessage(error) ?? t("recordScorePage.validate.noCamera"),
+        (getErrorMessage(error) || t("recordScorePage.validate.noCamera")).trim() ||
+          t("recordScorePage.validate.noCamera"),
       );
       scannerStartInFlightRef.current = false;
     }

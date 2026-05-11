@@ -111,6 +111,7 @@ export function buildConfirmScoreQrLocationAfterTokenPromotion(
     };
   }
 
+  nextParams.set("scoreQrToken", tokenFromQuery);
   return {
     search: nextParams.toString() ? `?${nextParams.toString()}` : "",
     navigationState: { scoreQrToken: tokenFromQuery },

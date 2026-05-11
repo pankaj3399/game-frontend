@@ -378,15 +378,24 @@ export function useEnterMatchScoreController({
         (effectiveSelectedOption.tournamentId ?? "") ===
           (resolvedConfirmTournamentId ?? ""),
     );
+  const unreadableQrRefWithoutTokenFallback =
+    mode === "confirm" &&
+    Boolean(confirmedTokenRef.trim()) &&
+    !readScoreQrToken(confirmedTokenRef) &&
+    !confirmedTokenFromNavigationState &&
+    !confirmedTokenFromScoreQrQuery &&
+    !confirmedTokenFromQuery;
+
   // Only redirect after a real confirm-context response: `data` undefined must not mean "invalid"
   // (TanStack Query v5 keeps confirm queries `pending` while disabled — avoid treating that as failure).
   const shouldRedirectInvalidConfirm =
     mode === "confirm" &&
-    Boolean(confirmedToken) &&
     !validatedScoreQuery.isPending &&
-    (validatedScoreQuery.isError ||
-      validatedScoreQuery.data?.valid === false ||
-      (validatedScoreQuery.data?.valid === true && !validatedRequest));
+    (unreadableQrRefWithoutTokenFallback ||
+      (Boolean(confirmedToken) &&
+        (validatedScoreQuery.isError ||
+          validatedScoreQuery.data?.valid === false ||
+          (validatedScoreQuery.data?.valid === true && !validatedRequest))));
 
   const confirmRedirectReason = useMemo<
     "wrong-user" | "invalid-link" | null
@@ -664,12 +673,9 @@ export function useEnterMatchScoreController({
   };
 
   const shareOrCopyValidationUrl = async (url: string) => {
-    const shareFn =
-      typeof navigator !== "undefined" ? navigator.share : undefined;
-
-    if (typeof shareFn === "function") {
+    if (typeof navigator !== "undefined" && typeof navigator.share === "function") {
       try {
-        await shareFn({
+        await navigator.share({
           title: t("recordScorePage.enter.validationLinkShareTitle"),
           text: t("recordScorePage.enter.validationLinkShareText"),
           url,
