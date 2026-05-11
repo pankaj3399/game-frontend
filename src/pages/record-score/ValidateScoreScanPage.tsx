@@ -1,3 +1,4 @@
+import { Scanner } from "@yudiel/react-qr-scanner";
 import { useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
@@ -61,7 +62,7 @@ export default function ValidateScoreScanPage() {
 
   const { scanEnvironment } = useScanEnvironment();
 
-  const { videoRefCallback } = useScoreQrScanner({
+  const { scannerProps } = useScoreQrScanner({
     scanBlocked: Boolean(tokenFromQuery),
     autoStart: true,
     onTokenDetected,
@@ -120,13 +121,7 @@ export default function ValidateScoreScanPage() {
         </div>
       ) : scanEnvironment === "ready" ? (
         <div className="relative min-h-0 flex-1 overflow-hidden">
-          <video
-            ref={videoRefCallback}
-            autoPlay
-            playsInline
-            muted
-            className="absolute inset-0 h-full w-full object-cover"
-          />
+          <Scanner {...scannerProps} />
           <div
             className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center"
             aria-hidden
