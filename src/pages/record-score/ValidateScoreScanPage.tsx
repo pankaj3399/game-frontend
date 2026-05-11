@@ -11,8 +11,9 @@ import { storeScoreQrToken } from "./scoreQrTokenSession";
 
 function ScanPageSpinner() {
   return (
-    <div className="flex items-center justify-center gap-2 py-8">
-      <div className="flex gap-1">
+    <div role="status" aria-live="polite" className="flex items-center justify-center gap-2 py-8">
+      <span className="sr-only">Loading...</span>
+      <div className="flex gap-1" aria-hidden="true">
         {[0, 1, 2].map((i) => (
           <div
             key={i}
