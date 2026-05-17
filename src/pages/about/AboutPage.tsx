@@ -3,12 +3,18 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Share2 } from "@/icons/figma-icons";
 import { GLOBAL_PARAMETERS } from "@/constants/constants";
+import { useQuery } from "@tanstack/react-query";
+import { api } from "@/lib/api";
 
 const footnoteClassName =
   "align-super text-[10px] font-semibold leading-none text-[#067429]";
 
+const FRONTEND_SHA = import.meta.env.VITE_COMMIT_SHA ?? "dev";
+
 export default function AboutPage() {
   const { t } = useTranslation();
+  const { data: versionData } = useQuery<{ sha: string }>({ queryKey: ["version"], queryFn: () => api.get("/api/version").then((r) => r.data), staleTime: Infinity });
+  const backendSha = versionData?.sha ?? "…";
 
   const handleInviteFriends = async () => {
     if (typeof navigator !== "undefined" && navigator.share) {
@@ -175,6 +181,9 @@ export default function AboutPage() {
                 </Button>
               </div>
             </section>
+            <div className="mt-2 text-center text-[10px] text-[#010a04]/50">
+              {t("about.version", { backend: backendSha, frontend: FRONTEND_SHA })}
+            </div>
           </div>
         </div>
       </div>

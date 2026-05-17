@@ -52,6 +52,7 @@ export default function EnterMatchScorePage() {
     onGoBack,
     onMatchChange,
     onIndependentPlayModeChange,
+    onNewIndependentMatch,
     effectiveRows,
     onScoreChange,
     expiresAtLabel,
@@ -64,10 +65,11 @@ export default function EnterMatchScorePage() {
     isGenerating,
     hasValidationLink,
     isPrimaryGenerateDisabled,
+    hasActiveIndependentSession,
   } = useEnterMatchScoreController({
     t,
     language: i18n.language,
-    userId: user?.id ?? null,
+    user: user ?? null,
   });
 
   const showIndependentScoringPreset =
@@ -165,14 +167,27 @@ export default function EnterMatchScorePage() {
           <div className="mx-auto w-full max-w-[992px]">
             <div className="mx-auto w-full max-w-[784px]">
               {mode !== "confirm" ? (
-                <button
-                  type="button"
-                  onClick={onGoBack}
-                  className="-ml-1 inline-flex min-h-[44px] items-center gap-1.5 rounded-lg px-1 py-2 text-[13px] font-medium text-[#010a04] transition-opacity hover:opacity-65 sm:min-h-0 sm:py-0 sm:text-[12px]"
-                >
-                  <IconChevronLeft size={16} className="shrink-0 text-[#010a04] sm:size-[14px]" />
-                  {t("recordScorePage.goBack")}
-                </button>
+                <div className="flex items-center justify-between">
+                  <button
+                    type="button"
+                    onClick={onGoBack}
+                    className="-ml-1 inline-flex min-h-[44px] items-center gap-1.5 rounded-lg px-1 py-2 text-[13px] font-medium text-[#010a04] transition-opacity hover:opacity-65 sm:min-h-0 sm:py-0 sm:text-[12px]"
+                  >
+                    <IconChevronLeft size={16} className="shrink-0 text-[#010a04] sm:size-[14px]" />
+                    {t("recordScorePage.goBack")}
+                  </button>
+
+                  {hasActiveIndependentSession ? (
+                    <button
+                      type="button"
+                      id="new-independent-match-btn"
+                      onClick={onNewIndependentMatch}
+                      className="inline-flex min-h-[44px] items-center gap-1.5 rounded-lg px-2 py-2 text-[13px] font-medium text-[#067429] transition-opacity hover:opacity-65 sm:min-h-0 sm:py-0 sm:text-[12px]"
+                    >
+                      + {t("recordScorePage.enter.newIndependentMatch", { defaultValue: "New match" })}
+                    </button>
+                  ) : null}
+                </div>
               ) : null}
             </div>
 
@@ -196,11 +211,14 @@ export default function EnterMatchScorePage() {
               </div>
 
               <div className="mt-5 flex flex-col gap-5 border-t border-[#010a04]/[0.06] pt-5 sm:mt-4 sm:flex-row sm:items-start sm:gap-6 sm:border-t-0 sm:pt-0">
-                {activeQrDataUrl ? (
+                {activeQrDataUrl || isGenerating ? (
                   <div className="relative flex shrink-0 justify-center sm:justify-start">
                     <QrPreview
                       dataUrl={activeQrDataUrl}
+                      isGenerating={isGenerating}
                       onOpenLarge={() => setIsQrDialogOpen(true)}
+                      onCopyLink={onGenerateOrOpenValidationLink}
+                      hasValidationLink={hasValidationLink}
                       t={t}
                     />
                   </div>
@@ -312,17 +330,19 @@ export default function EnterMatchScorePage() {
                 </div>
               </div>
 
-              <FooterActions
-                mode={mode as "confirm" | "generate"}
-                isSubmittingConfirm={isConfirmSubmitting}
-                canSubmitConfirmedScore={canSubmitConfirmedScore}
-                onSubmitConfirmedScore={onSubmitConfirmedScore}
-                onGenerateOrOpenValidationLink={onGenerateOrOpenValidationLink}
-                isPrimaryGenerateDisabled={isPrimaryGenerateDisabled}
-                isGenerating={isGenerating}
-                hasValidationLink={hasValidationLink}
-                t={(key: string) => t(key)}
-              />
+              {mode === "confirm" ? (
+                <FooterActions
+                  mode="confirm"
+                  isSubmittingConfirm={isConfirmSubmitting}
+                  canSubmitConfirmedScore={canSubmitConfirmedScore}
+                  onSubmitConfirmedScore={onSubmitConfirmedScore}
+                  onGenerateOrOpenValidationLink={onGenerateOrOpenValidationLink}
+                  isPrimaryGenerateDisabled={isPrimaryGenerateDisabled}
+                  isGenerating={isGenerating}
+                  hasValidationLink={hasValidationLink}
+                  t={(key: string) => t(key)}
+                />
+              ) : null}
             </section>
           </div>
         )}

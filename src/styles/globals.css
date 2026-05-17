@@ -167,6 +167,15 @@
   }
 }
 
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
 @layer utilities {
   /** Softer than `animate-pulse` for loading placeholders (longer, eased breathe). */
   .animate-skeleton-soft {
@@ -174,10 +183,20 @@
     will-change: opacity;
   }
 
+  /** Linear sweep used for shimmer/skeleton loading effects. */
+  .animate-shimmer {
+    animation: shimmer 1.4s ease-in-out infinite;
+    will-change: transform;
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .animate-skeleton-soft {
       animation: none;
       opacity: 0.68;
+    }
+
+    .animate-shimmer {
+      animation: none;
     }
   }
 

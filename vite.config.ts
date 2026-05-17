@@ -4,12 +4,18 @@ import tailwindcss from '@tailwindcss/vite'
 import svgr from 'vite-plugin-svgr'
 import path from 'path'
 import { fileURLToPath } from 'url'
+import { execSync } from 'child_process'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
+const commitSha = process.env.VITE_COMMIT_SHA ?? (() => {
+  try { return execSync('git rev-parse --short HEAD', { encoding: 'utf8' }).trim() } catch { return 'dev' }
+})()
+
 export default defineConfig({
   envPrefix: ['VITE_', 'REACT_APP_'],
+  define: { 'import.meta.env.VITE_COMMIT_SHA': JSON.stringify(commitSha) },
 
   plugins: [
     svgr({

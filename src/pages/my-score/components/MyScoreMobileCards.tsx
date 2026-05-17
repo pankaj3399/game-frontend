@@ -1,6 +1,8 @@
+import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { cn } from "@/lib/utils";
 import type { MyScoreEntry } from "@/models/myScore/types";
 
 interface MyScoreMobileCardsProps {
@@ -15,63 +17,98 @@ export function MyScoreMobileCards({
   formatScore,
 }: MyScoreMobileCardsProps) {
   const { t, i18n } = useTranslation();
+  const navigate = useNavigate();
+  const handlePendingNavigate = () => navigate("/record-score/manual");
 
   return (
     <div className="space-y-2.5 p-2.5 sm:hidden">
-      {entries.map((entry) => (
-        <Card
-          key={`mobile-card-${entry.id}`}
-          className="overflow-hidden rounded-[10px] border border-[#010a04]/8 bg-[#f7f8f7]"
-        >
-          <CardContent className="space-y-2.5 p-3">
-            <div className="flex min-w-0 items-center gap-2">
-              <span className="h-8 w-8 shrink-0 rounded-[6px] bg-[#cfd3d0]" />
-              <div className="min-w-0">
-                <p className="truncate text-[13px] font-semibold text-[#010a04]">
-                  {entry.tournament.name}
-                </p>
-                <p className="text-[11px] text-[#010a04]/55">
-                  {formatPlayedAt(entry.playedAt, i18n.language)}
-                </p>
+      {entries.map((entry) => {
+        const isPending = entry.status === "pendingScore";
+        return (
+          <Card
+            key={`mobile-card-${entry.id}`}
+            onClick={isPending ? handlePendingNavigate : undefined}
+            onKeyDown={
+              isPending
+                ? (event) => {
+                    if (event.key === "Enter" || event.key === " ") {
+                      event.preventDefault();
+                      handlePendingNavigate();
+                    }
+                  }
+                : undefined
+            }
+            tabIndex={isPending ? 0 : undefined}
+            role={isPending ? "button" : undefined}
+            aria-label={
+              isPending
+                ? `${t("myScorePage.table.resumeQr")} ${entry.tournament.name}`
+                : undefined
+            }
+            className={cn(
+              "overflow-hidden rounded-[10px] border border-[#010a04]/8",
+              isPending
+                ? "cursor-pointer bg-[#fdfcf5] transition-shadow hover:shadow-[0_4px_14px_rgba(214,171,63,0.18)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#067429]/40 focus-visible:ring-offset-2"
+                : "bg-[#f7f8f7]",
+            )}
+          >
+            <CardContent className="space-y-2.5 p-3">
+              <div className="flex min-w-0 items-start justify-between gap-2">
+                <div className="flex min-w-0 items-center gap-2">
+                  <span className="h-8 w-8 shrink-0 rounded-[6px] bg-[#cfd3d0]" />
+                  <div className="min-w-0">
+                    <p className="truncate text-[13px] font-semibold text-[#010a04]">
+                      {entry.tournament.name}
+                    </p>
+                    <p className="text-[11px] text-[#010a04]/55">
+                      {formatPlayedAt(entry.playedAt, i18n.language)}
+                    </p>
+                  </div>
+                </div>
+                {isPending && (
+                  <span className="shrink-0 inline-flex items-center rounded-full bg-[rgba(214,171,63,0.15)] px-2 py-0.5 text-[10px] font-medium text-[#9a7620]">
+                    {t("myScorePage.table.pendingConfirmation")}
+                  </span>
+                )}
               </div>
-            </div>
 
-            <Separator className="bg-[#010a04]/8" />
+              <Separator className="bg-[#010a04]/8" />
 
-            <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <p className="text-[22px] font-semibold leading-none text-[#010a04]">
+                    {formatScore(entry.myScore)}
+                  </p>
+                  <p className="mt-1 text-[10px] text-[#010a04]/50">
+                    {t("myScorePage.table.myScore")}
+                  </p>
+                </div>
+
+                <div>
+                  <p className="text-[22px] font-semibold leading-none text-[#010a04]">
+                    {formatScore(entry.opponentScore)}
+                  </p>
+                  <p className="mt-1 text-[10px] text-[#010a04]/50">
+                    {t("myScorePage.table.opponentScore")}
+                  </p>
+                </div>
+              </div>
+
+              <Separator className="bg-[#010a04]/8" />
+
               <div>
-                <p className="text-[22px] font-semibold leading-none text-[#010a04]">
-                  {formatScore(entry.myScore)}
+                <p className="mb-1 text-[10px] text-[#010a04]/50">
+                  {t("myScorePage.table.opponent")}
                 </p>
-                <p className="mt-1 text-[10px] text-[#010a04]/50">
-                  {t("myScorePage.table.myScore")}
-                </p>
+                <div className="flex min-w-0 items-center gap-2">
+                  <span className="h-3.5 w-3.5 shrink-0 rounded-full bg-[#cfd3d0]" />
+                  <p className="truncate text-[12px] text-[#010a04]/85">{entry.opponent.name}</p>
+                </div>
               </div>
-
-              <div>
-                <p className="text-[22px] font-semibold leading-none text-[#010a04]">
-                  {formatScore(entry.opponentScore)}
-                </p>
-                <p className="mt-1 text-[10px] text-[#010a04]/50">
-                  {t("myScorePage.table.opponentScore")}
-                </p>
-              </div>
-            </div>
-
-            <Separator className="bg-[#010a04]/8" />
-
-            <div>
-              <p className="mb-1 text-[10px] text-[#010a04]/50">
-                {t("myScorePage.table.opponent")}
-              </p>
-              <div className="flex min-w-0 items-center gap-2">
-                <span className="h-3.5 w-3.5 shrink-0 rounded-full bg-[#cfd3d0]" />
-                <p className="truncate text-[12px] text-[#010a04]/85">{entry.opponent.name}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      ))}
+            </CardContent>
+          </Card>
+        );
+      })}
     </div>
   );
 }

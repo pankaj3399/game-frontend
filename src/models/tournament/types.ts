@@ -50,6 +50,7 @@ export const tournamentDistanceFilterSchema = z.enum([
   "between50And80",
   "over80",
 ]);
+export const tournamentClubScopeSchema = z.literal("favorites");
 
 export type TournamentStatus = z.infer<typeof tournamentStatusSchema>;
 export type TournamentMode = z.infer<typeof tournamentModeSchema>;
@@ -59,6 +60,7 @@ export type TournamentWhenFilter = z.infer<typeof tournamentWhenFilterSchema>;
 export type TournamentDistanceFilter = z.infer<
   typeof tournamentDistanceFilterSchema
 >;
+export type TournamentClubScope = z.infer<typeof tournamentClubScopeSchema>;
 
 export const tournamentListClubSchema = z.object({
   id: z.string(),
@@ -248,6 +250,13 @@ export const validateTournamentScoreQrResponseSchema = z.object({
       playMode: tournamentPlayModeSchema,
       matchType: tournamentScheduleModeSchema,
       expiresAt: z.string(),
+      requestByUserProfile: wireJsonNullable(
+        z.object({
+          name: wireJsonNullableString(),
+          alias: wireJsonNullableString(),
+          profilePictureUrl: wireJsonNullableString(),
+        }),
+      ),
     })
     .nullable(),
 });
@@ -299,6 +308,13 @@ export const activeTournamentScoreQrSessionResponseSchema = z.object({
       matchId: z.string(),
       requestByUserId: z.string(),
       opponentUserId: wireJsonNullableString(),
+      opponentUserProfile: wireJsonNullable(
+        z.object({
+          name: wireJsonNullableString(),
+          alias: wireJsonNullableString(),
+          profilePictureUrl: wireJsonNullableString(),
+        }),
+      ),
       playerOneScores: z.array(tournamentMatchScoreValueSchema),
       playerTwoScores: z.array(tournamentMatchScoreValueSchema),
       playMode: tournamentPlayModeSchema,
@@ -502,6 +518,7 @@ export const tournamentListFiltersSchema = z.object({
   when: tournamentWhenFilterSchema.optional(),
   distance: tournamentDistanceFilterSchema.optional(),
   clubId: z.string().optional(),
+  clubScope: tournamentClubScopeSchema.optional(),
 });
 
 export const tournamentPaginationSchema = z.object({
@@ -797,4 +814,10 @@ export function isTournamentDistanceFilter(
   return (
     value === "under50" || value === "between50And80" || value === "over80"
   );
+}
+
+export function isTournamentClubScope(
+  value: string,
+): value is TournamentClubScope {
+  return value === "favorites";
 }

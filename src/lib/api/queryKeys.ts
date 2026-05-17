@@ -34,12 +34,20 @@ export const queryKeys = {
   club: {
     all: ["club"] as const,
     listRoot: () => [...queryKeys.club.all, "list"] as const,
-    list: (filters?: { page?: number; limit?: number; q?: string }) => {
+    list: (filters?: {
+      page?: number;
+      limit?: number;
+      q?: string;
+      clubScope?: string;
+      distance?: string;
+    }) => {
       const f = filters ?? {};
       const normalizedFilters: Record<string, string | number> = {};
       if (f.page != null) normalizedFilters.page = f.page;
       if (f.limit != null) normalizedFilters.limit = f.limit;
       if (f.q?.trim()) normalizedFilters.q = f.q.trim();
+      if (f.clubScope && f.clubScope !== "all") normalizedFilters.clubScope = f.clubScope;
+      if (f.distance && f.distance !== "all") normalizedFilters.distance = f.distance;
       return [...queryKeys.club.listRoot(), normalizedFilters] as const;
     },
     detail: (id: string) => [...queryKeys.club.all, "detail", id] as const,
@@ -64,13 +72,15 @@ export const queryKeys = {
       when?: "future" | "past";
       distance?: "under50" | "between50And80" | "over80";
       clubId?: string;
+      clubScope?: "favorites";
     }) => {
       const f = filters ?? {};
       const normalizedFilters: Record<string, string | number> = {};
       if (f.view) normalizedFilters.view = f.view;
       if (f.when) normalizedFilters.when = f.when;
       if (f.distance) normalizedFilters.distance = f.distance;
-      if (f.clubId) normalizedFilters.clubId = f.clubId;
+      if (f.clubScope) normalizedFilters.clubScope = f.clubScope;
+      else if (f.clubId) normalizedFilters.clubId = f.clubId;
       if (f.page != null) normalizedFilters.page = f.page;
       if (f.limit != null) normalizedFilters.limit = f.limit;
       if (f.q) normalizedFilters.q = f.q;

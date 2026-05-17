@@ -1,4 +1,5 @@
 import type {
+  TournamentClubScope,
   TournamentDistanceFilter,
   TournamentListFilters,
   TournamentWhenFilter,
@@ -26,6 +27,7 @@ export interface TournamentListPageFilters {
   when?: TournamentWhenFilter;
   distance?: TournamentDistanceFilter;
   clubId?: string;
+  clubScope?: TournamentClubScope;
 }
 
 export interface TournamentFiltersState {
@@ -38,7 +40,10 @@ export type TournamentFiltersAction =
   | { type: "SET_QUERY"; payload?: string }
   | { type: "SET_WHEN"; payload?: TournamentWhenFilter }
   | { type: "SET_DISTANCE"; payload?: TournamentDistanceFilter }
-  | { type: "SET_CLUB"; payload?: string }
+  | {
+      type: "SET_CLUB_FILTER";
+      payload: { clubId?: string; clubScope?: TournamentClubScope };
+    }
   | { type: "SET_PAGE"; payload: number }
   | { type: "RESET" }
   | {
@@ -98,15 +103,29 @@ export function filtersReducer(
           distance: action.payload,
         },
       };
-    case "SET_CLUB":
+    case "SET_CLUB_FILTER": {
+      const { clubId, clubScope } = action.payload;
+      if (clubScope === "favorites") {
+        return {
+          ...state,
+          filters: {
+            ...state.filters,
+            page: 1,
+            clubId: undefined,
+            clubScope: "favorites",
+          },
+        };
+      }
       return {
         ...state,
         filters: {
           ...state.filters,
           page: 1,
-          clubId: action.payload,
+          clubId,
+          clubScope: undefined,
         },
       };
+    }
     case "SET_PAGE":
       return {
         ...state,
@@ -152,8 +171,10 @@ export function shapeTournamentFilters(
     q: state.filters.q,
     view,
     when: state.filters.when,
-    distance: state.filters.distance,
+    distance:
+      state.filters.distance === "over80" ? undefined : state.filters.distance,
     clubId: state.filters.clubId,
+    clubScope: state.filters.clubScope,
   };
 }
 

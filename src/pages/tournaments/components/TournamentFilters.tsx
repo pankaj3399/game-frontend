@@ -7,9 +7,19 @@ import {
 } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useAllClubs } from "@/pages/clubs/hooks";
+import { useAllClubs, useClubById } from "@/pages/clubs/hooks";
 import ListFilterIcon from "@/assets/icons/figma/misc/list-filter.svg?react";
 import { Search01Icon } from "@/icons/figma-icons";
+
+const FILTER_GREEN = "#006B2B";
+const PILL_GREY = "#7a8078";
+
+export interface TournamentFiltersChangePayload {
+  when: string;
+  distance: string;
+  clubId?: string;
+  clubScope?: "favorites";
+}
 
 interface TournamentFiltersProps {
   open: boolean;
@@ -18,37 +28,53 @@ interface TournamentFiltersProps {
     when?: string;
     distance?: string;
     clubId?: string;
+    clubScope?: "favorites";
   };
-  onFiltersChange: (next: { when: string; distance: string; clubId?: string }) => void;
+  onFiltersChange: (next: TournamentFiltersChangePayload) => void;
+  /** Logged-in user's home club id (for Home club pill). */
+  homeClubId?: string | null;
+  /** Count of favourite clubs (Favourite clubs pill disabled when 0). */
+  favoriteClubsCount?: number;
 }
 
-// Pill toggle group — replaces <Select> for When and Distance
-function PillGroup({
+function PillRow({
   options,
   value,
   onChange,
 }: {
-  options: { value: string; label: string }[];
+  options: { value: string; label: string; disabled?: boolean }[];
   value: string;
   onChange: (v: string) => void;
 }) {
   return (
-    <div className="flex gap-1.5 flex-wrap">
+    <div className="flex flex-nowrap gap-2 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
       {options.map((opt) => {
-        const active = value === opt.value;
+        const active = !opt.disabled && value === opt.value;
         return (
           <button
             key={opt.value}
             type="button"
             aria-pressed={active}
-            onClick={() => onChange(opt.value)}
+            disabled={opt.disabled}
+            onClick={() => {
+              if (!opt.disabled) onChange(opt.value);
+            }}
             className={[
-              "relative h-8 rounded-full px-3.5 text-[12.5px] font-medium transition-all duration-150 select-none",
-              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary/60",
-              active
-                ? "bg-brand-primary text-white shadow-sm shadow-brand-primary/30"
-                : "bg-black/[0.045] text-foreground/70 hover:bg-black/[0.08] hover:text-foreground",
+              "shrink-0 rounded-full px-3.5 py-1.5 text-left text-[12.5px] font-medium transition-colors duration-150 select-none",
+              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#006B2B]/45",
+              opt.disabled
+                ? "cursor-not-allowed bg-black/10 text-white/50"
+                : active
+                  ? "text-white shadow-sm"
+                  : "text-white",
             ].join(" ")}
+            style={
+              opt.disabled
+                ? undefined
+                : active
+                  ? { backgroundColor: FILTER_GREEN }
+                  : { backgroundColor: PILL_GREY }
+            }
           >
             {opt.label}
           </button>
@@ -58,13 +84,20 @@ function PillGroup({
   );
 }
 
-// Thin section label
-function FilterLabel({ children, id }: { children: ReactNode; id?: string }) {
+function SectionLabel({ id, children }: { id?: string; children: ReactNode }) {
   return (
-    <span id={id} className="block text-[10.5px] font-semibold uppercase tracking-widest text-black/35 mb-2">
+    <p
+      id={id}
+      className="mb-2 text-[11px] font-semibold uppercase tracking-[0.06em] text-black/40"
+    >
       {children}
-    </span>
+    </p>
   );
+}
+
+function normalizeDistanceForDraft(d?: string): string {
+  if (d === "over80") return "all";
+  return d ?? "all";
 }
 
 export function TournamentFilters({
@@ -72,8 +105,10 @@ export function TournamentFilters({
   onOpenChange,
   filters,
   onFiltersChange,
+  homeClubId = null,
+  favoriteClubsCount = 0,
 }: TournamentFiltersProps) {
-  const { when, distance, clubId } = filters;
+  const { when, distance, clubId, clubScope } = filters;
   const { t } = useTranslation();
   const clubFilterLabelId = useId();
   const clubOptionIdPrefix = useId();
@@ -81,8 +116,9 @@ export function TournamentFilters({
   const [clubSearchOpen, setClubSearchOpen] = useState(false);
   const [activeClubOptionIndex, setActiveClubOptionIndex] = useState(-1);
   const [draftWhen, setDraftWhen] = useState(when ?? "all");
-  const [draftDistance, setDraftDistance] = useState(distance ?? "all");
+  const [draftDistance, setDraftDistance] = useState(normalizeDistanceForDraft(distance));
   const [draftClubId, setDraftClubId] = useState<string | undefined>(clubId);
+  const [draftClubScope, setDraftClubScope] = useState<"favorites" | undefined>(clubScope);
   const [selectedClubState, setSelectedClubState] = useState<{ id: string; name: string } | null>(null);
   const clubOptionRefs = useRef<Array<HTMLButtonElement | null>>([]);
 
@@ -96,12 +132,13 @@ export function TournamentFilters({
   const handlePopoverOpenChange = (nextOpen: boolean) => {
     if (nextOpen) {
       setDraftWhen(when ?? "all");
-      setDraftDistance(distance ?? "all");
-      setDraftClubId(clubId);
-      if (clubId && clubsData?.clubs) {
+      setDraftDistance(normalizeDistanceForDraft(distance));
+      setDraftClubId(clubScope === "favorites" ? undefined : clubId);
+      setDraftClubScope(clubScope === "favorites" ? "favorites" : undefined);
+      if (clubId && !clubScope && clubsData?.clubs) {
         const matchedClub = clubsData.clubs.find((c) => c.id === clubId);
         setSelectedClubState(matchedClub ? { id: matchedClub.id, name: matchedClub.name } : null);
-      } else if (!clubId) {
+      } else if (!clubId || clubScope === "favorites") {
         setSelectedClubState(null);
       }
       setClubSearch("");
@@ -117,34 +154,73 @@ export function TournamentFilters({
 
   const clubs = clubsData?.clubs ?? [];
   const clubOptionCount = clubs.length + 1;
+  const selectedClubFromState =
+    draftClubId && selectedClubState?.id === draftClubId ? selectedClubState : null;
+  const selectedClubFromList =
+    draftClubId ? clubs.find((club) => club.id === draftClubId) ?? null : null;
+  const shouldFetchSelectedClub =
+    Boolean(draftClubId) &&
+    !draftClubScope &&
+    !selectedClubFromState &&
+    !selectedClubFromList;
+  const { data: selectedClubData, isLoading: selectedClubLoading } = useClubById(
+    shouldFetchSelectedClub ? draftClubId ?? null : null,
+  );
   const selectedClub =
     draftClubId
-      ? (selectedClubState?.id === draftClubId
-          ? selectedClubState
-          : clubsData?.clubs?.find((c) => c.id === draftClubId)) ?? null
+      ? selectedClubFromState ??
+        selectedClubFromList ??
+        (selectedClubData
+          ? {
+              id: selectedClubData.club.id,
+              name: selectedClubData.club.name,
+            }
+          : null)
       : null;
 
-  const activeFilterCount =
-    ((when ?? "all") !== "all" ? 1 : 0) +
-    ((distance ?? "all") !== "all" ? 1 : 0) +
-    (clubId ? 1 : 0);
+  const appliedWhenIsActive = (when ?? "all") !== "all";
+  const appliedDistanceIsActive = (distance ?? "all") !== "all" && distance !== "over80";
+  const appliedClubIsActive = Boolean(clubId) || clubScope === "favorites";
 
-  const hasDraftChanges =
-    draftWhen !== (when ?? "all") ||
-    draftDistance !== (distance ?? "all") ||
-    draftClubId !== clubId;
+  const activeFilterCount =
+    (appliedWhenIsActive ? 1 : 0) +
+    (appliedDistanceIsActive ? 1 : 0) +
+    (appliedClubIsActive ? 1 : 0);
+
+  const canClear = activeFilterCount > 0;
 
   const whenOptions = [
-    { value: "all", label: t("tournaments.filterWhenAll") },
     { value: "future", label: t("tournaments.filterWhenFuture") },
     { value: "past", label: t("tournaments.filterWhenPast") },
+    { value: "all", label: t("tournaments.filterWhenListAll") },
   ];
 
   const distanceOptions = [
-    { value: "all", label: t("tournaments.filterDistanceAll") },
     { value: "under50", label: t("tournaments.filterDistanceUnder50") },
     { value: "between50And80", label: t("tournaments.filterDistance50To80") },
-    { value: "over80", label: t("tournaments.filterDistanceOver80") },
+    { value: "all", label: t("tournaments.filterDistanceAll") },
+  ];
+
+  const homePillDisabled = !homeClubId;
+  const favoritesPillDisabled = favoriteClubsCount < 1;
+
+  const clubPillValue =
+    draftClubScope === "favorites"
+      ? "favorites"
+      : draftClubId && homeClubId && draftClubId === homeClubId
+        ? "home"
+        : !draftClubId && !draftClubScope
+          ? "all"
+          : "custom";
+
+  const clubPillOptions = [
+    { value: "home", label: t("tournaments.filterClubHome"), disabled: homePillDisabled },
+    {
+      value: "favorites",
+      label: t("tournaments.filterClubFavorites"),
+      disabled: favoritesPillDisabled,
+    },
+    { value: "all", label: t("tournaments.filterClubAllClubs") },
   ];
 
   const focusClubOptionByIndex = (index: number) => {
@@ -175,7 +251,6 @@ export function TournamentFilters({
 
   return (
     <Popover open={open} onOpenChange={handlePopoverOpenChange}>
-      {/* ── Trigger ─────────────────────────────────────── */}
       <PopoverTrigger asChild>
         <Button
           variant="outline"
@@ -192,48 +267,53 @@ export function TournamentFilters({
         </Button>
       </PopoverTrigger>
 
-      {/* ── Panel ───────────────────────────────────────── */}
       <PopoverContent
         align="end"
         sideOffset={10}
         className="w-[min(92vw,26rem)] overflow-visible rounded-2xl border border-black/[0.08] bg-white p-0 shadow-[0_8px_40px_-8px_rgba(0,0,0,0.18),0_2px_8px_-2px_rgba(0,0,0,0.06)]"
       >
-        {/* Header */}
-        <div className="px-5 pt-4 pb-3">
-          <h4 className="text-[13.5px] font-semibold text-foreground tracking-[-0.01em]">
-            {t("tournaments.filters")}
-          </h4>
-        </div>
-        {/* Body */}
-        <div className="space-y-5 p-5">
-          {/* When */}
+        <div className="space-y-5 px-5 pb-6 pt-5">
           <div>
-            <FilterLabel>{t("tournaments.filterWhen")}</FilterLabel>
-            <PillGroup
-              options={whenOptions}
-              value={draftWhen}
-              onChange={setDraftWhen}
-            />
+            <SectionLabel>{t("tournaments.filterWhen")}</SectionLabel>
+            <PillRow options={whenOptions} value={draftWhen} onChange={setDraftWhen} />
           </div>
 
-          {/* Distance */}
           <div>
-            <FilterLabel>{t("tournaments.filterDistance")}</FilterLabel>
-            <PillGroup
-              options={distanceOptions}
-              value={draftDistance}
-              onChange={setDraftDistance}
-            />
+            <SectionLabel>{t("tournaments.filterDistance")}</SectionLabel>
+            <PillRow options={distanceOptions} value={draftDistance} onChange={setDraftDistance} />
           </div>
 
-          {/* Club search */}
           <div>
-            <FilterLabel id={clubFilterLabelId}>{t("tournaments.filterClub")}</FilterLabel>
+            <SectionLabel id={clubFilterLabelId}>{t("tournaments.filterClub")}</SectionLabel>
+            <PillRow
+              options={clubPillOptions}
+              value={clubPillValue === "custom" ? "" : clubPillValue}
+              onChange={(v) => {
+                if (v === "home" && homeClubId) {
+                  setDraftClubScope(undefined);
+                  setDraftClubId(homeClubId);
+                  setSelectedClubState(null);
+                  setClubSearch("");
+                  setClubSearchOpen(false);
+                } else if (v === "favorites") {
+                  setDraftClubScope("favorites");
+                  setDraftClubId(undefined);
+                  setSelectedClubState(null);
+                  setClubSearch("");
+                  setClubSearchOpen(false);
+                } else if (v === "all") {
+                  setDraftClubScope(undefined);
+                  setDraftClubId(undefined);
+                  setSelectedClubState(null);
+                  setClubSearch("");
+                  setClubSearchOpen(false);
+                }
+              }}
+            />
 
-            {/* Selected club chip */}
-            {draftClubId && selectedClub && (
-              <div className="mb-2 flex items-center gap-1.5">
-                <span className="inline-flex h-6 max-w-[16rem] items-center gap-1.5 truncate rounded-full bg-brand-primary/10 px-2.5 text-[11.5px] font-medium text-brand-primary">
+            {draftClubId && selectedClub && !draftClubScope ? (
+              <div className="mt-3 flex items-center gap-1.5">
+                <span className="inline-flex h-6 max-w-[16rem] items-center gap-1.5 truncate rounded-full bg-[#006B2B]/10 px-2.5 text-[11.5px] font-medium text-[#006B2B]">
                   <span className="block truncate">{selectedClub.name}</span>
                   <button
                     type="button"
@@ -242,23 +322,26 @@ export function TournamentFilters({
                       setSelectedClubState(null);
                       setClubSearch("");
                     }}
-                    className="shrink-0 leading-none text-brand-primary/60 hover:text-brand-primary"
+                    className="shrink-0 leading-none text-[#006B2B]/60 hover:text-[#006B2B]"
                     aria-label={t("tournaments.removeClubFilter")}
                   >
                     ×
                   </button>
                 </span>
               </div>
-            )}
-            {draftClubId && !selectedClub && clubsLoading ? (
-              <div className="mb-2 flex items-center gap-1.5">
-                <span className="inline-flex h-6 max-w-[16rem] items-center truncate rounded-full bg-brand-primary/10 px-2.5 text-[11.5px] font-medium text-brand-primary">
+            ) : null}
+            {draftClubId &&
+            !selectedClub &&
+            (clubsLoading || selectedClubLoading) &&
+            !draftClubScope ? (
+              <div className="mt-3 flex items-center gap-1.5">
+                <span className="inline-flex h-6 max-w-[16rem] truncate rounded-full bg-[#006B2B]/10 px-2.5 text-[11.5px] font-medium text-[#006B2B]">
                   {t("common.loading")}
                 </span>
               </div>
             ) : null}
 
-            <div className="relative">
+            <div className="relative mt-3">
               <Search01Icon
                 size={14}
                 className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-black/35"
@@ -284,12 +367,11 @@ export function TournamentFilters({
                   }
                 }}
                 placeholder={t("tournaments.filterClubSearchPlaceholder")}
-                className="h-9 rounded-xl border-black/12 bg-black/[0.025] pl-9 text-sm placeholder:text-black/30 focus:bg-white focus:border-brand-primary/40 transition-colors"
+                className="h-9 rounded-xl border border-black/12 bg-black/[0.04] pl-9 text-sm text-foreground placeholder:text-black/35 focus:border-[#006B2B]/40 focus:bg-white focus:outline-none"
                 aria-labelledby={clubFilterLabelId}
                 autoComplete="off"
               />
 
-              {/* Dropdown */}
               {clubSearchOpen && (
                 <div
                   className="absolute left-0 right-0 top-[calc(100%+6px)] z-[70] overflow-hidden rounded-xl border border-black/[0.08] bg-white shadow-[0_8px_24px_-4px_rgba(0,0,0,0.14)]"
@@ -300,24 +382,24 @@ export function TournamentFilters({
                   onKeyDown={handleClubListboxKeyDown}
                 >
                   <div className="max-h-52 overflow-y-auto">
-                    {/* All clubs option */}
                     <button
                       type="button"
                       className={[
-                        "w-full px-3.5 py-2.5 text-left text-[13px] transition-colors border-b border-black/[0.06]",
-                        !draftClubId
-                          ? "bg-brand-primary/[0.07] font-semibold text-brand-primary"
+                        "w-full border-b border-black/[0.06] px-3.5 py-2.5 text-left text-[13px] transition-colors",
+                        !draftClubId && !draftClubScope
+                          ? "bg-[#006B2B]/[0.07] font-semibold text-[#006B2B]"
                           : "text-foreground/60 hover:bg-black/[0.03] hover:text-foreground",
                       ].join(" ")}
                       onClick={() => {
                         setDraftClubId(undefined);
+                        setDraftClubScope(undefined);
                         setSelectedClubState(null);
                         setClubSearchOpen(false);
                         setClubSearch("");
                         setActiveClubOptionIndex(0);
                       }}
                       role="option"
-                      aria-selected={!draftClubId}
+                      aria-selected={!draftClubId && !draftClubScope}
                       tabIndex={-1}
                       ref={(element) => {
                         clubOptionRefs.current[0] = element;
@@ -343,12 +425,13 @@ export function TournamentFilters({
                           type="button"
                           className={[
                             "w-full border-b border-black/[0.05] px-3.5 py-2.5 text-left text-[13px] transition-colors last:border-b-0",
-                            club.id === draftClubId
-                              ? "bg-brand-primary/[0.08] font-semibold text-brand-primary"
+                            club.id === draftClubId && !draftClubScope
+                              ? "bg-[#006B2B]/[0.08] font-semibold text-[#006B2B]"
                               : "text-foreground hover:bg-black/[0.03]",
                           ].join(" ")}
                           onClick={() => {
                             setDraftClubId(club.id);
+                            setDraftClubScope(undefined);
                             setSelectedClubState({ id: club.id, name: club.name });
                             setClubSearchOpen(false);
                             setClubSearch("");
@@ -356,7 +439,7 @@ export function TournamentFilters({
                           }}
                           title={club.name}
                           role="option"
-                          aria-selected={club.id === draftClubId}
+                          aria-selected={club.id === draftClubId && !draftClubScope}
                           tabIndex={-1}
                           ref={(element) => {
                             clubOptionRefs.current[index + 1] = element;
@@ -377,17 +460,17 @@ export function TournamentFilters({
           </div>
         </div>
 
-        {/* Footer */}
         <div className="flex items-center gap-2.5 border-t border-black/[0.06] bg-black/[0.015] px-5 py-3.5">
           <Button
             variant="outline"
             size="sm"
-            className="h-9 flex-1 rounded-xl border-black/12 bg-white text-[13px] font-medium text-foreground/70 hover:bg-black/[0.04] hover:text-foreground disabled:opacity-50"
-            disabled={!hasDraftChanges}
+            className="h-9 flex-1 rounded-xl border-black/15 bg-white text-[13px] font-medium text-black/45 hover:bg-black/[0.03] hover:text-black/60 disabled:opacity-50"
+            disabled={!canClear}
             onClick={() => {
               setDraftWhen("all");
               setDraftDistance("all");
               setDraftClubId(undefined);
+              setDraftClubScope(undefined);
               setSelectedClubState(null);
               setClubSearch("");
               setClubSearchOpen(false);
@@ -396,6 +479,7 @@ export function TournamentFilters({
                 when: "all",
                 distance: "all",
                 clubId: undefined,
+                clubScope: undefined,
               });
               onOpenChange(false);
             }}
@@ -404,12 +488,14 @@ export function TournamentFilters({
           </Button>
           <Button
             size="sm"
-            className="h-9 flex-[2] rounded-xl bg-brand-primary text-[13px] font-semibold text-white shadow-sm shadow-brand-primary/20 hover:bg-brand-primary-hover transition-colors"
+            className="h-9 flex-[2] rounded-xl text-[13px] font-semibold text-white shadow-sm transition-colors hover:opacity-95"
+            style={{ backgroundColor: FILTER_GREEN }}
             onClick={() => {
               onFiltersChange({
                 when: draftWhen,
                 distance: draftDistance,
-                clubId: draftClubId,
+                clubId: draftClubScope === "favorites" ? undefined : draftClubId,
+                clubScope: draftClubScope === "favorites" ? "favorites" : undefined,
               });
               onOpenChange(false);
             }}

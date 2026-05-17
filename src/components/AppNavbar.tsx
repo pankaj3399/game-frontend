@@ -127,8 +127,8 @@ function NavLinks({
               "flex items-center leading-none whitespace-nowrap transition-colors",
               isInline
                 ? compact
-                  ? "gap-1 text-[11px] tracking-tight lg:text-[12px] xl:gap-1.5 xl:text-[13px]"
-                  : "gap-1.5 text-[12px] lg:gap-1.5 lg:text-[13px] xl:gap-2 xl:text-[14px]"
+                  ? "gap-1 text-[11px] tracking-tight lg:gap-1 lg:text-[11.5px] xl:gap-1.5 xl:text-[12.5px]"
+                  : "gap-1 text-[12px] lg:gap-1 lg:text-[12px] xl:gap-1.5 xl:text-[13px]"
                 : "group h-10 gap-3 rounded-[10px] px-3 text-[14px]",
               isInline
                 ? isActive
@@ -251,7 +251,7 @@ export function AppNavbar() {
               )}
             >
               <UserIcon size={16} className="shrink-0 text-white lg:h-[17px] lg:w-[17px]" />
-              <span className={cn("truncate", isGermanUi ? "max-w-[70px] lg:max-w-[102px]" : "max-w-[90px] lg:max-w-[120px]")}>
+              <span className={cn("truncate", isGermanUi ? "max-w-[60px] lg:max-w-[88px]" : "max-w-[72px] lg:max-w-[100px]")}>
                 {user?.alias?.trim() ||
                   user?.name?.trim() ||
                   t("profile.title")}
@@ -387,11 +387,10 @@ export function AppNavbar() {
     >
       <div
         className={cn(
-          "relative mx-auto grid h-full w-full max-w-[1440px] grid-cols-[1fr_minmax(0,auto)_1fr] items-center gap-x-2 px-3 lg:gap-x-3 lg:px-6 xl:px-[96px]",
-          isGermanUi ? "lg:gap-x-2.5 xl:gap-x-3" : "lg:gap-x-3 xl:gap-x-4"
+          "relative mx-auto grid h-full w-full max-w-[1440px] grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-2 px-3 lg:gap-x-2 lg:px-6 xl:px-[72px] xl:gap-x-3"
         )}
       >
-        <div className="flex min-w-0 justify-self-start lg:h-[33px] xl:h-[39px]">
+        <div className="flex shrink-0 lg:h-[33px] xl:h-[39px]">
           <Link
             to="/"
             className="inline-flex shrink-0 items-center"
@@ -405,14 +404,14 @@ export function AppNavbar() {
           </Link>
         </div>
 
-        <div className="flex min-w-0 w-full max-w-full justify-center justify-self-center overflow-hidden px-1 lg:overflow-visible">
+        <div className="flex min-w-0 w-full justify-center overflow-hidden px-1 lg:overflow-visible">
           <span className="block w-full min-w-0 truncate text-center text-[22px] font-semibold leading-none text-[#F4C95D] sm:text-[24px] lg:hidden">
             {pageTitle}
           </span>
           <nav
             className={cn(
               "hidden items-center justify-center lg:flex",
-              isGermanUi ? "gap-x-3 xl:gap-x-5" : "gap-x-4 xl:gap-x-7"
+              isGermanUi ? "gap-x-2 xl:gap-x-3" : "gap-x-2.5 xl:gap-x-4"
             )}
           >
             <NavLinks
@@ -424,8 +423,8 @@ export function AppNavbar() {
           </nav>
         </div>
 
-        <div className="flex min-w-0 shrink-0 justify-end justify-self-end gap-2 lg:gap-3">
-          <div className={cn("hidden items-center lg:flex", isGermanUi ? "lg:gap-2.5" : "lg:gap-3")}>
+        <div className="flex shrink-0 justify-end gap-2 lg:gap-2">
+          <div className="hidden items-center gap-2 lg:flex">
             {!isAuthenticated && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>

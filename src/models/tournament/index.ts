@@ -11,6 +11,7 @@ export type {
   TournamentMode,
   TournamentPagination,
   TournamentPlayMode,
+  TournamentClubScope,
   TournamentDistanceFilter,
   TournamentStatus,
   TournamentWhenFilter,
@@ -32,6 +33,7 @@ export {
 export { TournamentTab, type TournamentTabValue } from "./tabs";
 
 export {
+  isTournamentClubScope,
   isTournamentDistanceFilter,
   isTournamentWhenFilter,
 } from "./types";

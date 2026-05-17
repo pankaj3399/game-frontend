@@ -398,7 +398,17 @@
     "noSponsors": "Noch keine Sponsoren.",
     "requestTennisLesson": "Tennistunde anfragen",
     "becomeMember": "Mitglied werden",
-    "clubDetails": "Vereinsdetails"
+    "clubDetails": "Vereinsdetails",
+    "filters": "Filter",
+    "filterScopeHome": "Heimatverein",
+    "filterScopeFavorites": "Favoritenvereine",
+    "filterScopeAll": "Alle Vereine",
+    "filterDistanceUnder50": "<50 km",
+    "filterDistance50To80": "50–80 km",
+    "filterDistanceAll": "Alle",
+    "filterDistanceRequiresHome": "Legen Sie in den Einstellungen einen Heimatverein fest, um nach Entfernung zu filtern.",
+    "listLoadError": "Vereine konnten nicht geladen werden. Bitte erneut versuchen oder die Filter anpassen.",
+    "listRetry": "Erneut versuchen"
   },
   "sponsors": {
     "title": "Vereinssponsoren",
@@ -483,16 +493,20 @@
     "filterStatus": "Status",
     "filterWhen": "Zeit",
     "filterWhenAll": "Alle Turniere",
-    "filterWhenFuture": "Zukünftig und laufend",
+    "filterWhenListAll": "Alle",
+    "filterWhenFuture": "Zukünftig & laufend",
     "filterWhenPast": "Vergangen",
     "filterDistance": "Entfernung vom Heimatverein",
-    "filterDistanceAll": "Beliebige Entfernung",
-    "filterDistanceUnder50": "<50",
+    "filterDistanceAll": "Alle",
+    "filterDistanceUnder50": "<50 km",
     "filterDistance50To80": "50-80 km",
     "filterDistanceOver80": ">80",
     "filterSearch": "Suche",
     "filterSearchPlaceholder": "Turniere nach Namen suchen...",
     "filterClub": "Verein",
+    "filterClubHome": "Heimatverein",
+    "filterClubFavorites": "Lieblingsvereine",
+    "filterClubAllClubs": "Alle Vereine",
     "filterClubSearchPlaceholder": "Vereine suchen...",
     "filterClubNoResults": "Keine Vereine gefunden.",
     "filterClubSelected": "Ausgewählt: {{name}}",
@@ -808,7 +822,10 @@
       "tournament": "Turnier",
       "opponent": "Gegner",
       "myScore": "Meine Punktzahl",
-      "opponentScore": "Punktzahl Gegner"
+      "opponentScore": "Punktzahl Gegner",
+      "pendingConfirmation": "Wartet auf Bestätigung",
+      "independentMatch": "Eigenständiges Match",
+      "resumeQr": "QR fortsetzen"
     }
   },
   "recordScorePage": {
@@ -905,6 +922,8 @@
       "qrPreviewValidateFallback": "Ergebnis bestätigen",
       "unsavedQrChangesHint": "Ergebnisse wurden geändert. Speichern Sie die Änderungen, um QR-Code und Validierungslink neu zu erzeugen.",
       "shareValidationLink": "Link kopieren oder teilen",
+      "copyLink": "Link kopieren",
+      "copyValidationLink": "Validierungslink kopieren oder teilen",
       "validationLinkShareTitle": "Ergebnis auf TB10 bestätigen",
       "validationLinkShareText": "Mit diesem Link können Sie das Match-Ergebnis prüfen und bestätigen.",
       "validationLinkCopied": "Link kopiert. Senden Sie ihn an Ihren Gegner zur Bestätigung.",
@@ -951,7 +970,8 @@
     "inviteShareTitle": "TB10",
     "inviteShareText": "Mach mit bei TB10",
     "linkCopied": "Link kopiert",
-    "unableToCopyLink": "Link konnte nicht kopiert werden"
+    "unableToCopyLink": "Link konnte nicht kopiert werden",
+    "version": "Version: Backend: {{backend}} Frontend: {{frontend}}"
   },
   "timepicker": {
     "placeholder": "Zeit wählen",

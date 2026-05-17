@@ -52,7 +52,10 @@ export function getScorePickerLabel(
 }
 
 export function playerDisplayName(
-  player: { name: string | null; alias: string | null } | null | undefined,
+  player:
+    | { name?: string | null; alias?: string | null }
+    | null
+    | undefined,
   fallback: string,
   truncate: boolean = true,
 ) {

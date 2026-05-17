@@ -4,6 +4,7 @@ import { useDebouncedValue } from "@/lib/hooks/useDebouncedValue";
 import {
   DEFAULT_TOURNAMENT_FILTERS_STATE,
   filtersReducer,
+  isTournamentClubScope,
   isTournamentDistanceFilter,
   isTournamentWhenFilter,
   resolveTournamentListTabFromSearchParams,
@@ -26,6 +27,7 @@ interface PersistedTournamentFiltersState {
     when?: string;
     distance?: string;
     clubId?: string;
+    clubScope?: string;
   };
   updatedAt: number;
 }
@@ -91,11 +93,19 @@ function parseEnumField<V extends string>(
 function parsePersistedFilters(filters: unknown) {
   const raw = asFilterRecord(filters);
   if (!raw) return {};
+  const parsedDistance = parseEnumField(raw.distance, isTournamentDistanceFilter);
+  const distance = parsedDistance === "over80" ? undefined : parsedDistance;
+  const clubId = trimmedNonEmpty(raw.clubId);
+  let clubScope = parseEnumField(raw.clubScope, isTournamentClubScope);
+  if (clubId && clubScope) {
+    clubScope = undefined;
+  }
   return {
     q: trimmedNonEmpty(raw.q),
     when: parseEnumField(raw.when, isTournamentWhenFilter),
-    distance: parseEnumField(raw.distance, isTournamentDistanceFilter),
-    clubId: trimmedNonEmpty(raw.clubId),
+    distance,
+    clubId,
+    clubScope,
   };
 }
 
@@ -217,11 +227,19 @@ export function useTournamentFilters({
 
   const setClubId = useCallback((value?: string) => {
     dispatch({
-      type: "SET_CLUB",
-      payload:
-        value && value.trim().length > 0 ? value : undefined,
+      type: "SET_CLUB_FILTER",
+      payload: {
+        clubId: value && value.trim().length > 0 ? value : undefined,
+      },
     });
   }, []);
+
+  const setClubFilter = useCallback(
+    (payload: { clubId?: string; clubScope?: "favorites" }) => {
+      dispatch({ type: "SET_CLUB_FILTER", payload });
+    },
+    []
+  );
 
   /**
    * 🔄 Hydrate from localStorage
@@ -287,6 +305,7 @@ export function useTournamentFilters({
             when: persisted.filters.when,
             distance: persisted.filters.distance,
             clubId: persisted.filters.clubId,
+            clubScope: persisted.filters.clubScope,
           },
           updatedAt: persisted.updatedAt,
         };
@@ -316,6 +335,7 @@ export function useTournamentFilters({
         when: state.filters.when,
         distance: state.filters.distance,
         clubId: state.filters.clubId,
+        clubScope: state.filters.clubScope,
       },
       updatedAt: Date.now(),
     };
@@ -328,6 +348,7 @@ export function useTournamentFilters({
     state.filters.when,
     state.filters.distance,
     state.filters.clubId,
+    state.filters.clubScope,
   ]);
 
   return {
@@ -340,6 +361,7 @@ export function useTournamentFilters({
     setWhenFromValue,
     setDistanceFromValue,
     setClubId,
+    setClubFilter,
     setQuery,
     setPage,
   };

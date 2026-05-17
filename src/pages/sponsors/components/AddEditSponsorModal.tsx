@@ -119,7 +119,10 @@ export function AddEditSponsorModal({
           />
 
           <div>
-            <Label htmlFor="sponsor-name" className="text-[10px] font-medium uppercase text-[#010a04]/70">
+            <Label
+              htmlFor="sponsor-name"
+              className="text-xs font-medium uppercase tracking-[0.06em] text-[#010a04]/70"
+            >
               {t("sponsors.nameLabel")}
             </Label>
             <Input
@@ -135,7 +138,10 @@ export function AddEditSponsorModal({
           </div>
 
           <div>
-            <Label htmlFor="sponsor-link" className="text-[10px] font-medium uppercase text-[#010a04]/70">
+            <Label
+              htmlFor="sponsor-link"
+              className="text-xs font-medium uppercase tracking-[0.06em] text-[#010a04]/70"
+            >
               {t("sponsors.urlLabel")}
             </Label>
             <Input

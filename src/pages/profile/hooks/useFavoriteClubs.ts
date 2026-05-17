@@ -38,10 +38,11 @@ async function setHomeClub(clubId: string) {
   return res.data;
 }
 
-export function useFavoriteClubs() {
+export function useFavoriteClubs(options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: queryKeys.user.favoriteClubs(),
     queryFn: fetchFavoriteClubs,
+    enabled: options?.enabled ?? true,
   });
 }
 

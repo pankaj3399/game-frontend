@@ -5,14 +5,17 @@ import { useTranslation } from "react-i18next";
 import InlineLoader from "@/components/shared/InlineLoader";
 import { PaginationBar } from "@/components/pagination/PaginationBar";
 import { CreateTournamentModal } from "@/pages/tournaments/components/CreateTournamentModal";
-import { useIsOrganiserOrAbove } from "@/pages/auth/hooks";
-import { TournamentFilters } from "@/pages/tournaments/components/TournamentFilters";
+import { useIsOrganiserOrAbove, useAuth } from "@/pages/auth/hooks";
+import {
+  TournamentFilters,
+  type TournamentFiltersChangePayload,
+} from "@/pages/tournaments/components/TournamentFilters";
 import { TournamentActions } from "@/pages/tournaments/components/TournamentActions";
 import { TournamentTable } from "@/pages/tournaments/components/TournamentTable";
 import { useTournamentFilters } from "@/pages/tournaments/hooks/useTournamentFilters";
 import { useTournamentPermissions } from "@/pages/tournaments/hooks/useTournamentPermissions";
 import { useTournaments } from "./hooks/useTournaments";
-import { useAuth } from "@/pages/auth/hooks";
+import { useFavoriteClubs } from "@/pages/profile/hooks/useFavoriteClubs";
 import { TournamentTableSkeleton } from "@/components/ui/tournament-table-skeleton";
 import { getErrorMessage } from "@/lib/errors";
 import { TW_BREAKPOINT_LG_PX, useMinWidth } from "@/lib/hooks/useMediaQuery";
@@ -51,7 +54,7 @@ function TournamentListContent() {
     setTab,
     setWhenFromValue,
     setDistanceFromValue,
-    setClubId,
+    setClubFilter,
     setPage,
   } = useTournamentFilters({
     isOrganiserOrAbove,
@@ -79,6 +82,12 @@ function TournamentListContent() {
     [isOrganiserOrAbove, setSearchParams, setTab]
   );
 
+  const { data: favoriteClubsData } = useFavoriteClubs({
+    enabled: Boolean(user?.id) && !authLoading,
+  });
+  const homeClubIdForFilters = favoriteClubsData?.homeClub?.id ?? null;
+  const favoriteClubsCount = favoriteClubsData?.favoriteClubs?.length ?? 0;
+
   const { data, error, isPending, isFetching, refetch, isLoadingError } = useTournaments(
     effectiveFilters()
   );
@@ -97,11 +106,18 @@ function TournamentListContent() {
     activeTab === TournamentTab.Drafts
       ? t("tournaments.tabDrafts")
       : t("tournaments.Tournaments");
-  const handleFiltersChange = (next: { when: string; distance: string; clubId?: string }) => {
-    setWhenFromValue(next.when);
-    setDistanceFromValue(next.distance);
-    setClubId(next.clubId);
-  };
+  const handleFiltersChange = useCallback(
+    (next: TournamentFiltersChangePayload) => {
+      setWhenFromValue(next.when);
+      setDistanceFromValue(next.distance);
+      if (next.clubScope === "favorites") {
+        setClubFilter({ clubScope: "favorites" });
+      } else {
+        setClubFilter({ clubId: next.clubId });
+      }
+    },
+    [setClubFilter, setDistanceFromValue, setWhenFromValue]
+  );
   const canUsePullToRefresh = !isDesktop && !filtersOpen;
   const pullReadyToRefresh = pullDistance >= PULL_TO_REFRESH_THRESHOLD_PX;
   const pullIndicatorMessage = isPullRefreshing
@@ -207,7 +223,10 @@ function TournamentListContent() {
                   when: filters.when,
                   distance: filters.distance,
                   clubId: filters.clubId,
+                  clubScope: filters.clubScope,
                 }}
+                homeClubId={homeClubIdForFilters}
+                favoriteClubsCount={favoriteClubsCount}
                 onFiltersChange={handleFiltersChange}
               />
               <div className="flex items-center gap-2">
@@ -257,6 +276,9 @@ function TournamentListContent() {
                 when={filters.when}
                 distance={filters.distance}
                 clubId={filters.clubId}
+                clubScope={filters.clubScope}
+                homeClubId={homeClubIdForFilters}
+                favoriteClubsCount={favoriteClubsCount}
                 onFiltersChange={handleFiltersChange}
                 onCreate={() => setIsCreateModalOpen(true)}
               />

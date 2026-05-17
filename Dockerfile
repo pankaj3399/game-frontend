@@ -1,6 +1,9 @@
 # Build Stage
 FROM mcr.microsoft.com/devcontainers/javascript-node:1-22-bullseye AS build-stage
 
+ARG COMMIT_SHA=dev
+ENV VITE_COMMIT_SHA=$COMMIT_SHA
+
 WORKDIR /app
 # Copy the rest of the application files to the working directory
 COPY . .

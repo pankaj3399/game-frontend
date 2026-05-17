@@ -209,10 +209,16 @@ export function useGenerateIndependentScoreQr() {
     mutationFn: (input: GenerateIndependentScoreQrInput) =>
       generateIndependentScoreQr(input),
     onSuccess: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: queryKeys.tournament.liveMatch(),
-        refetchType: "all",
-      });
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.tournament.liveMatch(),
+          refetchType: "all",
+        }),
+        queryClient.invalidateQueries({
+          queryKey: [...queryKeys.tournament.all, "score-qr", "active"],
+          refetchType: "all",
+        }),
+      ]);
     },
   });
 }
@@ -253,6 +259,7 @@ export function useValidateTournamentScoreQrConfirmContext(
     queryFn: () => validateTournamentScoreQrConfirmContext(normalized),
     enabled: enabled && normalized.length > 0,
     staleTime: 15_000,
+    refetchInterval: 5000,
     retry: false,
   });
 }
@@ -317,6 +324,88 @@ export function useActiveTournamentScoreQrSession(
     queryFn: () => getActiveTournamentScoreQrSession(input),
     enabled,
     staleTime: 10_000,
+    // Poll so the generator's page detects when the session is consumed or expired
+    // (e.g. opponent confirmed the QR) without requiring a manual refresh.
+    refetchInterval: 8_000,
     retry: false,
+  });
+}
+
+// ----------
+// Score update (in-place)
+// ----------
+
+async function updateTournamentScoreQrScores(
+  requestId: string,
+  playerOneScores: Array<number | "wo">,
+  playerTwoScores: Array<number | "wo">,
+): Promise<{ requestId: string; playerOneScores: Array<number | "wo">; playerTwoScores: Array<number | "wo"> }> {
+  const response = await api.patch(
+    `/api/tournaments/score-qr/${encodeURIComponent(requestId)}/scores`,
+    { playerOneScores, playerTwoScores },
+  );
+  return z
+    .object({
+      requestId: z.string(),
+      playerOneScores: z.array(z.union([z.number(), z.literal("wo")])),
+      playerTwoScores: z.array(z.union([z.number(), z.literal("wo")])),
+    })
+    .parse(response.data);
+}
+
+export function useUpdateScoreQrScores() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      requestId,
+      playerOneScores,
+      playerTwoScores,
+    }: {
+      requestId: string;
+      playerOneScores: Array<number | "wo">;
+      playerTwoScores: Array<number | "wo">;
+    }) => updateTournamentScoreQrScores(requestId, playerOneScores, playerTwoScores),
+    onSuccess: async () => {
+      // Refetch the active session so A's view refreshes to the new scores
+      // (the QR token/URL stays the same — no regeneration needed).
+      await queryClient.invalidateQueries({
+        queryKey: [...queryKeys.tournament.all, "score-qr", "active"],
+        refetchType: "all",
+      });
+    },
+  });
+}
+
+export function useCancelActiveScoreQr() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () => {
+      // Inline axios import to avoid touching other imports, since we just need a simple call.
+      // But we can also use the one from api/tournament.ts
+      return import("@/lib/api/tournament").then((m) => m.cancelActiveTournamentScoreQrSession());
+    },
+    onMutate: () => {
+      const previousSessions =
+        queryClient.getQueriesData<ActiveTournamentScoreQrSessionResponse>({
+          queryKey: [...queryKeys.tournament.all, "score-qr", "active"],
+        });
+      queryClient.setQueriesData(
+        { queryKey: [...queryKeys.tournament.all, "score-qr", "active"] },
+        { session: null },
+      );
+      return { previousSessions };
+    },
+    onError: (_error, _variables, context) => {
+      context?.previousSessions.forEach(([queryKey, data]) => {
+        queryClient.setQueryData(queryKey, data);
+      });
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: [...queryKeys.tournament.all, "score-qr", "active"],
+        refetchType: "all",
+      });
+    },
   });
 }

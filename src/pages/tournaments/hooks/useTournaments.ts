@@ -12,7 +12,8 @@ async function fetchTournaments(filters: TournamentListFilters): Promise<Tournam
   if (filters.view) params.set("view", filters.view);
   if (filters.when) params.set("when", filters.when);
   if (filters.distance) params.set("distance", filters.distance);
-  if (filters.clubId) params.set("club", filters.clubId);
+  if (filters.clubScope) params.set("clubScope", filters.clubScope);
+  else if (filters.clubId) params.set("club", filters.clubId);
   if (filters.page != null) params.set("page", String(filters.page));
   if (filters.limit != null) params.set("limit", String(filters.limit));
   if (filters.q) params.set("q", filters.q);

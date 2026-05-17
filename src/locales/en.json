@@ -399,7 +399,17 @@
     "noSponsors": "No sponsors yet.",
     "requestTennisLesson": "Request a Tennis Lesson",
     "becomeMember": "Become Member",
-    "clubDetails": "Club Details"
+    "clubDetails": "Club Details",
+    "filters": "Filters",
+    "filterScopeHome": "Home club",
+    "filterScopeFavorites": "Favourite clubs",
+    "filterScopeAll": "All clubs",
+    "filterDistanceUnder50": "<50 km",
+    "filterDistance50To80": "50–80 km",
+    "filterDistanceAll": "All",
+    "filterDistanceRequiresHome": "Set a home club in settings to filter by distance.",
+    "listLoadError": "Could not load clubs. Try again or adjust your filters.",
+    "listRetry": "Retry"
   },
   "sponsors": {
     "title": "Club Sponsors",
@@ -449,7 +459,7 @@
     "premiumRequired": "Sponsors require a premium plan. Upgrade your club to add and manage sponsors.",
     "nameRequired": "Name is required",
     "logoUpload": {
-      "label": "Upload logo",
+      "label": "Upload Logo",
       "hint": "Logo can be auto-fetched from URL or uploaded",
       "uploading": "Uploading file...",
       "dragDropOr": "Drag & drop or",
@@ -483,16 +493,20 @@
     "filterStatus": "Status",
     "filterWhen": "Time",
     "filterWhenAll": "All tournaments",
-    "filterWhenFuture": "Future and ongoing",
+    "filterWhenListAll": "All",
+    "filterWhenFuture": "Future & ongoing",
     "filterWhenPast": "Past",
     "filterDistance": "Distance from home club",
-    "filterDistanceAll": "Any distance",
-    "filterDistanceUnder50": "<50",
+    "filterDistanceAll": "All",
+    "filterDistanceUnder50": "<50 km",
     "filterDistance50To80": "50-80 km",
     "filterDistanceOver80": ">80",
     "filterSearch": "Search",
     "filterSearchPlaceholder": "Search tournaments by name...",
     "filterClub": "Club",
+    "filterClubHome": "Home club",
+    "filterClubFavorites": "Favourite clubs",
+    "filterClubAllClubs": "All clubs",
     "filterClubSearchPlaceholder": "Search clubs...",
     "filterClubNoResults": "No clubs found.",
     "filterClubSelected": "Selected: {{name}}",
@@ -834,7 +848,10 @@
       "tournament": "Tournament",
       "opponent": "Opponent",
       "myScore": "My Score",
-      "opponentScore": "Opponent Score"
+      "opponentScore": "Opponent Score",
+      "pendingConfirmation": "Awaiting confirmation",
+      "independentMatch": "Independent match",
+      "resumeQr": "Resume QR"
     }
   },
   "recordScorePage": {
@@ -934,6 +951,8 @@
       "unsavedChangesInline": "unsaved changes",
       "qrShareTitle": "Share this QR with your opponent for score confirmation.",
       "shareValidationLink": "Copy or share link",
+      "copyLink": "Copy link",
+      "copyValidationLink": "Copy or share the validation link",
       "validationLinkShareTitle": "Confirm this score on TB10",
       "validationLinkShareText": "Open this link to review and confirm the match score.",
       "validationLinkCopied": "Link copied. Send it to your opponent so they can confirm the score.",
@@ -983,7 +1002,8 @@
     "inviteShareTitle": "TB10",
     "inviteShareText": "Join me on TB10",
     "linkCopied": "Link copied",
-    "unableToCopyLink": "Unable to copy the link"
+    "unableToCopyLink": "Unable to copy the link",
+    "version": "Version: Backend: {{backend}} Frontend: {{frontend}}"
   },
   "timepicker": {
     "placeholder": "Select time",

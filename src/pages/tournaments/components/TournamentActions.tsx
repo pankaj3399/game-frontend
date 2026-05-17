@@ -3,7 +3,7 @@ import { PlusSignIcon, PencilEdit01Icon, IconChevronLeft } from "@/icons/figma-i
 import { RoleGuard } from "@/components/auth/RoleGuard";
 import { Button } from "@/components/ui/button";
 import { ROLES } from "@/constants/roles";
-import { TournamentFilters } from "./TournamentFilters";
+import { TournamentFilters, type TournamentFiltersChangePayload } from "./TournamentFilters";
 import { TournamentTab, type TournamentListTab } from "@/models/tournament";
 interface TournamentActionsProps {
   activeTab: TournamentListTab;
@@ -13,7 +13,10 @@ interface TournamentActionsProps {
   when?: string;
   distance?: string;
   clubId?: string;
-  onFiltersChange: (next: { when: string; distance: string; clubId?: string }) => void;
+  clubScope?: "favorites";
+  homeClubId?: string | null;
+  favoriteClubsCount?: number;
+  onFiltersChange: (next: TournamentFiltersChangePayload) => void;
   onCreate: () => void;
 }
 
@@ -25,6 +28,9 @@ export function TournamentActions({
   when,
   distance,
   clubId,
+  clubScope,
+  homeClubId,
+  favoriteClubsCount,
   onFiltersChange,
   onCreate,
 }: TournamentActionsProps) {
@@ -39,7 +45,10 @@ export function TournamentActions({
           when,
           distance,
           clubId,
+          clubScope,
         }}
+        homeClubId={homeClubId}
+        favoriteClubsCount={favoriteClubsCount}
         onFiltersChange={onFiltersChange}
       />
       <RoleGuard requireRoleOrAbove={ROLES.ORGANISER}>
