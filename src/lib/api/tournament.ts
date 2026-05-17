@@ -1,4 +1,6 @@
 
+import { api } from "@/lib/api";
+
 export async function cancelActiveTournamentScoreQrSession(): Promise<void> {
-  await axios.delete("/api/tournaments/score-qr/active");
+  await api.delete("/api/tournaments/score-qr/active");
 }

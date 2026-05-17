@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import {
   Table,
@@ -23,7 +23,6 @@ export function MyScoreDesktopTable({
   formatScore,
 }: MyScoreDesktopTableProps) {
   const { t, i18n } = useTranslation();
-  const navigate = useNavigate();
 
   return (
     <div className="hidden sm:block">
@@ -62,11 +61,10 @@ export function MyScoreDesktopTable({
             return (
               <TableRow
                 key={entry.id}
-                onClick={isPending ? () => navigate("/record-score/manual") : undefined}
                 className={cn(
                   "border-[#010a04]/8",
                   isPending
-                    ? "cursor-pointer hover:bg-[rgba(6,116,41,0.04)]"
+                    ? "hover:bg-[rgba(6,116,41,0.04)]"
                     : "hover:bg-[#010a04]/[0.015]",
                 )}
               >
@@ -90,9 +88,18 @@ export function MyScoreDesktopTable({
                       </span>
                     </div>
                     {isPending && (
-                      <span className="ml-7 inline-flex items-center rounded-full bg-[rgba(214,171,63,0.15)] px-1.5 py-0.5 text-[10px] font-medium text-[#9a7620]">
-                        {t("myScorePage.table.pendingConfirmation")}
-                      </span>
+                      <div className="ml-7 flex flex-wrap items-center gap-2">
+                        <span className="inline-flex items-center rounded-full bg-[rgba(214,171,63,0.15)] px-1.5 py-0.5 text-[10px] font-medium text-[#9a7620]">
+                          {t("myScorePage.table.pendingConfirmation")}
+                        </span>
+                        <Link
+                          to="/record-score/manual"
+                          className="inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] font-medium text-[#067429] underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#067429]/40"
+                          aria-label={`${t("myScorePage.table.resumeQr")} ${entry.tournament.name}`}
+                        >
+                          {t("myScorePage.table.resumeQr")}
+                        </Link>
+                      </div>
                     )}
                   </div>
                 </TableCell>

@@ -7,7 +7,7 @@ import {
 } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useAllClubs } from "@/pages/clubs/hooks";
+import { useAllClubs, useClubById } from "@/pages/clubs/hooks";
 import ListFilterIcon from "@/assets/icons/figma/misc/list-filter.svg?react";
 import { Search01Icon } from "@/icons/figma-icons";
 
@@ -154,11 +154,28 @@ export function TournamentFilters({
 
   const clubs = clubsData?.clubs ?? [];
   const clubOptionCount = clubs.length + 1;
+  const selectedClubFromState =
+    draftClubId && selectedClubState?.id === draftClubId ? selectedClubState : null;
+  const selectedClubFromList =
+    draftClubId ? clubs.find((club) => club.id === draftClubId) ?? null : null;
+  const shouldFetchSelectedClub =
+    Boolean(draftClubId) &&
+    !draftClubScope &&
+    !selectedClubFromState &&
+    !selectedClubFromList;
+  const { data: selectedClubData, isLoading: selectedClubLoading } = useClubById(
+    shouldFetchSelectedClub ? draftClubId ?? null : null,
+  );
   const selectedClub =
     draftClubId
-      ? (selectedClubState?.id === draftClubId
-          ? selectedClubState
-          : clubsData?.clubs?.find((c) => c.id === draftClubId)) ?? null
+      ? selectedClubFromState ??
+        selectedClubFromList ??
+        (selectedClubData
+          ? {
+              id: selectedClubData.club.id,
+              name: selectedClubData.club.name,
+            }
+          : null)
       : null;
 
   const appliedWhenIsActive = (when ?? "all") !== "all";
@@ -170,16 +187,7 @@ export function TournamentFilters({
     (appliedDistanceIsActive ? 1 : 0) +
     (appliedClubIsActive ? 1 : 0);
 
-  const draftClubMatchesApplied =
-    draftClubScope === clubScope &&
-    (draftClubScope === "favorites"
-      ? !draftClubId && !clubId
-      : draftClubId === clubId);
-
-  const hasDraftChanges =
-    draftWhen !== (when ?? "all") ||
-    normalizeDistanceForDraft(draftDistance) !== normalizeDistanceForDraft(distance) ||
-    !draftClubMatchesApplied;
+  const canClear = activeFilterCount > 0;
 
   const whenOptions = [
     { value: "future", label: t("tournaments.filterWhenFuture") },
@@ -322,7 +330,10 @@ export function TournamentFilters({
                 </span>
               </div>
             ) : null}
-            {draftClubId && !selectedClub && clubsLoading && !draftClubScope ? (
+            {draftClubId &&
+            !selectedClub &&
+            (clubsLoading || selectedClubLoading) &&
+            !draftClubScope ? (
               <div className="mt-3 flex items-center gap-1.5">
                 <span className="inline-flex h-6 max-w-[16rem] truncate rounded-full bg-[#006B2B]/10 px-2.5 text-[11.5px] font-medium text-[#006B2B]">
                   {t("common.loading")}
@@ -454,7 +465,7 @@ export function TournamentFilters({
             variant="outline"
             size="sm"
             className="h-9 flex-1 rounded-xl border-black/15 bg-white text-[13px] font-medium text-black/45 hover:bg-black/[0.03] hover:text-black/60 disabled:opacity-50"
-            disabled={!hasDraftChanges}
+            disabled={!canClear}
             onClick={() => {
               setDraftWhen("all");
               setDraftDistance("all");

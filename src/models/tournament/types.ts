@@ -308,14 +308,13 @@ export const activeTournamentScoreQrSessionResponseSchema = z.object({
       matchId: z.string(),
       requestByUserId: z.string(),
       opponentUserId: wireJsonNullableString(),
-      opponentUserProfile: z
-        .object({
-          name: z.string().nullable(),
-          alias: z.string().nullable(),
-          profilePictureUrl: z.string().nullable(),
-        })
-        .nullable()
-        .optional(),
+      opponentUserProfile: wireJsonNullable(
+        z.object({
+          name: wireJsonNullableString(),
+          alias: wireJsonNullableString(),
+          profilePictureUrl: wireJsonNullableString(),
+        }),
+      ),
       playerOneScores: z.array(tournamentMatchScoreValueSchema),
       playerTwoScores: z.array(tournamentMatchScoreValueSchema),
       playMode: tournamentPlayModeSchema,

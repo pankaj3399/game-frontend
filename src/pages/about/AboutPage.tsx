@@ -182,7 +182,7 @@ export default function AboutPage() {
               </div>
             </section>
             <div className="mt-2 text-center text-[10px] text-[#010a04]/50">
-              Version: Backend : {backendSha} Frontend: {FRONTEND_SHA}
+              {t("about.version", { backend: backendSha, frontend: FRONTEND_SHA })}
             </div>
           </div>
         </div>

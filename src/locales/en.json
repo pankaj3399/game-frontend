@@ -1002,7 +1002,8 @@
     "inviteShareTitle": "TB10",
     "inviteShareText": "Join me on TB10",
     "linkCopied": "Link copied",
-    "unableToCopyLink": "Unable to copy the link"
+    "unableToCopyLink": "Unable to copy the link",
+    "version": "Version: Backend: {{backend}} Frontend: {{frontend}}"
   },
   "timepicker": {
     "placeholder": "Select time",

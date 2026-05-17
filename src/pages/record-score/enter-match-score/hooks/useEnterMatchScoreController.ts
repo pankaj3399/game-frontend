@@ -848,11 +848,11 @@ export function useEnterMatchScoreController({
     async (options?: { showSuccessToast?: boolean; forceGenerateNew?: boolean }) => {
       if (!canGenerateQr) {
         toast.error(t("recordScorePage.enter.errors.noTournamentMatchSelected"));
-        return;
+        return null;
       }
 
       const input = buildCurrentScoreInput(options?.showSuccessToast !== false);
-      if (!input) return;
+      if (!input) return null;
 
       // If an independent session is already active and the user only changed scores,
       // update the existing request in-place (same token/QR) instead of regenerating.
@@ -888,10 +888,12 @@ export function useEnterMatchScoreController({
             toast.error(
               getErrorMessage(error) ?? t("recordScorePage.enter.errors.qrGenerateFailed"),
             );
-            return;
+            return null;
           }
         }
-        if (patchOk) return;
+        if (patchOk) {
+          return hydratedQrSession?.validationUrl ?? null;
+        }
       }
 
       try {
@@ -921,10 +923,12 @@ export function useEnterMatchScoreController({
         if (options?.showSuccessToast !== false) {
           toast.success(t("recordScorePage.enter.qrGenerated"));
         }
+        return result.qr.validationUrl;
       } catch (error: unknown) {
         toast.error(
           getErrorMessage(error) ?? t("recordScorePage.enter.errors.qrGenerateFailed"),
         );
+        return null;
       }
     },
     [
@@ -1011,9 +1015,10 @@ export function useEnterMatchScoreController({
       hydratedQrSession?.flow === "independent" &&
       activeValidationUrl
     ) {
-      await onGenerateQr({ showSuccessToast: false });
-      // onGenerateQr clears hasUnsavedQrChanges on success; share the (unchanged) URL.
-      await shareOrCopyValidationUrl(activeValidationUrl);
+      const validationUrl = await onGenerateQr({ showSuccessToast: false });
+      if (validationUrl) {
+        await shareOrCopyValidationUrl(validationUrl);
+      }
       return;
     }
 

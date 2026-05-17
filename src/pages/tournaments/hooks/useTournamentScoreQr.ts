@@ -386,10 +386,20 @@ export function useCancelActiveScoreQr() {
       return import("@/lib/api/tournament").then((m) => m.cancelActiveTournamentScoreQrSession());
     },
     onMutate: () => {
+      const previousSessions =
+        queryClient.getQueriesData<ActiveTournamentScoreQrSessionResponse>({
+          queryKey: [...queryKeys.tournament.all, "score-qr", "active"],
+        });
       queryClient.setQueriesData(
         { queryKey: [...queryKeys.tournament.all, "score-qr", "active"] },
-        { session: null }
+        { session: null },
       );
+      return { previousSessions };
+    },
+    onError: (_error, _variables, context) => {
+      context?.previousSessions.forEach(([queryKey, data]) => {
+        queryClient.setQueryData(queryKey, data);
+      });
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({

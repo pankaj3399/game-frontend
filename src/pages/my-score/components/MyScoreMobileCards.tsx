@@ -18,6 +18,7 @@ export function MyScoreMobileCards({
 }: MyScoreMobileCardsProps) {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
+  const handlePendingNavigate = () => navigate("/record-score/manual");
 
   return (
     <div className="space-y-2.5 p-2.5 sm:hidden">
@@ -26,11 +27,28 @@ export function MyScoreMobileCards({
         return (
           <Card
             key={`mobile-card-${entry.id}`}
-            onClick={isPending ? () => navigate("/record-score/manual") : undefined}
+            onClick={isPending ? handlePendingNavigate : undefined}
+            onKeyDown={
+              isPending
+                ? (event) => {
+                    if (event.key === "Enter" || event.key === " ") {
+                      event.preventDefault();
+                      handlePendingNavigate();
+                    }
+                  }
+                : undefined
+            }
+            tabIndex={isPending ? 0 : undefined}
+            role={isPending ? "button" : undefined}
+            aria-label={
+              isPending
+                ? `${t("myScorePage.table.resumeQr")} ${entry.tournament.name}`
+                : undefined
+            }
             className={cn(
               "overflow-hidden rounded-[10px] border border-[#010a04]/8",
               isPending
-                ? "cursor-pointer bg-[#fdfcf5] transition-shadow hover:shadow-[0_4px_14px_rgba(214,171,63,0.18)]"
+                ? "cursor-pointer bg-[#fdfcf5] transition-shadow hover:shadow-[0_4px_14px_rgba(214,171,63,0.18)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#067429]/40 focus-visible:ring-offset-2"
                 : "bg-[#f7f8f7]",
             )}
           >

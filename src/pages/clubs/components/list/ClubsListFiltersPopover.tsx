@@ -111,7 +111,8 @@ export function ClubsListFiltersPopover({
   };
 
   const activeFilterCount =
-    (appliedClubScope !== "all" ? 1 : 0) + (appliedDistance !== "all" ? 1 : 0);
+    (appliedClubScope !== "all" ? 1 : 0) +
+    (hasHomeClub && appliedDistance !== "all" ? 1 : 0);
 
   const scopeOptions: { value: ClubListClubScope; label: string }[] = [
     { value: "home", label: t("clubs.filterScopeHome") },

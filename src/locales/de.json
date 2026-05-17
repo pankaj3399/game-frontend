@@ -822,7 +822,10 @@
       "tournament": "Turnier",
       "opponent": "Gegner",
       "myScore": "Meine Punktzahl",
-      "opponentScore": "Punktzahl Gegner"
+      "opponentScore": "Punktzahl Gegner",
+      "pendingConfirmation": "Wartet auf Bestätigung",
+      "independentMatch": "Eigenständiges Match",
+      "resumeQr": "QR fortsetzen"
     }
   },
   "recordScorePage": {
@@ -967,7 +970,8 @@
     "inviteShareTitle": "TB10",
     "inviteShareText": "Mach mit bei TB10",
     "linkCopied": "Link kopiert",
-    "unableToCopyLink": "Link konnte nicht kopiert werden"
+    "unableToCopyLink": "Link konnte nicht kopiert werden",
+    "version": "Version: Backend: {{backend}} Frontend: {{frontend}}"
   },
   "timepicker": {
     "placeholder": "Zeit wählen",
