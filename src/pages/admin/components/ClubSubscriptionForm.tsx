@@ -51,15 +51,18 @@ export function ClubSubscriptionForm({ club, onSave, isSaving, onRevoke }: ClubS
     club.subscription.plan
   );
   const [renewalDate, setRenewalDate] = useState<Date | null>(club.subscription.expiresAt);
+  const [renewalRequestedAt, setRenewalRequestedAt] = useState<Date | null>(
+    club.subscription.renewalRequestedAt ?? null
+  );
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [isRevoking, setIsRevoking] = useState(false);
 
   // A club is on trial when renewal was requested AND they still have active premium access.
   const isTrial =
-    club.subscription.renewalRequestedAt != null &&
-    club.subscription.plan === "premium" &&
-    club.subscription.expiresAt != null &&
-    differenceInCalendarDays(club.subscription.expiresAt, new Date()) > 0;
+    renewalRequestedAt != null &&
+    selectedPlan === "premium" &&
+    renewalDate != null &&
+    differenceInCalendarDays(renewalDate, new Date()) >= 0;
 
   const formatDateInput = (date: Date | null): string => {
     if (!date) return "-";
@@ -86,6 +89,7 @@ export function ClubSubscriptionForm({ club, onSave, isSaving, onRevoke }: ClubS
   const handleDiscard = () => {
     setSelectedPlan(club.subscription.plan);
     setRenewalDate(club.subscription.expiresAt);
+    setRenewalRequestedAt(club.subscription.renewalRequestedAt ?? null);
     setCalendarOpen(false);
   };
 
@@ -124,6 +128,7 @@ export function ClubSubscriptionForm({ club, onSave, isSaving, onRevoke }: ClubS
         const result = await onSave({ plan: "free", expiresAt: null });
         setSelectedPlan(result.plan);
         setRenewalDate(result.expiresAt);
+        setRenewalRequestedAt(null);
         toast.success(t("admin.clubSubscription.revokeTrialSuccess"));
       } catch (error) {
         toast.error(getErrorMessage(error) ?? t("admin.clubSubscription.toastErrorGeneric"));
@@ -136,6 +141,9 @@ export function ClubSubscriptionForm({ club, onSave, isSaving, onRevoke }: ClubS
     try {
       setIsRevoking(true);
       await onRevoke();
+      setSelectedPlan("free");
+      setRenewalDate(null);
+      setRenewalRequestedAt(null);
       toast.success(t("admin.clubSubscription.revokeTrialSuccess"));
     } catch (error) {
       toast.error(getErrorMessage(error) ?? t("admin.clubSubscription.toastErrorGeneric"));

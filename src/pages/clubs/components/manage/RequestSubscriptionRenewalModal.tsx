@@ -1,4 +1,4 @@
-import { useTranslation } from "react-i18next";
+import { Trans, useTranslation } from "react-i18next";
 import {
   Dialog,
   DialogContent,
@@ -54,7 +54,7 @@ export function RequestSubscriptionRenewalModal({
               {t("manageClub.renewModalTitle")}
             </h2>
             <p className="mt-[3px] text-[13px] text-[#6b7280]">
-              100 EUR / year · invoice sent within 2–3 days
+              {t("manageClub.renewModalPriceSummary")}
             </p>
           </div>
 
@@ -63,26 +63,32 @@ export function RequestSubscriptionRenewalModal({
           {/* ── Merged payment + invoice paragraph ── */}
           <div className="px-[22px] py-[16px]">
             <p className="text-[13.5px] leading-[1.65] text-[#374151]">
-              We'll send an invoice for{" "}
-              <span className="font-medium text-[#0d0d0d]">100 EUR</span> to the
-              email on your account. Payment goes to{" "}
-              <span className="font-medium text-[#0d0d0d]">
-                {GLOBAL_PARAMETERS.COMPANY_NAME}
-              </span>{" "}
-              · IBAN{" "}
-              <span className="font-mono text-[12.5px] text-[#0d0d0d]">
-                {GLOBAL_PARAMETERS.IBAN}
-              </span>
-              .
+              <Trans
+                i18nKey="manageClub.renewModalInvoiceDetail"
+                values={{
+                  amount: "100 EUR",
+                  companyName: GLOBAL_PARAMETERS.COMPANY_NAME,
+                  iban: GLOBAL_PARAMETERS.IBAN,
+                }}
+                components={{
+                  amount: <span className="font-medium text-[#0d0d0d]" />,
+                  company: <span className="font-medium text-[#0d0d0d]" />,
+                  iban: <span className="font-mono text-[12.5px] text-[#0d0d0d]" />,
+                }}
+              />
             </p>
           </div>
 
           {/* ── Instant access callout ── */}
           <div className="mx-[22px] mb-[16px] rounded-[10px] bg-[rgba(235,146,15,0.08)] px-[14px] py-[11px]">
             <p className="text-[13px] leading-[1.6] text-[#7a4000]">
-              Premium is already active for{" "}
-              <span className="font-semibold">2 weeks</span>. It stays active once
-              the invoice is paid.
+              <Trans
+                i18nKey="manageClub.renewModalTrialCallout"
+                values={{ trialDuration: t("manageClub.renewModalTrialDuration") }}
+                components={{
+                  duration: <span className="font-semibold" />,
+                }}
+              />
             </p>
           </div>
 
@@ -90,16 +96,19 @@ export function RequestSubscriptionRenewalModal({
 
           {/* ── Support note ── */}
           <p className="px-[22px] py-[13px] text-[12.5px] leading-[1.6] text-[#6b7280]">
-            Having trouble?{" "}
-            <a
-              href={contactMailto}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="font-medium text-[#eb920f] underline-offset-2 transition-opacity hover:opacity-75 hover:underline"
-            >
-              Contact us
-            </a>{" "}
-            and we'll help you get set up.
+            <Trans
+              i18nKey="manageClub.renewModalSupportNote"
+              components={{
+                contactLink: (
+                  <a
+                    href={contactMailto}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-medium text-[#eb920f] underline-offset-2 transition-opacity hover:opacity-75 hover:underline"
+                  />
+                ),
+              }}
+            />
           </p>
 
           <div className="h-px bg-[rgba(0,0,0,0.07)]" />

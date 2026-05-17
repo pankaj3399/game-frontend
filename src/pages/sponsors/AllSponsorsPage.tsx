@@ -4,7 +4,7 @@ import { useAllSponsors } from "@/pages/sponsors/hooks";
 import InlineLoader from "@/components/shared/InlineLoader";
 import { GLOBAL_PARAMETERS } from "@/constants/constants";
 
-const BECOME_SPONSOR_SUBJECT = "We like to become a TB10 Sponsor";
+const BECOME_SPONSOR_SUBJECT = "We would like to become a TB10 Sponsor";
 const BECOME_SPONSOR_BODY =
   "Dear TB10, we would like our company to appear under sponsors in the Sponsors Tab at TB10. Please reply to us with information about the options for this. Best regards,";
 
