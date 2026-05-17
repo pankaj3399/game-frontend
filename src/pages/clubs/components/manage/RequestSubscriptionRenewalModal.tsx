@@ -4,7 +4,7 @@ import {
   DialogContent,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { CrownIcon } from "@/icons/figma-icons";
+import { GLOBAL_PARAMETERS } from "@/constants/constants";
 
 interface RequestSubscriptionRenewalModalProps {
   open: boolean;
@@ -30,54 +30,101 @@ export function RequestSubscriptionRenewalModal({
       handleOpenChange(false);
       return;
     }
-
     try {
       await onConfirm();
       handleOpenChange(false);
     } catch {
-      // noop (intentionally swallow; parent handles errors)
+      // noop – parent handles errors
     }
   };
+
+  const contactMailto = `${GLOBAL_PARAMETERS.CONTACT_US_MAILTO}?subject=Premium%20Subscription%20Support`;
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent
         showCloseButton={false}
-        className="w-[414px] max-w-[calc(100%-2rem)] gap-0 rounded-[12px] border border-[rgba(1,10,4,0.08)] p-[20px_15px] shadow-[0px_3px_15px_0px_rgba(0,0,0,0.06)]"
+        className="w-[460px] max-w-[calc(100%-2rem)] gap-0 overflow-hidden rounded-[16px] border border-[rgba(1,10,4,0.08)] p-0 shadow-[0px_16px_48px_rgba(0,0,0,0.12)]"
       >
-        <div className="flex flex-col gap-[18px]">
-          <div className="inline-flex h-[44px] w-[44px] items-center justify-center rounded-[8px] bg-[#f6ecdd]">
-            <CrownIcon size={20} className="text-[#eb920f]" />
-          </div>
+        <div className="flex flex-col bg-white">
 
-          <div className="flex flex-col gap-[9px]">
-            <h2 className="text-xl font-semibold leading-[1.15] text-[#010a04]">
+          {/* ── Header ── */}
+          <div className="px-[22px] pb-[16px] pt-[22px]">
+            <h2 className="text-[17px] font-semibold leading-snug text-[#0d0d0d]">
               {t("manageClub.renewModalTitle")}
             </h2>
-            <p className="text-sm leading-[1.4] text-[#010a04]/50">
-              {t("manageClub.renewModalDescription")}
+            <p className="mt-[3px] text-[13px] text-[#6b7280]">
+              100 EUR / year · invoice sent within 2–3 days
             </p>
           </div>
 
-          <div className="flex w-full items-center justify-center gap-[12px] pt-[6px]">
+          <div className="h-px bg-[rgba(0,0,0,0.07)]" />
+
+          {/* ── Merged payment + invoice paragraph ── */}
+          <div className="px-[22px] py-[16px]">
+            <p className="text-[13.5px] leading-[1.65] text-[#374151]">
+              We'll send an invoice for{" "}
+              <span className="font-medium text-[#0d0d0d]">100 EUR</span> to the
+              email on your account. Payment goes to{" "}
+              <span className="font-medium text-[#0d0d0d]">
+                {GLOBAL_PARAMETERS.COMPANY_NAME}
+              </span>{" "}
+              · IBAN{" "}
+              <span className="font-mono text-[12.5px] text-[#0d0d0d]">
+                {GLOBAL_PARAMETERS.IBAN}
+              </span>
+              .
+            </p>
+          </div>
+
+          {/* ── Instant access callout ── */}
+          <div className="mx-[22px] mb-[16px] rounded-[10px] bg-[rgba(235,146,15,0.08)] px-[14px] py-[11px]">
+            <p className="text-[13px] leading-[1.6] text-[#7a4000]">
+              Premium is already active for{" "}
+              <span className="font-semibold">2 weeks</span>. It stays active once
+              the invoice is paid.
+            </p>
+          </div>
+
+          <div className="h-px bg-[rgba(0,0,0,0.07)]" />
+
+          {/* ── Support note ── */}
+          <p className="px-[22px] py-[13px] text-[12.5px] leading-[1.6] text-[#6b7280]">
+            Having trouble?{" "}
+            <a
+              href={contactMailto}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-medium text-[#eb920f] underline-offset-2 transition-opacity hover:opacity-75 hover:underline"
+            >
+              Contact us
+            </a>{" "}
+            and we'll help you get set up.
+          </p>
+
+          <div className="h-px bg-[rgba(0,0,0,0.07)]" />
+
+          {/* ── Actions ── */}
+          <div className="flex items-center gap-[10px] px-[22px] py-[16px]">
             <Button
               type="button"
               variant="outline"
               onClick={() => handleOpenChange(false)}
               disabled={isSubmitting}
-              className="h-[50px] flex-1 rounded-[10px] border border-[rgba(0,0,0,0.15)] bg-white text-lg font-medium text-[#010a04] shadow-none hover:bg-white"
+              className="h-[42px] flex-1 rounded-[10px] border border-[rgba(0,0,0,0.13)] bg-white text-[13.5px] font-medium text-[#444] shadow-none transition-colors hover:bg-[rgba(0,0,0,0.04)] active:scale-[0.98]"
             >
               {t("manageClub.renewModalCancel")}
             </Button>
             <Button
               type="button"
-              className="h-[50px] flex-1 rounded-[10px] bg-[#09872f] text-lg font-medium text-white hover:bg-[#08772a]"
               onClick={handleConfirm}
               disabled={isSubmitting}
+              className="h-[42px] flex-1 rounded-[10px] bg-gradient-to-r from-[#eb920f] to-[#d97c05] text-[13.5px] font-semibold text-white shadow-[0_4px_14px_rgba(235,146,15,0.35)] transition-all hover:shadow-[0_6px_20px_rgba(235,146,15,0.50)] hover:brightness-105 active:scale-[0.98] disabled:opacity-60"
             >
-              {t("manageClub.renewModalConfirm")}
+              {isSubmitting ? t("common.loading") : t("manageClub.renewModalConfirm")}
             </Button>
           </div>
+
         </div>
       </DialogContent>
     </Dialog>

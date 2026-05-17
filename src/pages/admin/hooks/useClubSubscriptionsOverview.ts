@@ -6,6 +6,7 @@ import { parseIsoDateSafely } from "@/utils/date";
 export type ClubSubscriptionStatus =
   | "renewal_needed"
   | "subscribed"
+  | "trial"
   | "requested"
   | "nothing";
 

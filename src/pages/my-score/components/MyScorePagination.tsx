@@ -64,6 +64,11 @@ export function MyScorePagination({
                     isActive={item === currentPage}
                     aria-label={t("myScorePage.pageAriaLabel", { page: item })}
                     onClick={() => onPageChange(item)}
+                    className={
+                      item === currentPage
+                        ? "h-8 w-8 rounded-[6px] bg-brand-accent font-semibold text-[#010a04] hover:bg-brand-accent-hover"
+                        : undefined
+                    }
                   >
                     {item}
                   </PaginationLink>

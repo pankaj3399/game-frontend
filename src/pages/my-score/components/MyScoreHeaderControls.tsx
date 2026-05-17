@@ -9,6 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Share2 } from "@/icons/figma-icons";
 import { cn } from "@/lib/utils";
 import type { MyScoreDateRange, MyScoreFilterMode } from "@/models/myScore/types";
 import { DATE_RANGES, FILTER_MODES } from "../constants";
@@ -42,8 +43,9 @@ export function MyScoreHeaderControls({
             </CardTitle>
             <Button
               onClick={onShare}
-              className="h-8 shrink-0 rounded-[7px] bg-[#010a04] px-3 text-[11px] font-medium text-white hover:bg-[#1d241d]"
+              className="flex h-8 shrink-0 items-center gap-1.5 rounded-[7px] bg-brand-accent px-3 text-[11px] font-medium text-[#010a04] hover:bg-brand-accent-hover"
             >
+              <Share2 className="size-3.5" aria-hidden />
               {t("myScorePage.share")}
             </Button>
           </div>
@@ -58,8 +60,9 @@ export function MyScoreHeaderControls({
             </div>
             <Button
               onClick={onShare}
-              className="h-8 shrink-0 rounded-[7px] bg-[#010a04] px-3 text-[11px] font-medium text-white hover:bg-[#1d241d]"
+              className="flex h-8 shrink-0 items-center gap-1.5 rounded-[7px] bg-brand-accent px-3 text-[11px] font-medium text-[#010a04] hover:bg-brand-accent-hover"
             >
+              <Share2 className="size-3.5" aria-hidden />
               {t("myScorePage.share")}
             </Button>
           </div>

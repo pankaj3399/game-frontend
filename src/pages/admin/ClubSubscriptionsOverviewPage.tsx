@@ -4,7 +4,8 @@ import { differenceInCalendarDays, format } from "date-fns";
 import {
   CrownIcon,
   Search01Icon,
-  Eye
+  Eye,
+  ShieldIcon,
 } from "@/icons/figma-icons";
 import { useAuth, useHasRoleOrAbove } from "@/pages/auth/hooks";
 import { ROLES } from "@/constants/roles";
@@ -37,6 +38,7 @@ function isStatusFilter(value: string): value is StatusFilter {
     value === "all" ||
     value === "renewal_needed" ||
     value === "subscribed" ||
+    value === "trial" ||
     value === "requested" ||
     value === "nothing"
   );
@@ -45,47 +47,31 @@ function isStatusFilter(value: string): value is StatusFilter {
 function statusLabel(status: ClubSubscriptionStatus): string {
   if (status === "renewal_needed") return "Renewal Needed";
   if (status === "subscribed") return "Subscribed";
+  if (status === "trial") return "Trial";
   if (status === "requested") return "Requested";
   return "Nothing";
 }
 
 function statusClassName(status: ClubSubscriptionStatus): string {
-  if (status === "renewal_needed") {
-    return "bg-destructive/12 text-destructive";
-  }
-  if (status === "subscribed") {
-    return "bg-brand-primary/12 text-brand-primary";
-  }
-  if (status === "requested") {
-    return "bg-blue-500/12 text-blue-600";
-  }
-  return "bg-muted text-muted-foreground";
+  if (status === "renewal_needed") return "bg-red-50 text-red-600 ring-1 ring-red-200";
+  if (status === "subscribed") return "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200";
+  if (status === "trial") return "bg-amber-50 text-amber-700 ring-1 ring-amber-200";
+  if (status === "requested") return "bg-blue-50 text-blue-600 ring-1 ring-blue-200";
+  return "bg-muted text-muted-foreground ring-1 ring-border";
 }
 
 function formatExpiryDate(expiresAt: Date | null): string {
-  if (!expiresAt) return "-";
+  if (!expiresAt) return "—";
   return format(expiresAt, "dd MMM, yyyy");
 }
 
-function daysLeftLabel(expiresAt: Date | null): string {
-  if (!expiresAt) return "-";
+function getDaysLeftDisplay(expiresAt: Date | null) {
+  if (!expiresAt) return { daysLabel: "—", daysClass: "text-muted-foreground", expired: false };
   const days = differenceInCalendarDays(expiresAt, new Date());
   if (days < 0) {
-    return `Expired ${Math.abs(days)}d ago`;
+    return { daysLabel: `${Math.abs(days)}d ago`, daysClass: "text-red-500", expired: true };
   }
-  return `${days}d`;
-}
-
-function getDaysLeftDisplay(expiresAt: Date | null) {
-  const daysLabel = daysLeftLabel(expiresAt);
-
-  const daysClass =
-    daysLabel.startsWith("Expired")
-      ? "text-red-600"
-      : daysLabel === "-"
-        ? "text-muted-foreground"
-        : "text-emerald-700";
-  return { daysLabel, daysClass };
+  return { daysLabel: `${days}d left`, daysClass: "text-emerald-600", expired: false };
 }
 
 export default function ClubSubscriptionsOverviewPage() {
@@ -96,23 +82,14 @@ export default function ClubSubscriptionsOverviewPage() {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
 
   const handleStatusFilterChange = (value: string) => {
-    if (!isStatusFilter(value)) {
-      setStatusFilter("all");
-      return;
-    }
-
-    setStatusFilter(value);
+    setStatusFilter(isStatusFilter(value) ? value : "all");
   };
 
   const rows = data?.clubs ?? [];
-
   const normalized = query.trim().toLowerCase();
   const filteredRows = rows.filter((row) => {
-    const matchesName =
-      normalized.length === 0 || row.name.toLowerCase().includes(normalized);
-    const matchesStatus =
-      statusFilter === "all" || row.subscription.status === statusFilter;
-
+    const matchesName = normalized.length === 0 || row.name.toLowerCase().includes(normalized);
+    const matchesStatus = statusFilter === "all" || row.subscription.status === statusFilter;
     return matchesName && matchesStatus;
   });
 
@@ -130,199 +107,241 @@ export default function ClubSubscriptionsOverviewPage() {
 
   return (
     <div className="flex min-h-[calc(100vh-4rem)] justify-center bg-brand-primary/[0.03]">
-      <div className="mx-auto w-full max-w-[430px] p-3 md:max-w-6xl md:p-6">
-        <div className="overflow-hidden rounded-xl border border-tableBorder bg-card shadow-table">
-          <div className="flex flex-col gap-3 border-b border-border bg-card px-3 py-3 md:flex-row md:items-center md:justify-end md:px-6 md:py-4 lg:justify-between">
-            <h1 className="sr-only text-lg font-semibold text-foreground lg:not-sr-only lg:block lg:text-3xl">
+      <div className="mx-auto w-full min-w-0 max-w-[430px] p-3 md:max-w-5xl md:p-6">
+
+        {/* ── Page header ── */}
+        <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <div>
+            <h1 className="text-[22px] font-bold leading-tight tracking-[-0.3px] text-foreground">
               Subscription Management
             </h1>
-            <div className="flex w-full items-center gap-2 md:w-auto md:gap-3">
-              <div className="relative min-w-0 flex-1 md:w-[280px] md:flex-none">
-                <Search01Icon
-                  size={14}
-                  className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-muted-foreground"
-                />
-                <Input
-                  value={query}
-                  onChange={(event) => setQuery(event.target.value)}
-                  placeholder="Search clubs..."
-                  className="h-8 pl-9 text-xs md:h-9 md:text-sm"
-                />
-              </div>
-              <Select
-                value={statusFilter}
-                onValueChange={handleStatusFilterChange}
-              >
-                <SelectTrigger className="h-8 w-[122px] text-xs md:h-9 md:w-[155px] md:text-sm">
-                  <SelectValue placeholder="All Status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="renewal_needed">Renewal Needed</SelectItem>
-                  <SelectItem value="subscribed">Subscribed</SelectItem>
-                  <SelectItem value="requested">Requested</SelectItem>
-                  <SelectItem value="nothing">Nothing</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            <p className="mt-0.5 text-[13px] text-muted-foreground">
+              {filteredRows.length} club{filteredRows.length !== 1 ? "s" : ""} shown
+            </p>
           </div>
 
+          <div className="flex w-full items-center gap-2 md:w-auto">
+            <div className="relative min-w-0 flex-1 md:w-[240px] md:flex-none">
+              <Search01Icon
+                size={13}
+                className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-muted-foreground"
+              />
+              <Input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Search clubs…"
+                className="h-8 pl-8 text-xs md:h-8"
+              />
+            </div>
+            <Select value={statusFilter} onValueChange={handleStatusFilterChange}>
+              <SelectTrigger className="h-8 w-[130px] text-xs">
+                <SelectValue placeholder="All Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Status</SelectItem>
+                <SelectItem value="renewal_needed">Renewal Needed</SelectItem>
+                <SelectItem value="subscribed">Subscribed</SelectItem>
+                <SelectItem value="trial">Trial</SelectItem>
+                <SelectItem value="requested">Requested</SelectItem>
+                <SelectItem value="nothing">Nothing</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        {/* ── Table card ── */}
+        <div className="overflow-hidden rounded-xl border border-tableBorder bg-card shadow-table">
           {isLoading ? (
             <div className="flex justify-center py-16">
               <InlineLoader />
             </div>
+          ) : filteredRows.length === 0 ? (
+            <div className="px-4 py-12 text-center text-sm text-muted-foreground">
+              No clubs match the current filters.
+            </div>
           ) : (
             <>
-              {filteredRows.length === 0 ? (
-                <div className="px-4 py-10 text-center text-sm text-muted-foreground md:px-6">
-                  No clubs match current filters.
-                </div>
-              ) : (
-                <>
-                  <div className="space-y-3 p-4 md:hidden">
-                    {filteredRows.map((row) => {
-                      const isPremium = row.subscription.plan === "premium";
-                      const { daysLabel, daysClass } = getDaysLeftDisplay(row.subscription.expiresAt);
+              {/* ── Mobile cards ── */}
+              <div className="space-y-2 p-3 lg:hidden">
+                {filteredRows.map((row) => {
+                  const isPremium = row.subscription.plan === "premium";
+                  const { daysLabel, daysClass, expired } = getDaysLeftDisplay(row.subscription.expiresAt);
 
-                      return (
-                        <article key={row.id} className="rounded-[10px] bg-foreground/[0.04] px-3.5 py-3.5">
-                          <div className="mb-4 flex items-center gap-3">
-                            <span className="size-[45px] rounded-[7px] bg-muted" aria-hidden />
-                            <div className="min-w-0 flex-1">
-                              <div className="flex items-center gap-1.5">
-                                <h2 className="truncate text-base font-medium text-foreground">{row.name}</h2>
-                                {isPremium && (
-                                  <CrownIcon size={16} className="shrink-0 text-amber-500" aria-hidden />
-                                )}
-                              </div>
-                              <p className="mt-1 text-[13px] text-foreground/65">
-                                Expiry Date: <span className="text-foreground">{formatExpiryDate(row.subscription.expiresAt)}</span>
-                              </p>
-                            </div>
+                  return (
+                    <article key={row.id} className="rounded-[10px] border border-border bg-background px-3.5 py-3">
+                      <div className="mb-3 flex items-center gap-2.5">
+                        <span className="size-9 rounded-[7px] bg-muted" aria-hidden />
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-1.5">
+                            <h2 className="truncate text-[14px] font-semibold text-foreground">{row.name}</h2>
+                            {isPremium && <CrownIcon size={14} className="shrink-0 text-amber-500" aria-hidden />}
                           </div>
+                          <p className="mt-0.5 text-[12px] text-muted-foreground">
+                            {row.members} member{row.members !== 1 ? "s" : ""}
+                          </p>
+                        </div>
+                        <span className={cn("inline-flex shrink-0 items-center whitespace-nowrap rounded-md px-2 py-0.5 text-[11px] font-medium", statusClassName(row.subscription.status))}>
+                          {statusLabel(row.subscription.status)}
+                        </span>
+                      </div>
 
-                          <div className="space-y-2.5">
-                            <div className="flex items-center justify-between text-[14px]">
-                              <span className="text-foreground/75">Members</span>
-                              <span className="font-medium text-foreground">{row.members}</span>
-                            </div>
-                            <div className="flex items-center justify-between text-[14px]">
-                              <span className="text-foreground/75">Subscription</span>
-                              <span
-                                className={cn(
-                                  "inline-flex h-7 items-center rounded-[5px] px-2 text-[13px] font-medium",
-                                  isPremium
-                                    ? "bg-brand-accent/20 text-amber-700"
-                                    : "bg-muted text-muted-foreground"
-                                )}
-                              >
-                                {isPremium ? "Premium" : "Free"}
-                              </span>
-                            </div>
-                            <div className="flex items-center justify-between text-[14px]">
-                              <span className="text-foreground/75">Status</span>
-                              <span
-                                className={cn(
-                                  "inline-flex h-7 items-center rounded-[5px] px-2 text-[13px] font-medium",
-                                  statusClassName(row.subscription.status)
-                                )}
-                              >
-                                {statusLabel(row.subscription.status)}
-                              </span>
-                            </div>
-                            <div className="flex items-center justify-between text-[14px]">
-                              <span className="text-foreground/75">Days Left</span>
-                              <span className={cn("font-medium", daysClass)}>{daysLabel}</span>
-                            </div>
-                          </div>
-
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            asChild
-                            className="mt-4 h-8 w-full gap-2 border-foreground bg-transparent text-[14px] font-medium text-foreground hover:bg-transparent"
-                          >
-                            <Link to={`/admin/clubs-subscriptions/${row.id}`}>View</Link>
+                      <div className="flex items-center justify-between">
+                        <div className="text-[12px] text-muted-foreground">
+                          {formatExpiryDate(row.subscription.expiresAt)}
+                          {" · "}
+                          <span className={cn("font-medium", daysClass)}>
+                            {expired ? "Expired " : ""}{daysLabel}
+                          </span>
+                        </div>
+                        <div className="flex gap-1.5">
+                          <Button variant="outline" size="sm" asChild className="h-7 gap-1 px-2.5 text-[12px]">
+                            <Link to={`/admin/clubs-subscriptions/${row.id}`}>
+                              <Eye className="size-3" aria-hidden />
+                              View
+                            </Link>
                           </Button>
-                        </article>
-                      );
-                    })}
-                  </div>
+                          {row.subscription.status === "trial" && (
+                            <Button size="sm" asChild className="h-7 gap-1 bg-red-500 px-2.5 text-[12px] text-white hover:bg-red-600">
+                              <Link to={`/admin/clubs-subscriptions/${row.id}`}>
+                                <ShieldIcon className="size-3" aria-hidden />
+                                Revoke
+                              </Link>
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    </article>
+                  );
+                })}
+              </div>
 
-                  <Table className="hidden min-w-full md:table">
-                    <TableHeader>
-                      <TableRow className="bg-muted/50 hover:bg-muted/50">
-                        <TableHead className="px-4 py-3 text-xs font-medium text-muted-foreground">Club Name</TableHead>
-                        <TableHead className="px-4 py-3 text-xs font-medium text-muted-foreground">Members</TableHead>
-                        <TableHead className="px-4 py-3 text-xs font-medium text-muted-foreground">Subscription</TableHead>
-                        <TableHead className="px-4 py-3 text-xs font-medium text-muted-foreground">Status</TableHead>
-                        <TableHead className="px-4 py-3 text-xs font-medium text-muted-foreground">Expiry Date</TableHead>
-                        <TableHead className="px-4 py-3 text-xs font-medium text-muted-foreground">Days Left</TableHead>
-                        <TableHead className="px-4 py-3 text-xs font-medium text-muted-foreground">Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {filteredRows.map((row) => {
-                        const isPremium = row.subscription.plan === "premium";
-                        const { daysLabel, daysClass } = getDaysLeftDisplay(row.subscription.expiresAt);
+              {/* ── Desktop table ── */}
+              <Table
+                containerClassName="overflow-x-hidden"
+                className="hidden table-fixed lg:table"
+              >
+                <colgroup>
+                  <col className="w-[34%]" />
+                  <col className="w-[8%]" />
+                  <col className="w-[10%]" />
+                  <col className="w-[14%]" />
+                  <col className="w-[20%]" />
+                  <col className="w-[14%]" />
+                </colgroup>
+                <TableHeader>
+                  <TableRow className="border-b border-border bg-muted/40 hover:bg-muted/40">
+                    <TableHead className="px-3 py-2.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Club</TableHead>
+                    <TableHead className="px-2 py-2.5 text-center text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Members</TableHead>
+                    <TableHead className="px-2 py-2.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Plan</TableHead>
+                    <TableHead className="px-2 py-2.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Status</TableHead>
+                    <TableHead className="px-2 py-2.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Expiry</TableHead>
+                    <TableHead className="px-2 py-2.5 text-center text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredRows.map((row) => {
+                    const isPremium = row.subscription.plan === "premium";
+                    const { daysLabel, daysClass, expired } = getDaysLeftDisplay(row.subscription.expiresAt);
 
-                        return (
-                          <TableRow key={row.id} className="bg-card hover:bg-muted/20">
-                            <TableCell className="px-4 py-3">
-                              <div className="flex items-center gap-2">
-                                <span className="size-[18px] rounded-full bg-muted" aria-hidden />
-                                <span className="flex items-center gap-1 text-sm font-medium text-foreground">
-                                  {row.name}
-                                  {isPremium && (
-                                    <CrownIcon size={16} className="text-amber-500" aria-hidden />
-                                  )}
-                                </span>
-                              </div>
-                            </TableCell>
-                            <TableCell className="px-4 py-3 text-sm text-foreground">{row.members}</TableCell>
-                            <TableCell className="px-4 py-3">
+                    return (
+                      <TableRow key={row.id} className="border-b border-border/60 bg-card transition-colors hover:bg-muted/20">
+                        {/* Club name */}
+                        <TableCell className="px-3 py-2.5">
+                          <div className="flex min-w-0 items-center gap-2">
+                            <span className="size-6 shrink-0 rounded-[6px] bg-muted" aria-hidden />
+                            <span className="flex min-w-0 items-center gap-1">
+                              {isPremium && (
+                                <CrownIcon size={13} className="shrink-0 text-amber-500" aria-hidden />
+                              )}
                               <span
-                                className={cn(
-                                  "inline-flex h-6 items-center rounded-md px-2 text-xs font-medium",
-                                  isPremium
-                                    ? "bg-brand-accent/20 text-amber-800"
-                                    : "bg-muted text-muted-foreground"
-                                )}
+                                className="truncate text-[13px] font-medium text-foreground"
+                                title={row.name}
                               >
-                                {isPremium ? "Premium" : "Free"}
+                                {row.name}
                               </span>
-                            </TableCell>
-                            <TableCell className="px-4 py-3">
-                              <span
-                                className={cn(
-                                  "inline-flex h-6 items-center rounded-md px-2 text-xs font-medium",
-                                  statusClassName(row.subscription.status)
-                                )}
-                              >
-                                {statusLabel(row.subscription.status)}
-                              </span>
-                            </TableCell>
-                            <TableCell className="px-4 py-3 text-sm text-foreground">
+                            </span>
+                          </div>
+                        </TableCell>
+
+                        {/* Members */}
+                        <TableCell className="px-2 py-2.5 text-center text-[13px] tabular-nums text-foreground/80">
+                          {row.members}
+                        </TableCell>
+
+                        {/* Plan badge */}
+                        <TableCell className="px-2 py-2.5">
+                          <span className={cn(
+                            "inline-flex shrink-0 items-center whitespace-nowrap rounded-md px-2 py-0.5 text-[11px] font-semibold",
+                            isPremium
+                              ? "bg-amber-50 text-amber-700 ring-1 ring-amber-200"
+                              : "bg-muted text-muted-foreground ring-1 ring-border"
+                          )}>
+                            {isPremium ? "Premium" : "Free"}
+                          </span>
+                        </TableCell>
+
+                        {/* Status badge */}
+                        <TableCell className="px-2 py-2.5">
+                          <span className={cn(
+                            "inline-flex shrink-0 items-center whitespace-nowrap rounded-md px-2 py-0.5 text-[11px] font-semibold",
+                            statusClassName(row.subscription.status)
+                          )}>
+                            {statusLabel(row.subscription.status)}
+                          </span>
+                        </TableCell>
+
+                        {/* Expiry + days left stacked */}
+                        <TableCell className="px-2 py-2.5">
+                          <div className="flex flex-col gap-0.5 leading-tight">
+                            <span className="text-[12px] text-foreground/80">
                               {formatExpiryDate(row.subscription.expiresAt)}
-                            </TableCell>
-                            <TableCell className={cn("px-4 py-3 text-sm", daysClass)}>
-                              {daysLabel}
-                            </TableCell>
-                            <TableCell className="px-4 py-3">
-                              <Button variant="ghost" size="sm" asChild className="h-8 gap-1 px-2">
-                                <Link to={`/admin/clubs-subscriptions/${row.id}`}>
-                                  <Eye className="size-4" aria-hidden />
-                                  View
+                            </span>
+                            {row.subscription.expiresAt && (
+                              <span className={cn("text-[11px] font-medium", daysClass)}>
+                                {expired ? "Expired " : ""}
+                                {daysLabel}
+                              </span>
+                            )}
+                          </div>
+                        </TableCell>
+
+                        {/* Actions */}
+                        <TableCell className="px-2 py-2.5">
+                          <div className="flex items-center justify-center gap-1">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              asChild
+                              className="size-7 text-muted-foreground hover:text-foreground"
+                            >
+                              <Link
+                                to={`/admin/clubs-subscriptions/${row.id}`}
+                                aria-label={`View ${row.name}`}
+                              >
+                                <Eye className="size-3.5" aria-hidden />
+                              </Link>
+                            </Button>
+                            {row.subscription.status === "trial" && (
+                              <Button
+                                size="icon"
+                                asChild
+                                className="size-7 bg-red-50 text-red-600 shadow-none hover:bg-red-100 hover:text-red-700"
+                              >
+                                <Link
+                                  to={`/admin/clubs-subscriptions/${row.id}`}
+                                  aria-label={`Revoke trial for ${row.name}`}
+                                >
+                                  <ShieldIcon className="size-3.5" aria-hidden />
                                 </Link>
                               </Button>
-                            </TableCell>
-                          </TableRow>
-                        );
-                      })}
-                    </TableBody>
-                  </Table>
-                </>
-              )}
+                            )}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
             </>
           )}
         </div>

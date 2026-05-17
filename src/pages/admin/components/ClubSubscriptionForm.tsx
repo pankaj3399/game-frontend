@@ -10,6 +10,7 @@ import {
   CalendarDays,
   Info,
   X,
+  ShieldIcon,
 } from "@/icons/figma-icons";
 import CheckIcon from "@/assets/icons/figma/lucide/check.svg?react";
 import CrownPlanIcon from "@/assets/icons/figma/misc/crown-plan.svg?react";
@@ -40,9 +41,10 @@ export interface ClubSubscriptionFormProps {
     expiresAt: Date | null;
   }>;
   isSaving: boolean;
+  onRevoke?: () => Promise<void>;
 }
 
-export function ClubSubscriptionForm({ club, onSave, isSaving }: ClubSubscriptionFormProps) {
+export function ClubSubscriptionForm({ club, onSave, isSaving, onRevoke }: ClubSubscriptionFormProps) {
   const { t, i18n } = useTranslation();
   const dateFnsLocale = getDateFnsLocale(i18n.language);
   const [selectedPlan, setSelectedPlan] = useState<"free" | "premium">(
@@ -50,6 +52,14 @@ export function ClubSubscriptionForm({ club, onSave, isSaving }: ClubSubscriptio
   );
   const [renewalDate, setRenewalDate] = useState<Date | null>(club.subscription.expiresAt);
   const [calendarOpen, setCalendarOpen] = useState(false);
+  const [isRevoking, setIsRevoking] = useState(false);
+
+  // A club is on trial when renewal was requested AND they still have active premium access.
+  const isTrial =
+    club.subscription.renewalRequestedAt != null &&
+    club.subscription.plan === "premium" &&
+    club.subscription.expiresAt != null &&
+    differenceInCalendarDays(club.subscription.expiresAt, new Date()) > 0;
 
   const formatDateInput = (date: Date | null): string => {
     if (!date) return "-";
@@ -103,6 +113,34 @@ export function ClubSubscriptionForm({ club, onSave, isSaving }: ClubSubscriptio
       toast.success(t("admin.clubSubscription.toastSuccess"));
     } catch (error) {
       toast.error(getErrorMessage(error) ?? t("admin.clubSubscription.toastErrorGeneric"));
+    }
+  };
+
+  const handleRevoke = async () => {
+    if (!onRevoke) {
+      // Fall back to saving as free plan if no dedicated revoke handler is provided.
+      try {
+        setIsRevoking(true);
+        const result = await onSave({ plan: "free", expiresAt: null });
+        setSelectedPlan(result.plan);
+        setRenewalDate(result.expiresAt);
+        toast.success(t("admin.clubSubscription.revokeTrialSuccess"));
+      } catch (error) {
+        toast.error(getErrorMessage(error) ?? t("admin.clubSubscription.toastErrorGeneric"));
+      } finally {
+        setIsRevoking(false);
+      }
+      return;
+    }
+
+    try {
+      setIsRevoking(true);
+      await onRevoke();
+      toast.success(t("admin.clubSubscription.revokeTrialSuccess"));
+    } catch (error) {
+      toast.error(getErrorMessage(error) ?? t("admin.clubSubscription.toastErrorGeneric"));
+    } finally {
+      setIsRevoking(false);
     }
   };
 
@@ -347,6 +385,34 @@ export function ClubSubscriptionForm({ club, onSave, isSaving }: ClubSubscriptio
         onSave={handleSaveChanges}
         className="mt-6 flex items-center gap-3 md:hidden"
       />
+
+      {isTrial && (
+        <div className="mt-6 overflow-hidden rounded-[12px] border border-amber-200 bg-amber-50">
+          <div className="flex items-start gap-3 px-[18px] py-[16px]">
+            <ShieldIcon className="mt-0.5 size-[18px] shrink-0 text-amber-600" aria-hidden />
+            <div className="min-w-0 flex-1">
+              <p className="text-[14px] font-semibold text-amber-800">
+                {t("admin.clubSubscription.revokeTrialTitle")}
+              </p>
+              <p className="mt-1.5 text-[13px] leading-[1.4] text-amber-700">
+                {t("admin.clubSubscription.revokeTrialDescription")}
+              </p>
+            </div>
+          </div>
+          <div className="border-t border-amber-200 bg-amber-100/50 px-[18px] py-[12px]">
+            <Button
+              type="button"
+              onClick={handleRevoke}
+              disabled={isRevoking || isSaving}
+              className="h-[38px] rounded-[8px] bg-amber-600 px-5 text-[14px] font-medium text-white hover:bg-amber-700 disabled:opacity-50"
+            >
+              {isRevoking
+                ? t("admin.clubSubscription.revokeTrialRevoking")
+                : t("admin.clubSubscription.revokeTrialConfirm")}
+            </Button>
+          </div>
+        </div>
+      )}
     </>
   );
 }
