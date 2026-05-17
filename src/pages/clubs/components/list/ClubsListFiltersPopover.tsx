@@ -110,9 +110,10 @@ export function ClubsListFiltersPopover({
     onOpenChange(nextOpen);
   };
 
+  const effectiveAppliedDistance = hasHomeClub ? appliedDistance : "all";
   const activeFilterCount =
     (appliedClubScope !== "all" ? 1 : 0) +
-    (hasHomeClub && appliedDistance !== "all" ? 1 : 0);
+    (effectiveAppliedDistance !== "all" ? 1 : 0);
 
   const scopeOptions: { value: ClubListClubScope; label: string }[] = [
     { value: "home", label: t("clubs.filterScopeHome") },
@@ -179,7 +180,7 @@ export function ClubsListFiltersPopover({
             variant="outline"
             size="sm"
             className="h-9 flex-1 rounded-xl border-black/12 bg-white text-[13px] font-medium text-foreground/70 hover:bg-black/[0.04] hover:text-foreground disabled:opacity-50"
-            disabled={appliedClubScope === "all" && appliedDistance === "all"}
+            disabled={appliedClubScope === "all" && effectiveAppliedDistance === "all"}
             onClick={() => {
               setDraftScope("all");
               setDraftDistance("all");
