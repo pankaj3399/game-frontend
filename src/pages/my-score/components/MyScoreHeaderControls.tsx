@@ -15,6 +15,7 @@ import type { MyScoreDateRange, MyScoreFilterMode } from "@/models/myScore/types
 import { DATE_RANGES, FILTER_MODES } from "../constants";
 
 interface MyScoreHeaderControlsProps {
+  title: string;
   mode: MyScoreFilterMode;
   range: MyScoreDateRange;
   onChangeMode: (mode: MyScoreFilterMode) => void;
@@ -24,6 +25,7 @@ interface MyScoreHeaderControlsProps {
 }
 
 export function MyScoreHeaderControls({
+  title,
   mode,
   range,
   onChangeMode,
@@ -39,7 +41,7 @@ export function MyScoreHeaderControls({
         <div className="flex flex-col gap-2.5 sm:gap-2">
           <div className="flex items-center justify-between gap-2.5 sm:hidden">
             <CardTitle className="shrink-0 text-[22px] font-semibold tracking-[-0.02em] text-[#010a04]">
-              {t("myScorePage.title")}
+              {title}
             </CardTitle>
             <ShareTextButton
               className="shrink-0"
@@ -50,7 +52,7 @@ export function MyScoreHeaderControls({
 
           <div className="hidden items-center gap-2 sm:flex">
             <CardTitle className="shrink-0 text-[28px] font-semibold tracking-[-0.02em] text-[#010a04]">
-              {t("myScorePage.title")}
+              {title}
             </CardTitle>
             <div className="ml-auto flex items-center gap-1.5">
               <ModeFilterPills mode={mode} onChangeMode={onChangeMode} />

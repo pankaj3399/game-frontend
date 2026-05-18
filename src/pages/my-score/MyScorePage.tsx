@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
 import { getErrorMessage } from "@/lib/errors";
 import { shareDataWithUrlInText } from "@/lib/webShare";
+import { useAuth } from "@/pages/auth/hooks";
 
 import type {
   MyScoreDateRange,
@@ -17,11 +18,13 @@ import {
   MyScoreHeaderControls,
   MyScoreMobileCards,
   MyScorePagination,
+  MyScoreResultsRegion,
   MyScoreSummaryStrip,
   MyScorePageSkeleton,
 } from "./components";
 import {
   buildPaginationItems,
+  buildPlayerScoreShareUrl,
   formatDateForMyScore,
   formatScoreValue,
   parseModeFromSearch,
@@ -31,9 +34,13 @@ import {
 import { useMyScore } from "./hooks";
 
 export default function MyScorePage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const location = useLocation();
   const navigate = useNavigate();
+  const { playerId: routePlayerId } = useParams<{ playerId?: string }>();
+  const { user } = useAuth();
+
+  const isSharedView = Boolean(routePlayerId);
 
   const [mode, setMode] = useState<MyScoreFilterMode>(() =>
     parseModeFromSearch(location.search),
@@ -47,12 +54,18 @@ export default function MyScorePage() {
     parsePageFromSearch(location.search),
   );
 
-  const myScoreQuery = useMyScore({
-    mode,
-    range,
-    page,
-    limit: PAGE_SIZE,
-  });
+  const myScoreQuery = useMyScore(
+    {
+      playerId: routePlayerId,
+      mode,
+      range,
+      page,
+      limit: PAGE_SIZE,
+    },
+    {
+      enabled: isSharedView ? Boolean(routePlayerId) : Boolean(user?.id),
+    },
+  );
 
   useEffect(() => {
     if (!myScoreQuery.isSuccess || !myScoreQuery.data) return;
@@ -85,21 +98,42 @@ export default function MyScorePage() {
     }
   }, [location.pathname, location.search, mode, navigate, page, range]);
 
+  const pageTitle = useMemo(() => {
+    if (!isSharedView) {
+      return t("myScorePage.title");
+    }
+
+    const displayName = myScoreQuery.data?.player?.displayName?.trim();
+    if (displayName) {
+      return t("myScorePage.playerScoreTitle", { name: displayName });
+    }
+
+    return t("myScorePage.sharedTitle");
+  }, [isSharedView, myScoreQuery.data?.player?.displayName, t]);
+
   const onShare = async () => {
-    const baseUrl = `${window.location.origin}${window.location.pathname}`;
-    const shareUrl = new URL(baseUrl);
+    const sharePlayerId =
+      routePlayerId ?? user?.id ?? myScoreQuery.data?.player?.id;
 
-    shareUrl.searchParams.set("mode", mode);
-    shareUrl.searchParams.set("range", range);
-    shareUrl.searchParams.set("page", String(effectivePage));
+    if (!sharePlayerId) {
+      toast.error(t("myScorePage.shareError"));
+      return;
+    }
 
-    const urlString = shareUrl.toString();
+    const urlString = buildPlayerScoreShareUrl(sharePlayerId, {
+      mode,
+      range,
+      page: effectivePage,
+    });
+
+    const shareLabel =
+      myScoreQuery.data?.player?.displayName?.trim() || t("myScorePage.title");
 
     if (typeof navigator !== "undefined" && typeof navigator.share === "function") {
       try {
         await navigator.share(
           shareDataWithUrlInText({
-            textBeforeUrl: t("myScorePage.title"),
+            textBeforeUrl: shareLabel,
             url: urlString,
           }),
         );
@@ -113,7 +147,6 @@ export default function MyScorePage() {
 
     try {
       await navigator.clipboard.writeText(urlString);
-
       toast.success(t("myScorePage.shareSuccess"));
     } catch {
       toast.error(t("myScorePage.shareError"));
@@ -134,7 +167,6 @@ export default function MyScorePage() {
   );
 
   const from = total === 0 ? 0 : (currentPage - 1) * limit + 1;
-
   const to = total === 0 ? 0 : Math.min(currentPage * limit, total);
 
   const onPageChange = (nextPage: number) => {
@@ -149,7 +181,12 @@ export default function MyScorePage() {
     setPage(nextPage);
   };
 
-  if (myScoreQuery.isLoading) {
+  const awaitingSubject =
+    (isSharedView && !routePlayerId) || (!isSharedView && !user?.id);
+  const isInitialLoad = myScoreQuery.isLoading && !myScoreQuery.data;
+  const isRefreshing = myScoreQuery.isFetching && Boolean(myScoreQuery.data);
+
+  if (awaitingSubject || isInitialLoad) {
     return <MyScorePageSkeleton />;
   }
 
@@ -166,11 +203,12 @@ export default function MyScorePage() {
   const { summary, entries } = myScoreQuery.data;
 
   return (
-    <div className="min-h-screen bg-[#dfe2e0] px-4 pb-10 pt-7 ">
+    <div className="min-h-screen bg-[#dfe2e0] px-4 pb-10 pt-7">
       <div className="mx-auto w-full max-w-[1120px] min-w-0 space-y-3">
-        <MyScoreSummaryStrip summary={summary} />
+        <MyScoreSummaryStrip summary={summary} isRefreshing={isRefreshing} />
 
         <MyScoreHeaderControls
+          title={pageTitle}
           mode={mode}
           range={range}
           onChangeMode={(nextMode) => {
@@ -187,36 +225,42 @@ export default function MyScorePage() {
           }}
           onShare={onShare}
         >
-          {entries.length > 0 ? (
-            <>
-              <MyScoreDesktopTable
-                entries={entries}
-                formatPlayedAt={formatDateForMyScore}
-                formatScore={formatScoreValue}
-              />
-              <MyScoreMobileCards
-                entries={entries}
-                formatPlayedAt={formatDateForMyScore}
-                formatScore={formatScoreValue}
-              />
-            </>
-          ) : (
-            <div className="px-6 py-14 text-center">
-              <p className="text-[14px] text-[#010a04]/55">{t("myScorePage.empty")}</p>
-            </div>
-          )}
+          <MyScoreResultsRegion isRefreshing={isRefreshing}>
+            {entries.length > 0 ? (
+              <>
+                <MyScoreDesktopTable
+                  entries={entries}
+                  formatPlayedAt={(playedAt) =>
+                    formatDateForMyScore(playedAt, i18n.language)
+                  }
+                  formatScore={formatScoreValue}
+                />
+                <MyScoreMobileCards
+                  entries={entries}
+                  formatPlayedAt={(playedAt) =>
+                    formatDateForMyScore(playedAt, i18n.language)
+                  }
+                  formatScore={formatScoreValue}
+                />
+              </>
+            ) : (
+              <div className="px-6 py-14 text-center">
+                <p className="text-[14px] text-[#010a04]/55">{t("myScorePage.empty")}</p>
+              </div>
+            )}
 
-          {showPaginationFooter ? (
-            <MyScorePagination
-              from={from}
-              to={to}
-              total={total}
-              currentPage={currentPage}
-              totalPages={Math.max(1, totalPages)}
-              items={paginationItems}
-              onPageChange={onPageChange}
-            />
-          ) : null}
+            {showPaginationFooter ? (
+              <MyScorePagination
+                from={from}
+                to={to}
+                total={total}
+                currentPage={currentPage}
+                totalPages={Math.max(1, totalPages)}
+                items={paginationItems}
+                onPageChange={onPageChange}
+              />
+            ) : null}
+          </MyScoreResultsRegion>
         </MyScoreHeaderControls>
       </div>
     </div>

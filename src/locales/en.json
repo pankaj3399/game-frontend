@@ -826,6 +826,8 @@
   },
   "myScorePage": {
     "title": "My Score",
+    "playerScoreTitle": "{{name}}'s Score",
+    "sharedTitle": "Player Score",
     "loading": "Loading score history...",
     "loadError": "Failed to load score history.",
     "totalMatches": "Total Matches",

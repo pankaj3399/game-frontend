@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { queryKeys } from "@/lib/api/queryKeys";
 import {
@@ -11,6 +11,7 @@ import {
 import { PAGE_SIZE } from "../constants";
 
 interface MyScoreFilters {
+  playerId?: string;
   mode: MyScoreFilterMode;
   range: MyScoreDateRange;
   page: number;
@@ -22,14 +23,16 @@ interface UseMyScoreOptions {
 }
 
 async function fetchMyScore(filters: MyScoreFilters): Promise<MyScoreResponse> {
-  const response = await api.get("/api/user/my-score", {
-    params: {
-      mode: filters.mode,
-      range: filters.range,
-      page: filters.page,
-      limit: filters.limit,
-    },
-  });
+  const params = {
+    mode: filters.mode,
+    range: filters.range,
+    page: filters.page,
+    limit: filters.limit,
+  };
+
+  const response = filters.playerId
+    ? await api.get(`/api/players/${filters.playerId}/score`, { params })
+    : await api.get("/api/user/my-score", { params });
 
   const parsed = myScoreResponseSchema.parse(response.data);
   const resolvedLimit =
@@ -54,6 +57,7 @@ export function useMyScore(filters: MyScoreFilters, options?: UseMyScoreOptions)
     queryKey: queryKeys.user.myScore(filters),
     queryFn: () => fetchMyScore(filters),
     enabled,
+    placeholderData: keepPreviousData,
   });
 
   return {

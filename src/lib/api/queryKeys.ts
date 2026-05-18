@@ -16,12 +16,14 @@ export const queryKeys = {
     favoriteClubs: () => [...queryKeys.user.all, "favorite-clubs"] as const,
     adminClubs: () => [...queryKeys.user.all, "admin-clubs"] as const,
     myScore: (filters?: {
+      playerId?: string;
       mode?: "all" | "singles" | "doubles";
       range?: "last30Days" | "allTime";
       page?: number;
       limit?: number;
     }) => {
       const normalizedFilters: Record<string, string | number> = {};
+      if (filters?.playerId) normalizedFilters.playerId = filters.playerId;
       if (filters?.mode) normalizedFilters.mode = filters.mode;
       if (filters?.range) normalizedFilters.range = filters.range;
       if (filters?.page != null) normalizedFilters.page = filters.page;

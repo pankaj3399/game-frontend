@@ -63,6 +63,7 @@ const pathToTitleKey: Record<string, string> = {
   "/settings-preview": "settings.title",
   "/tournaments": "settings.nav.tournaments",
   "/my-score": "settings.nav.myScore",
+  "/players/": "myScorePage.sharedTitle",
   "/record-score": "settings.nav.recordScore",
   "/clubs/manage/sponsors/": "sponsors.title",
   "/clubs/manage": "manageClub.title",

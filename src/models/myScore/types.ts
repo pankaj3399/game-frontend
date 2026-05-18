@@ -41,6 +41,12 @@ export const myScoreEntrySchema = z.object({
 });
 
 export const myScoreResponseSchema = z.object({
+  player: z
+    .object({
+      id: z.string(),
+      displayName: z.string(),
+    })
+    .optional(),
   summary: z.object({
     totalMatches: z.number().int().min(0),
     totalWins: z.number().int().min(0),

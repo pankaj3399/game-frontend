@@ -800,6 +800,8 @@
   },
   "myScorePage": {
     "title": "Meine Punktzahl",
+    "playerScoreTitle": "Punktzahl von {{name}}",
+    "sharedTitle": "Spieler-Punktzahl",
     "loading": "Punktverlauf wird geladen...",
     "loadError": "Punktverlauf konnte nicht geladen werden.",
     "totalMatches": "Spiele insgesamt",

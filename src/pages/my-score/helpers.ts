@@ -25,6 +25,25 @@ export function parsePageFromSearch(search: string): number {
   return rawPage;
 }
 
+/** Canonical public path for a player's score view (share targets). */
+export function buildPlayerScoreSharePath(playerId: string): string {
+  return `/players/${encodeURIComponent(playerId)}/score`;
+}
+
+export function buildPlayerScoreShareUrl(
+  playerId: string,
+  params: { mode: string; range: string; page: number },
+): string {
+  const shareUrl = new URL(
+    buildPlayerScoreSharePath(playerId),
+    window.location.origin,
+  );
+  shareUrl.searchParams.set("mode", params.mode);
+  shareUrl.searchParams.set("range", params.range);
+  shareUrl.searchParams.set("page", String(params.page));
+  return shareUrl.toString();
+}
+
 export function formatDateForMyScore(playedAt: string, language: string): string {
   try {
     const parsed = parseISO(playedAt);

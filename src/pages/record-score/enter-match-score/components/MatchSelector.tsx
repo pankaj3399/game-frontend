@@ -61,8 +61,11 @@ export function MatchSelector({
 
       <PopoverContent
         align="start"
+        side="bottom"
         sideOffset={6}
-        className="w-[--radix-popover-trigger-width] rounded-[10px] border-[#010a04]/10 p-2"
+        collisionPadding={16}
+        sticky="partial"
+        className="w-[min(var(--radix-popover-trigger-width),calc(100vw-2rem))] max-w-[calc(100vw-2rem)] rounded-[10px] border-[#010a04]/10 p-2"
       >
         <Input
           value={matchSearch}

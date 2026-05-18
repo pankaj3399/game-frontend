@@ -77,6 +77,9 @@ function App() {
               <Route index element={<UserInformation />} />
             </Route>
             <Route path="/auth/callback" element={<AuthCallback />} />
+            <Route path="/players/:playerId/score" element={<MainLayout />}>
+              <Route index element={<MyScorePage />} />
+            </Route>
             <Route
               element={
                 <ProtectedRoute requireProfileComplete>

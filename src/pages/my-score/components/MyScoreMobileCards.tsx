@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { PlayerNameText } from "@/components/shared/PlayerNameText";
 import { cn } from "@/lib/utils";
 import type { MyScoreEntry } from "@/models/myScore/types";
 
@@ -88,25 +89,14 @@ export function MyScoreMobileCards({
                   </p>
                 </div>
 
-                <div>
+                <div className="min-w-0">
                   <p className="text-[22px] font-semibold leading-none text-[#010a04]">
                     {formatScore(entry.opponentScore)}
                   </p>
-                  <p className="mt-1 text-[10px] text-[#010a04]/50">
-                    {t("myScorePage.table.opponentScore")}
-                  </p>
-                </div>
-              </div>
-
-              <Separator className="bg-[#010a04]/8" />
-
-              <div>
-                <p className="mb-1 text-[10px] text-[#010a04]/50">
-                  {t("myScorePage.table.opponent")}
-                </p>
-                <div className="flex min-w-0 items-center gap-2">
-                  <span className="h-3.5 w-3.5 shrink-0 rounded-full bg-[#cfd3d0]" />
-                  <p className="truncate text-[12px] text-[#010a04]/85">{entry.opponent.name}</p>
+                  <PlayerNameText
+                    name={entry.opponent.name}
+                    className="mt-1 text-[10px] text-[#010a04]/50"
+                  />
                 </div>
               </div>
             </CardContent>
