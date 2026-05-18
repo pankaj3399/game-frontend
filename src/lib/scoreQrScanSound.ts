@@ -2,7 +2,6 @@
 const SCORE_QR_SCAN_SOUND_SRC = `${import.meta.env.BASE_URL}soundreality-tennis-ball-hit-151257.mp3`;
 
 let sharedAudio: HTMLAudioElement | null = null;
-let unlockAttempted = false;
 let audioUnlocked = false;
 
 function configureAudioElement(audio: HTMLAudioElement) {
@@ -53,8 +52,8 @@ async function tryPlayClip(audio: HTMLAudioElement) {
  * Call once from a user gesture (tap back, touch scanner area) so iOS/Safari allow playback.
  */
 export function unlockScoreQrScanSound() {
-  if (typeof window === "undefined" || unlockAttempted) return;
-  unlockAttempted = true;
+  if (typeof window === "undefined") return;
+  if (audioUnlocked) return;
 
   const audio = getSharedAudio();
   void tryPlayClip(audio)

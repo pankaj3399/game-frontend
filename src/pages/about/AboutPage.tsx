@@ -10,15 +10,27 @@ import { api } from "@/lib/api";
 const footnoteClassName =
   "align-super text-[10px] font-semibold leading-none text-[#067429]";
 
+const FRONTEND_VERSION = import.meta.env.VITE_APP_VERSION ?? "dev";
 const FRONTEND_SHA = import.meta.env.VITE_COMMIT_SHA ?? "dev";
+
+type BackendVersion = {
+  version?: string;
+  commitSha?: string;
+  sha?: string;
+};
 
 export default function AboutPage() {
   const { t } = useTranslation();
-  const { data: versionData } = useQuery<{ sha: string }>({
+  const { data: versionData } = useQuery<BackendVersion>({
     queryKey: ["version"],
     queryFn: () => api.get("/api/version").then((r) => r.data),
   });
-  const backendSha = versionData?.sha ?? "…";
+  const backendVersion = versionData?.version ?? "dev";
+  const backendSha = versionData?.commitSha ?? versionData?.sha ?? "...";
+  const frontendLabel = `${FRONTEND_VERSION} (${FRONTEND_SHA})`;
+  const backendLabel = versionData
+    ? `${backendVersion} (${backendSha})`
+    : "...";
 
   const handleInviteFriends = async () => {
     if (typeof navigator !== "undefined" && navigator.share) {
@@ -179,7 +191,7 @@ export default function AboutPage() {
               </div>
             </section>
             <div className="mt-2 text-center text-[10px] text-[#010a04]/50">
-              {t("about.version", { backend: backendSha, frontend: FRONTEND_SHA })}
+              {t("about.version", { backend: backendLabel, frontend: frontendLabel })}
             </div>
           </div>
         </div>

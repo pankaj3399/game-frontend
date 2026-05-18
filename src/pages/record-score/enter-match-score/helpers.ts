@@ -220,7 +220,8 @@ export function pickDefaultEligibleTournamentOption(
   const onToday = pending.filter((option) =>
     isIsoOnCurrentLocalDay(option.startTime, referenceDate),
   );
-  if (onToday.length > 0) return onToday[0] ?? null;
+  const earliestOnToday = pickEarliestByStartTime(onToday);
+  if (earliestOnToday) return earliestOnToday;
 
   const nowMs = referenceDate.getTime();
   const nextByDate = pickEarliestByStartTime(

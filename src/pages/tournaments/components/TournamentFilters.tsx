@@ -184,11 +184,21 @@ export function TournamentFilters({
             }
           : null)
       : null;
+  const selectedClubName = selectedClub?.name;
 
   useEffect(() => {
-    if (!open || clubSearchOpen || draftClubScope || !draftClubId || !selectedClub?.name) return;
-    setClubSearch(selectedClub.name);
-  }, [open, clubSearchOpen, draftClubScope, draftClubId, selectedClub?.name]);
+    if (!open || clubSearchOpen || draftClubScope || !draftClubId) return;
+    if (selectedClubLoading) return;
+    if (!selectedClubName) return;
+    setClubSearch(selectedClubName);
+  }, [
+    open,
+    clubSearchOpen,
+    draftClubScope,
+    draftClubId,
+    selectedClubLoading,
+    selectedClubName,
+  ]);
 
   const appliedWhenIsActive = (when ?? "all") !== "all";
   const appliedDistanceIsActive = (distance ?? "all") !== "all" && distance !== "over80";

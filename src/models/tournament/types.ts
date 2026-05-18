@@ -180,7 +180,7 @@ export const tournamentLiveMatchItemSchema = z.object({
 export const tournamentLiveMatchEligibleTournamentSchema = z.object({
   id: z.string(),
   name: z.string(),
-  date: z.string().nullable(),
+  date: wireJsonNullableString(),
   playMode: tournamentPlayModeSchema,
   tournamentMode: tournamentModeSchema,
 });

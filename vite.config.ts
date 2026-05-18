@@ -5,9 +5,13 @@ import svgr from 'vite-plugin-svgr'
 import path from 'path'
 import { fileURLToPath } from 'url'
 import { execSync } from 'child_process'
+import { readFileSync } from 'fs'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
+const packageJson = JSON.parse(readFileSync(path.resolve(__dirname, 'package.json'), 'utf8')) as {
+  version?: string
+}
 
 function shortSha(value: string): string {
   const trimmed = value.trim()
@@ -28,7 +32,10 @@ const commitSha =
 
 export default defineConfig({
   envPrefix: ['VITE_', 'REACT_APP_'],
-  define: { 'import.meta.env.VITE_COMMIT_SHA': JSON.stringify(commitSha) },
+  define: {
+    'import.meta.env.VITE_APP_VERSION': JSON.stringify(packageJson.version ?? 'dev'),
+    'import.meta.env.VITE_COMMIT_SHA': JSON.stringify(commitSha),
+  },
 
   plugins: [
     svgr({
