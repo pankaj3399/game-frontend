@@ -10,11 +10,9 @@ import { api } from "@/lib/api";
 const footnoteClassName =
   "align-super text-[10px] font-semibold leading-none text-[#067429]";
 
-const FRONTEND_VERSION = import.meta.env.VITE_APP_VERSION ?? "dev";
 const FRONTEND_SHA = import.meta.env.VITE_COMMIT_SHA ?? "dev";
 
 type BackendVersion = {
-  version?: string;
   commitSha?: string;
   sha?: string;
 };
@@ -25,12 +23,9 @@ export default function AboutPage() {
     queryKey: ["version"],
     queryFn: () => api.get("/api/version").then((r) => r.data),
   });
-  const backendVersion = versionData?.version ?? "dev";
   const backendSha = versionData?.commitSha ?? versionData?.sha ?? "...";
-  const frontendLabel = `${FRONTEND_VERSION} (${FRONTEND_SHA})`;
-  const backendLabel = versionData
-    ? `${backendVersion} (${backendSha})`
-    : "...";
+  const frontendLabel = FRONTEND_SHA;
+  const backendLabel = versionData ? backendSha : "...";
 
   const handleInviteFriends = async () => {
     if (typeof navigator !== "undefined" && navigator.share) {

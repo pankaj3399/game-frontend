@@ -10,7 +10,8 @@ COPY . .
 # Copy package.json and package-lock.json to the working directory
 COPY package*.json ./
 
-# Install dependencies
+# Use Yarn version from package.json (Berry); image ships Yarn 1 by default
+RUN corepack enable
 RUN yarn install
 
 # Build the React application
