@@ -31,7 +31,9 @@ async function fetchMyScore(filters: MyScoreFilters): Promise<MyScoreResponse> {
   };
 
   const response = filters.playerId
-    ? await api.get(`/api/players/${filters.playerId}/score`, { params })
+    ? await api.get(`/api/players/${encodeURIComponent(filters.playerId)}/score`, {
+        params,
+      })
     : await api.get("/api/user/my-score", { params });
 
   const parsed = myScoreResponseSchema.parse(response.data);

@@ -18,10 +18,18 @@ function shortSha(value: string): string {
   return trimmed.length <= 7 ? trimmed : trimmed.slice(0, 7)
 }
 
+const trimmedViteCommitSha = process.env.VITE_COMMIT_SHA?.trim()
+const commitShaFromVite =
+  trimmedViteCommitSha && trimmedViteCommitSha.length > 0
+    ? shortSha(trimmedViteCommitSha)
+    : null
+
+const trimmedVercelSha = process.env.VERCEL_GIT_COMMIT_SHA?.trim()
+
 const commitSha =
-  process.env.VITE_COMMIT_SHA ??
-  (process.env.VERCEL_GIT_COMMIT_SHA
-    ? shortSha(process.env.VERCEL_GIT_COMMIT_SHA)
+  commitShaFromVite ??
+  (trimmedVercelSha && trimmedVercelSha.length > 0
+    ? shortSha(trimmedVercelSha)
     : (() => {
         try {
           return execSync('git rev-parse --short HEAD', { encoding: 'utf8' }).trim()
