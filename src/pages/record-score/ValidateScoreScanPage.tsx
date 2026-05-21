@@ -144,7 +144,7 @@ export default function ValidateScoreScanPage() {
         >
           <Scanner {...scannerProps} />
           <div
-            className="pointer-events-none absolute inset-0 z-10 flex items-start justify-center pt-[min(22vh,10rem)]"
+            className="pointer-events-none absolute inset-x-0 top-[max(3.5rem,calc(env(safe-area-inset-top)+3rem))] z-10 flex justify-center"
             aria-hidden
           >
             <div className="aspect-square w-[min(72vmin,20rem)] rounded-lg border-2 border-brand-primary/50 shadow-[0_0_24px_color-mix(in_srgb,var(--brand-primary)_40%,transparent)]" />
