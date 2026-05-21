@@ -1,12 +1,20 @@
 import type { MyScoreFilterMode } from "@/models/myScore/types";
 import type { TournamentLiveMatchItem } from "@/models/tournament/types";
 
+function isActiveScheduledMatch(match: TournamentLiveMatchItem): boolean {
+  return match.status !== "completed" && match.status !== "cancelled";
+}
+
 export function filterScheduledMatchesForMyScore(
   matches: TournamentLiveMatchItem[],
   mode: MyScoreFilterMode
 ): TournamentLiveMatchItem[] {
-  const filtered =
-    mode === "all" ? matches : matches.filter((match) => match.mode === mode);
+  const filtered = matches.filter((match) => {
+    if (!isActiveScheduledMatch(match)) {
+      return false;
+    }
+    return mode === "all" || match.mode === mode;
+  });
 
   return [...filtered].sort((left, right) => {
     const leftTime = left.startTime ? Date.parse(left.startTime) : Number.POSITIVE_INFINITY;

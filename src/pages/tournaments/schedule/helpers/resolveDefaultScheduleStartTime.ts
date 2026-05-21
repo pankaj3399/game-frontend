@@ -43,7 +43,11 @@ export function resolveDefaultScheduleStartTime(
     return normalizeTimeTo24Hour(input.tournamentStartTime) ?? fallback;
   }
 
-  const durationMs = Math.max(1, input.matchDurationMinutes) * 60_000;
+  const durationMinutes =
+    Number.isFinite(input.matchDurationMinutes) && input.matchDurationMinutes > 0
+      ? input.matchDurationMinutes
+      : 1;
+  const durationMs = durationMinutes * 60_000;
   let latestEndMs: number | null = null;
 
   for (const match of input.matches) {

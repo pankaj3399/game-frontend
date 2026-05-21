@@ -273,7 +273,7 @@ export function useTournamentSchedulePageController({
   );
 
   const allowRescheduleWithScoresOnGenerate =
-    isReschedulingExistingRound && (rescheduleConfirmed || hasRecordedScoresInRound);
+    hasRecordedScoresInRound && rescheduleConfirmed;
 
   const canSubmit =
     selectedCourtIds.length > 0 &&
@@ -466,14 +466,9 @@ export function useTournamentSchedulePageController({
       const needsRescheduleConfirmation =
         message?.startsWith("RESCHEDULE_WITH_SCORES_CONFIRMATION_REQUIRED:") === true;
 
-      if (needsRescheduleConfirmation && isReschedulingExistingRound) {
-        try {
-          await submitGenerateSchedule(true);
-          return;
-        } catch (retryError: unknown) {
-          toast.error(getErrorMessage(retryError) ?? t("tournaments.scheduleGenerateError"));
-          return;
-        }
+      if (needsRescheduleConfirmation) {
+        toast.error(getErrorMessage(error) ?? t("tournaments.scheduleGenerateError"));
+        return;
       }
 
       toast.error(getErrorMessage(error) ?? t("tournaments.scheduleGenerateError"));
