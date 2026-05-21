@@ -116,11 +116,14 @@ export default function ValidateScoreScanPage() {
     </button>
   );
 
+  const pageShellClass =
+    "relative flex min-h-0 flex-1 flex-col bg-black";
+
   if (tokenFromQuery) {
     return (
-      <div className="relative flex min-h-dvh flex-col bg-black">
+      <div className={pageShellClass}>
         {backButton}
-        <div className="flex flex-1 items-center justify-center">
+        <div className="flex min-h-0 flex-1 items-center justify-center">
           <ScanPageSpinner />
         </div>
       </div>
@@ -128,30 +131,27 @@ export default function ValidateScoreScanPage() {
   }
 
   return (
-    <div className="relative flex min-h-dvh flex-col bg-black">
+    <div className={pageShellClass}>
       {backButton}
       {scanEnvironment === "checking" ? (
-        <div className="flex flex-1 items-center justify-center bg-[#0f1210]">
+        <div className="flex min-h-0 flex-1 items-center justify-center bg-[#0f1210]">
           <ScanPageSpinner />
         </div>
       ) : scanEnvironment === "ready" ? (
-        <div className="flex min-h-0 flex-1 flex-col">
+        <div
+          className="relative min-h-0 flex-1 overflow-hidden"
+          onPointerDown={unlockScanAudio}
+        >
+          <Scanner {...scannerProps} />
           <div
-            className="relative h-[50dvh] min-h-0 shrink-0 overflow-hidden"
-            onPointerDown={unlockScanAudio}
+            className="pointer-events-none absolute inset-0 z-10 flex items-start justify-center pt-[min(22vh,10rem)]"
+            aria-hidden
           >
-            <Scanner {...scannerProps} />
-            <div
-              className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center"
-              aria-hidden
-            >
-              <div className="aspect-square w-[min(60vmin,18rem)] rounded-lg border-2 border-brand-primary/50 shadow-[0_0_24px_color-mix(in_srgb,var(--brand-primary)_40%,transparent)]" />
-            </div>
+            <div className="aspect-square w-[min(72vmin,20rem)] rounded-lg border-2 border-brand-primary/50 shadow-[0_0_24px_color-mix(in_srgb,var(--brand-primary)_40%,transparent)]" />
           </div>
-          <div className="min-h-0 flex-1 bg-black" aria-hidden />
         </div>
       ) : (
-        <div className="flex flex-1 flex-col items-center justify-center gap-3 px-6 pb-8 pt-14 text-center">
+        <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-3 px-6 pb-8 pt-14 text-center">
           <ScannerIcon className="h-10 w-10 text-white/35" aria-hidden />
           <p className="max-w-sm text-sm leading-relaxed text-white/75">
             {scanUnavailableMessage}
