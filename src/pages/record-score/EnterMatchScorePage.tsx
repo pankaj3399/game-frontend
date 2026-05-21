@@ -228,8 +228,6 @@ export default function EnterMatchScorePage() {
                       dataUrl={activeQrDataUrl}
                       isGenerating={isGenerating}
                       onOpenLarge={() => setIsQrDialogOpen(true)}
-                      onCopyLink={onGenerateOrOpenValidationLink}
-                      hasValidationLink={hasValidationLink}
                       t={t}
                     />
                   </div>

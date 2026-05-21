@@ -26,6 +26,7 @@ import {
   useUpdateScoreQrScores,
   useValidateTournamentScoreQrConfirmContext,
   useCancelActiveScoreQr,
+  useScoreQrConfirmContextEvents,
 } from "@/pages/tournaments/hooks/useTournamentScoreQr";
 import {
   applyScoreInputChange,
@@ -148,6 +149,10 @@ export function useEnterMatchScoreController({
     confirmedToken,
     mode === "confirm" && Boolean(confirmedToken),
   );
+  useScoreQrConfirmContextEvents(
+    confirmedToken,
+    mode === "confirm" && Boolean(confirmedToken),
+  );
 
   useEffect(() => {
     if (mode !== "confirm") return;
@@ -166,6 +171,7 @@ export function useEnterMatchScoreController({
   const [generatedQrDataUrl, setGeneratedQrDataUrl] = useState<string | null>(null);
   const [generatedValidationUrl, setGeneratedValidationUrl] = useState<string | null>(null);
   const [generatedExpiresAt, setGeneratedExpiresAt] = useState<string | null>(null);
+  const [generatedRequestId, setGeneratedRequestId] = useState<string | null>(null);
   const [hasUnsavedQrChanges, setHasUnsavedQrChanges] = useState(false);
   const [independentPlayMode, setIndependentPlayMode] =
     useState<MatchOption["playMode"]>("TieBreak10");
@@ -182,6 +188,7 @@ export function useEnterMatchScoreController({
    * during the network round-trip (e.g. due to a liveMatch refetch shifting the selection).
    */
   const currentQrRequestKeyRef = useRef<string>("");
+  const lastSyncedQrRequestKeyRef = useRef<string | null>(null);
 
   const mergeStableTournamentNameForLabel = useCallback(
     (match: TournamentLiveMatchItem): TournamentLiveMatchItem => {
@@ -204,6 +211,10 @@ export function useEnterMatchScoreController({
   const resolvedConfirmMatchId = forcedMatchId || validatedRequest?.matchId || "";
   const resolvedConfirmTournamentId =
     forcedTournamentId || validatedRequest?.tournamentId || "";
+  const confirmTournamentMatchesQuery = useTournamentMatches(
+    resolvedConfirmTournamentId || null,
+    mode === "confirm" && Boolean(resolvedConfirmTournamentId),
+  );
 
   // Strip raw token query params as soon as possible (secret should not live in the address bar).
   useLayoutEffect(() => {
@@ -435,6 +446,40 @@ export function useEnterMatchScoreController({
   const forcedOption = useMemo(() => {
     if (mode !== "confirm") return null;
     if (!resolvedConfirmMatchId) return null;
+    if (validatedRequest?.flow === "tournament") {
+      const scheduleMatch =
+        confirmTournamentMatchesQuery.data?.matches.find(
+          (item: TournamentScheduleMatch) => item.id === resolvedConfirmMatchId,
+        ) ?? null;
+
+      if (scheduleMatch) {
+        const sideOneLabel =
+          normalizeDisplayNameForLabel(teamSideDisplayName(scheduleMatch, 0, t), 50) ||
+          t("recordScorePage.enter.myScore");
+        const sideTwoLabel =
+          normalizeDisplayNameForLabel(teamSideDisplayName(scheduleMatch, 1, t), 50) ||
+          t("recordScorePage.enter.opponentScore");
+        const matchLabel = `${sideOneLabel} · ${sideTwoLabel}`;
+
+        return {
+          id: resolvedConfirmMatchId,
+          label: matchLabel,
+          startTime: scheduleMatch.startTime,
+          playMode: validatedRequest.playMode,
+          mode: validatedRequest.matchType,
+          kind: "tournament" as const,
+          tournamentId: validatedRequest.tournamentId,
+          matchId: validatedRequest.matchId,
+          round: scheduleMatch.round,
+          playerOneRowLabel: sideOneLabel,
+          playerTwoRowLabel: sideTwoLabel,
+          playerOneAvatarUrl: firstTeamAvatarUrl(scheduleMatch.side1),
+          playerTwoAvatarUrl: firstTeamAvatarUrl(scheduleMatch.side2),
+          isLive: false,
+          isPendingScore: true,
+        } satisfies MatchOption;
+      }
+    }
 
     const existingOption =
       matchOptions.find(
@@ -521,6 +566,7 @@ export function useEnterMatchScoreController({
       isPendingScore: true,
     } satisfies MatchOption;
   }, [
+    confirmTournamentMatchesQuery.data?.matches,
     inFlightMatches,
     matchOptions,
     mergeStableTournamentNameForLabel,
@@ -924,6 +970,10 @@ export function useEnterMatchScoreController({
       ? effectiveExpiresAt
       : generatedExpiresAt ??
         (shouldUseHydratedState ? hydratedQrSession?.expiresAt ?? null : null);
+  const activeScoreQrRequestId =
+    mode === "generate"
+      ? (hydratedQrSession?.requestId ?? generatedRequestId)
+      : null;
 
   const activeQrDataUrl =
     mode === "generate" && !canExposeGenerateScoreQrUi ? null : rawActiveQrDataUrl;
@@ -1016,6 +1066,7 @@ export function useEnterMatchScoreController({
     setGeneratedQrDataUrl(null);
     setGeneratedValidationUrl(null);
     setGeneratedExpiresAt(null);
+    setGeneratedRequestId(null);
     setHasUnsavedQrChanges(false);
     setIsMatchPopoverOpen(false);
     setOpenScorePickerKey(null);
@@ -1165,6 +1216,7 @@ export function useEnterMatchScoreController({
     setGeneratedQrDataUrl(null);
     setGeneratedValidationUrl(null);
     setGeneratedExpiresAt(null);
+    setGeneratedRequestId(null);
     setHasUnsavedQrChanges(false);
     setOpenScorePickerKey(null);
   };
@@ -1188,6 +1240,51 @@ export function useEnterMatchScoreController({
     };
   }, [effectiveRows, effectiveSelectedOption.playMode, t]);
 
+  useEffect(() => {
+    if (mode !== "generate") return;
+    if (!hasUnsavedQrChanges) return;
+    if (!activeScoreQrRequestId) return;
+    if (!isScoreFormValidForQr) return;
+    if (updateScoreQrMutation.isPending) return;
+    if (lastSyncedQrRequestKeyRef.current === currentQrRequestKey) return;
+
+    const timeoutId = window.setTimeout(() => {
+      const input = buildCurrentScoreInput(false);
+      if (!input) return;
+      const updateKey = currentQrRequestKeyRef.current;
+
+      void updateScoreQrMutation
+        .mutateAsync({
+          requestId: activeScoreQrRequestId,
+          playerOneScores: input.playerOneScores,
+          playerTwoScores: input.playerTwoScores,
+        })
+        .then(() => {
+          lastSyncedQrRequestKeyRef.current = updateKey;
+          if (currentQrRequestKeyRef.current === updateKey) {
+            setHasUnsavedQrChanges(false);
+          }
+        })
+        .catch((error: unknown) => {
+          toast.error(
+            getErrorMessage(error) ??
+              t("recordScorePage.enter.errors.qrGenerateFailed"),
+          );
+        });
+    }, 150);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [
+    activeScoreQrRequestId,
+    buildCurrentScoreInput,
+    currentQrRequestKey,
+    hasUnsavedQrChanges,
+    isScoreFormValidForQr,
+    mode,
+    t,
+    updateScoreQrMutation,
+  ]);
+
   const onGenerateQr = useCallback(
     async (options?: { showSuccessToast?: boolean; forceGenerateNew?: boolean }) => {
       if (effectiveSelectedOption.hasRecordedScore) {
@@ -1207,26 +1304,23 @@ export function useEnterMatchScoreController({
       const input = buildCurrentScoreInput(options?.showSuccessToast !== false);
       if (!input) return null;
 
-      // If an independent session is already active and the user only changed scores,
-      // update the existing request in-place (same token/QR) instead of regenerating.
-      const activeIndependentRequestId =
-        hydratedQrSession?.flow === "independent" ? hydratedQrSession.requestId : null;
-
+      // If a session is already active and the user only changed scores, update the
+      // existing request in-place (same token/QR) instead of regenerating.
       if (
         !options?.forceGenerateNew &&
         hasUnsavedQrChanges &&
-        activeIndependentRequestId &&
-        effectiveSelectedOption.kind === "independent"
+        activeScoreQrRequestId
       ) {
         let patchOk = false;
         try {
           await updateScoreQrMutation.mutateAsync({
-            requestId: activeIndependentRequestId,
+            requestId: activeScoreQrRequestId,
             playerOneScores: input.playerOneScores,
             playerTwoScores: input.playerTwoScores,
           });
           patchOk = true;
           setHasUnsavedQrChanges(false);
+          lastSyncedQrRequestKeyRef.current = currentQrRequestKeyRef.current;
           if (options?.showSuccessToast !== false) {
             toast.success(t("recordScorePage.enter.qrScoresUpdated", { defaultValue: "Scores updated" }));
           }
@@ -1237,6 +1331,7 @@ export function useEnterMatchScoreController({
             setGeneratedQrDataUrl(null);
             setGeneratedValidationUrl(null);
             setGeneratedExpiresAt(null);
+            setGeneratedRequestId(null);
           } else {
             toast.error(
               getErrorMessage(error) ?? t("recordScorePage.enter.errors.qrGenerateFailed"),
@@ -1245,7 +1340,7 @@ export function useEnterMatchScoreController({
           }
         }
         if (patchOk) {
-          return hydratedQrSession?.validationUrl ?? null;
+          return activeValidationUrl;
         }
       }
 
@@ -1268,7 +1363,9 @@ export function useEnterMatchScoreController({
         setGeneratedQrDataUrl(result.qr.dataUrl);
         setGeneratedValidationUrl(result.qr.validationUrl);
         setGeneratedExpiresAt(result.qr.expiresAt);
+        setGeneratedRequestId(result.qr.requestId);
         setHasUnsavedQrChanges(false);
+        lastSyncedQrRequestKeyRef.current = currentQrRequestKeyRef.current;
         // Use the ref (not the closed-over value) so we always stamp the key that is
         // current at the time the response lands, even if external data (liveMatch
         // refetch) shifted the selection while the request was in flight.
@@ -1285,6 +1382,8 @@ export function useEnterMatchScoreController({
       }
     },
     [
+      activeScoreQrRequestId,
+      activeValidationUrl,
       buildCurrentScoreInput,
       canGenerateQr,
       currentQrRequestKey,
@@ -1297,7 +1396,6 @@ export function useEnterMatchScoreController({
       generateIndependentQrMutation,
       generateTournamentQrMutation,
       hasUnsavedQrChanges,
-      hydratedQrSession,
       t,
       updateScoreQrMutation,
     ],
@@ -1314,6 +1412,7 @@ export function useEnterMatchScoreController({
     setGeneratedQrDataUrl(null);
     setGeneratedValidationUrl(null);
     setGeneratedExpiresAt(null);
+    setGeneratedRequestId(null);
     setHasUnsavedQrChanges(false);
     setScoreDraftRows(null);
     // Reset the auto-generate guard refs so the effect fires for the new match.
@@ -1395,8 +1494,10 @@ export function useEnterMatchScoreController({
     setGeneratedQrDataUrl(null);
     setGeneratedValidationUrl(null);
     setGeneratedExpiresAt(null);
+    setGeneratedRequestId(null);
     lastAutoGeneratedQrKeyRef.current = null;
     attemptedAutoQrKeyRef.current = null;
+    lastSyncedQrRequestKeyRef.current = null;
   }, [isScoreFormValidForQr, mode]);
 
   useEffect(() => {

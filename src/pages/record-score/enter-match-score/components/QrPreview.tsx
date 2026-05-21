@@ -1,11 +1,7 @@
-import { IconExternalLink } from "@/icons/figma-icons";
-
 type QrPreviewProps = {
   dataUrl: string | null;
   isGenerating?: boolean;
   onOpenLarge: () => void;
-  onCopyLink?: () => void;
-  hasValidationLink?: boolean;
   t: (key: string, options?: Record<string, unknown>) => string;
 };
 
@@ -13,8 +9,6 @@ export function QrPreview({
   dataUrl,
   isGenerating = false,
   onOpenLarge,
-  onCopyLink,
-  hasValidationLink,
   t,
 }: QrPreviewProps) {
   if (isGenerating && !dataUrl) {
@@ -64,18 +58,6 @@ export function QrPreview({
             {t("recordScorePage.enter.qrPreviewTapToEnlarge")}
           </p>
         </button>
-
-        {hasValidationLink && onCopyLink ? (
-          <button
-            type="button"
-            onClick={onCopyLink}
-            title={t("recordScorePage.enter.copyValidationLink")}
-            className="flex items-center gap-1.5 rounded-full border border-[#010a04]/10 bg-white px-3 py-1.5 text-[11px] font-medium text-[#010a04]/65 shadow-sm transition hover:border-[#1d8ced]/40 hover:text-[#1d8ced]"
-          >
-            <IconExternalLink size={12} className="shrink-0" />
-            {t("recordScorePage.enter.copyLink")}
-          </button>
-        ) : null}
       </div>
     );
   }

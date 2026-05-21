@@ -1,6 +1,7 @@
+import { useEffect } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
-import { api } from "@/lib/api";
+import { api, getBackendUrl } from "@/lib/api";
 import { queryKeys } from "@/lib/api/queryKeys";
 import {
   activeTournamentScoreQrSessionResponseSchema,
@@ -35,6 +36,15 @@ function scoreQrTokenOpaqueKeyPart(token: string): string {
     h = Math.imul(h, 16777619);
   }
   return `${s.length}:${(h >>> 0).toString(16)}`;
+}
+
+function scoreQrConfirmContextQueryKey(token: string) {
+  return [
+    ...queryKeys.tournament.all,
+    "score-qr",
+    "confirm-context",
+    scoreQrTokenOpaqueKeyPart(token),
+  ] as const;
 }
 
 // Backward-compatible schema: tolerate missing `request` in validate response.
@@ -249,17 +259,50 @@ export function useValidateTournamentScoreQrConfirmContext(
   const normalized = (token ?? "").trim();
 
   return useQuery({
-    queryKey: [
-      ...queryKeys.tournament.all,
-      "score-qr",
-      "confirm-context",
-      scoreQrTokenOpaqueKeyPart(normalized),
-    ] as const,
+    queryKey: scoreQrConfirmContextQueryKey(normalized),
     queryFn: () => validateTournamentScoreQrConfirmContext(normalized),
     enabled: enabled && normalized.length > 0,
-    refetchInterval: 5000,
+    // SSE below pushes updates immediately; this is only a safety net if the stream drops.
+    refetchInterval: 30_000,
     retry: false,
   });
+}
+
+export function useScoreQrConfirmContextEvents(
+  token: string | null | undefined,
+  enabled = true,
+) {
+  const queryClient = useQueryClient();
+  const normalized = (token ?? "").trim();
+
+  useEffect(() => {
+    if (!enabled || !normalized || typeof EventSource === "undefined") return;
+
+    const backendUrl = getBackendUrl();
+    const url = backendUrl
+      ? new URL(
+          `/api/tournaments/score-qr/${encodeURIComponent(normalized)}/events`,
+          backendUrl,
+        ).toString()
+      : `/api/tournaments/score-qr/${encodeURIComponent(normalized)}/events`;
+    const source = new EventSource(url, { withCredentials: true });
+
+    const refetchConfirmContext = () => {
+      void queryClient.invalidateQueries({
+        queryKey: scoreQrConfirmContextQueryKey(normalized),
+        refetchType: "active",
+      });
+    };
+
+    source.addEventListener("scores-updated", refetchConfirmContext);
+    source.addEventListener("request-consumed", refetchConfirmContext);
+
+    return () => {
+      source.removeEventListener("scores-updated", refetchConfirmContext);
+      source.removeEventListener("request-consumed", refetchConfirmContext);
+      source.close();
+    };
+  }, [enabled, normalized, queryClient]);
 }
 
 export function useConfirmTournamentScoreQr() {

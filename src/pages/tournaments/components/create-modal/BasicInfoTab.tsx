@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { format, startOfDay } from "date-fns";
 import { Calendar as CalendarIcon, ChartIcon, Info } from "@/icons/figma-icons";
@@ -89,6 +90,7 @@ export function BasicInfoTab({
   formScopeKey,
 }: BasicInfoTabProps) {
   const { t, i18n } = useTranslation();
+  const [datePickerOpen, setDatePickerOpen] = useState(false);
 
   const selectedDate = parseIsoDateSafely(form.date) ?? undefined;
   const dateDisplayValue = selectedDate
@@ -271,7 +273,7 @@ export function BasicInfoTab({
               >
                 {t("tournaments.date")} *
               </Label>
-              <Popover>
+              <Popover open={datePickerOpen} onOpenChange={setDatePickerOpen}>
                 <PopoverTrigger asChild>
                   <Button
                     id="create-tournament-basic-date"
@@ -296,6 +298,7 @@ export function BasicInfoTab({
                     onSelect={(date) => {
                       if (!date) return;
                       update({ date: format(date, "yyyy-MM-dd") });
+                      setDatePickerOpen(false);
                     }}
                     disabled={
                       allowPastDates
