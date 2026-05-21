@@ -7,6 +7,10 @@ import {
   IconScanBarcode,
   PencilEdit01Icon,
 } from "@/icons/figma-icons";
+import {
+  preloadScoreQrScanSound,
+  unlockScoreQrScanSound,
+} from "@/lib/scoreQrScanSound";
 import { cn } from "@/lib/utils";
 
 type ActionCardConfig = {
@@ -22,6 +26,10 @@ export default function RecordScorePage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+
+  useEffect(() => {
+    preloadScoreQrScanSound();
+  }, []);
 
   useEffect(() => {
     const tournamentId = searchParams.get("tournamentId")?.trim() ?? "";
@@ -66,6 +74,7 @@ export default function RecordScorePage() {
 
   const onActionCardClick = (id: ActionCardConfig["id"]) => {
     if (id === "validate") {
+      unlockScoreQrScanSound();
       navigate("/record-score/validate/scan");
       return;
     }
