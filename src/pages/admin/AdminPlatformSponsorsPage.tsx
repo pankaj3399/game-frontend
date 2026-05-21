@@ -96,9 +96,10 @@ export default function AdminPlatformSponsorsPage() {
 
           <Button
             type="button"
+            variant="brand"
+            size="sm"
             onClick={openCreateDialog}
             disabled={isLoading}
-            className="h-[30px] rounded-lg border border-black/[0.12] bg-[#006B2E] px-3 text-xs font-medium text-white hover:bg-[#005a26]"
           >
             <PlusSignIcon size={15} className="mr-1.5 shrink-0 text-white" />
             {t("admin.platformSponsors.newSponsor")}

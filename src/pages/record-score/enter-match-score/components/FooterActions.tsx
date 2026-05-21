@@ -28,9 +28,10 @@ export function FooterActions({
       {mode === "confirm" ? (
         <Button
           type="button"
+          variant="brand"
           onClick={onSubmitConfirmedScore}
           disabled={!canSubmitConfirmedScore || isSubmittingConfirm}
-          className="min-h-[48px] w-full rounded-[12px] bg-[#067429] text-[15px] font-medium text-white hover:bg-[#056320] sm:h-[34px] sm:min-h-[34px] sm:rounded-[10px] sm:text-[14px]"
+          className="min-h-[48px] w-full rounded-[12px] sm:h-8 sm:min-h-8 sm:rounded-[10px]"
         >
           {isSubmittingConfirm
             ? t("recordScorePage.enter.submitting")

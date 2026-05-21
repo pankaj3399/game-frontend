@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next";
+import { Button } from "@/components/ui/button";
 import { getSafeLink } from "@/lib/url";
 import type { ClubPublic } from "@/pages/clubs/hooks";
 
@@ -80,12 +81,13 @@ export function ClubSponsorsAside({ club, sponsors }: ClubSponsorsAsideProps) {
               {t("clubs.bookCourt")}
             </button>
           )}
-          <button
+          <Button
             type="button"
-            className="flex items-center justify-center rounded-lg bg-brand-primary px-4 py-3 font-medium text-white transition-colors hover:bg-brand-primary-hover"
+            variant="brand"
+            className="w-full rounded-lg px-4 py-3"
           >
             {t("clubs.requestTennisLesson")}
-          </button>
+          </Button>
           <button
             type="button"
             className="text-center text-sm font-medium text-muted-foreground underline hover:text-foreground"

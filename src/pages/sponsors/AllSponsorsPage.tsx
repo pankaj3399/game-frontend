@@ -1,6 +1,8 @@
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
+import { buttonVariants } from "@/components/ui/button-variants";
 import { ExternalLink, PlusSignIcon } from "@/icons/figma-icons";
+import { cn } from "@/lib/utils";
 import { useAllSponsors } from "@/pages/sponsors/hooks";
 import InlineLoader from "@/components/shared/InlineLoader";
 import { GLOBAL_PARAMETERS } from "@/constants/constants";
@@ -26,17 +28,16 @@ export default function AllSponsorsPage() {
     <div className="flex min-h-[calc(100vh-4rem)] justify-center bg-gray-50">
       <div className="mx-auto w-full max-w-6xl p-4 sm:p-6">
         <div className="rounded-xl border border-border bg-white p-6 shadow-sm">
-          <div className="flex flex-wrap items-center justify-between gap-3 lg:mb-6">
-            <h1 className="text-2xl font-bold text-foreground">
-              {t("sponsors.allSponsors")}
-            </h1>
+          <div className="flex flex-wrap items-center justify-end gap-3 lg:mb-6">
             <a
               id="become-sponsor-btn"
               href={becomeSponsorMailto}
-              className="inline-flex items-center gap-2 rounded-lg bg-[#0a9f43] px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#088a38] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0a9f43] sm:ml-auto"
+              className={cn(buttonVariants({ variant: "brand", size: "sm" }))}
             >
-              <PlusSignIcon size={16} className="shrink-0 text-white" />
-              {t("sponsors.becomeSponsor")}
+              <PlusSignIcon size={15} className="shrink-0 text-white" />
+              <span className="text-[14px] font-medium">
+                {t("sponsors.becomeSponsor")}
+              </span>
             </a>
           </div>
 
@@ -82,7 +83,7 @@ export default function AllSponsorsPage() {
                         href={sponsor.link}
                         target="_blank"
                         rel="noreferrer noopener"
-                        className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-[#0a9f43] hover:underline"
+                        className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-brand-primary hover:text-brand-primary-hover hover:underline"
                       >
                         {t("sponsors.visitWebsite")}
                         <ExternalLink className="size-4" />

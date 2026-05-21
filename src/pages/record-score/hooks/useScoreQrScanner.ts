@@ -61,9 +61,9 @@ export function useScoreQrScanner({
 
       if (!detectedToken) return;
 
+      playScoreQrScanSound();
       detectedRef.current = true;
       setHasDetectedToken(true);
-      playScoreQrScanSound();
       onTokenDetected(detectedToken);
     },
     [onTokenDetected, scanBlocked],
@@ -88,7 +88,7 @@ export function useScoreQrScanner({
         facingMode: "environment",
       },
       formats: ["qr_code"],
-      scanDelay: 250,
+      scanDelay: 0,
       allowMultiple: false,
       sound: false,
       components: {

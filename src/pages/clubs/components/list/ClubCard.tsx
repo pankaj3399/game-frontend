@@ -30,7 +30,7 @@ export function ClubCard({ club }: ClubCardProps) {
         ) : null}
         <Link
           to={`/clubs/${club.id}`}
-          className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-[#0a9f43] hover:underline"
+          className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-brand-primary hover:text-brand-primary-hover hover:underline"
         >
           {t("clubs.viewDetails")}
           <ArrowRight className="size-4" />

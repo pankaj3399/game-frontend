@@ -107,6 +107,7 @@ function LiveMatchEnterScoreButton({
   return (
     <Button
       type="button"
+      variant="brand"
       onClick={() => {
         onNavigateAway();
         const params = new URLSearchParams();
@@ -117,7 +118,7 @@ function LiveMatchEnterScoreButton({
         const query = params.toString();
         navigate(`/record-score/manual${query ? `?${query}` : ""}`);
       }}
-      className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-[10px] bg-[#067429] text-[15px] font-semibold text-white shadow-sm hover:bg-[#055a21]"
+      className="h-11 w-full rounded-[10px]"
     >
       <IconScanBarcode size={18} className="text-white" aria-hidden />
       <span>{enterScoreLabel}</span>

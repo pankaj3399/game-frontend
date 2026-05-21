@@ -10,6 +10,11 @@ import type { TFunction } from "i18next";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import { getErrorMessage, getHttpStatus } from "@/lib/errors";
+import {
+  playScoreQrScanSound,
+  preloadScoreQrScanSound,
+  unlockScoreQrScanSound,
+} from "@/lib/scoreQrScanSound";
 import { shareDataWithUrlInText } from "@/lib/webShare";
 import { useTournamentLiveMatch } from "@/pages/tournaments/hooks/useTournamentLiveMatch";
 import { useTournamentMatches } from "@/pages/tournaments/hooks/useTournamentMatches";
@@ -143,6 +148,11 @@ export function useEnterMatchScoreController({
     confirmedToken,
     mode === "confirm" && Boolean(confirmedToken),
   );
+
+  useEffect(() => {
+    if (mode !== "confirm") return;
+    preloadScoreQrScanSound();
+  }, [mode]);
   const generateTournamentQrMutation = useGenerateTournamentScoreQr();
   const generateIndependentQrMutation = useGenerateIndependentScoreQr();
   const updateScoreQrMutation = useUpdateScoreQrScores();
@@ -1446,6 +1456,9 @@ export function useEnterMatchScoreController({
       toast.error(t("recordScorePage.enter.errors.noTournamentMatchSelected"));
       return;
     }
+
+    unlockScoreQrScanSound();
+    playScoreQrScanSound();
 
     try {
       await confirmScoreQrMutation.mutateAsync({

@@ -72,7 +72,9 @@ export function TournamentActions({
           </Button>
         )}
         <Button
-          className="h-9 min-w-0 flex-1 bg-brand-primary text-white hover:bg-brand-primary-hover sm:flex-none"
+          variant="brand"
+          size="sm"
+          className="min-w-0 flex-1 sm:flex-none"
           onClick={onCreate}
         >
           <PlusSignIcon size={16} className="mr-2 shrink-0 text-white" />

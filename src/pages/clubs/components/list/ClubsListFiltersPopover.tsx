@@ -207,7 +207,8 @@ export function ClubsListFiltersPopover({
           </Button>
           <Button
             size="sm"
-            className="h-9 flex-[2] rounded-xl bg-brand-primary text-[13px] font-semibold text-white shadow-sm shadow-brand-primary/20 transition-colors hover:bg-brand-primary-hover"
+            variant="brand"
+            className="h-9 flex-[2] rounded-xl text-[13px] shadow-sm shadow-brand-primary/20"
             onClick={() => {
               onApply({
                 clubScope: draftScope,

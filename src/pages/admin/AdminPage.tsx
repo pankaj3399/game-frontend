@@ -15,12 +15,12 @@ export default function AdminPage() {
       </p>
       <div className="mt-6">
         <div className="flex flex-wrap gap-3">
-          <Button asChild className="bg-brand-primary hover:bg-brand-primary-hover">
+          <Button asChild variant="brand">
             <Link to="/admin/clubs-subscriptions">
               {t("admin.subscriptionManagementCta")}
             </Link>
           </Button>
-          <Button asChild className="bg-brand-primary hover:bg-brand-primary-hover">
+          <Button asChild variant="brand">
             <Link to="/admin/sponsors">{t("admin.platformSponsors.dashboardCta")}</Link>
           </Button>
         </div>

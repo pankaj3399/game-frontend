@@ -158,7 +158,8 @@ export function AddEditSponsorModal({
 
           <Button
             type="submit"
-            className="w-full bg-brand-primary hover:bg-brand-primary-hover"
+            variant="brand"
+            className="w-full"
             disabled={!canSubmit || isPending}
           >
             {isPending ? t("common.loading") : isEdit ? t("sponsors.save") : t("sponsors.create")}

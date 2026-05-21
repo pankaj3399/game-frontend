@@ -49,7 +49,7 @@ export function SponsorItem({ sponsor, onEdit, onRemove, isDeleting, variant }: 
           <Button
             variant="ghost"
             size="xs"
-            className="h-auto rounded-none p-0 text-[#006B2E] hover:bg-transparent hover:text-[#005a26]"
+            className="h-auto rounded-none p-0 text-brand-primary hover:bg-transparent hover:text-brand-primary-hover"
             onClick={onEdit}
             disabled={isDeleting}
           >
@@ -102,7 +102,7 @@ export function SponsorItem({ sponsor, onEdit, onRemove, isDeleting, variant }: 
             variant="ghost"
             size="xs"
             disabled={isDeleting}
-            className="h-auto gap-[5px] rounded-none p-0 text-[#006B2E] hover:bg-transparent hover:text-[#005a26]"
+            className="h-auto gap-[5px] rounded-none p-0 text-brand-primary hover:bg-transparent hover:text-brand-primary-hover"
             onClick={onEdit}
           >
             <PenLine className="size-4" />

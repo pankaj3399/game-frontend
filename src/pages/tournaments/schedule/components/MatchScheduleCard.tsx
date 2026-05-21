@@ -199,7 +199,7 @@ export function MatchScheduleCard({
             className={cn(
               "h-7 min-w-0 justify-self-end rounded-[7px] px-2.5 text-[12px] font-medium shadow-none",
               isEditing
-                ? "bg-[#067429] text-white hover:bg-[#055d21]"
+                ? "bg-brand-primary text-white hover:bg-brand-primary-hover"
                 : "border border-[#010a04]/[0.12] bg-white text-[#010a04] hover:bg-[#010a04]/[0.04]"
             )}
           >

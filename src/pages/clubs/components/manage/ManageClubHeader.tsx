@@ -71,7 +71,9 @@ export function ManageClubHeader({
         )}
 
         <Button
-          className="h-[30px] w-full shrink-0 whitespace-nowrap rounded-[8px] bg-brand-primary px-[14px] text-[14px] font-medium hover:bg-brand-primary-hover sm:w-auto"
+          variant="brand"
+          size="sm"
+          className="w-full shrink-0 whitespace-nowrap sm:w-auto"
           onClick={onOpenAddModal}
           disabled={!canAddStaff}
           title={!canAddStaff ? t("manageClub.addMemberDisabledHint") : undefined}

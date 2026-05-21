@@ -42,10 +42,19 @@ function playFallbackBeep() {
   }
 }
 
-async function tryPlayClip(audio: HTMLAudioElement) {
+function playClipNow(audio: HTMLAudioElement) {
   audio.pause();
   audio.currentTime = 0;
-  await audio.play();
+  void audio.play().catch(() => {
+    playFallbackBeep();
+  });
+}
+
+/** Warm the clip so the first scan does not wait on network/decode. */
+export function preloadScoreQrScanSound() {
+  if (typeof window === "undefined") return;
+  const audio = getSharedAudio();
+  audio.load();
 }
 
 /**
@@ -56,36 +65,36 @@ export function unlockScoreQrScanSound() {
   if (audioUnlocked) return;
 
   const audio = getSharedAudio();
-  void tryPlayClip(audio)
-    .then(() => {
+  playClipNow(audio);
+  audio.addEventListener(
+    "playing",
+    () => {
       audio.pause();
       audio.currentTime = 0;
       audioUnlocked = true;
-    })
-    .catch(() => {
+    },
+    { once: true },
+  );
+  audio.addEventListener(
+    "error",
+    () => {
       audioUnlocked = false;
-    });
+    },
+    { once: true },
+  );
 }
 
-/** Play scan success feedback (tennis hit, with short beep fallback). */
+/** Play scan feedback immediately (tennis hit, with short beep fallback). */
 export function playScoreQrScanSound() {
   if (typeof window === "undefined") return;
 
-  const play = async () => {
-    const audio = getSharedAudio();
-    try {
-      if (audioUnlocked) {
-        await tryPlayClip(audio);
-        return;
-      }
+  const audio = getSharedAudio();
+  if (audioUnlocked) {
+    playClipNow(audio);
+    return;
+  }
 
-      const clip = audio.cloneNode(true) as HTMLAudioElement;
-      configureAudioElement(clip);
-      await tryPlayClip(clip);
-    } catch {
-      playFallbackBeep();
-    }
-  };
-
-  void play();
+  const clip = audio.cloneNode(true) as HTMLAudioElement;
+  configureAudioElement(clip);
+  playClipNow(clip);
 }

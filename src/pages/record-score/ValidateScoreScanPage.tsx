@@ -1,12 +1,15 @@
 import { Scanner } from "@yudiel/react-qr-scanner";
-import { useCallback } from "react";
+import { useCallback, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import ScannerIcon from "@/assets/icons/figma/vuesax/bold/scanner.svg?react";
 import { IconChevronLeft } from "@/icons/figma-icons";
 import { usePromoteScoreQrTokenFromQuery } from "./hooks/usePromoteScoreQrTokenFromQuery";
 import { useScanEnvironment } from "./hooks/useScanEnvironment";
-import { unlockScoreQrScanSound } from "@/lib/scoreQrScanSound";
+import {
+  preloadScoreQrScanSound,
+  unlockScoreQrScanSound,
+} from "@/lib/scoreQrScanSound";
 import { useScoreQrScanner } from "./hooks/useScoreQrScanner";
 import { storeScoreQrToken } from "./scoreQrTokenSession";
 
@@ -69,6 +72,10 @@ export default function ValidateScoreScanPage() {
     autoStart: true,
     onTokenDetected,
   });
+
+  useEffect(() => {
+    preloadScoreQrScanSound();
+  }, []);
 
   const onBack = () => {
     unlockScoreQrScanSound();

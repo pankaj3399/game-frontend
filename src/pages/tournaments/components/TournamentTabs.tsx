@@ -73,10 +73,9 @@ export function TournamentTabs({
             {t("tournaments.create")}
           </Button>
           <Button
-            variant="default"
+            variant="brand"
             size="sm"
             onClick={() => onTabChange("drafts")}
-            className="bg-brand-primary text-white hover:bg-brand-primary-hover"
           >
             {t("tournaments.openDraftsWorkspace")}
           </Button>

@@ -124,9 +124,10 @@ export default function ManageClubSponsorsPage() {
 
           <Button
             type="button"
+            variant="brand"
+            size="sm"
             onClick={handleAddSponsor}
             disabled={sponsorsLoading || !canManageSponsors}
-            className="h-[30px] rounded-lg border border-black/[0.12] bg-[#006B2E] px-3 text-xs font-medium text-white hover:bg-[#005a26]"
           >
             <PlusSignIcon size={15} className="mr-1.5 shrink-0 text-white" />
             {t("sponsors.newSponsor")}
@@ -202,7 +203,7 @@ export default function ManageClubSponsorsPage() {
                       </button>
                       <button
                         type="button"
-                        className="inline-flex items-center gap-1 text-[#006B2E] disabled:cursor-not-allowed disabled:opacity-50"
+                        className="inline-flex items-center gap-1 text-brand-primary hover:text-brand-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
                         onClick={() => handleEditSponsor(sponsor)}
                         disabled={!canManageSponsors}
                       >
@@ -241,7 +242,7 @@ export default function ManageClubSponsorsPage() {
                     <div className="flex items-center gap-4 text-xs">
                       <button
                         type="button"
-                        className="inline-flex items-center gap-1 text-[#006B2E] disabled:cursor-not-allowed disabled:opacity-50"
+                        className="inline-flex items-center gap-1 text-brand-primary hover:text-brand-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
                         onClick={() => handleEditSponsor(sponsor)}
                         disabled={!canManageSponsors}
                       >

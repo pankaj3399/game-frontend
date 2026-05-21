@@ -152,8 +152,8 @@ function TournamentListContent() {
                     </Button>
                   )}
                   <Button
+                    variant="brand"
                     size="sm"
-                    className="h-8 rounded-[8px] bg-brand-primary px-3.5 text-white hover:bg-brand-primary-hover"
                     onClick={() => setIsCreateModalOpen(true)}
                   >
                     <PlusSignIcon size={15} className="text-white" />

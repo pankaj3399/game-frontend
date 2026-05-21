@@ -453,7 +453,7 @@ export function TimePicker({
           </Button>
           <Button
             type="button"
-            className="h-8 flex-1 rounded-md bg-[#0a9f43] text-[12px] text-white hover:bg-[#088a3a]"
+            className="h-8 flex-1 rounded-md bg-brand-primary text-[12px] text-white hover:bg-brand-primary-hover"
             onClick={() => {
               const ok = confirmDraft();
               if (ok) {

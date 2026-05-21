@@ -90,6 +90,12 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
+  /*
+   * Brand tokens — change these to update green site-wide (navbar, CTAs, links).
+   * Tailwind: bg-brand-primary, hover:bg-brand-primary-hover, text-brand-primary, …
+   * React:    <Button variant="brand" size="sm"> (see button-variants.ts)
+   * Plain:    class="btn-brand" (utility below)
+   */
   --brand-primary: #067429;
   --brand-primary-hover: #056023;
   --brand-primary-light: #0d9e3d;
@@ -144,6 +150,13 @@
   --card-surface: oklch(0.28 0.004 160);
   --scrollbar-thumb: color-mix(in oklch, var(--muted-foreground) 42%, transparent);
   --scrollbar-thumb-hover: color-mix(in oklch, var(--muted-foreground) 62%, transparent);
+}
+
+@layer components {
+  /* Primary green CTA — mirrors Button variant="brand"; tokens: --brand-primary / --brand-primary-hover */
+  .btn-brand {
+    @apply inline-flex items-center justify-center gap-2 rounded-[8px] border border-black/[0.12] bg-brand-primary px-3.5 text-[14px] font-medium text-white shadow-none transition-all hover:bg-brand-primary-hover focus-visible:ring-[3px] focus-visible:ring-brand-primary/40;
+  }
 }
 
 @layer base {

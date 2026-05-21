@@ -43,7 +43,7 @@ export default function RecordScorePage() {
       description: t("recordScorePage.cards.validate.description"),
       accentBgClass: "bg-[rgba(6,116,41,0.08)]",
       accentBorderClass: "border-[rgba(6,116,41,0.25)]",
-      iconBgClass: "bg-[#067429]",
+      iconBgClass: "bg-brand-primary",
     },
     {
       id: "enter",

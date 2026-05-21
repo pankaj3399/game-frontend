@@ -28,7 +28,7 @@ export function ResultsHeader({
           disabled={disabled}
           aria-describedby={disabled ? hintId : undefined}
           className="gap-[12px] text-[14px] font-normal text-[#010a04]"
-          switchClassName="data-[state=checked]:bg-[#067429]"
+          switchClassName="data-[state=checked]:bg-brand-primary"
         >
           {t("settings.nav.myScore")}
         </SwitchToggle>

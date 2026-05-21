@@ -131,7 +131,8 @@ export function CreateTournamentModal({
 
           <div className="flex min-w-0 max-w-full flex-col gap-2 overflow-x-clip sm:gap-2.5 sm:flex-row">
             <Button
-              className="w-full min-w-0 bg-brand-primary text-white shadow-sm shadow-brand-primary/20 hover:bg-brand-primary-hover focus-visible:ring-brand-primary/40 sm:flex-1"
+              variant="brand"
+              className="w-full min-w-0 shadow-sm shadow-brand-primary/20 sm:flex-1"
               onClick={handlePublish}
               disabled={isPublishing || Boolean(publishValidationError)}
             >

@@ -4,7 +4,9 @@ import { useState } from "react";
 import { ArrowLeft01Icon } from "@/icons/figma-icons";
 import Google from "@/assets/icons/Google";
 import Apple from "@/assets/icons/Apple";
+import { buttonVariants } from "@/components/ui/button-variants";
 import { getBackendUrl } from "@/lib/api";
+import { cn } from "@/lib/utils";
 import InlineLoader from "@/components/shared/InlineLoader";
 
 type SocialProvider = "google" | "apple";
@@ -142,7 +144,10 @@ const Login = () => {
         />
         <Link
           to="/"
-          className="font-semibold rounded-lg bg-brand-primary text-white mt-8 md:h-[48px] h-[40px] font-primary md:text-base text-sm flex justify-center items-center gap-2 self-center px-8 hover:bg-brand-primary-hover active:animate-jerk"
+          className={cn(
+            buttonVariants({ variant: "brand" }),
+            "mt-8 h-[40px] self-center px-8 font-primary text-sm active:animate-jerk md:h-[48px] md:text-base",
+          )}
         >
           <ArrowLeft01Icon size={22} className="mr-2" />
           {t("auth.backToHome")}

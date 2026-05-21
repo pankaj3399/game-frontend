@@ -216,11 +216,11 @@ export default function TournamentDetailsPage() {
           <div className="flex flex-wrap items-center gap-2 sm:justify-end">
             {tournament.status === "draft" && tournament.permissions.canEdit && (
               <Button
-                variant="default"
+                variant="brand"
                 size="sm"
                 onClick={onPublish}
                 disabled={updateTournament.isPending}
-                className="h-9 bg-[#067429] px-3 text-[13px] hover:bg-[#055b20]"
+                className="h-9 px-3 text-[13px]"
               >
                 <Upload01Icon size={15} className="mr-1 text-white" />
                 {t("tournaments.publish")}
@@ -248,9 +248,10 @@ export default function TournamentDetailsPage() {
             {canEditTournament && (
               <Button
                 type="button"
+                variant="brand"
                 size="sm"
                 onClick={() => setShowEditModal(true)}
-                className="h-8 shrink-0 gap-1.5 rounded-[10px] bg-brand-primary px-3 text-[13px] font-medium text-white hover:bg-brand-primary/90"
+                className="h-8 shrink-0 gap-1.5 px-3 text-[13px]"
               >
                 <PencilEdit01Icon size={14} className="text-white" />
                 {t("tournaments.editInfo")}
