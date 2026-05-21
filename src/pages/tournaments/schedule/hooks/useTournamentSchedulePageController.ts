@@ -6,7 +6,6 @@ import { getErrorMessage } from "@/lib/errors";
 import type {
   GenerateTournamentDoublesPairsResponse,
   TournamentSchedulePairPlayer,
-  TournamentScheduleMatch,
   TournamentScheduleMode,
 } from "@/models/tournament/types";
 import {
