@@ -14,6 +14,7 @@ export function toBackendCreateInput(data: CreateTournamentInput): BackendCreate
   return backendCreateTournamentInputSchema.parse({
     club: data.club,
     name: data.name,
+    logoUrl: data.logoUrl?.trim() ? data.logoUrl.trim() : null,
     status: data.status,
     sponsor: sponsorTrimmed !== "" ? sponsorTrimmed : undefined,
     date: data.date ?? undefined,
@@ -44,6 +45,12 @@ export function toBackendUpdateInput(data: UpdateTournamentInput): BackendUpdate
           ? sponsorTrimmed
           : undefined,
     name: data.name,
+    logoUrl:
+      data.logoUrl === undefined
+        ? undefined
+        : data.logoUrl?.trim()
+          ? data.logoUrl.trim()
+          : null,
     date: data.date,
     startTime: data.startTime,
     endTime: data.endTime,

@@ -65,6 +65,7 @@ export function InfoTab({
             <ClubInfo
               clubId={club?.id}
               clubName={club?.name ?? t("tournaments.unknownClub")}
+              clubLogoUrl={club?.logoUrl}
               onGetDirection={
                 club
                   ? () => {

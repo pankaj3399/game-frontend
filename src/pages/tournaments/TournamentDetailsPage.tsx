@@ -114,6 +114,7 @@ export default function TournamentDetailsPage() {
   }
 
   const tournament = data.tournament;
+  const tournamentLogoUrl = tournament.logoUrl?.trim() ?? "";
   const sponsorWebsiteUrl = tournament.sponsor ? getSafeLink(tournament.sponsor.link) : null;
   const canEditTournament = tournament.permissions.canEdit;
   const onParticipationAction = async () => {
@@ -232,8 +233,12 @@ export default function TournamentDetailsPage() {
         <div className="flex flex-col gap-5 pb-3 sm:gap-6 sm:pb-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex w-full min-w-0 flex-1 items-center justify-between gap-4 sm:gap-5">
             <div className="flex min-w-0 items-center gap-4 sm:gap-5">
-              <div className="flex h-10 w-10 shrink-0 overflow-hidden rounded-[10px] bg-[#e4dbcc]">
-                <img src="/tennis-ball.png" alt="" className="h-full w-full object-cover" />
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-[10px] bg-[#e4dbcc]">
+                <img
+                  src={tournamentLogoUrl || "/tennis-ball.png"}
+                  alt={tournament.name}
+                  className="h-full w-full object-cover"
+                />
               </div>
               <h1 className="truncate text-[20px] font-semibold leading-[1.2] text-[#010a04] sm:text-[26px] lg:text-[34px]">
                 {tournament.name}

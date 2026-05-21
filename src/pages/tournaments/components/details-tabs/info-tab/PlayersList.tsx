@@ -1,6 +1,7 @@
 import { useEffect, useId, useMemo, useState, type ReactNode } from "react";
 import type { TFunction } from "i18next";
 import { toast } from "sonner";
+import { DoublesPairSplitAvatar } from "@/components/shared/DoublesPairSplitAvatar";
 import { PlayerNameText } from "@/components/shared/PlayerNameText";
 import { UserCircle2 } from "@/icons/figma-icons";
 import { useAuth } from "@/pages/auth/hooks";
@@ -150,7 +151,7 @@ function getPlayersContent({
 
           const inner = (
             <>
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[20px] border-[1.5px] border-[#010a04] bg-[#dddddd]/60 sm:h-10 sm:w-10">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-[20px] bg-[#dddddd]/60 sm:h-10 sm:w-10">
                 {participant.profilePictureUrl ? (
                   <img src={participant.profilePictureUrl} alt="" className="size-full rounded-[20px] object-cover" />
                 ) : (
@@ -488,9 +489,10 @@ export function PlayersList({
                 key={`pair-${team.team}`}
                 className="flex items-center gap-3 rounded-[12px] border border-[#067429]/45 bg-[#0a6925]/15 px-3 py-2.5 sm:gap-5 sm:px-[15px] sm:py-3"
               >
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[20px] border-[1.5px] border-[#010a04] bg-[#dddddd]/60 sm:h-10 sm:w-10">
-                  <UserCircle2 size={30} className="text-[#010a04]" />
-                </div>
+                <DoublesPairSplitAvatar
+                  leftPlayer={team.players[0]}
+                  rightPlayer={team.players[1]}
+                />
                 <PlayerNameText
                   name={`${team.players[0]?.alias ?? team.players[0]?.name ?? t("tournaments.unknownPlayer")} / ${team.players[1]?.alias ?? team.players[1]?.name ?? t("tournaments.unknownPlayer")}`}
                   className="text-[14px] leading-5 text-[#010a04] sm:text-[16px]"

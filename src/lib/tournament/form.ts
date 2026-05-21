@@ -20,6 +20,7 @@ export type TournamentValidationErrorKey =
 export const DEFAULT_CREATE_TOURNAMENT_FORM: CreateTournamentInput = {
   club: "",
   name: "",
+  logoUrl: "",
   status: "draft",
   sponsor: null,
   date: getTodayDateInputValue(),
@@ -41,6 +42,7 @@ export function mapTournamentDetailToForm(tournament: TournamentDetail): CreateT
   return {
     club: tournament.club?.id ?? "",
     name: tournament.name ?? "",
+    logoUrl: tournament.logoUrl ?? "",
     status: "draft",
     sponsor: tournament.sponsor?.id ?? null,
     date: normalizeIsoDateInputValue(tournament.date),
@@ -75,6 +77,7 @@ export function buildTournamentPayload(
     status,
     club: form.club,
     name: form.name.trim(),
+    logoUrl: form.logoUrl?.trim() || null,
     date: normalizeDateToUtcIsoString(form.date),
     startTime: normalizeTimeTo24Hour(form.startTime ?? null),
     endTime: normalizeTimeTo24Hour(form.endTime ?? null),
@@ -97,6 +100,7 @@ export function buildUpdatePayload(form: CreateTournamentInput): Omit<CreateTour
 const UPDATE_PAYLOAD_FIELDS = [
   "club",
   "name",
+  "logoUrl",
   "sponsor",
   "date",
   "startTime",

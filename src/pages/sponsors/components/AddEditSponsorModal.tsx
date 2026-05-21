@@ -115,7 +115,6 @@ export function AddEditSponsorModal({
             }
             disabled={!canManage || isPending}
             label={t("sponsors.logoUploadLabel")}
-            hint={t("sponsors.logoUploadHint")}
           />
 
           <div>

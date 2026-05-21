@@ -26,10 +26,10 @@ import { Calendar } from "@/components/ui/calendar";
 import { TimePicker } from "@/components/ui/time-picker";
 import { Textarea } from "@/components/ui/textarea";
 import { TournamentTotalRoundsInput } from "@/pages/tournaments/components/create-modal/TournamentTotalRoundsInput";
+import { SponsorLogoUploadZone } from "@/components/shared/SponsorLogoUploadZone";
 
 interface BasicInfoTabProps {
   form: CreateTournamentInput;
-  /** Club picker only needs id + name (e.g. admin clubs list). */
   clubs: readonly { id: string; name: string }[];
   update: (updates: Partial<CreateTournamentInput>) => void;
   /** When false (default), the date picker cannot select days before today. */
@@ -56,7 +56,7 @@ function TotalRoundsField({
   formScopeKey,
 }: TotalRoundsFieldProps) {
   return (
-    <div className="min-w-0 space-y-2 sm:space-y-[10px]">
+    <div className="min-w-0 space-y-2 sm:space-y-2">
       <Label
         id={labelId}
         className="text-[13px] font-medium text-[#010a04] sm:text-[15px]"
@@ -98,8 +98,8 @@ export function BasicInfoTab({
   const descriptionLength = (form.descriptionInfo ?? "").length;
 
   return (
-    <div className="min-w-0 max-w-full space-y-3 overflow-x-clip sm:space-y-5">
-      <div className="min-w-0 space-y-2 sm:space-y-[10px]">
+    <div className="min-w-0 max-w-full space-y-2.5 overflow-x-clip sm:space-y-4">
+      <div className="min-w-0 space-y-2 sm:space-y-2">
         <Label
           htmlFor="create-tournament-basic-name"
           className="text-[13px] font-medium text-[#010a04] sm:text-[15px]"
@@ -116,6 +116,15 @@ export function BasicInfoTab({
           className="h-[38px] rounded-[10px] border-[#e1e3e8] bg-[#f9fafc] px-3 text-[13px] text-[#010a04] placeholder:text-[#010a04]/50 sm:h-[46px] sm:rounded-[12px] sm:px-[15px] sm:text-[14px]"
         />
       </div>
+
+      <SponsorLogoUploadZone
+        logoUrl={form.logoUrl ?? ""}
+        onLogoUrlChange={(nextUrl) => update({ logoUrl: nextUrl })}
+        label={t("tournaments.tournamentLogo")}
+        successMessage={t("tournaments.tournamentLogoUploadSuccess")}
+        uploadFailedMessage={t("tournaments.tournamentLogoUploadError")}
+        invalidFileTypeMessage={t("tournaments.tournamentLogoInvalidFileType")}
+      />
 
       <div className="space-y-2 sm:space-y-3">
         <Label
@@ -172,13 +181,13 @@ export function BasicInfoTab({
                 type="button"
                 variant="ghost"
                 size="icon-xs"
-                className="h-5 w-5 shrink-0 p-0 text-[#010a04]/55 hover:bg-transparent hover:text-[#010a04]/70 sm:hidden"
+                className="h-5 w-5 shrink-0 p-0 text-[#010a04]/55 hover:bg-transparent hover:text-[#010a04]/70"
                 aria-label={t("tournaments.selectClubHint")}
               >
                 <Info size={14} aria-hidden />
               </Button>
             </PopoverTrigger>
-            <PopoverContent align="start" className="w-[min(100vw-2rem,20rem)] sm:hidden">
+            <PopoverContent align="start" className="w-[min(100vw-2rem,20rem)]">
               <p className="text-[12px] leading-[1.4] text-[#010a04]/85">
                 {t("tournaments.selectClubHint")}
               </p>
@@ -187,7 +196,7 @@ export function BasicInfoTab({
         </div>
         <p
           id="create-tournament-basic-club-hint"
-          className="sr-only break-words text-[12px] leading-[1.35] text-[#010a04]/60 [overflow-wrap:anywhere] sm:not-sr-only sm:block sm:text-[14px] sm:leading-[1.4]"
+          className="sr-only"
         >
           {t("tournaments.selectClubHint")}
         </p>
@@ -215,8 +224,8 @@ export function BasicInfoTab({
 
       {form.tournamentMode === "singleDay" && (
         <>
-          <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-x-[14px] sm:gap-y-[14px]">
-            <div className="min-w-0 space-y-2 sm:space-y-[10px]">
+          <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-3">
+            <div className="min-w-0 space-y-2 sm:space-y-2">
               <Label
                 id="create-tournament-basic-start-label"
                 className="text-[13px] font-medium text-[#010a04] sm:text-[15px]"
@@ -235,7 +244,7 @@ export function BasicInfoTab({
               />
             </div>
 
-            <div className="min-w-0 space-y-2 sm:space-y-[10px]">
+            <div className="min-w-0 space-y-2 sm:space-y-2">
               <Label
                 id="create-tournament-basic-end-label"
                 className="text-[13px] font-medium text-[#010a04] sm:text-[15px]"
@@ -255,7 +264,7 @@ export function BasicInfoTab({
               />
             </div>
 
-            <div className="min-w-0 space-y-2 sm:space-y-[10px]">
+            <div className="min-w-0 space-y-2 sm:space-y-2">
               <Label
                 id="create-tournament-basic-date-label"
                 className="text-[13px] font-medium text-[#010a04] sm:text-[15px]"
@@ -321,7 +330,7 @@ export function BasicInfoTab({
       )}
 
       {form.tournamentMode !== "singleDay" ? (
-        <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-x-[14px] sm:gap-y-[14px]">
+        <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-3">
           <TotalRoundsField
             label={t("tournaments.totalRounds")}
             inputId="create-tournament-basic-total-rounds-unscheduled"
@@ -358,7 +367,7 @@ export function BasicInfoTab({
           maxLength={500}
           value={form.descriptionInfo ?? ""}
           onChange={(e) => update({ descriptionInfo: e.target.value })}
-          className="h-[74px] w-full rounded-[10px] border border-[#e1e3e8] bg-[#f9fafc] px-3 py-3 text-[13px] text-[#010a04] placeholder:text-[#010a04]/50 sm:h-[110px] sm:rounded-[12px] sm:px-[15px] sm:py-[15px] sm:text-[14px]"
+          className="h-[74px] w-full rounded-[10px] border border-[#e1e3e8] bg-[#f9fafc] px-3 py-2.5 text-[13px] text-[#010a04] placeholder:text-[#010a04]/50 sm:h-[96px] sm:rounded-[12px] sm:px-[15px] sm:py-3 sm:text-[14px]"
         />
       </div>
     </div>

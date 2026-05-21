@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { Navigate, useParams } from "react-router-dom";
+import { Link, Navigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { CirclePlus, PenLine, Trash2 } from "@/icons/figma-icons";
+import { PlusSignIcon, PenLine, Trash2 } from "@/icons/figma-icons";
 import { toast } from "sonner";
 import { useHasRoleOrAbove } from "@/pages/auth/hooks";
 import { ROLES } from "@/constants/roles";
@@ -101,9 +101,22 @@ export default function ManageClubSponsorsPage() {
     );
   }
 
+  const manageClubBackTo =
+    validatedClubId != null
+      ? `/clubs/manage?clubId=${validatedClubId}`
+      : "/clubs/manage";
+
   return (
     <div className="min-h-[calc(100vh-4rem)] bg-[#f4f7f6] px-4 py-6 sm:px-6 md:py-8">
-      <div className="mx-auto w-full max-w-[374px] rounded-[15px] border border-black/10 bg-white px-[15px] py-3 shadow-[0px_3px_15px_0px_rgba(0,0,0,0.06)] sm:max-w-[992px] sm:px-0 sm:py-0">
+      <div className="mx-auto w-full max-w-[374px] sm:max-w-[992px]">
+        <Link
+          to={manageClubBackTo}
+          className="mb-4 inline-flex w-fit items-center gap-1 text-sm font-medium text-[#010a04]/70 hover:text-[#010a04]"
+        >
+          ← {t("clubs.goBack")}
+        </Link>
+
+        <div className="rounded-[15px] border border-black/10 bg-white px-[15px] py-3 shadow-[0px_3px_15px_0px_rgba(0,0,0,0.06)] sm:px-0 sm:py-0">
         <div className="flex items-center justify-end sm:px-5 sm:py-3 lg:justify-between lg:pb-[14px] lg:pt-4">
           <h1 className="sr-only text-xl font-semibold leading-tight text-[#010a04] lg:not-sr-only lg:block">
             {t("sponsors.title")}
@@ -115,7 +128,7 @@ export default function ManageClubSponsorsPage() {
             disabled={sponsorsLoading || !canManageSponsors}
             className="h-[30px] rounded-lg border border-black/[0.12] bg-[#006B2E] px-3 text-xs font-medium text-white hover:bg-[#005a26]"
           >
-            <CirclePlus className="mr-1.5 size-3.5 text-white" />
+            <PlusSignIcon size={15} className="mr-1.5 shrink-0 text-white" />
             {t("sponsors.newSponsor")}
           </Button>
         </div>
@@ -251,9 +264,8 @@ export default function ManageClubSponsorsPage() {
             })}
           </div>
         )}
-      </div>
 
-      <AddEditSponsorModal
+        <AddEditSponsorModal
         open={addEditModalOpen}
         onOpenChange={setAddEditModalOpen}
         clubId={validatedClubId}
@@ -283,6 +295,8 @@ export default function ManageClubSponsorsPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+        </div>
+      </div>
     </div>
   );
 }

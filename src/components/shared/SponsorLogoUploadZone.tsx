@@ -1,4 +1,4 @@
-import { CloudUpload } from '@/icons/figma-icons';
+import { CloudUpload, XIcon } from '@/icons/figma-icons';
 import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
@@ -9,7 +9,6 @@ interface SponsorLogoUploadZoneProps {
 	onLogoUrlChange: (nextUrl: string) => void;
 	disabled?: boolean;
 	label?: string;
-	hint?: string;
 	successMessage?: string;
 	uploadFailedMessage?: string;
 	invalidFileTypeMessage?: string;
@@ -27,12 +26,18 @@ const ACCEPTED_IMAGE_MIME_TYPES = [
 const ACCEPT_IMAGE_ATTR = ACCEPTED_IMAGE_MIME_TYPES.join(',');
 const ACCEPTED_IMAGE_MIME_SET = new Set<string>(ACCEPTED_IMAGE_MIME_TYPES);
 
+/** Matches empty-state drop zone footprint so preview does not jump layout. */
+const UPLOAD_ZONE_HEIGHT_CLASS = 'h-[56px] min-h-[56px]';
+const UPLOAD_ZONE_EMPTY_CLASS =
+	'relative w-full overflow-hidden rounded-[10px] border-2 border-dashed border-[#067429] bg-[#f0fdf4]';
+const UPLOAD_ZONE_PREVIEW_CLASS =
+	'relative w-full overflow-hidden rounded-[10px] bg-[#f9fafc]';
+
 export function SponsorLogoUploadZone({
 	logoUrl,
 	onLogoUrlChange,
 	disabled = false,
 	label,
-	hint,
 	successMessage,
 	uploadFailedMessage,
 	invalidFileTypeMessage,
@@ -45,7 +50,6 @@ export function SponsorLogoUploadZone({
 	const hasLogoPreview = trimmedLogo.length > 0;
 
 	const labelText = label ?? t('sponsors.logoUpload.label');
-	const hintText = hint ?? t('sponsors.logoUpload.hint');
 
 	const handleFileSelection = async (file: File | null) => {
 		if (!file) return;
@@ -91,6 +95,14 @@ export function SponsorLogoUploadZone({
 		fileInputRef.current?.click();
 	};
 
+	const handleRemoveLogo = () => {
+		if (disabled || isProcessingFile) return;
+		onLogoUrlChange('');
+		if (fileInputRef.current) {
+			fileInputRef.current.value = '';
+		}
+	};
+
 	const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
 		event.preventDefault();
 		if (disabled || isProcessingFile) return;
@@ -99,7 +111,7 @@ export function SponsorLogoUploadZone({
 
 	return (
 		<div
-			className="space-y-2.5"
+			className="space-y-2"
 			onDragOver={(event) => event.preventDefault()}
 			onDrop={handleDrop}
 		>
@@ -117,15 +129,20 @@ export function SponsorLogoUploadZone({
 			/>
 
 			{hasLogoPreview ? (
-				<div className="flex flex-col items-center">
+				<div
+					className={cn(
+						UPLOAD_ZONE_PREVIEW_CLASS,
+						UPLOAD_ZONE_HEIGHT_CLASS,
+						'relative flex items-center justify-center',
+					)}
+				>
 					<button
 						type="button"
 						onClick={handleBrowseClick}
 						disabled={disabled || isProcessingFile}
 						aria-label={t('sponsors.logoUpload.browseFile')}
 						className={cn(
-							'relative flex w-full max-w-full flex-col items-center justify-center rounded-lg border-0 bg-transparent p-0 outline-none',
-							'focus-visible:ring-2 focus-visible:ring-[#067429] focus-visible:ring-offset-2',
+							'flex h-full w-full items-center justify-center p-0 outline-none focus-visible:ring-2 focus-visible:ring-[#067429] focus-visible:ring-offset-2',
 							(disabled || isProcessingFile) && 'cursor-not-allowed opacity-70',
 							!disabled && !isProcessingFile && 'cursor-pointer',
 						)}
@@ -133,55 +150,63 @@ export function SponsorLogoUploadZone({
 						<img
 							src={trimmedLogo}
 							alt=""
-							className="max-h-[min(180px,40vh)] w-auto max-w-full object-contain"
+							className="max-h-full max-w-full object-contain"
 						/>
-						{isProcessingFile ? (
-							<div className="absolute inset-0 flex items-center justify-center rounded-lg bg-white/70">
-								<span className="text-sm font-medium text-[#010a04]">
-									{t('sponsors.logoUpload.uploading')}
-								</span>
-							</div>
-						) : null}
 					</button>
-
-					<div className="mt-4 h-px w-full bg-[#e5e5e5]" aria-hidden />
-
-					<p className="mt-3 w-full text-center text-[11px] leading-normal text-[#010a04]/55">
-						{hintText}
-					</p>
+					<button
+						type="button"
+						onClick={handleRemoveLogo}
+						disabled={disabled || isProcessingFile}
+						aria-label={t('sponsors.logoUpload.removeLogo')}
+						className={cn(
+							'absolute right-1.5 top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-[#010a04]/75 text-white outline-none transition-colors hover:bg-[#010a04]/90 focus-visible:ring-2 focus-visible:ring-[#067429] focus-visible:ring-offset-1',
+							(disabled || isProcessingFile) && 'cursor-not-allowed opacity-70',
+						)}
+					>
+						<XIcon size={14} aria-hidden />
+					</button>
+					{isProcessingFile ? (
+						<div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-white/70">
+							<span className="text-sm font-medium text-[#010a04]">
+								{t('sponsors.logoUpload.uploading')}
+							</span>
+						</div>
+					) : null}
 				</div>
 			) : (
 				<>
-					<div className="flex w-full flex-col items-center justify-center gap-3 rounded-[10px] border-2 border-dashed border-[#067429] bg-[#f0fdf4] px-4 py-8">
-						<CloudUpload className="size-6 shrink-0 text-neutral-500" />
-						<div className="flex w-full flex-col items-center gap-3 text-center text-[#010a04]">
-							<p className="text-sm leading-normal">
-								{isProcessingFile ? (
-									<span>{t('sponsors.logoUpload.uploading')}</span>
-								) : (
-									<>
-										<span>{t('sponsors.logoUpload.dragDropOr')} </span>
-										<button
-											type="button"
-											onClick={handleBrowseClick}
-											disabled={disabled || isProcessingFile}
-											className="font-medium text-[#067429] underline underline-offset-2 decoration-[#067429] disabled:cursor-not-allowed disabled:opacity-70"
-										>
-											{t('sponsors.logoUpload.browseFile')}
-										</button>
-									</>
-								)}
-							</p>
-							<p className="text-xs leading-normal text-[#010a04]/55">
-								{t('sponsors.logoUpload.supports', { maxMb: MAX_FILE_SIZE_MB })}
-							</p>
-						</div>
+				<div
+					className={cn(
+						UPLOAD_ZONE_EMPTY_CLASS,
+						UPLOAD_ZONE_HEIGHT_CLASS,
+						'flex flex-row items-center justify-center gap-2.5 px-4 py-3',
+					)}
+				>
+					<CloudUpload className="size-5 shrink-0 text-neutral-500" />
+					<div className="flex flex-col items-start gap-0.5 text-[#010a04]">
+						<p className="text-sm leading-normal">
+							{isProcessingFile ? (
+								<span>{t('sponsors.logoUpload.uploading')}</span>
+							) : (
+								<>
+									<span>{t('sponsors.logoUpload.dragDropOr')} </span>
+									<button
+										type="button"
+										onClick={handleBrowseClick}
+										disabled={disabled || isProcessingFile}
+										className="font-medium text-[#067429] underline underline-offset-2 decoration-[#067429] disabled:cursor-not-allowed disabled:opacity-70"
+									>
+										{t('sponsors.logoUpload.browseFile')}
+									</button>
+								</>
+							)}
+						</p>
+						<p className="text-xs leading-normal text-[#010a04]/55">
+							{t('sponsors.logoUpload.supports', { maxMb: MAX_FILE_SIZE_MB })}
+						</p>
 					</div>
-
-					<p className="text-center text-[11px] leading-normal text-[#010a04]/55">
-						{hintText}
-					</p>
-				</>
+				</div>
+			</>
 			)}
 		</div>
 	);

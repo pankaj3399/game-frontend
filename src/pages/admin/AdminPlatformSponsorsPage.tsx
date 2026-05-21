@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Navigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { CirclePlus } from "@/icons/figma-icons";
+import { PlusSignIcon } from "@/icons/figma-icons";
 import { toast } from "sonner";
 import { useAuth, useHasRoleOrAbove } from "@/pages/auth/hooks";
 import { ROLES } from "@/constants/roles";
@@ -100,7 +100,7 @@ export default function AdminPlatformSponsorsPage() {
             disabled={isLoading}
             className="h-[30px] rounded-lg border border-black/[0.12] bg-[#006B2E] px-3 text-xs font-medium text-white hover:bg-[#005a26]"
           >
-            <CirclePlus className="mr-1.5 size-3.5 text-white" />
+            <PlusSignIcon size={15} className="mr-1.5 shrink-0 text-white" />
             {t("admin.platformSponsors.newSponsor")}
           </Button>
         </div>

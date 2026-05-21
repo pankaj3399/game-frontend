@@ -176,13 +176,6 @@ export default function AboutPage() {
                 >
                   <a href={GLOBAL_PARAMETERS.CONTACT_US_MAILTO}>{t("about.contactUs")}</a>
                 </Button>
-                <Button
-                  type="button"
-                  onClick={handleInviteFriends}
-                  className="h-8 rounded-[7px] bg-[#010a04] px-3 text-[11px] font-medium text-white hover:bg-[#1d241d]"
-                >
-                  {t("about.inviteFriends")}
-                </Button>
               </div>
             </section>
             <div className="mt-2 text-center text-[10px] text-[#010a04]/50">

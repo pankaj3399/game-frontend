@@ -110,6 +110,7 @@ export function useUpdateClub() {
     onSuccess: (_, { clubId: id }) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.user.adminClubs() });
       queryClient.invalidateQueries({ queryKey: queryKeys.club.detail(id) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.tournament.all });
     },
   });
 }

@@ -65,12 +65,14 @@ export type TournamentClubScope = z.infer<typeof tournamentClubScopeSchema>;
 export const tournamentListClubSchema = z.object({
   id: z.string(),
   name: z.string(),
+  logoUrl: wireJsonNullableString(),
 });
 
 export const tournamentDetailClubSchema = z.object({
   id: z.string(),
   name: z.string(),
   address: wireJsonNullableString(),
+  logoUrl: wireJsonNullableString(),
 });
 
 export const tournamentSponsorSchema = z.object({
@@ -515,6 +517,7 @@ function normalizeMemberRange<
 export const tournamentListItemSchema = z.object({
   id: z.string(),
   name: z.string(),
+  logoUrl: wireJsonNullableString(),
   club: wireJsonNullable(tournamentListClubSchema),
   date: wireJsonNullableString(),
   status: tournamentStatusSchema,
@@ -547,6 +550,7 @@ export const tournamentsResponseSchema = z.object({
 export const backendTournamentDetailSchema = z.object({
   id: z.string(),
   name: z.string(),
+  logoUrl: wireJsonNullableString(),
   club: wireJsonNullable(tournamentDetailClubSchema),
   sponsor: wireJsonNullable(tournamentSponsorSchema),
   clubSponsors: z.array(tournamentSponsorSchema),
@@ -581,6 +585,7 @@ export const backendTournamentDetailResponseSchema = z.object({
 });
 
 const tournamentInputBaseSchema = z.object({
+  logoUrl: z.string().nullable().optional(),
   sponsor: z.string().nullable().optional(),
   date: z.string().nullable().optional(),
   startTime: z.string().nullable().optional(),
@@ -628,6 +633,7 @@ export const backendCreateTournamentInputSchema = z
   .object({
     club: z.string(),
     name: z.string(),
+    logoUrl: z.string().nullable().optional(),
     status: z.enum(["draft", "active"]),
     sponsor: z.string().optional(),
     date: z.string().nullable().optional(),
@@ -651,6 +657,7 @@ export const backendUpdateTournamentInputSchema = z
     club: z.string(),
     sponsor: z.string().nullable(),
     name: z.string(),
+    logoUrl: z.string().nullable().optional(),
     status: tournamentStatusSchema,
     date: z.string().nullable(),
     startTime: z.string().nullable(),

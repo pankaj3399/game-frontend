@@ -43,11 +43,50 @@ function getStatusLabel(status: TournamentStatus, t: TFunction) {
   }
 }
 
+function ClubLogoBadge({
+  logoUrl,
+  name,
+  className,
+}: {
+  logoUrl?: string | null;
+  name: string;
+  className: string;
+}) {
+  const nameInitial = name.trim().charAt(0).toUpperCase() || "?";
+  const normalizedLogo = logoUrl?.trim() ?? "";
+
+  return (
+    <span
+      className={cn(
+        "flex shrink-0 items-center justify-center overflow-hidden bg-black/15",
+        className
+      )}
+      aria-hidden="true"
+    >
+      {normalizedLogo ? (
+        <img
+          src={normalizedLogo}
+          alt={name}
+          className="h-full w-full object-cover"
+          loading="lazy"
+          decoding="async"
+        />
+      ) : (
+        <span className="text-[9px] font-semibold leading-none text-[#6a6a6a] sm:text-[10px]">
+          {nameInitial}
+        </span>
+      )}
+    </span>
+  );
+}
+
 function buildTournamentRowViewModel(
   tournament: TournamentListItem,
   t: TFunction,
   language: string
 ) {
+  const clubName = tournament.club?.name ?? "-";
+
   return {
     id: tournament.id,
     name: tournament.name,
@@ -60,7 +99,10 @@ function buildTournamentRowViewModel(
       getDateFnsLocale(language)
     ),
     isDraft: tournament.status === "draft",
-    clubName: tournament.club?.name ?? "-",
+    clubName,
+    clubLogoUrl: tournament.club?.logoUrl ?? null,
+    tournamentLogoUrl: tournament.logoUrl ?? null,
+    tournamentName: tournament.name,
   };
 }
 
@@ -90,9 +132,10 @@ export function TournamentTable({
                   )}
                 >
                   <div className="flex items-center gap-[15px]">
-                    <span
-                      className="h-[45px] w-[45px] shrink-0 rounded-[7px] bg-[#d9d9d9]"
-                      aria-hidden="true"
+                    <ClubLogoBadge
+                      logoUrl={row.tournamentLogoUrl}
+                      name={row.tournamentName}
+                      className="h-[45px] w-[45px] rounded-[7px] bg-[#d9d9d9]"
                     />
                     <div className="min-w-0 flex-1">
                       <div className="flex items-start gap-[6px]">
@@ -120,9 +163,10 @@ export function TournamentTable({
 
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex min-w-0 items-center gap-2">
-                      <span
-                        className="h-6 w-6 shrink-0 rounded-full bg-[#d9d9d9]"
-                        aria-hidden="true"
+                      <ClubLogoBadge
+                        logoUrl={row.clubLogoUrl}
+                        name={row.clubName}
+                        className="h-6 w-6 rounded-full"
                       />
                       <span className="truncate text-[14px] text-[#010a04]">
                         {row.clubName}
@@ -201,9 +245,10 @@ export function TournamentTable({
                         {rowNumber}
                       </span>
                       <span className="flex h-full min-h-[45px] min-w-0 items-center gap-2 px-3">
-                        <span
-                          className="h-[22px] w-[22px] shrink-0 rounded-[5px] bg-black/15"
-                          aria-hidden="true"
+                        <ClubLogoBadge
+                          logoUrl={row.tournamentLogoUrl}
+                          name={row.tournamentName}
+                          className="h-[22px] w-[22px] rounded-[5px]"
                         />
                         <span className="truncate text-sm text-foreground">
                           {row.name}
@@ -228,9 +273,10 @@ export function TournamentTable({
                         )}
                       </span>
                       <span className="flex h-full min-h-[45px] min-w-0 items-center gap-2 px-3">
-                        <span
-                          className="h-4 w-4 shrink-0 rounded-full bg-black/15"
-                          aria-hidden="true"
+                        <ClubLogoBadge
+                          logoUrl={row.clubLogoUrl}
+                          name={row.clubName}
+                          className="h-4 w-4 rounded-full"
                         />
                         <span className="truncate text-sm text-foreground">
                           {row.clubName}
