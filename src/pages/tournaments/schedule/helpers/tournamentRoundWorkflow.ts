@@ -4,6 +4,12 @@ import { isRoundResolvedStatus } from "@/pages/tournaments/utils/matchStatus";
 /**
  * Parses `?round=` from the URL. Returns null when missing or invalid (< 1 or NaN).
  */
+/** Set when the organiser confirmed reschedule on the matches tab before opening schedule. */
+export function parseRescheduleConfirmed(searchParams: URLSearchParams): boolean {
+  const raw = searchParams.get("rescheduleConfirmed")?.trim().toLowerCase();
+  return raw === "1" || raw === "true";
+}
+
 export function parseRoundQueryParam(searchParams: URLSearchParams): number | null {
   const raw = searchParams.get("round")?.trim();
   if (raw == null || raw === "") {

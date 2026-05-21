@@ -83,8 +83,11 @@ export function removeParticipant(
     }));
 }
 
+/** List rank sent to the server (matches # column / drag-and-drop order). */
 export function participantOrderIds(rows: ScheduleParticipantRow[]): string[] {
-  return rows.map((participant) => participant.id);
+  return [...rows]
+    .sort((left, right) => left.order - right.order)
+    .map((participant) => participant.id);
 }
 
 export function canGenerateSchedule(mode: TournamentScheduleMode, participantsCount: number): boolean {

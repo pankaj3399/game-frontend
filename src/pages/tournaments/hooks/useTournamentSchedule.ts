@@ -22,8 +22,13 @@ import {
   type TournamentScheduleResponse,
 } from "@/models/tournament/types";
 
-async function fetchTournamentSchedule(id: string): Promise<TournamentScheduleResponse> {
-  const response = await api.get(`/api/schedule/${id}`);
+async function fetchTournamentSchedule(
+  id: string,
+  round?: number
+): Promise<TournamentScheduleResponse> {
+  const response = await api.get(`/api/schedule/${id}`, {
+    params: round != null && round >= 1 ? { round } : undefined,
+  });
   return tournamentScheduleResponseSchema.parse(response.data);
 }
 
@@ -67,14 +72,21 @@ async function saveDoublesPairs(
   return saveTournamentDoublesPairsResponseSchema.parse(response.data);
 }
 
-export function useTournamentSchedule(id: string | null, enabled = true) {
+export function useTournamentSchedule(
+  id: string | null,
+  enabled = true,
+  round?: number | null
+) {
+  const scheduleRound =
+    round != null && Number.isFinite(round) && round >= 1 ? Math.trunc(round) : null;
+
   return useQuery({
-    queryKey: queryKeys.tournament.schedule(id),
+    queryKey: [...queryKeys.tournament.schedule(id), scheduleRound] as const,
     queryFn: () => {
       if (!id) {
         throw new Error("Tournament id is required");
       }
-      return fetchTournamentSchedule(id);
+      return fetchTournamentSchedule(id, scheduleRound ?? undefined);
     },
     enabled: Boolean(id) && enabled,
   });

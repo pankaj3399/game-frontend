@@ -13,7 +13,6 @@ interface TournamentScheduleParticipantsCardProps {
   doublesPairs: GenerateTournamentDoublesPairsResponse | null;
   doublesPairsLoading: boolean;
   onPlayingModeChange: (nextMode: TournamentScheduleMode) => Promise<void> | void;
-  onEditParticipant: (participantId: string) => void;
   onRemoveParticipant: (participantId: string) => void;
   onReorderParticipant: (activeId: string, overId: string) => void;
 }
@@ -24,7 +23,6 @@ export function TournamentScheduleParticipantsCard({
   doublesPairs,
   doublesPairsLoading,
   onPlayingModeChange,
-  onEditParticipant,
   onRemoveParticipant,
   onReorderParticipant,
 }: TournamentScheduleParticipantsCardProps) {
@@ -68,7 +66,6 @@ export function TournamentScheduleParticipantsCard({
         participants={participants}
         doublesPairs={doublesPairs}
         doublesPairsLoading={doublesPairsLoading && mode === "doubles"}
-        onEditParticipant={onEditParticipant}
         onRemoveParticipant={onRemoveParticipant}
         onReorderParticipant={onReorderParticipant}
       />

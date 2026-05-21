@@ -712,8 +712,8 @@
     "scheduleGenerating": "Spielplan wird generiert...",
     "scheduleGenerated": "Spielplan für Runde {{round}} erstellt.",
     "scheduleRescheduleWarningTitle": "Runde {{round}} neu planen?",
-    "scheduleRescheduleWarningDescription_one": "Diese Runde enthält bereits {{count}} erfasstes Match-Ergebnis. Beim Neuplanen werden die aktuellen Paarungen dieser Runde ersetzt, aber bereits erfasste Ergebnisse bleiben in der Spielerhistorie erhalten und können nicht automatisch zurückgesetzt werden.",
-    "scheduleRescheduleWarningDescription_other": "Diese Runde enthält bereits {{count}} erfasste Match-Ergebnisse. Beim Neuplanen werden die aktuellen Paarungen dieser Runde ersetzt, aber bereits erfasste Ergebnisse bleiben in der Spielerhistorie erhalten und können nicht automatisch zurückgesetzt werden.",
+    "scheduleRescheduleWarningDescription_one": "Diese Runde hat {{count}} Match mit erfasstem Ergebnis. Beim Neuplanen wird die aktuelle Runde aus dem Spielplan entfernt und es werden neue Paarungen und Platzzuweisungen erstellt. Das erfasste Ergebnis bleibt in der Spielerhistorie und kann nicht automatisch rückgängig gemacht werden.",
+    "scheduleRescheduleWarningDescription_other": "Diese Runde hat {{count}} Matches mit erfassten Ergebnissen. Beim Neuplanen wird die aktuelle Runde aus dem Spielplan entfernt und es werden neue Paarungen und Platzzuweisungen erstellt. Die erfassten Ergebnisse bleiben in der Spielerhistorie und können nicht automatisch rückgängig gemacht werden.",
     "scheduleRescheduleWarningConfirm": "Runde neu planen",
     "schedulePreviousRoundIncomplete": "Runde {{round}} ist noch nicht abgeschlossen. Bitte erst alle Ergebnisse eintragen, bevor eine neue Runde erstellt wird.",
     "schedulePreviousRoundMissing": "Runde {{round}} wurde noch nicht erstellt.",
@@ -822,6 +822,22 @@
     "paginationInfo": "{{from}}–{{to}} von {{total}}",
     "pageAriaLabel": "Gehe zu Seite {{page}}",
     "empty": "Keine Spiele für die ausgewählten Filter gefunden.",
+    "scheduled": {
+      "title": "Geplante Spiele",
+      "hint": "Deine anstehenden und laufenden Turnierspiele. Trage Ergebnisse hier ein, sobald ein Match gespielt wurde.",
+      "loading": "Geplante Spiele werden geladen…",
+      "recordScore": "Ergebnis erfassen",
+      "columns": {
+        "when": "Wann",
+        "status": "Status",
+        "action": "Aktion"
+      },
+      "status": {
+        "scheduled": "Geplant",
+        "inProgress": "Läuft",
+        "pendingScore": "Ergebnis ausstehend"
+      }
+    },
     "filters": {
       "all": "Alle",
       "singles": "Einzel",

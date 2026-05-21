@@ -54,6 +54,26 @@ export function formatDateForMyScore(playedAt: string, language: string): string
   }
 }
 
+export function formatScheduledMatchStartTime(
+  startTime: string | null,
+  language: string
+): string {
+  if (!startTime) {
+    return "-";
+  }
+  try {
+    const parsed = parseISO(startTime);
+    if (!Number.isFinite(parsed.getTime())) {
+      return "-";
+    }
+    return format(parsed, "dd MMM, yyyy · HH:mm", {
+      locale: getDateFnsLocale(language),
+    });
+  } catch {
+    return "-";
+  }
+}
+
 export function formatScoreValue(value: number | null): string {
   if (value == null || !Number.isFinite(value)) return "-";
   return String(value);

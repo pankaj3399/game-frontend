@@ -31,7 +31,6 @@ import {
 } from "@/components/ui/table";
 import {
   DragDropVerticalIcon,
-  PencilEdit01Icon,
   Delete01Icon,
   UserCircle2,
 } from "@/icons/figma-icons";
@@ -50,7 +49,6 @@ interface ScheduleParticipantsTableProps {
   doublesPairsLoading?: boolean;
   onRemoveParticipant: (id: string) => void;
   onReorderParticipant: (activeId: string, overId: string) => void;
-  onEditParticipant: (id: string) => void;
 }
 
 function participantToneClass(participant: Pick<ScheduleParticipantRow, "id" | "alias" | "name">): string {
@@ -142,7 +140,6 @@ function DoublesPairSkeleton({ index }: { index: number }) {
 interface ParticipantRowActionsProps {
   participant: ScheduleParticipantRow;
   displayName: string;
-  onEditParticipant?: (id: string) => void;
   onRemoveParticipant: (id: string) => void;
   compact?: boolean;
 }
@@ -150,7 +147,6 @@ interface ParticipantRowActionsProps {
 function ParticipantRowActions({
   participant,
   displayName,
-  onEditParticipant,
   onRemoveParticipant,
   compact = false,
 }: ParticipantRowActionsProps) {
@@ -158,19 +154,6 @@ function ParticipantRowActions({
 
   return (
     <div className="flex items-center gap-1">
-      {!compact && onEditParticipant ? (
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          onClick={() => onEditParticipant(participant.id)}
-          className="h-7 px-2 text-[12px] text-[#067429] hover:bg-[#067429]/10"
-          aria-label={t("tournaments.scheduleEditParticipant", { name: displayName })}
-        >
-          <PencilEdit01Icon size={14} className="mr-1" />
-          {t("tournaments.edit")}
-        </Button>
-      ) : null}
       <Button
         type="button"
         variant="ghost"
@@ -262,14 +245,12 @@ function SortableParticipantsMobileRow({
 interface SortableParticipantsDesktopRowProps {
   participant: ScheduleParticipantRow;
   index: number;
-  onEditParticipant: (id: string) => void;
   onRemoveParticipant: (id: string) => void;
 }
 
 function SortableParticipantsDesktopRow({
   participant,
   index,
-  onEditParticipant,
   onRemoveParticipant,
 }: SortableParticipantsDesktopRowProps) {
   const { t } = useTranslation();
@@ -320,7 +301,6 @@ function SortableParticipantsDesktopRow({
         <ParticipantRowActions
           participant={participant}
           displayName={displayName}
-          onEditParticipant={onEditParticipant}
           onRemoveParticipant={onRemoveParticipant}
         />
       </TableCell>
@@ -335,7 +315,6 @@ export function ScheduleParticipantsTable({
   doublesPairsLoading = false,
   onRemoveParticipant,
   onReorderParticipant,
-  onEditParticipant,
 }: ScheduleParticipantsTableProps) {
   const { t } = useTranslation();
   const sensors = useSensors(
@@ -384,6 +363,41 @@ export function ScheduleParticipantsTable({
   }
 
   if (showDoublesLayout && doublesPairs) {
+    const renderDoublesPlayerRow = (
+      player: (typeof doublesRows)[number]["players"][number] | null
+    ) => {
+      if (!player) {
+        return null;
+      }
+      const displayName = player.alias ?? player.name ?? t("tournaments.unknownPlayer");
+      return (
+        <div className="flex min-w-0 flex-1 items-center justify-between gap-2">
+          <div className="flex min-w-0 items-center gap-2.5">
+            <DoublesPairPlayerAvatar
+              profilePictureUrl={player.profilePictureUrl}
+              displayName={displayName}
+              wrapperClassName={`flex h-[32px] w-[32px] shrink-0 items-center justify-center rounded-full bg-gradient-to-br ${participantToneClass(
+                player
+              )}`}
+            />
+            <span className="block truncate text-[14px] font-medium text-[#010a04]">
+              {displayName}
+            </span>
+          </div>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => onRemoveParticipant(player.id)}
+            className="h-7 w-7 shrink-0 px-0 text-[#d92100] hover:bg-[#d92100]/10"
+            aria-label={t("tournaments.removeParticipant", { name: displayName })}
+          >
+            <Delete01Icon size={15} />
+          </Button>
+        </div>
+      );
+    };
+
     return (
       <div className="space-y-3.5">
         <div className="grid gap-3.5 md:grid-cols-2 xl:grid-cols-3">
@@ -404,46 +418,29 @@ export function ScheduleParticipantsTable({
                 <p className="mb-3 text-[12px] font-medium uppercase text-[#010a04]/70">
                   {t("tournaments.schedulePairLabel", { n: teamRow.teamNumber })}
                 </p>
-                <div className="flex items-center justify-between gap-2">
-                  <div className="flex min-w-0 items-center gap-2.5">
-                    <DoublesPairPlayerAvatar
-                      profilePictureUrl={firstPlayer?.profilePictureUrl}
-                      displayName={
-                        firstPlayer?.alias ?? firstPlayer?.name ?? t("tournaments.unknownPlayer")
-                      }
-                      wrapperClassName={`flex h-[32px] w-[32px] shrink-0 items-center justify-center rounded-full bg-gradient-to-br ${participantToneClass(
-                        firstPlayer ?? { id: "unknown", alias: null, name: null }
-                      )}`}
-                    />
-                    <span className="min-w-0 leading-tight">
-                      <span className="block truncate text-[14px] font-medium text-[#010a04]">
-                        {firstPlayer?.alias ?? firstPlayer?.name ?? t("tournaments.unknownPlayer")}
-                      </span>
-                    </span>
-                  </div>
-                  <span className="shrink-0 text-[14px] font-medium text-[#010a04]/40">+</span>
-                  <div className="flex min-w-0 items-center gap-2.5">
-                    <DoublesPairPlayerAvatar
-                      profilePictureUrl={secondPlayer?.profilePictureUrl}
-                      displayName={
-                        secondPlayer?.alias ?? secondPlayer?.name ?? t("tournaments.unknownPlayer")
-                      }
-                      wrapperClassName={`flex h-[32px] w-[32px] shrink-0 items-center justify-center rounded-full bg-gradient-to-br ${participantToneClass(
-                        secondPlayer ?? { id: "unknown", alias: null, name: null }
-                      )}`}
-                    />
-                    <span className="min-w-0 leading-tight">
-                      <span className="block truncate text-[14px] font-medium text-[#010a04]">
-                        {secondPlayer?.alias ?? secondPlayer?.name ?? t("tournaments.unknownPlayer")}
-                      </span>
-                    </span>
-                  </div>
+                <div className="flex flex-col gap-3">
+                  {renderDoublesPlayerRow(firstPlayer)}
+                  {secondPlayer ? (
+                    <>
+                      <span className="text-center text-[12px] font-medium text-[#010a04]/40">+</span>
+                      {renderDoublesPlayerRow(secondPlayer)}
+                    </>
+                  ) : null}
                 </div>
               </article>
             );
           })}
         </div>
-
+        {doublesPairs.unpaired.length > 0 ? (
+          <div className="space-y-2 rounded-[10px] border border-[rgba(0,0,0,0.08)] px-[15px] py-3">
+            <p className="text-[12px] font-medium uppercase text-[#010a04]/70">
+              {t("tournaments.scheduleDoublesUnpaired")}
+            </p>
+            {doublesPairs.unpaired.map((player) => (
+              <div key={player.id}>{renderDoublesPlayerRow(player)}</div>
+            ))}
+          </div>
+        ) : null}
       </div>
     );
   }
@@ -499,7 +496,6 @@ export function ScheduleParticipantsTable({
                     key={participant.id}
                     participant={participant}
                     index={index}
-                    onEditParticipant={onEditParticipant}
                     onRemoveParticipant={onRemoveParticipant}
                   />
                 ))}

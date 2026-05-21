@@ -16,6 +16,7 @@ import { isRoundResolvedStatus } from "@/pages/tournaments/utils/matchStatus";
 
 import useMatchEditor from "@/pages/tournaments/schedule/hooks/useMatchEditor";
 import usePersistMatchScore from "@/pages/tournaments/schedule/hooks/usePersistMatchScore";
+import { hasRecordedMatchScore } from "@/pages/tournaments/schedule/utils/matchScheduleScore";
 
 import type { TournamentDetail, TournamentScheduleMatch } from "@/models/tournament/types";
 
@@ -161,11 +162,7 @@ export function OrganiserMatchesBoard({ tournament }: { tournament: TournamentDe
     (m) => m.round === currentRound && m.detachedFromRound == null
   );
 
-  const scoredMatchesCount = currentRoundMatches.filter((m) => {
-    const p1 = m.score.playerOneScores?.length ?? 0;
-    const p2 = m.score.playerTwoScores?.length ?? 0;
-    return p1 > 0 || p2 > 0 || m.status === "completed" || m.status === "pendingScore";
-  }).length;
+  const scoredMatchesCount = currentRoundMatches.filter(hasRecordedMatchScore).length;
 
   const allCurrentRoundResolved =
     currentRoundMatches.length > 0 &&
@@ -280,7 +277,9 @@ export function OrganiserMatchesBoard({ tournament }: { tournament: TournamentDe
 
   const onConfirmRescheduleWarning = () => {
     setIsRescheduleWarningOpen(false);
-    navigate(`/tournaments/${tournament.id}/schedule?round=${actionRound}`);
+    navigate(
+      `/tournaments/${tournament.id}/schedule?round=${actionRound}&rescheduleConfirmed=1`
+    );
   };
 
   const dateLocale: Locale = getDateFnsLocale(i18n.language) ?? enUS;

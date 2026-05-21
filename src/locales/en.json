@@ -716,8 +716,8 @@
     "scheduleGenerating": "Generating schedule...",
     "scheduleGenerated": "Schedule generated for round {{round}}.",
     "scheduleRescheduleWarningTitle": "Reschedule round {{round}}?",
-    "scheduleRescheduleWarningDescription_one": "This round already has {{count}} scored match. Rescheduling will replace the active round fixtures, but existing recorded scores will be preserved in player history and cannot be rolled back automatically.",
-    "scheduleRescheduleWarningDescription_other": "This round already has {{count}} scored matches. Rescheduling will replace the active round fixtures, but existing recorded scores will be preserved in player history and cannot be rolled back automatically.",
+    "scheduleRescheduleWarningDescription_one": "This round has {{count}} match with a recorded result. Rescheduling will remove the current round from the schedule and generate new pairings and court assignments. That recorded result stays in player history and cannot be undone automatically.",
+    "scheduleRescheduleWarningDescription_other": "This round has {{count}} matches with recorded results. Rescheduling will remove the current round from the schedule and generate new pairings and court assignments. Those recorded results stay in player history and cannot be undone automatically.",
     "scheduleRescheduleWarningConfirm": "Reschedule Round",
     "scheduleRoundCancelled": "Round {{round}} schedule cancelled. You can regenerate it now.",
     "scheduleRoundCancelError": "Failed to cancel current round schedule.",
@@ -848,6 +848,22 @@
     "paginationInfo": "Showing {{from}}–{{to}} of {{total}}",
     "pageAriaLabel": "Go to page {{page}}",
     "empty": "No matches found for the selected filters.",
+    "scheduled": {
+      "title": "Scheduled matches",
+      "hint": "Your upcoming and in-progress tournament fixtures. Record scores here as soon as a match is played.",
+      "loading": "Loading scheduled matches…",
+      "recordScore": "Record score",
+      "columns": {
+        "when": "When",
+        "status": "Status",
+        "action": "Action"
+      },
+      "status": {
+        "scheduled": "Scheduled",
+        "inProgress": "In progress",
+        "pendingScore": "Score pending"
+      }
+    },
     "filters": {
       "all": "All",
       "singles": "Singles",

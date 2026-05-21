@@ -19,6 +19,7 @@ import {
   MyScoreMobileCards,
   MyScorePagination,
   MyScoreResultsRegion,
+  MyScoreScheduledSection,
   MyScoreSummaryStrip,
   MyScorePageSkeleton,
 } from "./components";
@@ -26,12 +27,15 @@ import {
   buildPaginationItems,
   buildPlayerScoreShareUrl,
   formatDateForMyScore,
+  formatScheduledMatchStartTime,
   formatScoreValue,
   parseModeFromSearch,
   parsePageFromSearch,
   parseRangeFromSearch,
 } from "./helpers";
+import { filterScheduledMatchesForMyScore } from "./helpers/scheduledMatches";
 import { useMyScore } from "./hooks";
+import { useTournamentLiveMatch } from "@/pages/tournaments/hooks/useTournamentLiveMatch";
 
 export default function MyScorePage() {
   const { t, i18n } = useTranslation();
@@ -65,6 +69,17 @@ export default function MyScorePage() {
     {
       enabled: isSharedView ? Boolean(routePlayerId) : Boolean(user?.id),
     },
+  );
+
+  const liveMatchQuery = useTournamentLiveMatch(!isSharedView && Boolean(user?.id));
+
+  const scheduledMatches = useMemo(
+    () =>
+      filterScheduledMatchesForMyScore(
+        liveMatchQuery.data?.matches ?? [],
+        mode
+      ),
+    [liveMatchQuery.data?.matches, mode]
   );
 
   useEffect(() => {
@@ -206,6 +221,16 @@ export default function MyScorePage() {
     <div className="min-h-screen bg-[#dfe2e0] px-4 pb-10 pt-7">
       <div className="mx-auto w-full max-w-[1120px] min-w-0 space-y-3">
         <MyScoreSummaryStrip summary={summary} isRefreshing={isRefreshing} />
+
+        {!isSharedView ? (
+          <MyScoreScheduledSection
+            matches={scheduledMatches}
+            isLoading={liveMatchQuery.isLoading && !liveMatchQuery.data}
+            formatStartTime={(startTime) =>
+              formatScheduledMatchStartTime(startTime, i18n.language)
+            }
+          />
+        ) : null}
 
         <MyScoreHeaderControls
           title={pageTitle}

@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -27,9 +27,12 @@ import {
 } from "../helpers/scheduleParticipants";
 import {
   getPreviousRoundGate,
+  parseRescheduleConfirmed,
   parseRoundQueryParam,
   resolveScheduleInputRound,
 } from "../helpers/tournamentRoundWorkflow";
+import { resolveDefaultScheduleStartTime } from "../helpers/resolveDefaultScheduleStartTime";
+import { hasRecordedMatchScore } from "../utils/matchScheduleScore";
 
 interface UseTournamentSchedulePageControllerParams {
   id: string | null;
@@ -128,7 +131,9 @@ export function useTournamentSchedulePageController({
   const { t } = useTranslation();
   const navigate = useNavigate();
 
-  const scheduleQuery = useTournamentSchedule(id, Boolean(id));
+  const queryRound = parseRoundQueryParam(searchParams);
+  const rescheduleConfirmed = parseRescheduleConfirmed(searchParams);
+  const scheduleQuery = useTournamentSchedule(id, Boolean(id), queryRound);
   const tournamentDetailQuery = useTournamentById(id, Boolean(id));
   const matchesQuery = useTournamentMatches(id, Boolean(id));
   const generateScheduleMutation = useGenerateTournamentSchedule();
@@ -137,8 +142,6 @@ export function useTournamentSchedulePageController({
     tournamentId: null,
     values: {},
   });
-  const [isRescheduleWarningOpen, setIsRescheduleWarningOpen] = useState(false);
-
   const updateOverrides = useCallback(
     (updater: (current: ScheduleOverrides) => ScheduleOverrides) => {
       setOverrideState((prev) => {
@@ -189,7 +192,6 @@ export function useTournamentSchedulePageController({
     scopedOverrides.matchDurationMinutes ?? scheduleInput?.matchDurationMinutes ?? 60;
   const breakTimeMinutes = scopedOverrides.breakTimeMinutes ?? scheduleInput?.breakTimeMinutes ?? 5;
   const matchesPerPlayer = scopedOverrides.matchesPerPlayer ?? scheduleInput?.matchesPerPlayer ?? 5;
-  const startTime = scopedOverrides.startTime ?? scheduleInput?.startTime ?? "09:00";
   const mode = scopedOverrides.mode ?? scheduleInput?.mode ?? "singles";
   const participants = scopedOverrides.participants ?? defaultParticipants;
   const selectedCourtIds = scopedOverrides.selectedCourtIds ?? defaultSelectedCourtIds;
@@ -206,9 +208,42 @@ export function useTournamentSchedulePageController({
     [doublesPartnerById, mode, participants]
   );
 
-  const queryRound = parseRoundQueryParam(searchParams);
   const summaryCurrentRound = scheduleQuery.data?.scheduleSummary.currentRound ?? 0;
   const round = resolveScheduleInputRound(queryRound, summaryCurrentRound);
+
+  // Participant removals are per-round; reset the list when switching rounds.
+  useEffect(() => {
+    setOverrideState((prev) => {
+      if (prev.tournamentId !== id || prev.values.participants == null) {
+        return prev;
+      }
+      const nextValues = { ...prev.values };
+      delete nextValues.participants;
+      return { tournamentId: id, values: nextValues };
+    });
+  }, [id, round]);
+
+  const defaultStartTime = useMemo(
+    () =>
+      resolveDefaultScheduleStartTime({
+        targetRound: round,
+        tournamentStartTime: tournamentDetailQuery.data?.tournament.startTime,
+        matchDurationMinutes,
+        matches: matchesQuery.data?.matches ?? [],
+        timeZone: tournamentDetailQuery.data?.tournament.timezone,
+        fallbackStartTime: scheduleInput?.startTime,
+      }),
+    [
+      matchDurationMinutes,
+      matchesQuery.data?.matches,
+      round,
+      scheduleInput?.startTime,
+      tournamentDetailQuery.data?.tournament.startTime,
+      tournamentDetailQuery.data?.tournament.timezone,
+    ]
+  );
+
+  const startTime = scopedOverrides.startTime ?? defaultStartTime;
 
   const clampedStartTime = useMemo(
     () => clampTime24ToBounds(startTime, scheduleTimeBounds),
@@ -234,51 +269,12 @@ export function useTournamentSchedulePageController({
   const isReschedulingExistingRound =
     roundMatches.length > 0 || (summaryCurrentRound > 0 && round <= summaryCurrentRound);
   const hasRecordedScoresInRound = useMemo(
-    () =>
-      roundMatches.some((match: TournamentScheduleMatch) => {
-        const p1 = match.score.playerOneScores?.length ?? 0;
-        const p2 = match.score.playerTwoScores?.length ?? 0;
-        return p1 > 0 || p2 > 0 || match.status === "completed" || match.status === "pendingScore";
-      }),
-    [roundMatches]
-  );
-  const scoredMatchesCountBase = useMemo(
-    () =>
-      roundMatches.filter((match: TournamentScheduleMatch) => {
-        const p1 = match.score.playerOneScores?.length ?? 0;
-        const p2 = match.score.playerTwoScores?.length ?? 0;
-        return p1 > 0 || p2 > 0 || match.status === "completed" || match.status === "pendingScore";
-      }).length,
+    () => roundMatches.some(hasRecordedMatchScore),
     [roundMatches]
   );
 
-  // Backend emits a deterministic confirmation-required message when a reschedule would overwrite scored matches
-  // unless `allowRescheduleWithScores` is confirmed.
-  const RESCHEDULE_WITH_SCORES_CONFIRMATION_PREFIX =
-    "RESCHEDULE_WITH_SCORES_CONFIRMATION_REQUIRED:";
-
-  const parseBackendRescheduleConfirmation = (
-    message: string
-  ): { round: number; scoredMatches: number } | null => {
-    // Example message:
-    // RESCHEDULE_WITH_SCORES_CONFIRMATION_REQUIRED: Round 2 has 3 scored match(es). Confirm ...
-    const escapedPrefix = RESCHEDULE_WITH_SCORES_CONFIRMATION_PREFIX.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    const match = message.match(
-      new RegExp(
-        `${escapedPrefix}\\s*Round\\s+(\\d+)\\s+has\\s+(\\d+)\\s+scored match(?:\\(es\\))?`,
-        "i"
-      )
-    );
-    if (!match) return null;
-
-    return {
-      round: Number.parseInt(match[1], 10),
-      scoredMatches: Number.parseInt(match[2], 10),
-    };
-  };
-
-  const [backendScoredMatchesCountOverride, setBackendScoredMatchesCountOverride] = useState<number | null>(null);
-  const scoredMatchesCount = backendScoredMatchesCountOverride ?? scoredMatchesCountBase;
+  const allowRescheduleWithScoresOnGenerate =
+    isReschedulingExistingRound && (rescheduleConfirmed || hasRecordedScoresInRound);
 
   const canSubmit =
     selectedCourtIds.length > 0 &&
@@ -365,34 +361,10 @@ export function useTournamentSchedulePageController({
     ]
   );
 
-  const resolveParticipantOrderForGeneration = useCallback(() => {
-    const baseOrder = participantOrderIds(participants);
-    if (mode !== "doubles") {
-      return baseOrder;
-    }
-
-    const ordered: string[] = [];
-    const used = new Set<string>();
-
-    for (const participantId of baseOrder) {
-      if (used.has(participantId)) {
-        continue;
-      }
-
-      const partnerId = doublesPartnerById[participantId];
-      if (partnerId && !used.has(partnerId) && baseOrder.includes(partnerId)) {
-        ordered.push(participantId, partnerId);
-        used.add(participantId);
-        used.add(partnerId);
-        continue;
-      }
-
-      ordered.push(participantId);
-      used.add(participantId);
-    }
-
-    return ordered;
-  }, [doublesPartnerById, mode, participants]);
+  const resolveParticipantOrderForGeneration = useCallback(
+    () => participantOrderIds(participants),
+    [participants]
+  );
 
   const buildGeneratePayload = useCallback(
     (allowRescheduleWithScores: boolean) => {
@@ -489,17 +461,18 @@ export function useTournamentSchedulePageController({
     }
 
     try {
-      await submitGenerateSchedule(false);
+      await submitGenerateSchedule(allowRescheduleWithScoresOnGenerate);
     } catch (error: unknown) {
       const message = getErrorMessage(error) ?? null;
-      if (
-        message &&
-        message.startsWith(RESCHEDULE_WITH_SCORES_CONFIRMATION_PREFIX)
-      ) {
-        const parsed = parseBackendRescheduleConfirmation(message);
-        if (parsed && parsed.round === round) {
-          setBackendScoredMatchesCountOverride(parsed.scoredMatches);
-          setIsRescheduleWarningOpen(true);
+      const needsRescheduleConfirmation =
+        message?.startsWith("RESCHEDULE_WITH_SCORES_CONFIRMATION_REQUIRED:") === true;
+
+      if (needsRescheduleConfirmation && isReschedulingExistingRound) {
+        try {
+          await submitGenerateSchedule(true);
+          return;
+        } catch (retryError: unknown) {
+          toast.error(getErrorMessage(retryError) ?? t("tournaments.scheduleGenerateError"));
           return;
         }
       }
@@ -507,37 +480,13 @@ export function useTournamentSchedulePageController({
       toast.error(getErrorMessage(error) ?? t("tournaments.scheduleGenerateError"));
     }
   }, [
+    allowRescheduleWithScoresOnGenerate,
     id,
     isReschedulingExistingRound,
     scheduleRoundGate,
     submitGenerateSchedule,
-    round,
-    parseBackendRescheduleConfirmation,
-    RESCHEDULE_WITH_SCORES_CONFIRMATION_PREFIX,
     t,
-    mode,
   ]);
-
-  const onCancelRescheduleWarning = useCallback(() => {
-    setIsRescheduleWarningOpen(false);
-    setBackendScoredMatchesCountOverride(null);
-  }, []);
-
-  const onConfirmRescheduleWarning = useCallback(async () => {
-    if (!id) {
-      setIsRescheduleWarningOpen(false);
-      setBackendScoredMatchesCountOverride(null);
-      return;
-    }
-    try {
-      setBackendScoredMatchesCountOverride(null);
-      await submitGenerateSchedule(true);
-      setIsRescheduleWarningOpen(false);
-    } catch (error: unknown) {
-      const message = getErrorMessage(error) ?? t("tournaments.scheduleGenerateError");
-      toast.error(message);
-    }
-  }, [id, submitGenerateSchedule, t]);
 
   const onRemoveParticipant = useCallback((participantId: string) => {
     updateOverrides((current) => {
@@ -558,10 +507,6 @@ export function useTournamentSchedulePageController({
       };
     });
   }, [defaultParticipants, updateOverrides]);
-
-  const onEditParticipant = useCallback(() => {
-    toast.info(t("common.comingSoon"));
-  }, [t]);
 
   return {
     scheduleQuery,
@@ -586,8 +531,6 @@ export function useTournamentSchedulePageController({
     scheduleRoundGate,
     isReschedulingExistingRound,
     hasRecordedScoresInRound,
-    scoredMatchesCount,
-    isRescheduleWarningOpen,
     canSubmit,
     onMatchDurationChange,
     onBreakTimeChange,
@@ -596,10 +539,7 @@ export function useTournamentSchedulePageController({
     onToggleCourt,
     onPlayingModeChange,
     onGenerateSchedule,
-    onConfirmRescheduleWarning,
-    onCancelRescheduleWarning,
     onRemoveParticipant,
     onReorderParticipant,
-    onEditParticipant,
   };
 }

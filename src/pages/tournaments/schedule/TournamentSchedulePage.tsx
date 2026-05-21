@@ -1,16 +1,6 @@
 import { Link, Navigate, useParams, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import { ChevronLeft } from "@/icons/figma-icons";
 import { getErrorMessage } from "@/lib/errors";
 import { TournamentScheduleConfigCard } from "./components/TournamentScheduleConfigCard";
@@ -129,53 +119,9 @@ export default function TournamentSchedulePage() {
         doublesPairs={controller.doublesPairs}
         doublesPairsLoading={false}
         onPlayingModeChange={controller.onPlayingModeChange}
-        onEditParticipant={() => controller.onEditParticipant()}
         onRemoveParticipant={controller.onRemoveParticipant}
         onReorderParticipant={controller.onReorderParticipant}
       />
-
-      <AlertDialog
-        open={controller.isRescheduleWarningOpen}
-        onOpenChange={(nextOpen) => {
-          if (!nextOpen) {
-            controller.onCancelRescheduleWarning();
-          }
-        }}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>
-              {t("tournaments.scheduleRescheduleWarningTitle", {
-                round: controller.round,
-              })}
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              {t("tournaments.scheduleRescheduleWarningDescription", {
-                count: controller.scoredMatchesCount,
-                round: controller.round,
-                scoredMatches: controller.scoredMatchesCount,
-              })}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel
-              disabled={controller.generateScheduleMutation.isPending}
-              onClick={controller.onCancelRescheduleWarning}
-            >
-              {t("common.cancel")}
-            </AlertDialogCancel>
-            <AlertDialogAction
-              disabled={controller.generateScheduleMutation.isPending}
-              onClick={(event) => {
-                event.preventDefault();
-                void controller.onConfirmRescheduleWarning();
-              }}
-            >
-              {t("tournaments.scheduleRescheduleWarningConfirm")}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 }
