@@ -164,7 +164,6 @@ export function useEnterMatchScoreController({
   const confirmScoreQrMutation = useConfirmTournamentScoreQr();
   const validatedRequest = validatedScoreQuery.data?.request ?? null;
 
-  const [isQrDialogOpen, setIsQrDialogOpen] = useState(false);
   const [isMatchPopoverOpen, setIsMatchPopoverOpen] = useState(false);
   const [openScorePickerKey, setOpenScorePickerKey] = useState<string | null>(null);
   const [matchSearch, setMatchSearch] = useState("");
@@ -1592,8 +1591,6 @@ export function useEnterMatchScoreController({
 
   return {
     mode,
-    isQrDialogOpen,
-    setIsQrDialogOpen,
     isMatchPopoverOpen,
     setIsMatchPopoverOpen,
     openScorePickerKey,

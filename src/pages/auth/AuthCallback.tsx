@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/pages/auth/hooks";
-import { PENDING_SIGNUP_TOKEN_KEY } from "@/lib/auth";
+import { PENDING_SIGNUP_TOKEN_KEY, setAuthToken } from "@/lib/auth";
 
 /** Whitelist of safe error codes from backend/auth flow (prevents XSS/open redirect). */
 const ALLOWED_ERROR_CODES = new Set([
@@ -57,6 +57,8 @@ export default function AuthCallback() {
   const pendingToken =
     searchParams.get("pendingToken") ?? hashParams.get("pendingToken");
   const success = searchParams.get("success");
+  const authToken =
+    searchParams.get("authToken") ?? hashParams.get("authToken");
   const error = sanitizeErrorCode(searchParams.get("error"));
   const errorMessage = searchParams.get("errorMessage");
   const signupTokenValid = signup === "true" && !!pendingToken && isValidJwtFormat(pendingToken);
@@ -65,6 +67,9 @@ export default function AuthCallback() {
 
   useEffect(() => {
     if (success === "true") {
+      if (authToken && isValidJwtFormat(authToken)) {
+        setAuthToken(authToken);
+      }
       checkAuth().then((user) => {
         if (!user) {
           navigate("/login", { replace: true });
@@ -88,7 +93,7 @@ export default function AuthCallback() {
     if (errorMessage) params.set("errorMessage", errorMessage);
     const nextPath = params.size > 0 ? `/login?${params.toString()}` : "/login";
     navigate(nextPath, { replace: true });
-  }, [checkAuth, derivedError, errorMessage, navigate, pendingToken, signupTokenValid, success]);
+  }, [authToken, checkAuth, derivedError, errorMessage, navigate, pendingToken, signupTokenValid, success]);
 
   return (
     <section className="flex min-h-screen items-center justify-center px-4">

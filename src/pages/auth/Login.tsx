@@ -143,7 +143,7 @@ const Login = () => {
           unavailableDescriptionId={oauthUnavailableDescriptionId}
         />
         <Link
-          to="/"
+          to="/tournaments"
           className={cn(
             buttonVariants({ variant: "brand" }),
             "mt-8 h-[40px] self-center px-8 font-primary text-sm active:animate-jerk md:h-[48px] md:text-base",

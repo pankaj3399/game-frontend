@@ -220,6 +220,7 @@
   },
   "auth": {
     "backToHome": "Zurück zur Startseite",
+    "backToTournaments": "Zurück zu Turnieren",
     "signInWithGoogle": "Mit Google anmelden",
     "signInWithApple": "Mit Apple anmelden",
     "oauthUnavailable": "Anmeldung ist vorübergehend nicht verfügbar, weil die Authentifizierung nicht konfiguriert ist. Bitte aktualisieren Sie die Seite oder kontaktieren Sie den Support.",

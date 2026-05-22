@@ -1,4 +1,10 @@
-export { PENDING_SIGNUP_TOKEN_KEY } from "./storage";
+export {
+  AUTH_TOKEN_KEY,
+  PENDING_SIGNUP_TOKEN_KEY,
+  clearAuthToken,
+  getAuthToken,
+  setAuthToken,
+} from "./storage";
 export {
   decodeJwtPayload,
   pendingSignupPayloadSchema,

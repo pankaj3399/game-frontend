@@ -80,6 +80,13 @@ function App() {
             <Route path="/players/:playerId/score" element={<MainLayout />}>
               <Route index element={<MyScorePage />} />
             </Route>
+            <Route element={<MainLayout />}>
+              <Route path="/tournaments" element={<TournamentListPage />} />
+              <Route
+                path="/tournaments/:id"
+                element={<TournamentDetailsPage />}
+              />
+            </Route>
             <Route
               element={
                 <ProtectedRoute requireProfileComplete>
@@ -89,11 +96,6 @@ function App() {
             >
               <Route path="/profile" element={<SettingsPage />} />
 
-              <Route path="/tournaments" element={<TournamentListPage />} />
-              <Route
-                path="/tournaments/:id"
-                element={<TournamentDetailsPage />}
-              />
               <Route
                 path="/tournaments/:id/schedule"
                 element={<TournamentSchedulePage />}

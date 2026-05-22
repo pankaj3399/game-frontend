@@ -221,6 +221,7 @@
   },
   "auth": {
     "backToHome": "Back To Home",
+    "backToTournaments": "Back to tournaments",
     "signInWithGoogle": "Sign in with Google",
     "signInWithApple": "Sign in with Apple",
     "oauthUnavailable": "Sign-in is temporarily unavailable because authentication is not configured. Please refresh or contact support.",
