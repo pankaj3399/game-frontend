@@ -1,5 +1,6 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
+import { api } from "@/lib/api";
 import { useAuth } from "@/pages/auth/hooks";
 import { PENDING_SIGNUP_TOKEN_KEY, setAuthToken } from "@/lib/auth";
 
@@ -34,6 +35,10 @@ function isValidJwtFormat(token: string): boolean {
   return parts.length === 3 && parts.every((p) => /^[A-Za-z0-9_-]+$/.test(p));
 }
 
+function isValidHandoffCode(code: string): boolean {
+  return /^[A-Za-z0-9_-]{16,128}$/.test(code);
+}
+
 /** Parses URL fragment (#key=value&...) into a URLSearchParams-like object. */
 function parseHashParams(hash: string): URLSearchParams {
   const query = hash.startsWith("#") ? hash.slice(1) : hash;
@@ -42,13 +47,14 @@ function parseHashParams(hash: string): URLSearchParams {
 
 /**
  * Handles OAuth callback from backend. Backend redirects here with:
- * - Query params: success=true (logged in), error=... (auth failed), or signup=true&pendingToken=... (complete signup)
+ * - Query params: success=true&handoff=... (logged in), error=... (auth failed), or signup=true&pendingToken=... (complete signup)
  */
 export default function AuthCallback() {
   const [searchParams] = useSearchParams();
   const { hash } = useLocation();
   const navigate = useNavigate();
   const { checkAuth } = useAuth();
+  const exchangeStartedRef = useRef(false);
 
   // Read from query params (primary) and hash (legacy) - fragments can be lost in redirect chains
   const hashParams = parseHashParams(hash);
@@ -57,8 +63,8 @@ export default function AuthCallback() {
   const pendingToken =
     searchParams.get("pendingToken") ?? hashParams.get("pendingToken");
   const success = searchParams.get("success");
-  const authToken =
-    searchParams.get("authToken") ?? hashParams.get("authToken");
+  const handoff =
+    searchParams.get("handoff") ?? hashParams.get("handoff");
   const error = sanitizeErrorCode(searchParams.get("error"));
   const errorMessage = searchParams.get("errorMessage");
   const signupTokenValid = signup === "true" && !!pendingToken && isValidJwtFormat(pendingToken);
@@ -67,18 +73,35 @@ export default function AuthCallback() {
 
   useEffect(() => {
     if (success === "true") {
-      if (authToken && isValidJwtFormat(authToken)) {
-        setAuthToken(authToken);
-      }
-      checkAuth().then((user) => {
+      if (exchangeStartedRef.current) return;
+      exchangeStartedRef.current = true;
+
+      void (async () => {
+        const trimmedHandoff = handoff?.trim() ?? "";
+        if (trimmedHandoff && isValidHandoffCode(trimmedHandoff)) {
+          try {
+            const res = await api.post<{ token?: string }>("/api/auth/exchange-handoff", {
+              handoff: trimmedHandoff,
+            });
+            const token =
+              typeof res.data?.token === "string" ? res.data.token.trim() : "";
+            if (isValidJwtFormat(token)) {
+              setAuthToken(token);
+            }
+          } catch {
+            navigate("/login?error=session", { replace: true });
+            return;
+          }
+        }
+
+        const user = await checkAuth();
         if (!user) {
           navigate("/login", { replace: true });
           return;
         }
-        // Sign-in: complete profile → tournaments; otherwise complete signup on /information
         const dest = user.alias?.trim() && user.name?.trim() ? "/tournaments" : "/information";
         navigate(dest, { replace: true });
-      });
+      })();
       return;
     }
 
@@ -93,7 +116,7 @@ export default function AuthCallback() {
     if (errorMessage) params.set("errorMessage", errorMessage);
     const nextPath = params.size > 0 ? `/login?${params.toString()}` : "/login";
     navigate(nextPath, { replace: true });
-  }, [authToken, checkAuth, derivedError, errorMessage, navigate, pendingToken, signupTokenValid, success]);
+  }, [checkAuth, derivedError, errorMessage, handoff, navigate, pendingToken, signupTokenValid, success]);
 
   return (
     <section className="flex min-h-screen items-center justify-center px-4">
