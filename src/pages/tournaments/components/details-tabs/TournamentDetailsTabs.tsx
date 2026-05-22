@@ -12,12 +12,14 @@ interface TournamentDetailsTabsProps {
   tournament: TournamentDetail;
   currentUserId: string | null;
   onParticipationAction: () => Promise<void>;
+  onRequireAuth: () => boolean;
 }
 
 export function TournamentDetailsTabs({
   tournament,
   currentUserId,
   onParticipationAction,
+  onRequireAuth,
 }: TournamentDetailsTabsProps) {
   const { t } = useTranslation();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -61,7 +63,11 @@ export function TournamentDetailsTabs({
         onParticipationAction={onParticipationAction}
       />
       <MatchesTab tournament={tournament} currentUserId={currentUserId} />
-      <ResultsTab tournament={tournament} currentUserId={currentUserId} />
+      <ResultsTab
+        tournament={tournament}
+        currentUserId={currentUserId}
+        onRequireAuth={onRequireAuth}
+      />
       <SponsorsTab tournament={tournament} />
     </Tabs>
   );

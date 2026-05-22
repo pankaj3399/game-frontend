@@ -5,17 +5,20 @@ import { useClubsListData } from "@/pages/clubs/hooks/useClubsListData";
 import { useClubsListFilters } from "@/pages/clubs/hooks/useClubsListFilters";
 import { useAdminClubs } from "@/pages/clubs/hooks";
 import { useFavoriteClubs } from "@/pages/profile/hooks";
-import { useHasRoleOrAbove } from "@/pages/auth/hooks";
+import { useAuth, useHasRoleOrAbove, useRequireAuth } from "@/pages/auth/hooks";
 import { ROLES } from "@/constants/roles";
 import { getErrorMessage } from "@/lib/errors";
 import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 
 export default function ClubsListPage() {
   const { t } = useTranslation();
+  const { isAuthenticated } = useAuth();
+  const { requireAuth } = useRequireAuth();
   const { page, limit, query, debouncedQuery, setPage, setQuery, clubScope, distance, setAppliedFilters } =
     useClubsListFilters();
-  const { data: favoriteClubsData } = useFavoriteClubs();
+  const { data: favoriteClubsData } = useFavoriteClubs({ enabled: isAuthenticated });
   const hasHomeClub = Boolean(favoriteClubsData?.homeClub);
 
   const {
@@ -34,10 +37,26 @@ export default function ClubsListPage() {
     distance,
   });
   const hasSuperAdminAccess = useHasRoleOrAbove(ROLES.SUPER_ADMIN);
-  const { data: adminClubsData } = useAdminClubs(!hasSuperAdminAccess);
+  const { data: adminClubsData } = useAdminClubs(
+    isAuthenticated && !hasSuperAdminAccess,
+  );
   const canManage = hasSuperAdminAccess || (adminClubsData?.clubs?.length ?? 0) > 0;
   const isSearching = query.trim() !== debouncedQuery.trim();
   const isRefreshingResults = isFetching && !isLoading;
+
+  const handleApplyFilters = (next: {
+    clubScope: typeof clubScope;
+    distance: typeof distance;
+  }) => {
+    if (
+      !isAuthenticated &&
+      (next.clubScope !== "all" || next.distance !== "all")
+    ) {
+      requireAuth();
+      return;
+    }
+    setAppliedFilters(next);
+  };
 
   return (
     <div className="min-h-[calc(100vh-4rem)] bg-gray-50">
@@ -50,8 +69,16 @@ export default function ClubsListPage() {
             showSearchingHint={isRefreshingResults}
             appliedClubScope={clubScope}
             appliedDistance={distance}
-            onApplyFilters={setAppliedFilters}
+            onApplyFilters={handleApplyFilters}
             hasHomeClub={hasHomeClub}
+            onManageClubs={requireAuth}
+            onRequiresHomeClub={() => {
+              if (!isAuthenticated) {
+                requireAuth();
+                return;
+              }
+              toast.info(t("clubs.filterDistanceRequiresHome"));
+            }}
           />
 
           {isError ? (

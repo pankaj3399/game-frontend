@@ -35,9 +35,9 @@ export function ClubCourtsSection({ courts }: ClubCourtsSectionProps) {
   if (courts.length === 0) return null;
 
   return (
-    <section>
+    <section className="min-w-0">
       <h2 className="mb-4 text-lg font-semibold text-foreground">{t("clubs.courts")}</h2>
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid min-w-0 gap-4 sm:grid-cols-2">
         {courts.map((court, index) => (
           <div
             key={`${court.placement}-${court.surface}-${index}`}

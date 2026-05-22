@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { useTranslation } from "react-i18next";
 import { PaginationBar } from "@/components/pagination/PaginationBar";
 import { CreateTournamentModal } from "@/pages/tournaments/components/CreateTournamentModal";
-import { useIsOrganiserOrAbove, useAuth } from "@/pages/auth/hooks";
+import { useIsOrganiserOrAbove, useAuth, useRequireAuth } from "@/pages/auth/hooks";
 import {
   TournamentFilters,
   type TournamentFiltersChangePayload,
@@ -38,7 +38,8 @@ function TournamentListContent() {
   const [searchParams, setSearchParams] = useSearchParams();
   const isDesktop = useMinWidth(TW_BREAKPOINT_LG_PX);
   const isOrganiserOrAbove = useIsOrganiserOrAbove();
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, isAuthenticated } = useAuth();
+  const { requireAuth } = useRequireAuth();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const {
     activeTab,
@@ -98,6 +99,14 @@ function TournamentListContent() {
       : t("tournaments.Tournaments");
   const handleFiltersChange = useCallback(
     (next: TournamentFiltersChangePayload) => {
+      if (
+        !isAuthenticated &&
+        (next.clubScope === "favorites" ||
+          (next.distance !== undefined && next.distance !== "all"))
+      ) {
+        requireAuth();
+        return;
+      }
       setWhenFromValue(next.when);
       setDistanceFromValue(next.distance);
       if (next.clubScope === "favorites") {
@@ -106,7 +115,7 @@ function TournamentListContent() {
         setClubFilter({ clubId: next.clubId });
       }
     },
-    [setClubFilter, setDistanceFromValue, setWhenFromValue]
+    [isAuthenticated, requireAuth, setClubFilter, setDistanceFromValue, setWhenFromValue]
   );
   return (
     <div className="flex min-h-[calc(100vh-56px)] flex-col bg-[#f8fbf8] lg:min-h-[calc(100vh-60px)]">

@@ -221,6 +221,7 @@
   },
   "auth": {
     "backToHome": "Back To Home",
+    "backToTournaments": "Back to tournaments",
     "signInWithGoogle": "Sign in with Google",
     "signInWithApple": "Sign in with Apple",
     "oauthUnavailable": "Sign-in is temporarily unavailable because authentication is not configured. Please refresh or contact support.",
@@ -690,6 +691,7 @@
     "liveModalVersusOpponent": "vs {{opponent}}",
     "liveModalNoNextMatch": "No match scheduled yet",
     "liveModalNoNextMatchCourt": "Court will be assigned",
+    "liveModalNextMatchCourtValue": "Court {{court}}",
     "liveModalNoNextMatchTime": "TBD",
     "liveModalNoNextMatchHeadline": "No following match yet",
     "liveModalNoNextMatchBody": "When your next match is scheduled, time, court, and opponent will show up here.",
@@ -853,6 +855,7 @@
       "hint": "Your upcoming and in-progress tournament fixtures. Record scores here as soon as a match is played.",
       "loading": "Loading scheduled matches…",
       "recordScore": "Record score",
+      "recordScoreAriaLabel": "Record score for match against {{opponent}} in {{tournament}}",
       "columns": {
         "when": "When",
         "status": "Status",

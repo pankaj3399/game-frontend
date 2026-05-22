@@ -8,18 +8,27 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { PlayerNameText } from "@/components/shared/PlayerNameText";
 import { cn } from "@/lib/utils";
-import type { MyScoreEntry } from "@/models/myScore/types";
+import { formatLiveMatchTeamLabel } from "@/pages/record-score/enter-match-score/helpers";
+import type { MyScoreDisplayRow } from "@/pages/my-score/helpers/myScoreRows";
+import {
+  buildTournamentRecordScorePath,
+  matchNeedsRecordScoreShortcut,
+} from "@/pages/my-score/helpers/scheduledMatches";
+import { MyScoreRecordScoreLink } from "@/pages/my-score/components/MyScoreRecordScoreLink";
 
 interface MyScoreDesktopTableProps {
-  entries: MyScoreEntry[];
+  rows: MyScoreDisplayRow[];
   formatPlayedAt: (playedAt: string, language: string) => string;
+  formatScheduledAt: (startTime: string | null) => string;
   formatScore: (score: number | null) => string;
 }
 
 export function MyScoreDesktopTable({
-  entries,
+  rows,
   formatPlayedAt,
+  formatScheduledAt,
   formatScore,
 }: MyScoreDesktopTableProps) {
   const { t, i18n } = useTranslation();
@@ -56,12 +65,65 @@ export function MyScoreDesktopTable({
         </TableHeader>
 
         <TableBody>
-          {entries.map((entry) => {
+          {rows.map((row) => {
+            if (row.kind === "scheduled") {
+              const { match } = row;
+              const opponent = formatLiveMatchTeamLabel(match.opponentTeam, t);
+              const recordPath = buildTournamentRecordScorePath(match);
+              const isActionable =
+                Boolean(recordPath) && matchNeedsRecordScoreShortcut(match);
+
+              return (
+                <TableRow
+                  key={`scheduled-${match.id}`}
+                  className="border-[#010a04]/8 hover:bg-[#010a04]/[0.015]"
+                >
+                  <TableCell className="px-4 py-2 text-[12px] text-[#010a04]/82">
+                    {formatScheduledAt(match.startTime)}
+                  </TableCell>
+                  <TableCell className="px-4 py-2">
+                    <div className="flex min-w-0 items-center gap-2">
+                      <span className="h-5 w-5 shrink-0 rounded-full bg-[#cfd3d0]" />
+                      <span className="block truncate text-[12px] font-medium text-[#010a04]">
+                        {match.tournament.name}
+                      </span>
+                    </div>
+                  </TableCell>
+                  <TableCell className="px-4 py-2">
+                    <div className="flex min-w-0 items-center gap-2">
+                      <span className="h-5 w-5 shrink-0 rounded-full bg-[#cfd3d0]" />
+                      <PlayerNameText
+                        name={opponent}
+                        className="min-w-0 flex-1 truncate text-[12px] text-[#010a04]/85"
+                      />
+                      {isActionable && recordPath ? (
+                        <MyScoreRecordScoreLink
+                          to={recordPath}
+                          label={t("myScorePage.scheduled.recordScoreAriaLabel", {
+                            opponent,
+                            tournament: match.tournament.name,
+                          })}
+                        />
+                      ) : null}
+                    </div>
+                  </TableCell>
+                  <TableCell className="px-4 py-2 text-[12px] font-medium text-[#010a04]">
+                    {formatScore(null)}
+                  </TableCell>
+                  <TableCell className="px-4 py-2 text-[12px] font-medium text-[#010a04]">
+                    {formatScore(null)}
+                  </TableCell>
+                </TableRow>
+              );
+            }
+
+            const { entry } = row;
             const isPending = entry.status === "pendingScore";
             const tournamentDisplay =
               entry.tournament.id == null
                 ? t("myScorePage.table.independentMatch")
                 : entry.tournament.name;
+
             return (
               <TableRow
                 key={entry.id}
@@ -91,7 +153,7 @@ export function MyScoreDesktopTable({
                         {entry.opponent.name}
                       </span>
                     </div>
-                    {isPending && (
+                    {isPending ? (
                       <div className="ml-7 flex flex-wrap items-center gap-2">
                         <span className="inline-flex items-center rounded-full bg-[rgba(214,171,63,0.15)] px-1.5 py-0.5 text-[10px] font-medium text-[#9a7620]">
                           {t("myScorePage.table.pendingConfirmation")}
@@ -104,7 +166,7 @@ export function MyScoreDesktopTable({
                           {t("myScorePage.table.resumeQr")}
                         </Link>
                       </div>
-                    )}
+                    ) : null}
                   </div>
                 </TableCell>
                 <TableCell className="px-4 py-2 text-[12px] font-medium text-[#010a04]">

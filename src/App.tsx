@@ -80,6 +80,17 @@ function App() {
             <Route path="/players/:playerId/score" element={<MainLayout />}>
               <Route index element={<MyScorePage />} />
             </Route>
+            <Route element={<MainLayout />}>
+              <Route path="/tournaments" element={<TournamentListPage />} />
+              <Route
+                path="/tournaments/:id"
+                element={<TournamentDetailsPage />}
+              />
+              <Route path="/clubs" element={<ClubsListPage />} />
+              <Route path="/clubs/:id" element={<ClubDetailPage />} />
+              <Route path="/sponsors" element={<AllSponsorsPage />} />
+              <Route path="/about" element={<AboutPage />} />
+            </Route>
             <Route
               element={
                 <ProtectedRoute requireProfileComplete>
@@ -89,11 +100,6 @@ function App() {
             >
               <Route path="/profile" element={<SettingsPage />} />
 
-              <Route path="/tournaments" element={<TournamentListPage />} />
-              <Route
-                path="/tournaments/:id"
-                element={<TournamentDetailsPage />}
-              />
               <Route
                 path="/tournaments/:id/schedule"
                 element={<TournamentSchedulePage />}
@@ -117,10 +123,6 @@ function App() {
                 path="/clubs/manage/sponsors/:clubId"
                 element={<ManageClubSponsorsPage />}
               />
-              <Route path="/clubs/:id" element={<ClubDetailPage />} />
-              <Route path="/clubs" element={<ClubsListPage />} />
-              <Route path="/sponsors" element={<AllSponsorsPage />} />
-              <Route path="/about" element={<AboutPage />} />
               <Route
                 path="/admin"
                 element={

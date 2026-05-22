@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,6 +16,8 @@ interface ClubsListHeaderProps {
   appliedDistance: ClubListDistanceFilter;
   onApplyFilters: (next: { clubScope: ClubListClubScope; distance: ClubListDistanceFilter }) => void;
   hasHomeClub: boolean;
+  onManageClubs: () => boolean;
+  onRequiresHomeClub: () => void;
 }
 
 export function ClubsListHeader({
@@ -27,8 +29,11 @@ export function ClubsListHeader({
   appliedDistance,
   onApplyFilters,
   hasHomeClub,
+  onManageClubs,
+  onRequiresHomeClub,
 }: ClubsListHeaderProps) {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const [filtersOpen, setFiltersOpen] = useState(false);
 
   return (
@@ -43,14 +48,20 @@ export function ClubsListHeader({
           appliedDistance={appliedDistance}
           onApply={onApplyFilters}
           hasHomeClub={hasHomeClub}
+          onRequiresHomeClub={onRequiresHomeClub}
         />
         {canManage ? (
           <Button
+            type="button"
             size="sm"
             className="h-9 shrink-0 rounded-[8px] border border-[rgba(1,10,4,0.12)] bg-brand-accent px-3 font-medium text-[#010a04] shadow-xs hover:bg-brand-accent-hover"
-            asChild
+            onClick={() => {
+              if (onManageClubs()) {
+                navigate("/clubs/manage");
+              }
+            }}
           >
-            <Link to="/clubs/manage">{t("clubs.manageClubs")}</Link>
+            {t("clubs.manageClubs")}
           </Button>
         ) : null}
       </div>

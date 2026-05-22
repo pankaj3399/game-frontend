@@ -220,6 +220,7 @@
   },
   "auth": {
     "backToHome": "Zurück zur Startseite",
+    "backToTournaments": "Zurück zu Turnieren",
     "signInWithGoogle": "Mit Google anmelden",
     "signInWithApple": "Mit Apple anmelden",
     "oauthUnavailable": "Anmeldung ist vorübergehend nicht verfügbar, weil die Authentifizierung nicht konfiguriert ist. Bitte aktualisieren Sie die Seite oder kontaktieren Sie den Support.",
@@ -686,6 +687,7 @@
     "liveModalVersusOpponent": "gegen {{opponent}}",
     "liveModalNoNextMatch": "Noch kein Match geplant",
     "liveModalNoNextMatchCourt": "Platz wird noch zugewiesen",
+    "liveModalNextMatchCourtValue": "Platz {{court}}",
     "liveModalNoNextMatchTime": "TBA",
     "liveModalNoNextMatchHeadline": "Kein weiteres Match geplant",
     "liveModalNoNextMatchBody": "Sobald Ihr nächstes Match feststeht, erscheinen hier Zeit, Platz und Gegner.",
@@ -827,6 +829,7 @@
       "hint": "Deine anstehenden und laufenden Turnierspiele. Trage Ergebnisse hier ein, sobald ein Match gespielt wurde.",
       "loading": "Geplante Spiele werden geladen…",
       "recordScore": "Ergebnis erfassen",
+      "recordScoreAriaLabel": "Ergebnis erfassen für das Match gegen {{opponent}} bei {{tournament}}",
       "columns": {
         "when": "Wann",
         "status": "Status",

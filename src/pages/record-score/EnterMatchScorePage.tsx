@@ -12,12 +12,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import type { TournamentPlayMode } from "@/models/tournament/types";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { IconChevronLeft } from "@/icons/figma-icons";
 import { FooterActions } from "./enter-match-score/components/FooterActions";
 import { MatchSelector } from "./enter-match-score/components/MatchSelector";
@@ -35,8 +29,6 @@ export default function EnterMatchScorePage() {
   const { user } = useAuth();
   const {
     mode,
-    isQrDialogOpen,
-    setIsQrDialogOpen,
     isMatchPopoverOpen,
     setIsMatchPopoverOpen,
     openScorePickerKey,
@@ -131,8 +123,8 @@ export default function EnterMatchScorePage() {
                   <div className="h-7 w-36 shrink-0 animate-skeleton-soft rounded-full bg-[#010a04]/8 sm:h-8" />
                 </div>
 
-                <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-start">
-                  <div className="h-[130px] w-[130px] animate-skeleton-soft rounded-[8px] bg-[#010a04]/8" />
+                <div className="mt-4 flex flex-col gap-4">
+                  <div className="mx-auto aspect-square w-full max-w-[min(560px,100%)] animate-skeleton-soft rounded-[8px] bg-[#010a04]/8" />
 
                   <div className="min-w-0 flex-1 space-y-3">
                     <div className="h-[34px] w-full animate-skeleton-soft rounded-[8px] bg-[#010a04]/8" />
@@ -221,13 +213,18 @@ export default function EnterMatchScorePage() {
                 ) : null}
               </div>
 
-              <div className="mt-5 flex flex-col gap-5 border-t border-[#010a04]/[0.06] pt-5 sm:mt-4 sm:flex-row sm:items-start sm:gap-6 sm:border-t-0 sm:pt-0">
+              <div
+                className={cn(
+                  "mt-5 flex flex-col gap-5",
+                  (activeQrDataUrl || isGenerating) &&
+                    "border-t border-[#010a04]/[0.06] pt-5 sm:mt-4 sm:pt-5",
+                )}
+              >
                 {activeQrDataUrl || isGenerating ? (
-                  <div className="relative flex shrink-0 justify-center sm:justify-start">
+                  <div className="relative flex w-full justify-center">
                     <QrPreview
                       dataUrl={activeQrDataUrl}
                       isGenerating={isGenerating}
-                      onOpenLarge={() => setIsQrDialogOpen(true)}
                       t={t}
                     />
                   </div>
@@ -356,38 +353,6 @@ export default function EnterMatchScorePage() {
           </div>
         )}
       </div>
-
-      <Dialog open={isQrDialogOpen} onOpenChange={setIsQrDialogOpen}>
-        <DialogContent
-          showCloseButton
-          className="max-w-[560px] rounded-[14px] border border-[#010a04]/10 bg-white p-5"
-        >
-          <DialogHeader>
-            <DialogTitle className="text-[20px] font-semibold text-[#010a04]">
-              {t("recordScorePage.enter.qrPreviewTitle")}
-            </DialogTitle>
-          </DialogHeader>
-
-          {activeQrDataUrl ? (
-            <div className="mt-2 flex flex-col items-center gap-3">
-              <div className="rounded-[12px] border border-[#010a04]/10 bg-white p-3">
-                <img
-                  src={activeQrDataUrl}
-                  alt={t("recordScorePage.enter.qrPreviewLargeAlt")}
-                  className="h-[360px] w-[360px] max-w-[78vw] object-contain"
-                />
-              </div>
-              <p className="text-center text-[12px] text-[#010a04]/60">
-                {t("recordScorePage.enter.qrPreviewHelp")}
-              </p>
-            </div>
-          ) : (
-            <p className="text-[13px] text-[#010a04]/60">
-              {t("recordScorePage.enter.qrPreviewEmpty")}
-            </p>
-          )}
-        </DialogContent>
-      </Dialog>
 
     </>
   );

@@ -1,6 +1,5 @@
 import { useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
-import { toast } from "sonner";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import ListFilterIcon from "@/assets/icons/figma/misc/list-filter.svg?react";
@@ -13,6 +12,7 @@ interface ClubsListFiltersPopoverProps {
   appliedDistance: ClubListDistanceFilter;
   onApply: (next: { clubScope: ClubListClubScope; distance: ClubListDistanceFilter }) => void;
   hasHomeClub: boolean;
+  onRequiresHomeClub: () => void;
 }
 
 function ScopePillGroup({
@@ -114,6 +114,7 @@ export function ClubsListFiltersPopover({
   appliedDistance,
   onApply,
   hasHomeClub,
+  onRequiresHomeClub,
 }: ClubsListFiltersPopoverProps) {
   const { t } = useTranslation();
   const [draftScope, setDraftScope] = useState(appliedClubScope);
@@ -183,9 +184,7 @@ export function ClubsListFiltersPopover({
               value={draftDistance}
               onChange={setDraftDistance}
               hasHomeClub={hasHomeClub}
-              onRequiresHomeClub={() =>
-                toast.info(t("clubs.filterDistanceRequiresHome"))
-              }
+              onRequiresHomeClub={onRequiresHomeClub}
             />
           </div>
         </div>

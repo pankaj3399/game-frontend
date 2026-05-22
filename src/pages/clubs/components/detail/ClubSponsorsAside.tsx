@@ -1,20 +1,36 @@
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
+import { GLOBAL_PARAMETERS } from "@/constants/constants";
+import { buildMailtoHref } from "@/lib/mailto";
 import { getSafeLink } from "@/lib/url";
 import type { ClubPublic } from "@/pages/clubs/hooks";
 
 interface ClubSponsorsAsideProps {
   club: ClubPublic;
   sponsors: ClubPublic["sponsors"];
+  onRequireAuth: () => boolean;
+  className?: string;
 }
 
-export function ClubSponsorsAside({ club, sponsors }: ClubSponsorsAsideProps) {
+export function ClubSponsorsAside({
+  club,
+  sponsors,
+  onRequireAuth,
+  className,
+}: ClubSponsorsAsideProps) {
   const { t } = useTranslation();
   const safeBookingLink = getSafeLink(club.bookingSystemUrl);
+  const safeWebsiteLink = getSafeLink(club.website);
+
+  const contactClubMailto = buildMailtoHref({
+    baseMailto: GLOBAL_PARAMETERS.CONTACT_US_MAILTO,
+    subject: `${t("clubs.requestTennisLesson")} — ${club.name}`,
+    body: club.address,
+  });
 
   return (
-    <aside>
-      <div className="rounded-xl border border-border bg-white p-6 shadow-sm">
+    <aside className={className}>
+      <div className="rounded-xl border border-border bg-white p-4 shadow-sm sm:p-6">
         <h2 className="mb-4 text-lg font-semibold text-foreground">
           {t("clubs.ourSponsors")}
         </h2>
@@ -85,12 +101,24 @@ export function ClubSponsorsAside({ club, sponsors }: ClubSponsorsAsideProps) {
             type="button"
             variant="brand"
             className="w-full rounded-lg px-4 py-3"
+            onClick={() => {
+              if (!onRequireAuth()) return;
+              window.location.assign(contactClubMailto);
+            }}
           >
             {t("clubs.requestTennisLesson")}
           </Button>
           <button
             type="button"
             className="text-center text-sm font-medium text-muted-foreground underline hover:text-foreground"
+            onClick={() => {
+              if (!onRequireAuth()) return;
+              if (safeWebsiteLink) {
+                window.open(safeWebsiteLink, "_blank", "noopener,noreferrer");
+              } else {
+                window.location.assign(contactClubMailto);
+              }
+            }}
           >
             {t("clubs.becomeMember")}
           </button>

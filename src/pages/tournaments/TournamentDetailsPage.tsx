@@ -15,7 +15,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { shareDataWithUrlInText } from "@/lib/webShare";
-import { useAuth } from "@/pages/auth/hooks";
+import { useAuth, useRequireAuth } from "@/pages/auth/hooks";
 import { TournamentDetailsPageSkeleton } from "@/pages/tournaments/components/TournamentDetailsLoadingSkeletons";
 import { TournamentDetailsTabs } from "@/pages/tournaments/components/details-tabs/TournamentDetailsTabs";
 import { resolveTournamentDetailsTab } from "@/pages/tournaments/components/details-tabs/tabConfig";
@@ -26,7 +26,7 @@ import {
   useLeaveTournament,
   useUpdateTournament,
 } from "@/pages/tournaments/hooks";
-import { getErrorMessage } from "@/lib/errors";
+import { getErrorMessage, isUnauthorizedError } from "@/lib/errors";
 import { getSafeLink } from "@/lib/url";
 import type { TournamentSponsor } from "@/models/tournament/types";
 import type { TFunction } from "i18next";
@@ -79,6 +79,7 @@ export default function TournamentDetailsPage() {
   const { id } = useParams<{ id: string }>();
   const [searchParams] = useSearchParams();
   const { user } = useAuth();
+  const { requireAuth } = useRequireAuth();
   const [showLeaveWoConfirm, setShowLeaveWoConfirm] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const joinTournament = useJoinTournament();
@@ -118,6 +119,8 @@ export default function TournamentDetailsPage() {
   const sponsorWebsiteUrl = tournament.sponsor ? getSafeLink(tournament.sponsor.link) : null;
   const canEditTournament = tournament.permissions.canEdit;
   const onParticipationAction = async () => {
+    if (!requireAuth()) return;
+
     const isParticipant = tournament.permissions.isParticipant;
 
     try {
@@ -129,6 +132,10 @@ export default function TournamentDetailsPage() {
         toast.success(t("tournaments.joined"));
       }
     } catch (participationError: unknown) {
+      if (isUnauthorizedError(participationError)) {
+        requireAuth();
+        return;
+      }
       const normalizedMessage = getErrorMessage(participationError);
       if (isParticipant && normalizedMessage === "LEAVE_CONFIRM_WO_REQUIRED") {
         setShowLeaveWoConfirm(true);
@@ -142,6 +149,8 @@ export default function TournamentDetailsPage() {
   };
 
   const confirmLeaveWithWalkover = async () => {
+    if (!requireAuth()) return;
+
     try {
       await leaveTournament.mutateAsync({
         id: tournament.id,
@@ -150,6 +159,10 @@ export default function TournamentDetailsPage() {
       setShowLeaveWoConfirm(false);
       toast.success(t("tournaments.left"));
     } catch (error: unknown) {
+      if (isUnauthorizedError(error)) {
+        requireAuth();
+        return;
+      }
       toast.error(getErrorMessage(error) ?? t("tournaments.leaveError"));
     }
   };
@@ -277,6 +290,7 @@ export default function TournamentDetailsPage() {
           tournament={tournament}
           currentUserId={user?.id ?? null}
           onParticipationAction={onParticipationAction}
+          onRequireAuth={requireAuth}
         />
 
         <CreateTournamentModal

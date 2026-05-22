@@ -1,11 +1,12 @@
 import { useTranslation } from "react-i18next";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useLocation, useSearchParams } from "react-router-dom";
 import { useState } from "react";
 import { ArrowLeft01Icon } from "@/icons/figma-icons";
 import Google from "@/assets/icons/Google";
 import Apple from "@/assets/icons/Apple";
 import { buttonVariants } from "@/components/ui/button-variants";
 import { getBackendUrl } from "@/lib/api";
+import { isAppRelativeReturnPath, saveReturnPath } from "@/lib/auth/returnPath";
 import { cn } from "@/lib/utils";
 import InlineLoader from "@/components/shared/InlineLoader";
 
@@ -69,6 +70,7 @@ function SocialButton({
 
 const Login = () => {
   const { t } = useTranslation();
+  const location = useLocation();
   const [searchParams] = useSearchParams();
   const [submittingProvider, setSubmittingProvider] = useState<"google" | "apple" | null>(null);
   const error = searchParams.get("error");
@@ -83,6 +85,18 @@ const Login = () => {
   const handleProviderSignIn = (provider: "google" | "apple", authUrl: string | null) => {
     if (!authUrl || isSubmitting) {
       return;
+    }
+
+    const returnToParam = searchParams.get("returnTo")?.trim();
+    const fromState = (location.state as { from?: { pathname?: string; search?: string } } | null)
+      ?.from;
+    const returnPath =
+      returnToParam ||
+      (fromState?.pathname
+        ? `${fromState.pathname}${fromState.search ?? ""}`
+        : "");
+    if (isAppRelativeReturnPath(returnPath)) {
+      saveReturnPath(returnPath);
     }
 
     setSubmittingProvider(provider);
@@ -143,7 +157,7 @@ const Login = () => {
           unavailableDescriptionId={oauthUnavailableDescriptionId}
         />
         <Link
-          to="/"
+          to="/tournaments"
           className={cn(
             buttonVariants({ variant: "brand" }),
             "mt-8 h-[40px] self-center px-8 font-primary text-sm active:animate-jerk md:h-[48px] md:text-base",

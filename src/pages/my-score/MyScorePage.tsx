@@ -19,7 +19,6 @@ import {
   MyScoreMobileCards,
   MyScorePagination,
   MyScoreResultsRegion,
-  MyScoreScheduledSection,
   MyScoreSummaryStrip,
   MyScorePageSkeleton,
 } from "./components";
@@ -34,6 +33,7 @@ import {
   parseRangeFromSearch,
 } from "./helpers";
 import { filterScheduledMatchesForMyScore } from "./helpers/scheduledMatches";
+import { buildMyScoreDisplayRows } from "./helpers/myScoreRows";
 import { useMyScore } from "./hooks";
 import { useTournamentLiveMatch } from "@/pages/tournaments/hooks/useTournamentLiveMatch";
 
@@ -77,9 +77,9 @@ export default function MyScorePage() {
     () =>
       filterScheduledMatchesForMyScore(
         liveMatchQuery.data?.matches ?? [],
-        mode
+        mode,
       ),
-    [liveMatchQuery.data?.matches, mode]
+    [liveMatchQuery.data?.matches, mode],
   );
 
   useEffect(() => {
@@ -96,6 +96,21 @@ export default function MyScorePage() {
     serverTotalPages == null
       ? page
       : Math.min(page, serverTotalPages === 0 ? 1 : serverTotalPages);
+
+  const displayRows = useMemo(
+    () =>
+      buildMyScoreDisplayRows(
+        myScoreQuery.data?.entries ?? [],
+        !isSharedView ? scheduledMatches : [],
+        effectivePage,
+      ),
+    [
+      effectivePage,
+      isSharedView,
+      myScoreQuery.data?.entries,
+      scheduledMatches,
+    ],
+  );
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -168,9 +183,8 @@ export default function MyScorePage() {
     }
   };
 
-  const entriesCount = myScoreQuery.data?.entries.length ?? 0;
   const pagination = myScoreQuery.data?.pagination;
-  const total = pagination?.total ?? entriesCount;
+  const total = pagination?.total ?? myScoreQuery.data?.entries.length ?? 0;
   const limit = pagination?.limit ?? PAGE_SIZE;
   const totalPages = pagination?.totalPages ?? Math.max(1, Math.ceil(total / limit));
   const currentPage = Math.min(page, Math.max(1, totalPages));
@@ -199,7 +213,12 @@ export default function MyScorePage() {
   const awaitingSubject =
     (isSharedView && !routePlayerId) || (!isSharedView && !user?.id);
   const isInitialLoad = myScoreQuery.isLoading && !myScoreQuery.data;
-  const isRefreshing = myScoreQuery.isFetching && Boolean(myScoreQuery.data);
+  const isRefreshing =
+    (myScoreQuery.isFetching && Boolean(myScoreQuery.data)) ||
+    (liveMatchQuery.isFetching && Boolean(liveMatchQuery.data));
+
+  const formatScheduledAt = (startTime: string | null) =>
+    formatScheduledMatchStartTime(startTime, i18n.language);
 
   if (awaitingSubject || isInitialLoad) {
     return <MyScorePageSkeleton />;
@@ -215,22 +234,13 @@ export default function MyScorePage() {
     );
   }
 
-  const { summary, entries } = myScoreQuery.data;
+  const { summary } = myScoreQuery.data;
+  const hasRows = displayRows.length > 0;
 
   return (
     <div className="min-h-screen bg-[#dfe2e0] px-4 pb-10 pt-7">
       <div className="mx-auto w-full max-w-[1120px] min-w-0 space-y-3">
         <MyScoreSummaryStrip summary={summary} isRefreshing={isRefreshing} />
-
-        {!isSharedView ? (
-          <MyScoreScheduledSection
-            matches={scheduledMatches}
-            isLoading={liveMatchQuery.isLoading && !liveMatchQuery.data}
-            formatStartTime={(startTime) =>
-              formatScheduledMatchStartTime(startTime, i18n.language)
-            }
-          />
-        ) : null}
 
         <MyScoreHeaderControls
           title={pageTitle}
@@ -251,20 +261,18 @@ export default function MyScorePage() {
           onShare={onShare}
         >
           <MyScoreResultsRegion isRefreshing={isRefreshing}>
-            {entries.length > 0 ? (
+            {hasRows ? (
               <>
                 <MyScoreDesktopTable
-                  entries={entries}
-                  formatPlayedAt={(playedAt) =>
-                    formatDateForMyScore(playedAt, i18n.language)
-                  }
+                  rows={displayRows}
+                  formatPlayedAt={formatDateForMyScore}
+                  formatScheduledAt={formatScheduledAt}
                   formatScore={formatScoreValue}
                 />
                 <MyScoreMobileCards
-                  entries={entries}
-                  formatPlayedAt={(playedAt) =>
-                    formatDateForMyScore(playedAt, i18n.language)
-                  }
+                  rows={displayRows}
+                  formatPlayedAt={formatDateForMyScore}
+                  formatScheduledAt={formatScheduledAt}
                   formatScore={formatScoreValue}
                 />
               </>

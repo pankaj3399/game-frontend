@@ -12,9 +12,10 @@ import { ResultsTabSkeleton } from "@/pages/tournaments/components/TournamentDet
 interface ResultsTabProps {
   tournament: TournamentDetail;
   currentUserId: string | null;
+  onRequireAuth: () => boolean;
 }
 
-export function ResultsTab({ tournament, currentUserId }: ResultsTabProps) {
+export function ResultsTab({ tournament, currentUserId, onRequireAuth }: ResultsTabProps) {
   const { t } = useTranslation();
   const [myScoreOnly, setMyScoreOnly] = useState(false);
   const matchesQuery = useTournamentMatches(tournament.id, true);
@@ -55,8 +56,11 @@ export function ResultsTab({ tournament, currentUserId }: ResultsTabProps) {
       <div className="rounded-[12px] border border-[rgba(1,10,4,0.08)] bg-white px-[15px] py-5 shadow-[0_3px_15px_rgba(0,0,0,0.06)] sm:rounded-xl sm:border-[#e5e7eb] sm:px-6 sm:py-6 sm:shadow-sm">
         <ResultsHeader
           myScoreOnly={myScoreOnly}
-          onMyScoreOnlyChange={setMyScoreOnly}
-          disabled={!currentUserId}
+          onMyScoreOnlyChange={(checked) => {
+            if (!onRequireAuth()) return;
+            setMyScoreOnly(checked);
+          }}
+          showSignInHint={!currentUserId}
           t={t}
         />
         {resultsContent}

@@ -233,7 +233,7 @@ export function LiveMatchModal() {
     ? nextTimeLabel
     : t("tournaments.liveModalNoNextMatchTime");
   const nextMatchCourtLabel = nextMatch?.court.name
-    ? nextMatch.court.name
+    ? t("tournaments.liveModalNextMatchCourtValue", { court: nextMatch.court.name })
     : t("tournaments.liveModalNoNextMatchCourt");
   const nextMatchOpponentLabel = nextMatch
     ? t("tournaments.liveModalVersusOpponent", {

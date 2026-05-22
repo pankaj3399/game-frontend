@@ -1,5 +1,12 @@
 import { z } from "zod";
 
+/** Basic JWT shape check (3 base64url segments). Backend verifies signatures. */
+export function isValidJwtFormat(token: string): boolean {
+  if (!token || typeof token !== "string") return false;
+  const parts = token.split(".");
+  return parts.length === 3 && parts.every((p) => /^[A-Za-z0-9_-]+$/.test(p));
+}
+
 /**
  * Decodes the payload of a JWT without verification (for display only).
  * The backend verifies the token; this is only for UX (e.g. showing email).

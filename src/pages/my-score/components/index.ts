@@ -1,4 +1,3 @@
-export { MyScoreScheduledSection } from "./MyScoreScheduledSection";
 export { MyScoreDesktopTable } from "./MyScoreDesktopTable";
 export { MyScoreHeaderControls } from "./MyScoreHeaderControls";
 export { MyScoreMobileCards } from "./MyScoreMobileCards";

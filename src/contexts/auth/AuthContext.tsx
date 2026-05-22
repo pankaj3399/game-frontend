@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { clearAuthToken } from "@/lib/auth";
 import { api, queryKeys } from "@/lib/api";
 import { isAxiosError } from "axios";
 import { AuthContext, type AuthContextValue, type AuthUser } from "./context";
@@ -31,6 +32,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   });
 
   const logout = async () => {
+    clearAuthToken();
     try {
       await api.post("/api/auth/logout");
     } catch {

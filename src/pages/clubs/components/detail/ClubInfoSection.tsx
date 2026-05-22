@@ -12,16 +12,16 @@ export function ClubInfoSection({ club }: ClubInfoSectionProps) {
   const safeWebsiteLink = getSafeLink(club.website);
 
   return (
-    <section>
+    <section className="min-w-0">
       <h2 className="mb-4 text-lg font-semibold text-foreground">{t("clubs.clubInfo")}</h2>
-      <div className="grid gap-6 sm:grid-cols-2">
+      <div className="grid min-w-0 gap-6 sm:grid-cols-2">
         {club.address ? (
           <div>
             <div className="mb-2 flex items-center gap-2">
               <MapPin className="size-5 shrink-0 text-muted-foreground" />
               <span className="font-medium text-foreground">{t("clubs.address")}</span>
             </div>
-            <p className="whitespace-pre-line pl-7 text-muted-foreground">{club.address}</p>
+            <p className="break-words whitespace-pre-line pl-7 text-muted-foreground">{club.address}</p>
           </div>
         ) : null}
         <div>
@@ -36,7 +36,7 @@ export function ClubInfoSection({ club }: ClubInfoSectionProps) {
                   href={safeWebsiteLink}
                   target="_blank"
                   rel="noreferrer noopener"
-                  className="block text-blue-600 underline hover:text-blue-700"
+                  className="block break-all text-blue-600 underline hover:text-blue-700"
                 >
                   {safeWebsiteLink}
                 </a>
