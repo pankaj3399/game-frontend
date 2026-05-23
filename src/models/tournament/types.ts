@@ -255,6 +255,7 @@ export const validateTournamentScoreQrResponseSchema = z.object({
       id: z.string(),
       flow: z.enum(["tournament", "independent"]).optional(),
       tournamentId: wireJsonNullableString(),
+      tournamentName: wireJsonNullableString(),
       matchId: z.string(),
       requestByUserId: z.string(),
       opponentUserId: wireJsonNullableString(),

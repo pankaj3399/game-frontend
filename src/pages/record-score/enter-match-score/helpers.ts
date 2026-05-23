@@ -113,18 +113,37 @@ export function matchRoundDisplayLabel(
     : t("tournaments.liveModalRoundPending");
 }
 
+export function resolveTournamentNameForLabel(
+  t: (key: string, options?: Record<string, unknown>) => string,
+  tournamentName: string | null | undefined,
+): string {
+  return (
+    normalizeDisplayNameForLabel(tournamentName ?? "", 40) ||
+    t("recordScorePage.enter.validatedMatchFallback", {
+      defaultValue: "Validated match",
+    })
+  );
+}
+
+export function buildTournamentScopedMatchLabel(
+  t: (key: string, options?: Record<string, unknown>) => string,
+  tournamentName: string | null | undefined,
+  detailLabel: string,
+): string {
+  const resolvedDetail = detailLabel.trim();
+  const resolvedTournament = resolveTournamentNameForLabel(t, tournamentName);
+  if (!resolvedDetail) {
+    return resolvedTournament;
+  }
+  return `${resolvedTournament} · ${resolvedDetail}`;
+}
+
 export function buildMatchLabel(
   t: (key: string, options?: Record<string, unknown>) => string,
   match: TournamentLiveMatchItem,
 ) {
   const opponentTeam = formatLiveMatchTeamLabel(match.opponentTeam, t);
-
-  const tournamentName =
-    normalizeDisplayNameForLabel(match.tournament.name, 40) ||
-    t("recordScorePage.enter.validatedMatchFallback", {
-      defaultValue: "Validated match",
-    });
-  const base = `${tournamentName} · ${opponentTeam}`;
+  const base = buildTournamentScopedMatchLabel(t, match.tournament.name, opponentTeam);
   return match.status === "inProgress"
     ? `${base} (${String(t("tournaments.liveLabel")).toLowerCase()})`
     : base;

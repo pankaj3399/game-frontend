@@ -943,6 +943,7 @@
       "preparingQr": "Gültiges Ergebnis eingeben",
       "generatingQr": "QR wird generiert...",
       "qrGenerated": "QR-Code und Validierungslink sind bereit. Der Gegner kann den QR scannen oder den geteilten Link öffnen, um zu bestätigen.",
+      "opponentConfirmedScore": "Dein Gegner hat das Ergebnis bestätigt. Du kannst ein neues Match erfassen oder ein anderes Spiel wählen.",
       "qrPreviewAlt": "Generierter QR-Code zur Ergebnisvalidierung",
       "qrPreviewEmptyFallback": "Noch kein QR generiert",
       "qrPreviewLargeAlt": "Großer QR-Code zur Ergebnisvalidierung",

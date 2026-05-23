@@ -24,6 +24,11 @@ export type MatchOption = {
   isLive: boolean;
   isPendingScore: boolean;
   hasRecordedScore?: boolean;
+  /**
+   * `canonical` — playerOne row is side1 (schedule board orientation).
+   * `viewer` — playerOne row is the current user's team (record-score QR entry).
+   */
+  scoreRowPerspective?: "canonical" | "viewer";
 };
 
 export const INDEPENDENT_MATCH_ID = "independent-match";

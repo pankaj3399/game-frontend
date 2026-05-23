@@ -113,6 +113,9 @@ export default function ValidateScorePage() {
     const storedRef = storeScoreQrToken(effectiveToken);
     const encodedMatchId = encodeURIComponent(req.matchId);
     const encodedTournamentId = encodeURIComponent(req.tournamentId ?? "");
+    const encodedTournamentName = req.tournamentName?.trim()
+      ? encodeURIComponent(req.tournamentName.trim())
+      : "";
     const tokenSearchPart = storedRef
       ? `qrRef=${encodeURIComponent(storedRef)}`
       : `scoreQrToken=${encodeURIComponent(effectiveToken)}`;
@@ -121,6 +124,7 @@ export default function ValidateScorePage() {
       tokenSearchPart,
       `matchId=${encodedMatchId}`,
       `tournamentId=${encodedTournamentId}`,
+      encodedTournamentName ? `tournamentName=${encodedTournamentName}` : "",
     ]
       .filter(Boolean)
       .join("&");

@@ -346,6 +346,7 @@ export function useConfirmTournamentScoreQr() {
 export function useActiveTournamentScoreQrSession(
   input?: Parameters<typeof getActiveTournamentScoreQrSession>[0],
   enabled = true,
+  refetchIntervalMs = 8_000,
 ) {
   const normalized = {
     flow: input?.flow ?? null,
@@ -366,7 +367,8 @@ export function useActiveTournamentScoreQrSession(
     enabled,
     // Poll so the generator's page detects when the session is consumed or expired
     // (e.g. opponent confirmed the QR) without requiring a manual refresh.
-    refetchInterval: 8_000,
+    refetchInterval: enabled && refetchIntervalMs > 0 ? refetchIntervalMs : false,
+    refetchIntervalInBackground: true,
     retry: false,
   });
 }
