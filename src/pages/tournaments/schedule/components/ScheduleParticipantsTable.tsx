@@ -8,9 +8,11 @@ import {
   useSensor,
   useSensors,
   type DragEndEvent,
+  type DraggableAttributes,
   type DragStartEvent,
   type UniqueIdentifier,
 } from "@dnd-kit/core";
+import type { SyntheticListenerMap } from "@dnd-kit/core/dist/hooks/utilities";
 import { useMemo, useState, type CSSProperties } from "react";
 import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
 import {
@@ -192,8 +194,8 @@ interface ParticipantsMobileRowContentProps {
   participant: ScheduleParticipantRow;
   dragHandleProps?: {
     setActivatorNodeRef: (element: HTMLElement | null) => void;
-    attributes: Record<string, unknown>;
-    listeners: Record<string, unknown> | undefined;
+    attributes: DraggableAttributes;
+    listeners: SyntheticListenerMap | undefined;
   };
   onRemoveParticipant?: (id: string) => void;
 }
@@ -294,8 +296,8 @@ interface ParticipantsDesktopRowContentProps {
   index: number;
   dragHandleProps?: {
     setActivatorNodeRef: (element: HTMLElement | null) => void;
-    attributes: Record<string, unknown>;
-    listeners: Record<string, unknown> | undefined;
+    attributes: DraggableAttributes;
+    listeners: SyntheticListenerMap | undefined;
   };
   onRemoveParticipant?: (id: string) => void;
   overlay?: boolean;
