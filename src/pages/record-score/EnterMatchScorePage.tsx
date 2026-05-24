@@ -39,7 +39,6 @@ export default function EnterMatchScorePage() {
     filteredMatchOptions,
     effectiveSelectedOption,
     isConfirmLocked,
-    isValidatedContextOk,
     shouldRedirectInvalidConfirm,
     confirmRedirectReason,
     onGoBack,
@@ -78,6 +77,15 @@ export default function EnterMatchScorePage() {
         t(
           "recordScorePage.enter.errors.confirmLinkWrongUser",
           "This validation link is not valid for your account.",
+        ),
+      );
+      return;
+    }
+    if (confirmRedirectReason === "load-failed") {
+      toast.error(
+        t(
+          "recordScorePage.enter.errors.confirmDetailsUnavailable",
+          "Could not load match details. Try scanning the QR again.",
         ),
       );
       return;
@@ -242,11 +250,6 @@ export default function EnterMatchScorePage() {
                           : t("recordScorePage.enter.tournamentHint")}
                     </p>
 
-                    {mode === "confirm" && !isValidatedContextOk ? (
-                      <p className="text-[12px] leading-[1.35] text-[#a33d3d]">
-                        {t("recordScorePage.enter.validatedMatchOnlyHint")}
-                      </p>
-                    ) : null}
                   </div>
 
                   <div className="relative pt-1">

@@ -583,14 +583,6 @@ export function useEnterMatchScoreController({
       } satisfies MatchOption;
     }
 
-    if (
-      validatedRequest.flow === "tournament" &&
-      resolvedConfirmTournamentId &&
-      (!tournamentScheduleMatchesQuery.isSuccess || !liveMatchQuery.isSuccess)
-    ) {
-      return null;
-    }
-
     const isTournamentConfirmer =
       validatedRequest.flow === "tournament" &&
       userId !== null &&
@@ -645,10 +637,8 @@ export function useEnterMatchScoreController({
   }, [
     tournamentScheduleMatchesQuery.data?.matches,
     tournamentScheduleMatchesQuery.isPending,
-    tournamentScheduleMatchesQuery.isSuccess,
     inFlightMatches,
     liveMatchQuery.isPending,
-    liveMatchQuery.isSuccess,
     matchOptions,
     mergeStableTournamentNameForLabel,
     mode,
@@ -859,35 +849,6 @@ export function useEnterMatchScoreController({
     !confirmedTokenFromScoreQrQuery &&
     !confirmedTokenFromQuery;
 
-  // Only redirect after a real confirm-context response: `data` undefined must not mean "invalid"
-  // (TanStack Query v5 keeps confirm queries `pending` while disabled — avoid treating that as failure).
-  const validatedScoreForbidden =
-    validatedScoreQuery.isError &&
-    getHttpStatus(validatedScoreQuery.error) === 403;
-
-  const shouldRedirectInvalidConfirm =
-    mode === "confirm" &&
-    !validatedScoreQuery.isPending &&
-    (unreadableQrRefWithoutTokenFallback ||
-      (Boolean(confirmedToken) &&
-        (validatedScoreForbidden ||
-          validatedScoreQuery.data?.valid === false ||
-          (validatedScoreQuery.data?.valid === true && !validatedRequest))));
-
-  const confirmRedirectReason = useMemo<
-    "wrong-user" | "invalid-link" | null
-  >(() => {
-    if (!shouldRedirectInvalidConfirm) return null;
-    if (validatedScoreQuery.isError && getHttpStatus(validatedScoreQuery.error) === 403) {
-      return "wrong-user";
-    }
-    return "invalid-link";
-  }, [
-    shouldRedirectInvalidConfirm,
-    validatedScoreQuery.error,
-    validatedScoreQuery.isError,
-  ]);
-
   const isGenerating =
     generateTournamentQrMutation.isPending ||
     generateIndependentQrMutation.isPending ||
@@ -1031,11 +992,7 @@ export function useEnterMatchScoreController({
     if (liveMatchQuery.isPending) return false;
     if (inFlightMatches.some((item) => item.id === matchId)) return true;
 
-    if (
-      tournamentId &&
-      tournamentScheduleMatchesQuery.isSuccess &&
-      liveMatchQuery.isSuccess
-    ) {
+    if (tournamentId && !tournamentScheduleMatchesQuery.isPending && !liveMatchQuery.isPending) {
       return Boolean(user && validatedRequest.requestByUserProfile);
     }
 
@@ -1044,17 +1001,75 @@ export function useEnterMatchScoreController({
     confirmedToken,
     inFlightMatches,
     liveMatchQuery.isPending,
-    liveMatchQuery.isSuccess,
     mode,
     resolvedConfirmMatchId,
     resolvedConfirmTournamentId,
     tournamentScheduleMatchesQuery.data?.matches,
     tournamentScheduleMatchesQuery.isPending,
-    tournamentScheduleMatchesQuery.isSuccess,
     user,
     validatedRequest,
     validatedScoreQuery.isFetching,
     validatedScoreQuery.isPending,
+  ]);
+
+  // Only redirect after a real confirm-context response: `data` undefined must not mean "invalid"
+  // (TanStack Query v5 keeps confirm queries `pending` while disabled — avoid treating that as failure).
+  const validatedScoreForbidden =
+    validatedScoreQuery.isError &&
+    getHttpStatus(validatedScoreQuery.error) === 403;
+
+  const shouldRedirectInvalidConfirm = useMemo(() => {
+    if (mode !== "confirm" || validatedScoreQuery.isPending) return false;
+    if (unreadableQrRefWithoutTokenFallback) return true;
+    if (!confirmedToken) return false;
+
+    if (
+      validatedScoreForbidden ||
+      validatedScoreQuery.isError ||
+      validatedScoreQuery.data?.valid === false ||
+      (validatedScoreQuery.data?.valid === true && !validatedRequest)
+    ) {
+      return true;
+    }
+
+    if (!validatedRequest || validatedRequest.flow === "independent") return false;
+
+    return !isConfirmDisplayReady;
+  }, [
+    confirmedToken,
+    isConfirmDisplayReady,
+    mode,
+    unreadableQrRefWithoutTokenFallback,
+    validatedRequest,
+    validatedScoreForbidden,
+    validatedScoreQuery.data?.valid,
+    validatedScoreQuery.isError,
+    validatedScoreQuery.isPending,
+  ]);
+
+  const confirmRedirectReason = useMemo<
+    "wrong-user" | "invalid-link" | "load-failed" | null
+  >(() => {
+    if (!shouldRedirectInvalidConfirm) return null;
+    if (validatedScoreQuery.isError && getHttpStatus(validatedScoreQuery.error) === 403) {
+      return "wrong-user";
+    }
+    if (
+      validatedScoreQuery.isError ||
+      validatedScoreQuery.data?.valid === false ||
+      unreadableQrRefWithoutTokenFallback ||
+      !validatedRequest
+    ) {
+      return "invalid-link";
+    }
+    return "load-failed";
+  }, [
+    shouldRedirectInvalidConfirm,
+    unreadableQrRefWithoutTokenFallback,
+    validatedRequest,
+    validatedScoreQuery.data?.valid,
+    validatedScoreQuery.error,
+    validatedScoreQuery.isError,
   ]);
 
   const shouldShowLoadingSkeleton =
