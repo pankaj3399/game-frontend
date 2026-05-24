@@ -295,8 +295,10 @@ export function useEnterMatchScoreController({
 
   const urlTournamentName = searchParams.get("tournamentName")?.trim() ?? "";
 
+  // Read-only cache populated in the committed effect below (lastNonEmptyTournamentNameByTournamentIdRef.set).
   const lastNonEmptyTournamentNameForConfirm = resolvedConfirmTournamentId
-    ? lastNonEmptyTournamentNameByTournamentIdRef.current.get(resolvedConfirmTournamentId)
+    ? // eslint-disable-next-line react-hooks/refs -- intentional read of ref cache written in committed effect
+      lastNonEmptyTournamentNameByTournamentIdRef.current.get(resolvedConfirmTournamentId)
     : undefined;
 
   const resolvedConfirmTournamentName = useMemo(() => {
