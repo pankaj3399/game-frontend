@@ -875,7 +875,7 @@
       },
       "enter": {
         "title": "Punktzahl eingeben",
-        "description": "Erfassen Sie Ihr Ergebnis manuell für Turnierbegegnungen oder separate Matches"
+        "description": "Erfassen Sie Ihr Ergebnis manuell für Turnierbegegnungen oder eigenständige Matches"
       }
     },
     "toasts": {

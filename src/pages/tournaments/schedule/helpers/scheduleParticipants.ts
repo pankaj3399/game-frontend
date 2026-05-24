@@ -96,6 +96,7 @@ export function hasCustomSchedulingOrder(rows: ScheduleParticipantRow[]): boolea
     return false;
   }
 
+  const originalIndexById = new Map(rows.map((participant, index) => [participant.id, index]));
   const ratingSortedIds = [...rows]
     .sort((left, right) => {
       const leftRating = Number.isFinite(left.rating) ? left.rating : 1500;
@@ -104,7 +105,7 @@ export function hasCustomSchedulingOrder(rows: ScheduleParticipantRow[]): boolea
         return rightRating - leftRating;
       }
 
-      return left.id.localeCompare(right.id);
+      return (originalIndexById.get(left.id) ?? 0) - (originalIndexById.get(right.id) ?? 0);
     })
     .map((participant) => participant.id);
 

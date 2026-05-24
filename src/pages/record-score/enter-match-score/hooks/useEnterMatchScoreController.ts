@@ -1034,11 +1034,17 @@ export function useEnterMatchScoreController({
 
     if (!validatedRequest || validatedRequest.flow === "independent") return false;
 
+    if (tournamentScheduleMatchesQuery.isPending || liveMatchQuery.isPending) {
+      return false;
+    }
+
     return !isConfirmDisplayReady;
   }, [
     confirmedToken,
     isConfirmDisplayReady,
+    liveMatchQuery.isPending,
     mode,
+    tournamentScheduleMatchesQuery.isPending,
     unreadableQrRefWithoutTokenFallback,
     validatedRequest,
     validatedScoreForbidden,
@@ -1051,11 +1057,10 @@ export function useEnterMatchScoreController({
     "wrong-user" | "invalid-link" | "load-failed" | null
   >(() => {
     if (!shouldRedirectInvalidConfirm) return null;
-    if (validatedScoreQuery.isError && getHttpStatus(validatedScoreQuery.error) === 403) {
-      return "wrong-user";
+    if (validatedScoreQuery.isError) {
+      return getHttpStatus(validatedScoreQuery.error) === 403 ? "wrong-user" : "load-failed";
     }
     if (
-      validatedScoreQuery.isError ||
       validatedScoreQuery.data?.valid === false ||
       unreadableQrRefWithoutTokenFallback ||
       !validatedRequest

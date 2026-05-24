@@ -8,11 +8,9 @@ import {
   useSensor,
   useSensors,
   type DragEndEvent,
-  type DraggableAttributes,
   type DragStartEvent,
   type UniqueIdentifier,
 } from "@dnd-kit/core";
-import type { SyntheticListenerMap } from "@dnd-kit/core/dist/hooks/utilities";
 import { useMemo, useState, type CSSProperties } from "react";
 import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
 import {
@@ -109,6 +107,11 @@ function DoublesPairPlayerAvatar({
 const DESKTOP_ROW_GRID =
   "grid grid-cols-[2.5rem_minmax(0,1fr)_11.25rem_13.75rem] items-center gap-x-3";
 
+type SortableHandleProps = Pick<
+  ReturnType<typeof useSortable>,
+  "attributes" | "listeners" | "setActivatorNodeRef"
+>;
+
 function sortableRowMotionStyle(
   transform: Transform | null,
   transition: string | undefined,
@@ -192,11 +195,7 @@ function ParticipantRowActions({
 
 interface ParticipantsMobileRowContentProps {
   participant: ScheduleParticipantRow;
-  dragHandleProps?: {
-    setActivatorNodeRef: (element: HTMLElement | null) => void;
-    attributes: DraggableAttributes;
-    listeners: SyntheticListenerMap | undefined;
-  };
+  dragHandleProps?: SortableHandleProps;
   onRemoveParticipant?: (id: string) => void;
 }
 
@@ -294,11 +293,7 @@ interface SortableParticipantsDesktopRowProps {
 interface ParticipantsDesktopRowContentProps {
   participant: ScheduleParticipantRow;
   index: number;
-  dragHandleProps?: {
-    setActivatorNodeRef: (element: HTMLElement | null) => void;
-    attributes: DraggableAttributes;
-    listeners: SyntheticListenerMap | undefined;
-  };
+  dragHandleProps?: SortableHandleProps;
   onRemoveParticipant?: (id: string) => void;
   overlay?: boolean;
 }
