@@ -163,12 +163,48 @@
   * {
     @apply border-border outline-ring/50;
   }
-  body {
-    overflow-x: clip;
+
+  /**
+   * iOS 26 Liquid Glass fix: Safari samples the color near the viewport edges
+   * to tint its translucent toolbar. Setting an explicit background-color on
+   * <html> (not just <body>) ensures it picks up --brand-primary (#067429)
+   * instead of defaulting to white or black.
+   *
+   * Note: viewport-fit=cover must also be set in index.html for this to work
+   * correctly (it is — see <meta name="viewport" ...>).
+   *
+   * No overflow set on <html> — it must remain the natural document scroll
+   * root for iOS pull-to-refresh (both Safari browser and PWA standalone mode)
+   * to work correctly.
+   */
+  html {
+    background-color: #067429; /* matches --brand-primary */
   }
+
   body {
     margin: 0;
+
+    /**
+     * PWA pull-to-refresh fix:
+     * - Do NOT use overflow-x: clip/hidden on body — on iOS in PWA standalone
+     *   mode this promotes body into an internal scroll container, stealing the
+     *   scroll root from the document. The native elastic-bounce gesture then
+     *   can't propagate up to trigger pull-to-refresh.
+     * - overscroll-behavior-x: none gives us the same horizontal containment
+     *   (no sideways rubber-banding) without touching the scroll root.
+     * - overscroll-behavior-y is left at its default (auto) so the vertical
+     *   bounce/pull gesture remains active for pull-to-refresh.
+     */
+    overscroll-behavior-x: none;
+
+    /**
+     * iOS 26 dvh fix: 100dvh accounts for the collapsing/expanding Safari
+     * toolbar on iOS 26. The 100vh fallback covers older browsers that don't
+     * support dvh units.
+     */
     min-height: 100vh;
+    min-height: 100dvh;
+
     @apply bg-background text-foreground;
   }
 }
@@ -191,6 +227,13 @@
     transform: translateX(100%);
   }
 }
+
+/** Used by the PWA pull-to-refresh indicator (usePWAPullToRefresh hook). */
+@keyframes pwa-ptr-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
 
 @layer utilities {
   /** Softer than `animate-pulse` for loading placeholders (longer, eased breathe). */

@@ -383,12 +383,22 @@ export function AppNavbar() {
 
   return (
     <header
-      className="sticky top-0 z-50 h-[56px] w-full lg:h-[60px]"
-      style={{ backgroundColor: "var(--brand-primary)" }}
+      className="sticky top-0 z-50 w-full"
+      style={{
+        backgroundColor: "var(--brand-primary)",
+        /*
+         * iOS 26 / iPhone notch fix: with viewport-fit=cover + black-translucent
+         * status bar, content renders *under* the Dynamic Island / notch area.
+         * We pad the top of the header by the safe-area-inset so nav items
+         * aren't hidden behind it. The CSS custom property fallback (0px) keeps
+         * desktop browsers unaffected.
+         */
+        paddingTop: "env(safe-area-inset-top, 0px)",
+      }}
     >
       <div
         className={cn(
-          "relative mx-auto grid h-full w-full max-w-[1440px] grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-2 px-3 lg:gap-x-2 lg:px-6 xl:px-[72px] xl:gap-x-3"
+          "relative mx-auto grid h-[56px] lg:h-[60px] w-full max-w-[1440px] grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-2 px-3 lg:gap-x-2 lg:px-6 xl:px-[72px] xl:gap-x-3"
         )}
       >
         {/* True horizontal center on small screens: grid side columns are unequal widths (logo vs menu),
@@ -478,23 +488,50 @@ export function AppNavbar() {
             </SheetTrigger>
             <SheetContent
               side="right"
-              className="w-[min(88vw,21rem)] min-w-[18rem] gap-0 border-l border-white/10 bg-brand-primary p-0 text-white shadow-[-14px_0_40px_rgba(0,0,0,0.22)]"
+              /*
+               * flex flex-col + overflow-hidden on the Sheet itself:
+               * the drawer is a fixed-height panel (full viewport height).
+               * Making it a flex column lets us pin the header & auth footer
+               * while letting the nav list scroll independently.
+               */
+              className="flex w-[min(88vw,21rem)] min-w-[18rem] flex-col gap-0 overflow-hidden border-l border-white/10 bg-brand-primary p-0 text-white shadow-[-14px_0_40px_rgba(0,0,0,0.22)]"
               showCloseButton={true}
               closeButtonClassName="text-white hover:bg-white/10 focus:ring-white/40 focus:ring-offset-brand-primary data-[state=open]:!bg-white/10"
             >
-              <SheetHeader className="border-b border-white/10 px-4 py-5 pr-12">
+              {/* ── Pinned header ─────────────────────────────────────── */}
+              <SheetHeader className="shrink-0 border-b border-white/10 px-4 py-5 pr-12">
                 <SheetTitle className="truncate text-[18px] font-semibold leading-none text-white">
                   {pageTitle}
                 </SheetTitle>
               </SheetHeader>
-              <nav className="flex flex-col gap-1 px-4 py-5">
+
+              {/*
+               * ── Scrollable nav list ───────────────────────────────────
+               * flex-1 + overflow-y-auto: on small screens (iPhone SE2,
+               * 667px height) the nav links may exceed the available space.
+               * This makes only the nav area scroll while the auth footer
+               * stays pinned at the bottom — so logout is always reachable.
+               */}
+              <nav className="flex flex-1 flex-col gap-1 overflow-y-auto px-4 py-5">
                 <NavLinks
                   location={location}
                   t={t}
                   onNavigate={closeMobileMenu}
                 />
               </nav>
-              <div className="mt-auto border-t border-white/10 px-4 py-5">
+
+              {/*
+               * ── Pinned auth / logout footer ───────────────────────────
+               * shrink-0 prevents this section from being squeezed.
+               * padding-bottom: env(safe-area-inset-bottom) ensures the
+               * logout button is never hidden behind Safari's bottom bar
+               * on iPhones with a home indicator (all Face ID models) or
+               * behind the browser toolbar on iPhone SE2 / older models.
+               */}
+              <div
+                className="shrink-0 border-t border-white/10 px-4 pt-5"
+                style={{ paddingBottom: "max(1.25rem, env(safe-area-inset-bottom, 1.25rem))" }}
+              >
                 {renderMobileAuthSection()}
               </div>
             </SheetContent>
