@@ -57,8 +57,6 @@ export default function EnterMatchScorePage() {
     isGenerating,
     hasValidationLink,
     isPrimaryGenerateDisabled,
-    isSyncingQrScores,
-    isScoreEntryLocked,
     hasActiveIndependentSession,
   } = useEnterMatchScoreController({
     t,
@@ -150,7 +148,7 @@ export default function EnterMatchScorePage() {
 
             <section
               className="mx-auto mt-2 w-full max-w-[784px] rounded-[12px] border border-[rgba(1,10,4,0.08)] bg-white p-4 shadow-[0_3px_7.5px_rgba(0,0,0,0.06)] sm:mt-3 sm:p-[18px]"
-              aria-busy={isGenerating || isSyncingQrScores}
+              aria-busy={isGenerating}
             >
               <div className="mt-1 flex flex-col gap-1 sm:mt-2 sm:flex-row sm:items-start sm:justify-between">
                 <div className="min-w-0">
@@ -255,20 +253,7 @@ export default function EnterMatchScorePage() {
                   </div>
 
                   <div className="relative pt-1">
-                    {isSyncingQrScores ? (
-                      <p className="mb-2 text-[12px] font-medium text-[#010a04]/55">
-                        {t(
-                          "recordScorePage.enter.savingQrScores",
-                          "Saving score to your QR session…",
-                        )}
-                      </p>
-                    ) : null}
-                    <div
-                      className={cn(
-                        "space-y-3 transition-opacity",
-                        isSyncingQrScores && "pointer-events-none opacity-60",
-                      )}
-                    >
+                    <div className="space-y-3 transition-opacity">
                       <div className="flex min-w-0 flex-row flex-wrap items-center gap-2">
                         <h2 className="min-w-0 text-[20px] font-semibold leading-tight text-[#010a04] sm:text-2xl">
                           {t("recordScorePage.enter.matchScores")}
@@ -289,7 +274,7 @@ export default function EnterMatchScorePage() {
                         playerOneAvatarUrl={effectiveSelectedOption.playerOneAvatarUrl}
                         playerTwoAvatarUrl={effectiveSelectedOption.playerTwoAvatarUrl}
                         avatarToneSeedPrefix={effectiveSelectedOption.id}
-                        isConfirmLocked={isScoreEntryLocked}
+                        isConfirmLocked={isConfirmLocked}
                         openScorePickerKey={openScorePickerKey}
                         setOpenScorePickerKey={setOpenScorePickerKey}
                         onScoreChange={onScoreChange}
@@ -309,7 +294,6 @@ export default function EnterMatchScorePage() {
                   onGenerateOrOpenValidationLink={onGenerateOrOpenValidationLink}
                   isPrimaryGenerateDisabled={isPrimaryGenerateDisabled}
                   isGenerating={isGenerating}
-                  isSyncingQrScores={isSyncingQrScores}
                   hasValidationLink={hasValidationLink}
                   t={(key: string) => t(key)}
                 />

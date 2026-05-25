@@ -274,6 +274,60 @@ export function useValidateTournamentScoreQrConfirmContext(
   });
 }
 
+/** Generator (requester) listens for opponent confirm and score updates on the active QR token. */
+export function useScoreQrRequesterSessionEvents(
+  token: string | null | undefined,
+  enabled = true,
+  handlers?: {
+    onScoresUpdated?: () => void;
+    onRequestConsumed?: () => void;
+  },
+) {
+  const queryClient = useQueryClient();
+  const normalized = (token ?? "").trim();
+  const onScoresUpdated = handlers?.onScoresUpdated;
+  const onRequestConsumed = handlers?.onRequestConsumed;
+
+  useEffect(() => {
+    if (!enabled || !normalized || typeof EventSource === "undefined") return;
+
+    const backendUrl = getBackendUrl();
+    const url = backendUrl
+      ? new URL(
+          `/api/tournaments/score-qr/${encodeURIComponent(normalized)}/events`,
+          backendUrl,
+        ).toString()
+      : `/api/tournaments/score-qr/${encodeURIComponent(normalized)}/events`;
+    const source = new EventSource(url, { withCredentials: true });
+
+    const refetchActiveSession = () => {
+      void queryClient.invalidateQueries({
+        queryKey: [...queryKeys.tournament.all, "score-qr", "active"],
+        refetchType: "active",
+      });
+    };
+
+    const handleScoresUpdated = () => {
+      refetchActiveSession();
+      onScoresUpdated?.();
+    };
+
+    const handleRequestConsumed = () => {
+      onRequestConsumed?.();
+      refetchActiveSession();
+    };
+
+    source.addEventListener("scores-updated", handleScoresUpdated);
+    source.addEventListener("request-consumed", handleRequestConsumed);
+
+    return () => {
+      source.removeEventListener("scores-updated", handleScoresUpdated);
+      source.removeEventListener("request-consumed", handleRequestConsumed);
+      source.close();
+    };
+  }, [enabled, normalized, onRequestConsumed, onScoresUpdated, queryClient]);
+}
+
 export function useScoreQrConfirmContextEvents(
   token: string | null | undefined,
   enabled = true,
