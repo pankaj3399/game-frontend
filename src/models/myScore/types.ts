@@ -33,8 +33,8 @@ export const myScoreEntrySchema = z.object({
     name: z.string(),
   }),
   mode: myScoreMatchModeSchema,
-  myScore: z.number().nullable(),
-  opponentScore: z.number().nullable(),
+  myScore: z.union([z.number(), z.literal("WO"), z.literal("W")]).nullable(),
+  opponentScore: z.union([z.number(), z.literal("WO"), z.literal("W")]).nullable(),
   didWin: z.boolean().nullable(),
   /** 'pendingScore' = awaiting opponent confirmation; 'finished' = confirmed. Defaults to 'finished' for older entries. */
   status: z.enum(["pendingScore", "finished"]).optional().default("finished"),

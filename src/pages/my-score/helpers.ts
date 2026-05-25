@@ -74,8 +74,12 @@ export function formatScheduledMatchStartTime(
   }
 }
 
-export function formatScoreValue(value: number | null): string {
-  if (value == null || !Number.isFinite(value)) return "-";
+export type MyScoreDisplayValue = number | "WO" | "W" | null;
+
+export function formatScoreValue(value: MyScoreDisplayValue): string {
+  if (value == null) return "-";
+  if (value === "WO" || value === "W") return value;
+  if (!Number.isFinite(value)) return "-";
   return String(value);
 }
 

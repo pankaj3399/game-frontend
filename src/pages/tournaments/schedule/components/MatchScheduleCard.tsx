@@ -17,12 +17,15 @@ import type { TournamentScheduleMatch } from "@/models/tournament/types";
 import { matchScheduleDateTimeLabels } from "@/pages/tournaments/schedule/utils/matchScheduleLabels";
 import { MatchCardReadOnlyRows } from "./MatchCardReadOnlyRows";
 import {
+  formatScoreCellValue,
   getScoreSelectOptions,
   hasRecordedMatchScore,
+  parseScoreInputValue,
   scoreEditorSelectTriggerClassName,
   SCORE_SELECT_EMPTY_VALUE,
   scoreColumns,
   visibleScoreEditorRows,
+  winnerSideForScoreEditorSet,
   type ScoreEditorRow,
 } from "@/pages/tournaments/schedule/utils/matchScheduleScore";
 import { teamSideDisplayName } from "@/pages/tournaments/schedule/utils/matchTeamDisplay";
@@ -286,6 +289,18 @@ export function MatchScheduleCard({
                     {editableRowsToRender.map((row, rowIndex) => {
                       const value = sideKey === "playerOne" ? row.playerOne : row.playerTwo;
                       const options = getScoreSelectOptions(row, sideKey, match.playMode, rowIndex);
+                      const editorSide = sideKey === "playerOne" ? "one" : "two";
+                      const setWinner = winnerSideForScoreEditorSet(row, rowIndex, match.playMode);
+                      const walkoverWinLabel =
+                        value === "" && setWinner === editorSide
+                          ? formatScoreCellValue(
+                              null,
+                              parseScoreInputValue(row.playerOne),
+                              parseScoreInputValue(row.playerTwo),
+                              setWinner,
+                              editorSide,
+                            )
+                          : null;
                       return (
                         <Select
                           key={`${row.id}-${sideKey}-${rowIndex}`}
@@ -300,12 +315,16 @@ export function MatchScheduleCard({
                                 row,
                                 rowIndex,
                                 match.playMode,
-                                sideKey === "playerOne" ? "one" : "two",
+                                editorSide,
                               ),
                               "data-[placeholder]:text-muted-foreground [&_svg:not([class*='text-'])]:text-muted-foreground",
                             )}
                           >
-                            <SelectValue placeholder="–" />
+                            {walkoverWinLabel ? (
+                              <span className="text-[13px] font-semibold">{walkoverWinLabel}</span>
+                            ) : (
+                              <SelectValue placeholder="–" />
+                            )}
                           </SelectTrigger>
                           <SelectContent
                             position="popper"

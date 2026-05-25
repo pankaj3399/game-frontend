@@ -3,6 +3,7 @@ import { cn } from "@/lib/utils";
 import {
   formatScoreCellValue,
   scoreCellClass,
+  scoreCellHasDisplayValue,
   type ScoreColumn,
 } from "../utils/matchScheduleScore";
 import { initialsFromName } from "../utils/avatarUtils";
@@ -110,10 +111,26 @@ export function MatchCardReadOnlyRows({ matchId, tone, columns, rows }: Props) {
                     key={`${matchId}-${row.side}-${index}`}
                     className={cn(
                       "inline-flex h-8 w-8 min-h-8 min-w-8 max-w-8 shrink-0 items-center justify-center rounded-[6px] px-0 text-[13px] font-semibold",
-                      scoreCellClass(column.winner, row.side, value != null)
+                      scoreCellClass(
+                        column.winner,
+                        row.side,
+                        scoreCellHasDisplayValue(
+                          value,
+                          column.playerOne,
+                          column.playerTwo,
+                          column.winner,
+                          row.side,
+                        ),
+                      )
                     )}
                   >
-                    {formatScoreCellValue(value)}
+                    {formatScoreCellValue(
+                      value,
+                      column.playerOne,
+                      column.playerTwo,
+                      column.winner,
+                      row.side,
+                    )}
                   </span>
                 );
               })}

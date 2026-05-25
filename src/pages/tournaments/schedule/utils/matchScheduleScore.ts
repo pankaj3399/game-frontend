@@ -27,6 +27,9 @@ export interface ScoreSelectOption {
 
 export const SCORE_SELECT_EMPTY_VALUE = "__DASH__";
 
+/** Shown on the winning side when the opponent recorded walkover (WO). */
+export const WALKOVER_WIN_DISPLAY = "W";
+
 const NORMAL_SET_NUMERIC_OPTIONS = [0, 1, 2, 3, 4, 5, 6, 7] as const;
 // Keep options realistic and usable in dropdowns; very long deuce tie-breaks are
 // still accepted when already present as current values.
@@ -99,14 +102,46 @@ export function scoreColumns(match: TournamentScheduleMatch): ScoreColumn[] {
   return columns;
 }
 
-export function formatScoreCellValue(value: number | "wo" | null): string {
-  if (value == null) {
-    return "-";
-  }
+export function isWalkoverWinnerCell(
+  value: number | "wo" | null,
+  playerOne: number | "wo" | null,
+  playerTwo: number | "wo" | null,
+  winner: ScoreWinnerSide,
+  side: "one" | "two",
+): boolean {
+  return value == null && winner === side && isWalkoverSet(playerOne, playerTwo);
+}
+
+export function scoreCellHasDisplayValue(
+  value: number | "wo" | null,
+  playerOne: number | "wo" | null,
+  playerTwo: number | "wo" | null,
+  winner: ScoreWinnerSide,
+  side: "one" | "two",
+): boolean {
+  return value != null || isWalkoverWinnerCell(value, playerOne, playerTwo, winner, side);
+}
+
+export function formatScoreCellValue(
+  value: number | "wo" | null,
+  playerOne: number | "wo" | null = null,
+  playerTwo: number | "wo" | null = null,
+  winner: ScoreWinnerSide = null,
+  side?: "one" | "two",
+): string {
   if (value === "wo") {
     return "WO";
   }
-  return String(value);
+  if (value != null) {
+    return String(value);
+  }
+  if (
+    side != null &&
+    isWalkoverWinnerCell(value, playerOne, playerTwo, winner, side)
+  ) {
+    return WALKOVER_WIN_DISPLAY;
+  }
+  return "-";
 }
 
 export function scoreCellClass(
@@ -156,8 +191,11 @@ export function scoreEditorSelectTriggerClassName(
   side: "one" | "two",
 ): string {
   const raw = side === "one" ? row.playerOne : row.playerTwo;
-  const hasValue = parseScoreInputValue(raw) != null;
+  const parsed = parseScoreInputValue(raw);
+  const first = parseScoreInputValue(row.playerOne);
+  const second = parseScoreInputValue(row.playerTwo);
   const winner = winnerSideForScoreEditorSet(row, setIndex, playMode);
+  const hasValue = scoreCellHasDisplayValue(parsed, first, second, winner, side);
   return cn(
     "h-8 w-8 min-h-8 min-w-8 max-w-8 shrink-0 justify-center gap-0 rounded-[6px] p-0 shadow-none",
     "*:data-[slot=select-value]:min-w-0 *:data-[slot=select-value]:flex-none *:data-[slot=select-value]:justify-center *:data-[slot=select-value]:truncate *:data-[slot=select-value]:text-center",
@@ -176,7 +214,7 @@ function serializeScoreValue(value: MatchScoreValue | null): string {
   return String(value);
 }
 
-function parseScoreInputValue(raw: string): MatchScoreValue | null {
+export function parseScoreInputValue(raw: string): MatchScoreValue | null {
   const normalized = raw.trim();
   if (normalized === "" || normalized === "-" || normalized === SCORE_SELECT_EMPTY_VALUE) {
     return null;

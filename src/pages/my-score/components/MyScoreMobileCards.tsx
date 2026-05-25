@@ -20,7 +20,7 @@ interface MyScoreMobileCardsProps {
   entries: MyScoreEntry[];
   formatPlayedAt: (playedAt: string, language: string) => string;
   formatScheduledAt: (startTime: string | null) => string;
-  formatScore: (score: number | null) => string;
+  formatScore: (score: import("@/pages/my-score/helpers").MyScoreDisplayValue) => string;
 }
 
 export function MyScoreMobileCards({

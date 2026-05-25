@@ -23,6 +23,7 @@ import { useTournamentLiveMatch } from "@/pages/tournaments/hooks/useTournamentL
 import { useTournamentMatches } from "@/pages/tournaments/hooks/useTournamentMatches";
 import {
   useActiveTournamentScoreQrSession,
+  invalidateQueriesAfterTournamentScoreConfirm,
   useConfirmTournamentScoreQr,
   useGenerateIndependentScoreQr,
   useGenerateTournamentScoreQr,
@@ -58,6 +59,7 @@ import {
   formatExpiry,
   formatLiveMatchTeamLabel,
   isScorableMatchOption,
+  liveMatchHasRecordedScore,
   normalizeDisplayName,
   normalizeDisplayNameForLabel,
   pickDefaultScorableTournamentOption,
@@ -144,15 +146,21 @@ export function useEnterMatchScoreController({
   const hasManualPrefill =
     mode === "generate" && Boolean(forcedMatchId && forcedTournamentId);
 
+  /** After Confirm score succeeds, skip invalid-confirm redirects/toasts while navigating away. */
+  const [confirmSubmitFinished, setConfirmSubmitFinished] = useState(false);
+
+  useEffect(() => {
+    setConfirmSubmitFinished(false);
+  }, [mode, confirmedToken]);
+
   const liveMatchQuery = useTournamentLiveMatch(true);
+  const confirmContextEnabled =
+    mode === "confirm" && Boolean(confirmedToken) && !confirmSubmitFinished;
   const validatedScoreQuery = useValidateTournamentScoreQrConfirmContext(
     confirmedToken,
-    mode === "confirm" && Boolean(confirmedToken),
+    confirmContextEnabled,
   );
-  useScoreQrConfirmContextEvents(
-    confirmedToken,
-    mode === "confirm" && Boolean(confirmedToken),
-  );
+  useScoreQrConfirmContextEvents(confirmedToken, confirmContextEnabled);
 
   useEffect(() => {
     if (mode !== "confirm") return;
@@ -393,8 +401,7 @@ export function useEnterMatchScoreController({
             match.status === "inProgress" ||
             (normalizedLiveMatchId != null && match.id === normalizedLiveMatchId),
           isPendingScore: match.status === "pendingScore",
-          hasRecordedScore:
-            match.status === "completed" || match.status === "pendingScore",
+          hasRecordedScore: liveMatchHasRecordedScore(match),
           scoreRowPerspective: "viewer",
         }),
       );
@@ -1026,6 +1033,7 @@ export function useEnterMatchScoreController({
     getHttpStatus(validatedScoreQuery.error) === 403;
 
   const shouldRedirectInvalidConfirm = useMemo(() => {
+    if (confirmSubmitFinished) return false;
     if (mode !== "confirm" || validatedScoreQuery.isPending) return false;
     if (unreadableQrRefWithoutTokenFallback) return true;
     if (!confirmedToken) return false;
@@ -1047,6 +1055,7 @@ export function useEnterMatchScoreController({
 
     return !isConfirmDisplayReady;
   }, [
+    confirmSubmitFinished,
     confirmedToken,
     isConfirmDisplayReady,
     liveMatchQuery.isPending,
@@ -1745,11 +1754,7 @@ export function useEnterMatchScoreController({
 
     const staleIds = [...excludedEnterScoreMatchIds].filter((matchId) => {
       const live = inFlightMatches.find((item) => item.id === matchId);
-      return (
-        !live ||
-        live.status === "completed" ||
-        live.status === "pendingScore"
-      );
+      return !live || liveMatchHasRecordedScore(live);
     });
     if (staleIds.length === 0) return;
 
@@ -1886,14 +1891,21 @@ export function useEnterMatchScoreController({
     unlockScoreQrScanSound();
     playScoreQrScanSound();
 
+    setConfirmSubmitFinished(true);
+
     try {
-      await confirmScoreQrMutation.mutateAsync({
+      const response = await confirmScoreQrMutation.mutateAsync({
         token: confirmedToken,
       });
       clearScoreQrToken(confirmedTokenRef);
       toast.success(t("recordScorePage.enter.success"));
       navigate("/record-score", { replace: true });
+      void invalidateQueriesAfterTournamentScoreConfirm(
+        queryClient,
+        response.match.tournamentId,
+      );
     } catch (error: unknown) {
+      setConfirmSubmitFinished(false);
       if (getHttpStatus(error) === 403) {
         toast.error(
           t(

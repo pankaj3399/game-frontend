@@ -178,6 +178,10 @@ export const tournamentLiveMatchItemSchema = z.object({
   court: tournamentMatchCourtSchema,
   myTeam: z.array(tournamentMatchPlayerSchema),
   opponentTeam: z.array(tournamentMatchPlayerSchema),
+  score: tournamentMatchScoreSchema.default({
+    playerOneScores: [],
+    playerTwoScores: [],
+  }),
 });
 
 export const tournamentLiveMatchEligibleTournamentSchema = z.object({

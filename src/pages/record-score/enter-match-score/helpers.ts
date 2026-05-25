@@ -7,6 +7,7 @@ import type {
   TournamentLiveMatchItem,
   TournamentMatchPlayer,
 } from "@/models/tournament/types";
+import { hasPersistedGameScore } from "@/pages/tournaments/utils/matchScoring";
 import type { AllowedPlayMode, MatchOption } from "./types";
 
 const PLAY_MODE_I18N_KEYS: Record<AllowedPlayMode, string> = {
@@ -155,6 +156,12 @@ export function buildMatchLabel(
 export function isScorableMatchOption(option: MatchOption): boolean {
   if (option.kind === "independent") return true;
   return Boolean(option.matchId) && !option.hasRecordedScore;
+}
+
+export function liveMatchHasRecordedScore(
+  match: Pick<TournamentLiveMatchItem, "status" | "score">,
+): boolean {
+  return hasPersistedGameScore(match.status, match.score);
 }
 
 function toStartTimeMs(value: string | null | undefined): number | null {

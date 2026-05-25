@@ -1,8 +1,9 @@
 import type { MyScoreFilterMode } from "@/models/myScore/types";
 import type { TournamentLiveMatchItem } from "@/models/tournament/types";
+import { isOpenForScoreEntry } from "@/pages/tournaments/utils/matchScoring";
 
 function isActiveScheduledMatch(match: TournamentLiveMatchItem): boolean {
-  return match.status !== "completed" && match.status !== "cancelled";
+  return isOpenForScoreEntry(match.status, match.score);
 }
 
 export function filterScheduledMatchesForMyScore(
@@ -48,9 +49,5 @@ export function buildTournamentRecordScorePath(match: TournamentLiveMatchItem): 
 }
 
 export function matchNeedsRecordScoreShortcut(match: TournamentLiveMatchItem): boolean {
-  return (
-    Boolean(match.tournament.id?.trim()) &&
-    match.status !== "completed" &&
-    match.status !== "cancelled"
-  );
+  return Boolean(match.tournament.id?.trim()) && isOpenForScoreEntry(match.status, match.score);
 }

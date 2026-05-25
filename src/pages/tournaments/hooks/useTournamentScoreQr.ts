@@ -1,5 +1,10 @@
 import { useEffect } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  useMutation,
+  useQuery,
+  useQueryClient,
+  type QueryClient,
+} from "@tanstack/react-query";
 import { z } from "zod";
 import { api, getBackendUrl } from "@/lib/api";
 import { queryKeys } from "@/lib/api/queryKeys";
@@ -305,41 +310,46 @@ export function useScoreQrConfirmContextEvents(
   }, [enabled, normalized, queryClient]);
 }
 
-export function useConfirmTournamentScoreQr() {
-  const queryClient = useQueryClient();
+/** Run after leaving the confirm page so refetches do not trip invalid-confirm UI. */
+export async function invalidateQueriesAfterTournamentScoreConfirm(
+  queryClient: QueryClient,
+  tournamentId: string | null | undefined,
+) {
+  const invalidations: Array<Promise<unknown>> = [
+    queryClient.invalidateQueries({
+      queryKey: queryKeys.tournament.liveMatch(),
+      refetchType: "all",
+    }),
+    queryClient.invalidateQueries({
+      queryKey: queryKeys.user.myScore(),
+      refetchType: "all",
+    }),
+  ];
 
+  if (tournamentId) {
+    invalidations.push(
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.tournament.matches(tournamentId),
+        refetchType: "all",
+      }),
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.tournament.detail(tournamentId),
+        refetchType: "all",
+      }),
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.tournament.schedule(tournamentId),
+        refetchType: "all",
+      }),
+    );
+  }
+
+  await Promise.all(invalidations);
+}
+
+export function useConfirmTournamentScoreQr() {
   return useMutation({
     mutationFn: (input: ConfirmTournamentScoreQrInput) =>
       confirmTournamentScoreQr(input),
-    onSuccess: async (response) => {
-      const tournamentId = response.match.tournamentId;
-
-      const invalidations: Array<Promise<unknown>> = [
-        queryClient.invalidateQueries({
-          queryKey: queryKeys.tournament.liveMatch(),
-          refetchType: "all",
-        }),
-      ];
-
-      if (tournamentId) {
-        invalidations.push(
-          queryClient.invalidateQueries({
-            queryKey: queryKeys.tournament.matches(tournamentId),
-            refetchType: "all",
-          }),
-          queryClient.invalidateQueries({
-            queryKey: queryKeys.tournament.detail(tournamentId),
-            refetchType: "all",
-          }),
-          queryClient.invalidateQueries({
-            queryKey: queryKeys.tournament.schedule(tournamentId),
-            refetchType: "all",
-          }),
-        );
-      }
-
-      await Promise.all(invalidations);
-    },
   });
 }
 
