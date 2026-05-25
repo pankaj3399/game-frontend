@@ -76,7 +76,7 @@ function App() {
   usePWAPullToRefresh();
 
   return (
-    <div className="min-h-screen w-full bg-gray-50">
+    <div className="min-h-screen w-full bg-gray-50 overflow-x-clip">
       <AuthProvider>
         <Suspense fallback={<Loader />}>
           <Routes>

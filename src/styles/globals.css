@@ -166,9 +166,6 @@
 
   body {
     margin: 0;
-    /* overscroll-behavior-x: none prevents sideways rubber-banding without
-       promoting body into an internal scroll container (which breaks PWA PTR). */
-    overscroll-behavior-x: none;
     min-height: 100vh;
     min-height: 100dvh;
     @apply bg-background text-foreground;
