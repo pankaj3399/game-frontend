@@ -187,7 +187,7 @@ export function useEnterMatchScoreController({
   const attemptedAutoQrKeyRef = useRef<string | null>(null);
   const skippedScoredMatchRef = useRef(false);
   /** Blocks auto-generate after the opponent consumes the QR (avoids regen on completed match). */
-  const qrSessionConsumedRef = useRef(false);
+  const [qrSessionConsumed, setQrSessionConsumed] = useState(false);
   /** Hides matches immediately after QR consumption until live-match refetch settles. */
   const [excludedEnterScoreMatchIds, setExcludedEnterScoreMatchIds] = useState(
     () => new Set<string>(),
@@ -202,7 +202,9 @@ export function useEnterMatchScoreController({
    * during the network round-trip (e.g. due to a liveMatch refetch shifting the selection).
    */
   const currentQrRequestKeyRef = useRef<string>("");
-  const lastSyncedQrRequestKeyRef = useRef<string | null>(null);
+  const [lastSyncedQrRequestKey, setLastSyncedQrRequestKey] = useState<string | null>(
+    null,
+  );
   const hadPendingQrSessionRef = useRef(false);
   /** Last server request id while a pending QR session was visible (for confirm vs sync detection). */
   const lastTrackedQrRequestIdRef = useRef<string | null>(null);
@@ -1244,7 +1246,7 @@ export function useEnterMatchScoreController({
       (hasUnsavedQrChanges &&
         Boolean(activeScoreQrRequestId) &&
         isScoreFormValidForQr &&
-        lastSyncedQrRequestKeyRef.current !== currentQrRequestKey));
+        lastSyncedQrRequestKey !== currentQrRequestKey));
   const isScoreEntryLocked = isConfirmLocked || isSyncingQrScores;
   const isPrimaryGenerateDisabled =
     isGenerating ||
@@ -1266,7 +1268,7 @@ export function useEnterMatchScoreController({
     if (!next) return;
     if (mode === "generate" && !isScorableMatchOption(next)) return;
 
-    qrSessionConsumedRef.current = false;
+    setQrSessionConsumed(false);
     hadPendingQrSessionRef.current = false;
     lastTrackedQrRequestIdRef.current = null;
 
@@ -1368,7 +1370,7 @@ export function useEnterMatchScoreController({
     if (!activeScoreQrRequestId) return;
     if (!isScoreFormValidForQr) return;
     if (updateScoreQrMutation.isPending) return;
-    if (lastSyncedQrRequestKeyRef.current === currentQrRequestKey) return;
+    if (lastSyncedQrRequestKey === currentQrRequestKey) return;
 
     const timeoutId = window.setTimeout(() => {
       const input = buildCurrentScoreInput(false);
@@ -1382,7 +1384,7 @@ export function useEnterMatchScoreController({
           playerTwoScores: input.playerTwoScores,
         })
         .then(() => {
-          lastSyncedQrRequestKeyRef.current = updateKey;
+          setLastSyncedQrRequestKey(updateKey);
           if (currentQrRequestKeyRef.current === updateKey) {
             setHasUnsavedQrChanges(false);
           }
@@ -1402,6 +1404,7 @@ export function useEnterMatchScoreController({
     currentQrRequestKey,
     hasUnsavedQrChanges,
     isScoreFormValidForQr,
+    lastSyncedQrRequestKey,
     mode,
     t,
     updateScoreQrMutation,
@@ -1442,7 +1445,7 @@ export function useEnterMatchScoreController({
           });
           patchOk = true;
           setHasUnsavedQrChanges(false);
-          lastSyncedQrRequestKeyRef.current = currentQrRequestKeyRef.current;
+          setLastSyncedQrRequestKey(currentQrRequestKeyRef.current);
           if (options?.showSuccessToast !== false) {
             toast.success(t("recordScorePage.enter.qrScoresUpdated", { defaultValue: "Scores updated" }));
           }
@@ -1487,7 +1490,7 @@ export function useEnterMatchScoreController({
         setGeneratedExpiresAt(result.qr.expiresAt);
         setGeneratedRequestId(result.qr.requestId);
         setHasUnsavedQrChanges(false);
-        lastSyncedQrRequestKeyRef.current = currentQrRequestKeyRef.current;
+        setLastSyncedQrRequestKey(currentQrRequestKeyRef.current);
         // Use the ref (not the closed-over value) so we always stamp the key that is
         // current at the time the response lands, even if external data (liveMatch
         // refetch) shifted the selection while the request was in flight.
@@ -1501,7 +1504,7 @@ export function useEnterMatchScoreController({
         const isCompletedMatchQrError =
           message.includes("completed/cancelled") ||
           message.includes("already has a recorded score");
-        if (qrSessionConsumedRef.current || isCompletedMatchQrError) {
+        if (qrSessionConsumed || isCompletedMatchQrError) {
           return null;
         }
         toast.error(message || t("recordScorePage.enter.errors.qrGenerateFailed"));
@@ -1523,6 +1526,7 @@ export function useEnterMatchScoreController({
       generateIndependentQrMutation,
       generateTournamentQrMutation,
       hasUnsavedQrChanges,
+      qrSessionConsumed,
       t,
       updateScoreQrMutation,
     ],
@@ -1618,7 +1622,7 @@ export function useEnterMatchScoreController({
       setGeneratedExpiresAt(null);
       setGeneratedRequestId(null);
       setHasUnsavedQrChanges(false);
-      lastSyncedQrRequestKeyRef.current = null;
+      setLastSyncedQrRequestKey(null);
       if (!options?.preserveAutoGenerateGuards) {
         lastAutoGeneratedQrKeyRef.current = null;
         attemptedAutoQrKeyRef.current = null;
@@ -1679,7 +1683,7 @@ export function useEnterMatchScoreController({
       !isGenerating;
 
     if (opponentConfirmedSession) {
-      qrSessionConsumedRef.current = true;
+      setQrSessionConsumed(true);
       const consumedMatchKey = currentQrRequestKeyRef.current;
       lastAutoGeneratedQrKeyRef.current = consumedMatchKey;
       attemptedAutoQrKeyRef.current = consumedMatchKey;
@@ -1737,11 +1741,8 @@ export function useEnterMatchScoreController({
   // Keep URL and selection off completed matches (e.g. deep link after score was recorded).
   // Runs after QR-consumed handling so requesters do not get a duplicate "already scored" toast
   // when the opponent confirms via QR.
-  useEffect(() => {
-    if (mode !== "generate") return;
-    if (shouldShowLoadingSkeleton) return;
-
-    const opponentJustConfirmed = qrSessionConsumedRef.current;
+  const scoredMatchRedirect = useMemo(() => {
+    if (mode !== "generate" || shouldShowLoadingSkeleton) return null;
 
     const scoredPrefill = Boolean(
       forcedMatchId && preferredGenerateOption?.hasRecordedScore,
@@ -1751,22 +1752,57 @@ export function useEnterMatchScoreController({
         matchOptions.find((option) => option.id === selectedMatchId)?.hasRecordedScore,
     );
 
-    if (!scoredPrefill && !scoredSelection) return;
-    if (skippedScoredMatchRef.current) return;
+    if (!scoredPrefill && !scoredSelection) return null;
 
     const target =
       pickDefaultScorableTournamentOption(tournamentMatchOptions) ?? independentOption;
 
-    if (opponentJustConfirmed || qrSessionConsumedRef.current) {
-      skippedScoredMatchRef.current = true;
+    if (qrSessionConsumed) {
       if (isScorableMatchOption(target) && target.id !== resolvedSelectedMatchId) {
-        onMatchChange(target.id);
+        return { kind: "switch" as const, matchId: target.id, notify: false };
+      }
+      return { kind: "noop" as const };
+    }
+
+    if (!isScorableMatchOption(target)) {
+      return { kind: "exit" as const };
+    }
+
+    if (target.id === resolvedSelectedMatchId) return null;
+
+    return { kind: "switch" as const, matchId: target.id, notify: true };
+  }, [
+    forcedMatchId,
+    independentOption,
+    matchOptions,
+    mode,
+    preferredGenerateOption?.hasRecordedScore,
+    qrSessionConsumed,
+    resolvedSelectedMatchId,
+    selectedMatchId,
+    shouldShowLoadingSkeleton,
+    tournamentMatchOptions,
+  ]);
+
+  useEffect(() => {
+    if (!scoredMatchRedirect) return;
+    if (skippedScoredMatchRef.current) return;
+    skippedScoredMatchRef.current = true;
+
+    if (scoredMatchRedirect.kind === "switch") {
+      onMatchChange(scoredMatchRedirect.matchId);
+      if (scoredMatchRedirect.notify) {
+        toast.info(
+          t(
+            "recordScorePage.enter.matchAlreadyScoredSwitch",
+            "That match is already scored. Switched to your next available match.",
+          ),
+        );
       }
       return;
     }
 
-    if (!isScorableMatchOption(target)) {
-      skippedScoredMatchRef.current = true;
+    if (scoredMatchRedirect.kind === "exit") {
       navigate("/record-score", { replace: true });
       toast.error(
         t(
@@ -1774,31 +1810,8 @@ export function useEnterMatchScoreController({
           "This match already has a recorded score.",
         ),
       );
-      return;
     }
-
-    skippedScoredMatchRef.current = true;
-    onMatchChange(target.id);
-    toast.info(
-      t(
-        "recordScorePage.enter.matchAlreadyScoredSwitch",
-        "That match is already scored. Switched to your next available match.",
-      ),
-    );
-  }, [
-    forcedMatchId,
-    independentOption,
-    matchOptions,
-    mode,
-    navigate,
-    onMatchChange,
-    preferredGenerateOption?.hasRecordedScore,
-    resolvedSelectedMatchId,
-    selectedMatchId,
-    shouldShowLoadingSkeleton,
-    t,
-    tournamentMatchOptions,
-  ]);
+  }, [navigate, onMatchChange, scoredMatchRedirect, t]);
 
   useEffect(() => {
     if (mode !== "generate") return;
@@ -1848,7 +1861,7 @@ export function useEnterMatchScoreController({
 
   useEffect(() => {
     if (mode !== "generate") return;
-    if (qrSessionConsumedRef.current) return;
+    if (qrSessionConsumed) return;
     if (isSyncingQrScores || hasUnsavedQrChanges) return;
     if (!effectiveSelectedOption.hasRecordedScore) return;
     if (!hasPendingQrSession && !generatedValidationUrl && !generatedQrDataUrl) {
@@ -1865,6 +1878,7 @@ export function useEnterMatchScoreController({
     hasUnsavedQrChanges,
     isSyncingQrScores,
     mode,
+    qrSessionConsumed,
     refreshMatchDataAfterQrConsumed,
   ]);
 
@@ -1881,12 +1895,12 @@ export function useEnterMatchScoreController({
     setGeneratedRequestId(null);
     lastAutoGeneratedQrKeyRef.current = null;
     attemptedAutoQrKeyRef.current = null;
-    lastSyncedQrRequestKeyRef.current = null;
+    setLastSyncedQrRequestKey(null);
   }, [isScoreFormValidForQr, mode]);
 
   useEffect(() => {
     if (mode !== "generate") return;
-    if (qrSessionConsumedRef.current) return;
+    if (qrSessionConsumed) return;
     if (!canGenerateQr || isGenerating || isQrSessionBusy || !isScoreFormValidForQr) return;
 
     // ─── Guard 1: wait until the active-session query has settled ────────────────
