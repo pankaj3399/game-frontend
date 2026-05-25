@@ -16,7 +16,9 @@ export function hasPersistedGameScore(
 
   const playerOneScores = score?.playerOneScores ?? [];
   const playerTwoScores = score?.playerTwoScores ?? [];
-  return playerOneScores.length > 0 || playerTwoScores.length > 0;
+  const hasRealScore = (values: Array<number | "wo" | null>) =>
+    values.some((value) => value !== null);
+  return hasRealScore(playerOneScores) || hasRealScore(playerTwoScores);
 }
 
 /** User can still enter or submit a score (not finished/cancelled and no saved score yet). */
