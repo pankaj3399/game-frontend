@@ -3453,6 +3453,7 @@ __metadata:
     i18next: "npm:^25.6.2"
     i18next-browser-languagedetector: "npm:^8.2.1"
     next-themes: "npm:^0.4.6"
+    pulltorefreshjs: "npm:^0.1.22"
     radix-ui: "npm:^1.4.3"
     react: "npm:^19.2.0"
     react-day-picker: "npm:^9.13.2"
@@ -6278,6 +6279,13 @@ __metadata:
   version: 2.1.0
   resolution: "proxy-from-env@npm:2.1.0"
   checksum: 10c0/ed01729fd4d094eab619cd7e17ce3698b3413b31eb102c4904f9875e677cd207392795d5b4adee9cec359dfd31c44d5ad7595a3a3ad51c40250e141512281c58
+  languageName: node
+  linkType: hard
+
+"pulltorefreshjs@npm:^0.1.22":
+  version: 0.1.22
+  resolution: "pulltorefreshjs@npm:0.1.22"
+  checksum: 10c0/ea6535e57e3ceb99a1423575207cb8330292a3d12d7c86fc0f37c117c016e8e954902d4a580c249e7c996cf42be1af9aa5b1393eddae343494dddef76c3f66c9
   languageName: node
   linkType: hard
 

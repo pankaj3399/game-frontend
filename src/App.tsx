@@ -7,6 +7,7 @@ import { MainLayout } from "@/layouts/MainLayout";
 import { ProtectedRoute } from "@/components/auth";
 import Loader from "@/components/shared/Loader";
 import { ROLES } from "./constants/roles";
+import { usePWAPullToRefresh } from "@/hooks/usePWAPullToRefresh";
 
 const Login = lazy(() => import("./pages/auth/Login"));
 const UserInformation = lazy(() => import("./pages/user/UserInformation"));
@@ -66,8 +67,16 @@ function Home() {
 }
 
 function App() {
+  /*
+   * PWA pull-to-refresh: iOS standalone mode has no browser-chrome
+   * pull-to-refresh, so we implement it in JS. The hook is a no-op in
+   * regular Safari tabs — it only activates when navigator.standalone === true
+   * or display-mode === standalone.
+   */
+  usePWAPullToRefresh();
+
   return (
-    <div className="min-h-screen w-full bg-gray-50 overflow-x-hidden">
+    <div className="min-h-screen w-full bg-gray-50 overflow-x-clip">
       <AuthProvider>
         <Suspense fallback={<Loader />}>
           <Routes>
