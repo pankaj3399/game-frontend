@@ -973,6 +973,7 @@
       "saveChanges": "Save Changes",
       "preparingQr": "Enter a valid score",
       "generatingQr": "Generating QR...",
+      "savingQrScores": "Saving score to your QR session…",
       "qrGenerated": "QR and validation link are ready. Your opponent can scan the QR or open the shared link to confirm.",
       "opponentConfirmedScore": "Your opponent confirmed the score. You can record a new match or pick another match.",
       "qrGeneratedState": "QR Generated",

@@ -948,6 +948,7 @@
       "saveChanges": "Änderungen speichern",
       "preparingQr": "Gültiges Ergebnis eingeben",
       "generatingQr": "QR wird generiert...",
+      "savingQrScores": "Ergebnis wird in der QR-Sitzung gespeichert…",
       "qrGenerated": "QR-Code und Validierungslink sind bereit. Der Gegner kann den QR scannen oder den geteilten Link öffnen, um zu bestätigen.",
       "opponentConfirmedScore": "Dein Gegner hat das Ergebnis bestätigt. Du kannst ein neues Match erfassen oder ein anderes Spiel wählen.",
       "qrPreviewAlt": "Generierter QR-Code zur Ergebnisvalidierung",

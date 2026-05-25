@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import {
+  keepPreviousData,
   useMutation,
   useQuery,
   useQueryClient,
@@ -380,6 +381,8 @@ export function useActiveTournamentScoreQrSession(
     refetchInterval: enabled && refetchIntervalMs > 0 ? refetchIntervalMs : false,
     refetchIntervalInBackground: true,
     retry: false,
+    // Avoid a brief null session while PATCH/refetch runs (prevents false "opponent confirmed").
+    placeholderData: keepPreviousData,
   });
 }
 
@@ -424,13 +427,25 @@ export function useUpdateScoreQrScores() {
       playerOneScores: Array<number | "wo" | null>;
       playerTwoScores: Array<number | "wo" | null>;
     }) => updateTournamentScoreQrScores(requestId, playerOneScores, playerTwoScores),
-    onSuccess: async () => {
-      // Refetch the active session so A's view refreshes to the new scores
-      // (the QR token/URL stays the same — no regeneration needed).
-      await queryClient.invalidateQueries({
-        queryKey: [...queryKeys.tournament.all, "score-qr", "active"],
-        refetchType: "all",
-      });
+    onSuccess: (data, variables) => {
+      // Update cached session scores in-place so the UI does not flash an empty session
+      // while a background refetch runs (fast WO ↔ numeric edits used to look "confirmed").
+      queryClient.setQueriesData<ActiveTournamentScoreQrSessionResponse>(
+        { queryKey: [...queryKeys.tournament.all, "score-qr", "active"] },
+        (previous) => {
+          if (!previous?.session || previous.session.requestId !== variables.requestId) {
+            return previous;
+          }
+          return {
+            ...previous,
+            session: {
+              ...previous.session,
+              playerOneScores: data.playerOneScores,
+              playerTwoScores: data.playerTwoScores,
+            },
+          };
+        },
+      );
     },
   });
 }
