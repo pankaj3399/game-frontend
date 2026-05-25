@@ -383,22 +383,12 @@ export function AppNavbar() {
 
   return (
     <header
-      className="sticky top-0 z-50 w-full"
-      style={{
-        backgroundColor: "var(--brand-primary)",
-        /*
-         * iOS 26 / iPhone notch fix: with viewport-fit=cover + black-translucent
-         * status bar, content renders *under* the Dynamic Island / notch area.
-         * We pad the top of the header by the safe-area-inset so nav items
-         * aren't hidden behind it. The CSS custom property fallback (0px) keeps
-         * desktop browsers unaffected.
-         */
-        paddingTop: "env(safe-area-inset-top, 0px)",
-      }}
+      className="sticky top-0 z-50 h-[56px] w-full lg:h-[60px]"
+      style={{ backgroundColor: "var(--brand-primary)" }}
     >
       <div
         className={cn(
-          "relative mx-auto grid h-[56px] lg:h-[60px] w-full max-w-[1440px] grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-2 px-3 lg:gap-x-2 lg:px-6 xl:px-[72px] xl:gap-x-3"
+          "relative mx-auto grid h-full w-full max-w-[1440px] grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-2 px-3 lg:gap-x-2 lg:px-6 xl:px-[72px] xl:gap-x-3"
         )}
       >
         {/* True horizontal center on small screens: grid side columns are unequal widths (logo vs menu),
