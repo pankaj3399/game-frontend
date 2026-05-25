@@ -163,15 +163,41 @@
   * {
     @apply border-border outline-ring/50;
   }
-  body {
-    overflow-x: clip;
-  }
+
   body {
     margin: 0;
     min-height: 100vh;
+    min-height: 100dvh;
     @apply bg-background text-foreground;
   }
 }
+
+/* pulltorefreshjs overrides ─────────────────────────────────────────────────
+   padding-top:72px on .ptr--box adds transparent space above the icon,
+   making the container ~120px tall. The library initialises top at
+   -(offsetHeight) = -120px, so the circle only enters the viewport after
+   ~72px of genuine pull. Taps (1–2px jitter) never show the indicator.
+   ──────────────────────────────────────────────────────────────────────────── */
+
+.ptr--ptr {
+  position: fixed !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  width: auto !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  overflow: visible !important;
+  z-index: 99999 !important;
+}
+
+.ptr--box {
+  padding-top: 72px !important;
+  padding-bottom: 8px !important;
+  background: transparent !important;
+}
+
+.ptr--ptr .ptr--text { display: none !important; }
+.ptr--icon { padding: 0 !important; display: block !important; }
 
 @keyframes skeleton-soft {
   0%,
@@ -191,6 +217,13 @@
     transform: translateX(100%);
   }
 }
+
+/** Used by the PWA pull-to-refresh indicator (usePWAPullToRefresh hook). */
+@keyframes pwa-ptr-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
 
 @layer utilities {
   /** Softer than `animate-pulse` for loading placeholders (longer, eased breathe). */
