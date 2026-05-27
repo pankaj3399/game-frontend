@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useTranslation } from "react-i18next";
@@ -15,7 +15,9 @@ import { useTournamentFilters } from "@/pages/tournaments/hooks/useTournamentFil
 import { useTournamentPermissions } from "@/pages/tournaments/hooks/useTournamentPermissions";
 import { useTournaments } from "./hooks/useTournaments";
 import { useFavoriteClubs } from "@/pages/profile/hooks/useFavoriteClubs";
+import InlineLoader from "@/components/shared/InlineLoader";
 import { TournamentTableSkeleton } from "@/components/ui/tournament-table-skeleton";
+import { cn } from "@/lib/utils";
 import { getErrorMessage } from "@/lib/errors";
 import { TW_BREAKPOINT_LG_PX, useMinWidth } from "@/lib/hooks/useMediaQuery";
 import { TournamentTab, type TournamentListTab } from "@/models/tournament";
@@ -41,9 +43,11 @@ function TournamentListContent() {
   const { user, loading: authLoading, isAuthenticated } = useAuth();
   const { requireAuth } = useRequireAuth();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [filterApplyPending, setFilterApplyPending] = useState(false);
   const {
     activeTab,
     filters,
+    isFiltersHydrated,
     effectiveFilters,
     filtersOpen,
     setFiltersOpen,
@@ -51,6 +55,7 @@ function TournamentListContent() {
     setWhenFromValue,
     setDistanceFromValue,
     setClubFilter,
+    setParticipationFromValue,
     setPage,
   } = useTournamentFilters({
     isOrganiserOrAbove,
@@ -84,8 +89,16 @@ function TournamentListContent() {
   const homeClubIdForFilters = favoriteClubsData?.homeClub?.id ?? null;
   const favoriteClubsCount = favoriteClubsData?.favoriteClubs?.length ?? 0;
 
+  useEffect(() => {
+    if (!authLoading && !homeClubIdForFilters && filters.distance) {
+      setDistanceFromValue("all");
+    }
+  }, [authLoading, filters.distance, homeClubIdForFilters, setDistanceFromValue]);
+
+  const tournamentsQueryEnabled = !authLoading && isFiltersHydrated;
   const { data, error, isPending, isFetching, refetch, isLoadingError } = useTournaments(
-    effectiveFilters()
+    effectiveFilters(),
+    tournamentsQueryEnabled,
   );
 
   const tournaments = data?.tournaments ?? [];
@@ -93,6 +106,14 @@ function TournamentListContent() {
   const loadErrorDetail = error ? getErrorMessage(error) : null;
   const showFullPageLoadError = isLoadingError || (!data && !!error && !isPending);
   const showRefetchErrorBanner = !!error && !!data && !isPending;
+  const isListBootstrapping = authLoading || !isFiltersHydrated;
+  const showListSkeleton = isListBootstrapping || isPending;
+  const isApplyingUserFilters = filterApplyPending && isFetching;
+
+  useEffect(() => {
+    if (!filterApplyPending || isFetching) return;
+    setFilterApplyPending(false);
+  }, [filterApplyPending, isFetching]);
   const listHeading =
     activeTab === TournamentTab.Drafts
       ? t("tournaments.tabDrafts")
@@ -108,14 +129,26 @@ function TournamentListContent() {
         return;
       }
       setWhenFromValue(next.when);
-      setDistanceFromValue(next.distance);
+      setDistanceFromValue(
+        homeClubIdForFilters && next.distance !== "all" ? next.distance : "all",
+      );
       if (next.clubScope === "favorites") {
         setClubFilter({ clubScope: "favorites" });
       } else {
         setClubFilter({ clubId: next.clubId });
       }
+      setParticipationFromValue(next.participation ?? "all");
+      setFilterApplyPending(true);
     },
-    [isAuthenticated, requireAuth, setClubFilter, setDistanceFromValue, setWhenFromValue]
+    [
+      homeClubIdForFilters,
+      isAuthenticated,
+      requireAuth,
+      setClubFilter,
+      setDistanceFromValue,
+      setWhenFromValue,
+      setParticipationFromValue,
+    ]
   );
   return (
     <div className="flex min-h-[calc(100vh-56px)] flex-col bg-[#f8fbf8] lg:min-h-[calc(100vh-60px)]">
@@ -132,10 +165,13 @@ function TournamentListContent() {
                   distance: filters.distance,
                   clubId: filters.clubId,
                   clubScope: filters.clubScope,
+                  participation: filters.participation,
                 }}
                 homeClubId={homeClubIdForFilters}
                 favoriteClubsCount={favoriteClubsCount}
+                isAuthenticated={isAuthenticated}
                 onFiltersChange={handleFiltersChange}
+                isApplyingFilters={isApplyingUserFilters}
               />
               <div className="flex items-center gap-2">
                 <RoleGuard requireRoleOrAbove={ROLES.ORGANISER}>
@@ -185,15 +221,18 @@ function TournamentListContent() {
                 distance={filters.distance}
                 clubId={filters.clubId}
                 clubScope={filters.clubScope}
+                participation={filters.participation}
                 homeClubId={homeClubIdForFilters}
                 favoriteClubsCount={favoriteClubsCount}
+                isAuthenticated={isAuthenticated}
                 onFiltersChange={handleFiltersChange}
                 onCreate={() => setIsCreateModalOpen(true)}
+                isApplyingFilters={isApplyingUserFilters}
               />
             </div>
           </div>
 
-          {isPending ? (
+          {showListSkeleton ? (
             <TournamentTableSkeleton />
           ) : showFullPageLoadError ? (
             <div
@@ -218,7 +257,17 @@ function TournamentListContent() {
               </Button>
             </div>
           ) : (
-            <>
+            <div
+              className="relative min-h-[160px]"
+              aria-busy={isApplyingUserFilters}
+              aria-live="polite"
+            >
+              <div
+                className={cn(
+                  "transition-opacity duration-150",
+                  isApplyingUserFilters && "opacity-55",
+                )}
+              >
               {showRefetchErrorBanner ? (
                 <div
                   className="flex flex-col gap-2 border-b border-destructive/20 bg-destructive/5 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-5"
@@ -263,7 +312,16 @@ function TournamentListContent() {
                   listHeading={listHeading}
                 />
               )}
-            </>
+              </div>
+              {isApplyingUserFilters ? (
+                <div
+                  className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center bg-white/40"
+                  aria-hidden
+                >
+                  <InlineLoader className="border-[#010a04]/20 border-t-[#067429]" />
+                </div>
+              ) : null}
+            </div>
           )}
 
           <PaginationBar

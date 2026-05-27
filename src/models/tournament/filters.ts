@@ -2,6 +2,7 @@ import type {
   TournamentClubScope,
   TournamentDistanceFilter,
   TournamentListFilters,
+  TournamentParticipationFilter,
   TournamentWhenFilter,
 } from "./types";
 import { TournamentTab, type TournamentTabValue } from "./tabs";
@@ -28,6 +29,7 @@ export interface TournamentListPageFilters {
   distance?: TournamentDistanceFilter;
   clubId?: string;
   clubScope?: TournamentClubScope;
+  participation?: TournamentParticipationFilter;
 }
 
 export interface TournamentFiltersState {
@@ -44,6 +46,7 @@ export type TournamentFiltersAction =
       type: "SET_CLUB_FILTER";
       payload: { clubId?: string; clubScope?: TournamentClubScope };
     }
+  | { type: "SET_PARTICIPATION"; payload?: TournamentParticipationFilter }
   | { type: "SET_PAGE"; payload: number }
   | { type: "RESET" }
   | {
@@ -126,6 +129,15 @@ export function filtersReducer(
         },
       };
     }
+    case "SET_PARTICIPATION":
+      return {
+        ...state,
+        filters: {
+          ...state.filters,
+          page: 1,
+          participation: action.payload,
+        },
+      };
     case "SET_PAGE":
       return {
         ...state,
@@ -175,6 +187,7 @@ export function shapeTournamentFilters(
       state.filters.distance === "over80" ? undefined : state.filters.distance,
     clubId: state.filters.clubId,
     clubScope: state.filters.clubScope,
+    participation: state.filters.participation,
   };
 }
 

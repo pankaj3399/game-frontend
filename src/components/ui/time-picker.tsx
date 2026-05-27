@@ -56,6 +56,8 @@ interface TimePickerProps {
   "aria-describedby"?: string;
   /** When false, hides Clear so the value cannot be emptied (e.g. required API fields). Default true. */
   allowClear?: boolean;
+  /** When false, hides the “Now” shortcut in the popover footer. Default true. */
+  showNowButton?: boolean;
   /** Merged onto the trigger button after default styles (e.g. match a {@link SelectTrigger} on the same row). */
   triggerClassName?: string;
 }
@@ -83,6 +85,7 @@ export function TimePicker({
   "aria-labelledby": ariaLabelledBy,
   "aria-describedby": ariaDescribedBy,
   allowClear = true,
+  showNowButton = true,
   triggerClassName,
 }: TimePickerProps) {
   const { t } = useTranslation();
@@ -443,14 +446,16 @@ export function TimePicker({
               {effectiveClearLabel}
             </Button>
           ) : null}
-          <Button
-            type="button"
-            variant="outline"
-            className="h-8 flex-1 rounded-md text-[12px]"
-            onClick={setNow}
-          >
-            {effectiveNowLabel}
-          </Button>
+          {showNowButton ? (
+            <Button
+              type="button"
+              variant="outline"
+              className="h-8 flex-1 rounded-md text-[12px]"
+              onClick={setNow}
+            >
+              {effectiveNowLabel}
+            </Button>
+          ) : null}
           <Button
             type="button"
             className="h-8 flex-1 rounded-md bg-brand-primary text-[12px] text-white hover:bg-brand-primary-hover"

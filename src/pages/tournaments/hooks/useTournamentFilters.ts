@@ -6,6 +6,7 @@ import {
   filtersReducer,
   isTournamentClubScope,
   isTournamentDistanceFilter,
+  isTournamentParticipationFilter,
   isTournamentWhenFilter,
   resolveTournamentListTabFromSearchParams,
   shapeTournamentFilters,
@@ -28,6 +29,7 @@ interface PersistedTournamentFiltersState {
     distance?: string;
     clubId?: string;
     clubScope?: string;
+    participation?: string;
   };
   updatedAt: number;
 }
@@ -106,6 +108,7 @@ function parsePersistedFilters(filters: unknown) {
     distance,
     clubId,
     clubScope,
+    participation: parseEnumField(raw.participation, isTournamentParticipationFilter),
   };
 }
 
@@ -157,6 +160,7 @@ export function useTournamentFilters({
   );
 
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [isFiltersHydrated, setIsFiltersHydrated] = useState(false);
   const hydratedStorageKeyRef = useRef<string | null>(null);
   const skipNextPersistRef = useRef(false);
   const normalizedUserId = userId || ANONYMOUS_USER_STORAGE_ID;
@@ -241,12 +245,25 @@ export function useTournamentFilters({
     []
   );
 
+  const setParticipationFromValue = useCallback((value: string) => {
+    dispatch({
+      type: "SET_PARTICIPATION",
+      payload:
+        value === "all"
+          ? undefined
+          : isTournamentParticipationFilter(value)
+          ? value
+          : undefined,
+    });
+  }, []);
+
   /**
    * 🔄 Hydrate from localStorage
    */
   useEffect(() => {
     const storage = getLocalStorage();
     if (!storage) {
+      setIsFiltersHydrated(true);
       return;
     }
     if (isAuthLoading) {
@@ -255,6 +272,9 @@ export function useTournamentFilters({
     if (hydratedStorageKeyRef.current === storageKey) {
       return;
     }
+
+    setIsFiltersHydrated(false);
+    hydratedStorageKeyRef.current = null;
 
     const anonymousStorageKey = getStorageKey(ANONYMOUS_USER_STORAGE_ID);
     const anonymousPersisted = readPersistedState(anonymousStorageKey);
@@ -276,6 +296,7 @@ export function useTournamentFilters({
       dispatch({ type: "RESET" });
       hydratedStorageKeyRef.current = storageKey;
       skipNextPersistRef.current = true;
+      setIsFiltersHydrated(true);
       return;
     }
 
@@ -306,6 +327,7 @@ export function useTournamentFilters({
             distance: persisted.filters.distance,
             clubId: persisted.filters.clubId,
             clubScope: persisted.filters.clubScope,
+            participation: persisted.filters.participation,
           },
           updatedAt: persisted.updatedAt,
         };
@@ -314,6 +336,7 @@ export function useTournamentFilters({
     }
 
     hydratedStorageKeyRef.current = storageKey;
+    setIsFiltersHydrated(true);
   }, [isAuthLoading, isOrganiserOrAbove, normalizedUserId, storageKey]);
 
   /**
@@ -336,6 +359,7 @@ export function useTournamentFilters({
         distance: state.filters.distance,
         clubId: state.filters.clubId,
         clubScope: state.filters.clubScope,
+        participation: state.filters.participation,
       },
       updatedAt: Date.now(),
     };
@@ -349,11 +373,13 @@ export function useTournamentFilters({
     state.filters.distance,
     state.filters.clubId,
     state.filters.clubScope,
+    state.filters.participation,
   ]);
 
   return {
     activeTab,
     filters: state.filters,
+    isFiltersHydrated,
     effectiveFilters,
     filtersOpen,
     setFiltersOpen,
@@ -362,6 +388,7 @@ export function useTournamentFilters({
     setDistanceFromValue,
     setClubId,
     setClubFilter,
+    setParticipationFromValue,
     setQuery,
     setPage,
   };

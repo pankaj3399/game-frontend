@@ -14,10 +14,13 @@ interface TournamentActionsProps {
   distance?: string;
   clubId?: string;
   clubScope?: "favorites";
+  participation?: "joined" | "notJoined";
   homeClubId?: string | null;
   favoriteClubsCount?: number;
+  isAuthenticated?: boolean;
   onFiltersChange: (next: TournamentFiltersChangePayload) => void;
   onCreate: () => void;
+  isApplyingFilters?: boolean;
 }
 
 export function TournamentActions({
@@ -29,10 +32,13 @@ export function TournamentActions({
   distance,
   clubId,
   clubScope,
+  participation,
   homeClubId,
   favoriteClubsCount,
+  isAuthenticated,
   onFiltersChange,
   onCreate,
+  isApplyingFilters = false,
 }: TournamentActionsProps) {
   const { t } = useTranslation();
 
@@ -46,10 +52,13 @@ export function TournamentActions({
           distance,
           clubId,
           clubScope,
+          participation,
         }}
         homeClubId={homeClubId}
         favoriteClubsCount={favoriteClubsCount}
+        isAuthenticated={isAuthenticated}
         onFiltersChange={onFiltersChange}
+        isApplyingFilters={isApplyingFilters}
       />
       <RoleGuard requireRoleOrAbove={ROLES.ORGANISER}>
         {activeTab === TournamentTab.Published ? (

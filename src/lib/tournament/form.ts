@@ -8,7 +8,12 @@ import {
   normalizeDateToUtcIsoString,
   normalizeIsoDateInputValue,
 } from "@/utils/date";
-import { normalizeTimeTo24Hour } from "@/utils/time";
+import {
+  getLocalTime24Now,
+  minutesToTime24,
+  normalizeTimeTo24Hour,
+  time24ToMinutes,
+} from "@/utils/time";
 
 export type TournamentValidationErrorKey =
   | "tournaments.requiredNameAndClub"
@@ -17,26 +22,48 @@ export type TournamentValidationErrorKey =
   | "tournaments.invalidMemberRange"
   | "tournaments.invalidTotalRoundsRange";
 
-export const DEFAULT_CREATE_TOURNAMENT_FORM: CreateTournamentInput = {
-  club: "",
-  name: "",
-  logoUrl: "",
-  status: "draft",
-  sponsor: null,
-  date: getTodayDateInputValue(),
-  startTime: "05:00",
-  endTime: "21:00",
-  playMode: "1set",
-  tournamentMode: "singleDay",
-  entryFee: 0,
-  minMember: 5,
-  maxMember: 8,
-  totalRounds: 1,
-  duration: DEFAULT_TOURNAMENT_DURATION,
-  breakDuration: DEFAULT_TOURNAMENT_BREAK_DURATION,
-  foodInfo: "",
-  descriptionInfo: "",
-};
+const DEFAULT_CREATE_END_TIME = "21:00";
+
+function defaultEndTimeForStart(startTime: string): string {
+  const startMinutes = time24ToMinutes(startTime);
+  const preferredEndMinutes = time24ToMinutes(DEFAULT_CREATE_END_TIME);
+  if (
+    startMinutes != null &&
+    preferredEndMinutes != null &&
+    preferredEndMinutes > startMinutes
+  ) {
+    return DEFAULT_CREATE_END_TIME;
+  }
+  if (startMinutes == null) {
+    return DEFAULT_CREATE_END_TIME;
+  }
+  return minutesToTime24(Math.min(startMinutes + 60, 24 * 60 - 1));
+}
+
+/** Fresh defaults for the create-tournament modal (today + local start time). */
+export function getDefaultCreateTournamentForm(): CreateTournamentInput {
+  const startTime = getLocalTime24Now();
+  return {
+    club: "",
+    name: "",
+    logoUrl: "",
+    status: "draft",
+    sponsor: null,
+    date: getTodayDateInputValue(),
+    startTime,
+    endTime: defaultEndTimeForStart(startTime),
+    playMode: "1set",
+    tournamentMode: "singleDay",
+    entryFee: 0,
+    minMember: 5,
+    maxMember: 8,
+    totalRounds: 1,
+    duration: DEFAULT_TOURNAMENT_DURATION,
+    breakDuration: DEFAULT_TOURNAMENT_BREAK_DURATION,
+    foodInfo: "",
+    descriptionInfo: "",
+  };
+}
 
 export function mapTournamentDetailToForm(tournament: TournamentDetail): CreateTournamentInput {
   return {

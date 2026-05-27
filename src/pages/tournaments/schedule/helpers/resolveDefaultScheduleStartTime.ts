@@ -1,5 +1,5 @@
 import type { TournamentScheduleMatch } from "@/models/tournament/types";
-import { minutesToTime24, normalizeTimeTo24Hour } from "@/utils/time";
+import { formatTime24InTimeZone, normalizeTimeTo24Hour } from "@/utils/time";
 
 export type ResolveDefaultScheduleStartTimeInput = {
   targetRound: number;
@@ -10,26 +10,6 @@ export type ResolveDefaultScheduleStartTimeInput = {
   now?: Date;
   fallbackStartTime?: string;
 };
-
-function formatTime24InTimeZone(date: Date, timeZone: string): string | null {
-  try {
-    const parts = new Intl.DateTimeFormat("en-US", {
-      timeZone,
-      hour: "2-digit",
-      minute: "2-digit",
-      hourCycle: "h23",
-      hour12: false,
-    }).formatToParts(date);
-    const hour = parts.find((part) => part.type === "hour")?.value;
-    const minute = parts.find((part) => part.type === "minute")?.value;
-    if (hour == null || minute == null) {
-      return null;
-    }
-    return `${hour.padStart(2, "0")}:${minute.padStart(2, "0")}`;
-  } catch {
-    return minutesToTime24(date.getHours() * 60 + date.getMinutes());
-  }
-}
 
 export function resolveDefaultScheduleStartTime(
   input: ResolveDefaultScheduleStartTimeInput
@@ -75,5 +55,9 @@ export function resolveDefaultScheduleStartTime(
   const timeZone =
     input.timeZone?.trim() || Intl.DateTimeFormat().resolvedOptions().timeZone;
 
-  return formatTime24InTimeZone(new Date(anchorMs), timeZone) ?? fallback;
+  return (
+    formatTime24InTimeZone(new Date(anchorMs), timeZone) ??
+    normalizeTimeTo24Hour(fallback) ??
+    fallback
+  );
 }

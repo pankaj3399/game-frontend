@@ -73,7 +73,7 @@ export function ManageClubSubscriptionBanners({
       )}
 
       {showSubscriptionBanner && (
-        <div className="mt-5 flex flex-col gap-3 rounded-[12px] border border-black/10 bg-[rgba(244,201,93,0.13)] px-[15px] py-[15px] sm:flex-row sm:items-center sm:justify-between sm:gap-[25px]">
+        <div className="mt-5 flex flex-col gap-3 rounded-[12px] border border-black/10 bg-brand-accent/13 px-[15px] py-[15px] sm:flex-row sm:items-center sm:justify-between sm:gap-[25px]">
           <div className="min-w-0 flex flex-1 items-start gap-[14px] text-[#906500]">
             <InformationCircleIcon size={18} className="mt-0.5 shrink-0" />
             <div className="min-w-0">

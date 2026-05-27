@@ -106,7 +106,7 @@ export function ClubCourtsEditor({
         variant="outline"
         size="sm"
         onClick={onAddCourt}
-        className="h-7 w-full rounded-[8px] border-dashed border-[#f4c95d]/55 bg-[#f4c95d]/15 text-[11px] font-medium text-[#a4790d] shadow-none hover:bg-[#f4c95d]/20 sm:h-[30px] sm:text-xs"
+        className="h-7 w-full rounded-[8px] border-dashed border-brand-accent/55 bg-brand-accent/15 text-[11px] font-medium text-[#a4790d] shadow-none hover:bg-brand-accent/20 sm:h-[30px] sm:text-xs"
       >
         {t("settings.adminClubsAddCourt")}
       </Button>

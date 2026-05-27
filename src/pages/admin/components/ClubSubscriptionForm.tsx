@@ -185,7 +185,7 @@ export function ClubSubscriptionForm({ club, onSave, isSaving, onRevoke }: ClubS
 
       <div className="mb-[25px] h-px w-full bg-black/10" />
 
-      <div className="mb-[25px] rounded-[12px] border border-black/10 bg-[rgba(244,201,93,0.13)] px-[15px] py-[15px] md:mb-[17px]">
+      <div className="mb-[25px] rounded-[12px] border border-black/10 bg-brand-accent/13 px-[15px] py-[15px] md:mb-[17px]">
         <div className="flex items-start gap-[14px]">
           <Info className="mt-[2px] size-[18px] shrink-0 text-[#906500]" aria-hidden />
           <div className="min-w-0">

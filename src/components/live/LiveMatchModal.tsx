@@ -24,26 +24,27 @@ import { useTournamentLiveMatch, useTournamentMatches } from "@/pages/tournament
 import { parseIsoDateSafely } from "@/utils/date";
 
 const LIVE_MATCH_IDLE_REOPEN_MS = 10_000;
+const LIVE_BADGE_RED = "#e11d48";
 
 function shouldSuppressLiveMatchModal(pathname: string): boolean {
   return pathname === "/record-score" || pathname.startsWith("/record-score/");
 }
 
-function formatMatchTime(startTime: string | null, language: string, fallback: string) {
+function formatMatchClockTime(
+  startTime: string | null,
+  language: string,
+  fallback: string,
+) {
   const parsed = parseIsoDateSafely(startTime);
   if (!parsed) {
     return fallback;
   }
   const localeTag = getDateFnsLocale(language)?.code ?? language ?? "en-US";
-  const dateLabel = new Intl.DateTimeFormat(localeTag, {
-    dateStyle: "short",
-  }).format(parsed);
-  const timeLabel = new Intl.DateTimeFormat(localeTag, {
+  return new Intl.DateTimeFormat(localeTag, {
     hour: "2-digit",
     minute: "2-digit",
     hourCycle: "h23",
   }).format(parsed);
-  return `${dateLabel} · ${timeLabel}`;
 }
 
 type MatchMetaRowProps = {
@@ -59,10 +60,12 @@ function MatchMetaRow({ label, value, icon }: MatchMetaRowProps) {
         {icon}
       </span>
       <div className="min-w-0 flex-1 overflow-hidden">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.06em] text-[#64748b]">{label}</p>
+        <p className="text-[11px] font-semibold uppercase tracking-[0.06em] text-[#64748b]">
+          {label}
+        </p>
         <PlayerNameText
           name={value}
-          className="mt-1 text-[16px] font-semibold leading-snug tracking-tight text-[#0f172a]"
+          className="mt-1 text-[18px] font-semibold leading-snug tracking-tight text-[#0f172a] tabular-nums"
           focusable
         />
       </div>
@@ -97,7 +100,7 @@ function LiveMatchEnterScoreButton({
         const query = params.toString();
         navigate(`/record-score/manual${query ? `?${query}` : ""}`);
       }}
-      className="h-11 w-full rounded-[10px]"
+      className="h-11 w-full rounded-[10px] text-[15px] font-semibold shadow-sm"
     >
       <IconScanBarcode size={18} className="text-white" aria-hidden />
       <span>{enterScoreLabel}</span>
@@ -158,23 +161,25 @@ export function LiveMatchModal() {
   const liveTournamentId = liveMatch?.tournament.id ?? null;
   const tournamentMatchesQuery = useTournamentMatches(
     liveTournamentId,
-    !isModalSuppressedForRoute && liveTournamentId !== null
+    !isModalSuppressedForRoute && liveTournamentId !== null,
   );
 
   if (isModalSuppressedForRoute) {
     return null;
   }
 
-  const liveTimeLabel = formatMatchTime(
+  const timeFallback = t("tournaments.scheduledTbd");
+
+  const liveTimeLabel = formatMatchClockTime(
     liveMatch?.startTime ?? null,
     i18n.language,
-    t("tournaments.scheduledTbd")
+    timeFallback,
   );
 
-  const nextTimeLabel = formatMatchTime(
+  const nextTimeLabel = formatMatchClockTime(
     nextMatch?.startTime ?? null,
     i18n.language,
-    t("tournaments.scheduledTbd")
+    t("tournaments.liveModalNoNextMatchTime"),
   );
 
   const liveRound =
@@ -183,34 +188,28 @@ export function LiveMatchModal() {
     tournamentMatchesQuery.isError ||
     !tournamentMatchesQuery.data
       ? null
-      : (tournamentMatchesQuery.data.matches.find(
-          (match) => match.id === liveMatch.id
-        )?.round ?? null);
+      : (tournamentMatchesQuery.data.matches.find((match) => match.id === liveMatch.id)
+          ?.round ?? null);
 
   const hasTournamentContext = liveMatch != null && liveTournamentId !== null;
   const isRoundDataReady =
     !hasTournamentContext ||
-    tournamentMatchesQuery.isSuccess;
+    tournamentMatchesQuery.isSuccess ||
+    tournamentMatchesQuery.isError;
   const dialogOpen =
-    liveMatch != null &&
-    dismissedMatchId !== liveMatch.id &&
-    isRoundDataReady;
+    liveMatch != null && dismissedMatchId !== liveMatch.id && isRoundDataReady;
 
   if (!liveMatch) {
     return null;
   }
 
-  const liveOpponentLabel = formatLiveMatchTeamLabel(
-    liveMatch.opponentTeam,
-    t,
-  );
+  const isOnCourtNow = liveMatch.status === "inProgress";
+
+  const liveOpponentLabel = formatLiveMatchTeamLabel(liveMatch.opponentTeam, t);
   const nextOpponentLabel = nextMatch
     ? formatLiveMatchTeamLabel(nextMatch.opponentTeam, t)
     : "";
 
-  const nextMatchTimeDisplay = nextMatch
-    ? nextTimeLabel
-    : t("tournaments.liveModalNoNextMatchTime");
   const nextMatchCourtLabel = nextMatch?.court.name
     ? t("tournaments.liveModalNextMatchCourtValue", { court: nextMatch.court.name })
     : t("tournaments.liveModalNoNextMatchCourt");
@@ -219,6 +218,7 @@ export function LiveMatchModal() {
         opponent: nextOpponentLabel,
       })
     : t("tournaments.liveModalNoNextMatch");
+
   const tournamentNameLabel = normalizeDisplayNameForLabel(
     liveMatch.tournament.name,
     40,
@@ -239,6 +239,13 @@ export function LiveMatchModal() {
     }
   };
 
+  const headline = isOnCourtNow
+    ? t("tournaments.liveModalCourtNow")
+    : t("tournaments.liveModalUpNext");
+  const headlineShort = isOnCourtNow
+    ? t("tournaments.liveModalCourtNowShort")
+    : t("tournaments.liveModalUpNextShort");
+
   return (
     <Dialog open={dialogOpen} onOpenChange={handleOpenChange}>
       <DialogContent
@@ -249,14 +256,27 @@ export function LiveMatchModal() {
           <DialogTitle>{t("tournaments.liveModalTitle")}</DialogTitle>
         </DialogHeader>
 
-        <div className="flex items-start justify-between border-b border-[#e0e7ff] bg-[#eef2ff] px-4 py-4 sm:px-5">
+        <div className="flex items-start justify-between border-b border-[#dbeafe] bg-[#eef2ff] px-4 py-4 sm:px-5">
           <div className="min-w-0 flex-1 pr-3 text-left">
             <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#64748b]">
               {t("tournaments.liveModalTitle")}
             </p>
-            <h2 className="mt-2 text-[20px] font-semibold leading-snug tracking-tight text-[#0f172a]">
-              {t("tournaments.liveModalCourtNow")}
-            </h2>
+            <div className="mt-2 flex min-w-0 flex-nowrap items-center gap-2">
+              <h2 className="min-w-0 truncate text-[17px] font-semibold leading-snug tracking-tight text-[#0f172a] sm:text-[20px]">
+                <span className="sm:hidden">{headlineShort}</span>
+                <span className="hidden sm:inline">{headline}</span>
+              </h2>
+              {isOnCourtNow ? (
+                <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-white/80 px-2 py-0.5 text-[11px] font-bold uppercase tracking-[0.08em] text-[#e11d48] ring-1 ring-[#fecdd3]">
+                  <span
+                    className="size-2 shrink-0 rounded-full"
+                    style={{ backgroundColor: LIVE_BADGE_RED }}
+                    aria-hidden
+                  />
+                  {t("tournaments.liveLabel")}
+                </span>
+              ) : null}
+            </div>
           </div>
           <Button
             type="button"
@@ -280,7 +300,7 @@ export function LiveMatchModal() {
               />
               <div className="min-w-0 space-y-2.5">
                 <MatchMetaRow
-                  label={t("tournaments.liveModalDate")}
+                  label={t("tournaments.liveModalTime")}
                   value={liveTimeLabel}
                   icon={<LiveModalClockIcon className="size-full" />}
                 />
@@ -297,40 +317,45 @@ export function LiveMatchModal() {
               </div>
             </div>
 
-            <LiveMatchEnterScoreButton
-              enterScoreLabel={t("tournaments.liveModalEnterScore")}
-              matchId={liveMatch.id}
-              tournamentId={liveTournamentId}
-              onNavigateAway={() => handleOpenChange(false)}
-            />
+            {isOnCourtNow ? (
+              <LiveMatchEnterScoreButton
+                enterScoreLabel={t("tournaments.liveModalEnterScore")}
+                matchId={liveMatch.id}
+                tournamentId={liveTournamentId}
+                onNavigateAway={() => handleOpenChange(false)}
+              />
+            ) : null}
 
-            {nextMatch ? (
+            {nextMatch && nextMatch.id !== liveMatch.id ? (
               <section className="min-w-0 max-w-full overflow-hidden rounded-[10px] border border-[#e2e8f0] bg-white p-4 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
-                <div className="flex min-w-0 items-baseline justify-between gap-3 border-b border-[#f1f5f9] pb-3">
+                <div className="flex min-w-0 items-center justify-between gap-3 border-b border-[#f1f5f9] pb-3">
                   <p className="shrink-0 text-[11px] font-semibold uppercase tracking-[0.06em] text-[#64748b]">
                     {t("tournaments.liveModalNextMatch")}
                   </p>
-                  <p className="min-w-0 truncate text-[13px] font-medium tabular-nums text-[#0f172a]">
-                    {nextMatchTimeDisplay}
-                  </p>
+                  <div className="flex min-w-0 shrink items-center gap-3 text-[13px] font-medium text-[#0f172a]">
+                    <span className="inline-flex min-w-0 items-center gap-1 truncate">
+                      <LiveModalCourtIcon className="size-3.5 shrink-0 text-[#94a3b8]" aria-hidden />
+                      <span className="truncate">{nextMatchCourtLabel}</span>
+                    </span>
+                    <span className="inline-flex shrink-0 items-center gap-1 tabular-nums">
+                      <LiveModalClockIcon className="size-3.5 shrink-0 text-[#94a3b8]" aria-hidden />
+                      {nextTimeLabel}
+                    </span>
+                  </div>
                 </div>
                 <div className="mt-3 flex min-w-0 items-start gap-3 overflow-hidden">
-                  <div className="min-w-0 flex-1 space-y-1 overflow-hidden">
-                    <PlayerNameText
-                      name={nextMatchCourtLabel}
-                      className="text-[13px] leading-snug text-[#64748b]"
-                      focusable
-                    />
-                    <PlayerNameText
-                      name={nextMatchOpponentLabel}
-                      className="text-[16px] font-semibold leading-snug text-[#0f172a]"
-                      focusable
-                    />
-                  </div>
-                  <LiveModalChevronRightIcon className="mt-0.5 size-4 shrink-0 text-[#94a3b8]" aria-hidden />
+                  <PlayerNameText
+                    name={nextMatchOpponentLabel}
+                    className="min-w-0 flex-1 text-[16px] font-semibold leading-snug text-[#0f172a]"
+                    focusable
+                  />
+                  <LiveModalChevronRightIcon
+                    className="mt-0.5 size-4 shrink-0 text-[#94a3b8]"
+                    aria-hidden
+                  />
                 </div>
               </section>
-            ) : (
+            ) : !isOnCourtNow ? null : (
               <section className="rounded-[10px] border border-dashed border-[#cbd5e1] bg-white px-4 py-5 text-center sm:text-left">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.06em] text-[#64748b]">
                   {t("tournaments.liveModalNextMatch")}

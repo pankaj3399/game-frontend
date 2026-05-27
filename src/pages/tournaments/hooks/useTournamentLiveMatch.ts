@@ -16,6 +16,6 @@ export function useTournamentLiveMatch(enabled = true) {
     queryKey: queryKeys.tournament.liveMatch(),
     queryFn: fetchTournamentLiveMatch,
     enabled,
-    refetchInterval: 60_000,
+    refetchInterval: 30_000,
   });
 }

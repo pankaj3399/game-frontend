@@ -394,7 +394,7 @@ export function AppNavbar() {
         {/* True horizontal center on small screens: grid side columns are unequal widths (logo vs menu),
             so the title must not live in the middle grid cell. */}
         <div className="pointer-events-none absolute inset-0 z-0 flex items-center justify-center px-[3.25rem] py-1 sm:px-20 lg:hidden">
-          <span className="min-w-0 max-w-[min(72vw,18rem)] truncate pb-px text-center text-[22px] font-semibold leading-tight text-[#F4C95D] sm:max-w-[min(70vw,20rem)] sm:text-[24px]">
+          <span className="min-w-0 max-w-[min(72vw,18rem)] truncate pb-px text-center text-[22px] font-semibold leading-tight text-brand-accent sm:max-w-[min(70vw,20rem)] sm:text-[24px]">
             {pageTitle}
           </span>
         </div>

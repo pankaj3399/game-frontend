@@ -82,6 +82,46 @@ export function minutesToTime24(total: number): string {
   return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
 }
 
+/** HH:MM in a specific IANA zone (defaults to the browser zone). */
+export function formatTime24InTimeZone(
+  date: Date,
+  timeZone?: string | null
+): string | null {
+  const tz = timeZone?.trim() || Intl.DateTimeFormat().resolvedOptions().timeZone;
+  try {
+    const parts = new Intl.DateTimeFormat("en-US", {
+      timeZone: tz,
+      hour: "2-digit",
+      minute: "2-digit",
+      hourCycle: "h23",
+      hour12: false,
+    }).formatToParts(date);
+    const hour = parts.find((part) => part.type === "hour")?.value;
+    const minute = parts.find((part) => part.type === "minute")?.value;
+    if (hour == null || minute == null) {
+      return null;
+    }
+    return `${hour.padStart(2, "0")}:${minute.padStart(2, "0")}`;
+  } catch {
+    return null;
+  }
+}
+
+/** Current local time as HH:MM, rounded down to the nearest {@link stepMinutes} (default 5). */
+export function getLocalTime24Now(stepMinutes = 5): string {
+  const now = new Date();
+  const effectiveStep = Math.max(1, stepMinutes);
+  const local = formatTime24InTimeZone(now);
+  const parsedMinutes = local != null ? time24ToMinutes(local) : null;
+  const totalMinutes =
+    parsedMinutes ??
+    now.getHours() * 60 + Math.floor(now.getMinutes() / effectiveStep) * effectiveStep;
+  const hour = Math.floor(totalMinutes / 60);
+  const minute = totalMinutes % 60;
+  const roundedMinute = Math.floor(minute / effectiveStep) * effectiveStep;
+  return minutesToTime24(hour * 60 + roundedMinute);
+}
+
 export type TimeBoundsMinutes = {
   minMinutes: number | null;
   maxMinutes: number | null;

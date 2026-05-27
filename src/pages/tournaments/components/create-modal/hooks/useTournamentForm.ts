@@ -3,7 +3,7 @@ import { useClubSponsors } from "@/pages/sponsors/hooks";
 import { useTournamentById } from "@/pages/tournaments/hooks";
 import type { CreateTournamentInput, TournamentStatus } from "@/models/tournament/types";
 import {
-  DEFAULT_CREATE_TOURNAMENT_FORM,
+  getDefaultCreateTournamentForm,
   getDraftValidationError,
   getPublishValidationError,
   mapTournamentDetailToForm,
@@ -25,25 +25,25 @@ export function useTournamentForm({ mode, tournamentId = null, open }: UseTourna
   );
 
   const initialForm = useMemo((): CreateTournamentInput | null => {
-    if (isEditMode) {
-      if (!tournamentData?.tournament) {
-        return null;
-      }
-      const mapped = mapTournamentDetailToForm(tournamentData.tournament);
-      const mappedDefined = Object.fromEntries(
-        Object.entries(mapped).filter(([, value]) => value !== undefined)
-      ) as Partial<CreateTournamentInput>;
-      return {
-        ...DEFAULT_CREATE_TOURNAMENT_FORM,
-        ...mappedDefined,
-      };
+    if (!isEditMode) {
+      return null;
     }
-    return DEFAULT_CREATE_TOURNAMENT_FORM;
+    if (!tournamentData?.tournament) {
+      return null;
+    }
+    const mapped = mapTournamentDetailToForm(tournamentData.tournament);
+    const mappedDefined = Object.fromEntries(
+      Object.entries(mapped).filter(([, value]) => value !== undefined)
+    ) as Partial<CreateTournamentInput>;
+    return {
+      ...getDefaultCreateTournamentForm(),
+      ...mappedDefined,
+    };
   }, [isEditMode, tournamentData]);
 
-  const [form, setForm] = useState<CreateTournamentInput>(DEFAULT_CREATE_TOURNAMENT_FORM);
+  const [form, setForm] = useState<CreateTournamentInput>(getDefaultCreateTournamentForm);
   const hasUserEditedRef = useRef(false);
-  const previousOpenRef = useRef(open);
+  const previousOpenRef = useRef(false);
   const previousInitialFormRef = useRef<CreateTournamentInput | null>(null);
   const previousValidTournamentIdRef = useRef<string | null>(validTournamentId);
 
@@ -59,6 +59,12 @@ export function useTournamentForm({ mode, tournamentId = null, open }: UseTourna
     if (validTournamentId !== previousValidTournamentIdRef.current) {
       hasUserEditedRef.current = false;
       previousValidTournamentIdRef.current = validTournamentId;
+    }
+    if (justOpened && !isEditMode) {
+      const fresh = getDefaultCreateTournamentForm();
+      setForm(fresh);
+      previousInitialFormRef.current = fresh;
+      return;
     }
     if (isEditMode && (isTournamentLoading || initialForm === null)) {
       return;

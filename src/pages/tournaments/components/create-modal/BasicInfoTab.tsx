@@ -35,6 +35,8 @@ interface BasicInfoTabProps {
   update: (updates: Partial<CreateTournamentInput>) => void;
   /** When false (default), the date picker cannot select days before today. */
   allowPastDates?: boolean;
+  /** When false, time pickers hide the “Now” shortcut (create flow uses a default of local now). */
+  showTimeNowButton?: boolean;
   /** Stable id for the form instance (e.g. tournament id or `"create"`); used to reset local inputs when switching context. */
   formScopeKey: string;
 }
@@ -87,6 +89,7 @@ export function BasicInfoTab({
   clubs,
   update,
   allowPastDates = false,
+  showTimeNowButton = true,
   formScopeKey,
 }: BasicInfoTabProps) {
   const { t, i18n } = useTranslation();
@@ -243,6 +246,7 @@ export function BasicInfoTab({
                 maxExclusive={
                   form.endTime != null && form.startTime !== form.endTime
                 }
+                showNowButton={showTimeNowButton}
               />
             </div>
 
@@ -263,6 +267,7 @@ export function BasicInfoTab({
                   form.startTime != null && form.startTime !== form.endTime
                 }
                 popoverAlign="end"
+                showNowButton={showTimeNowButton}
               />
             </div>
 

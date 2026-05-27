@@ -8,6 +8,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAllClubs, useClubById } from "@/pages/clubs/hooks";
+import InlineLoader from "@/components/shared/InlineLoader";
+import { cn } from "@/lib/utils";
 import ListFilterIcon from "@/assets/icons/figma/misc/list-filter.svg?react";
 import { Search01Icon } from "@/icons/figma-icons";
 
@@ -19,6 +21,7 @@ export interface TournamentFiltersChangePayload {
   distance: string;
   clubId?: string;
   clubScope?: "favorites";
+  participation?: "joined" | "notJoined";
 }
 
 interface TournamentFiltersProps {
@@ -29,12 +32,17 @@ interface TournamentFiltersProps {
     distance?: string;
     clubId?: string;
     clubScope?: "favorites";
+    participation?: "joined" | "notJoined";
   };
   onFiltersChange: (next: TournamentFiltersChangePayload) => void;
   /** Logged-in user's home club id (for Home club pill). */
   homeClubId?: string | null;
   /** Count of favourite clubs (Favourite clubs pill disabled when 0). */
   favoriteClubsCount?: number;
+  /** Whether the current user is authenticated (shows participation filter). */
+  isAuthenticated?: boolean;
+  /** True while the tournament list is refetching after filters were applied. */
+  isApplyingFilters?: boolean;
 }
 
 function PillRow({
@@ -84,14 +92,29 @@ function PillRow({
   );
 }
 
-function SectionLabel({ id, children }: { id?: string; children: ReactNode }) {
+function SectionLabel({
+  id,
+  children,
+  description,
+}: {
+  id?: string;
+  children: ReactNode;
+  description?: ReactNode;
+}) {
   return (
-    <p
-      id={id}
-      className="mb-2 text-[11px] font-semibold uppercase tracking-[0.06em] text-black/40"
-    >
-      {children}
-    </p>
+    <div className="mb-2.5">
+      <p
+        id={id}
+        className="text-[11px] font-semibold uppercase tracking-[0.06em] text-black/40"
+      >
+        {children}
+      </p>
+      {description ? (
+        <p className="mt-1.5 text-[12px] font-normal leading-snug text-black/50 normal-case">
+          {description}
+        </p>
+      ) : null}
+    </div>
   );
 }
 
@@ -107,8 +130,10 @@ export function TournamentFilters({
   onFiltersChange,
   homeClubId = null,
   favoriteClubsCount = 0,
+  isAuthenticated = false,
+  isApplyingFilters = false,
 }: TournamentFiltersProps) {
-  const { when, distance, clubId, clubScope } = filters;
+  const { when, distance, clubId, clubScope, participation } = filters;
   const { t } = useTranslation();
   const clubFilterLabelId = useId();
   const clubOptionIdPrefix = useId();
@@ -119,9 +144,11 @@ export function TournamentFilters({
   const [draftDistance, setDraftDistance] = useState(normalizeDistanceForDraft(distance));
   const [draftClubId, setDraftClubId] = useState<string | undefined>(clubId);
   const [draftClubScope, setDraftClubScope] = useState<"favorites" | undefined>(clubScope);
+  const [draftParticipation, setDraftParticipation] = useState<"joined" | "notJoined" | "all">(participation ?? "all");
   const [selectedClubState, setSelectedClubState] = useState<{ id: string; name: string } | null>(null);
   const clubOptionRefs = useRef<Array<HTMLButtonElement | null>>([]);
   const clubSearchComboboxRef = useRef<HTMLDivElement>(null);
+  const hasHomeClub = Boolean(homeClubId);
 
   const { data: clubsData, isLoading: clubsLoading } = useAllClubs({
     page: 1,
@@ -133,9 +160,12 @@ export function TournamentFilters({
   const handlePopoverOpenChange = (nextOpen: boolean) => {
     if (nextOpen) {
       setDraftWhen(when ?? "all");
-      setDraftDistance(normalizeDistanceForDraft(distance));
+      setDraftDistance(
+        hasHomeClub ? normalizeDistanceForDraft(distance) : "all",
+      );
       setDraftClubId(clubScope === "favorites" ? undefined : clubId);
       setDraftClubScope(clubScope === "favorites" ? "favorites" : undefined);
+      setDraftParticipation(participation ?? "all");
       if (clubId && !clubScope && clubsData?.clubs) {
         const matchedClub = clubsData.clubs.find((c) => c.id === clubId);
         if (matchedClub) {
@@ -187,6 +217,11 @@ export function TournamentFilters({
   const selectedClubName = selectedClub?.name;
 
   useEffect(() => {
+    if (hasHomeClub || draftDistance === "all") return;
+    setDraftDistance("all");
+  }, [draftDistance, hasHomeClub]);
+
+  useEffect(() => {
     if (!open || clubSearchOpen || draftClubScope || !draftClubId) return;
     if (selectedClubLoading) return;
     if (!selectedClubName) return;
@@ -201,13 +236,16 @@ export function TournamentFilters({
   ]);
 
   const appliedWhenIsActive = (when ?? "all") !== "all";
-  const appliedDistanceIsActive = (distance ?? "all") !== "all" && distance !== "over80";
+  const appliedDistanceIsActive =
+    hasHomeClub && (distance ?? "all") !== "all" && distance !== "over80";
   const appliedClubIsActive = Boolean(clubId) || clubScope === "favorites";
+  const appliedParticipationIsActive = Boolean(participation) && participation !== undefined;
 
   const activeFilterCount =
     (appliedWhenIsActive ? 1 : 0) +
     (appliedDistanceIsActive ? 1 : 0) +
-    (appliedClubIsActive ? 1 : 0);
+    (appliedClubIsActive ? 1 : 0) +
+    (appliedParticipationIsActive ? 1 : 0);
 
   const canClear = activeFilterCount > 0;
 
@@ -218,12 +256,20 @@ export function TournamentFilters({
   ];
 
   const distanceOptions = [
-    { value: "under50", label: t("tournaments.filterDistanceUnder50") },
-    { value: "between50And80", label: t("tournaments.filterDistance50To80") },
+    {
+      value: "under50",
+      label: t("tournaments.filterDistanceUnder50"),
+      disabled: !hasHomeClub,
+    },
+    {
+      value: "between50And80",
+      label: t("tournaments.filterDistance50To80"),
+      disabled: !hasHomeClub,
+    },
     { value: "all", label: t("tournaments.filterDistanceAll") },
   ];
 
-  const homePillDisabled = !homeClubId;
+  const homePillDisabled = !hasHomeClub;
   const favoritesPillDisabled = favoriteClubsCount < 1;
 
   const clubPillValue =
@@ -290,7 +336,10 @@ export function TournamentFilters({
         <Button
           variant="outline"
           size="sm"
-          className={activeFilterCount > 0 ? "h-9 gap-2 border-brand-primary/40 text-brand-primary" : "h-9 gap-2"}
+          className={cn(
+            "h-9 gap-2",
+            activeFilterCount > 0 && "border-brand-primary/40 text-brand-primary",
+          )}
         >
           <ListFilterIcon width={14} height={14} aria-hidden className="shrink-0" />
           {t("tournaments.filters")}
@@ -310,6 +359,21 @@ export function TournamentFilters({
         className="w-[min(92vw,26rem)] overflow-visible rounded-2xl border border-black/[0.08] bg-white p-0 shadow-[0_8px_40px_-8px_rgba(0,0,0,0.18),0_2px_8px_-2px_rgba(0,0,0,0.06)]"
       >
         <div className="space-y-5 px-5 pb-6 pt-5">
+          {isAuthenticated && (
+            <div>
+              <SectionLabel>{t("tournaments.filterParticipation")}</SectionLabel>
+              <PillRow
+                options={[
+                  { value: "joined", label: t("tournaments.filterParticipationJoined") },
+                  { value: "notJoined", label: t("tournaments.filterParticipationNotJoined") },
+                  { value: "all", label: t("tournaments.filterParticipationAll") },
+                ]}
+                value={draftParticipation}
+                onChange={(v) => setDraftParticipation(v as "joined" | "notJoined" | "all")}
+              />
+            </div>
+          )}
+
           <div className="min-w-0">
             <SectionLabel id={clubFilterLabelId}>{t("tournaments.filterClub")}</SectionLabel>
 
@@ -458,8 +522,20 @@ export function TournamentFilters({
           </div>
 
           <div>
-            <SectionLabel>{t("tournaments.filterDistance")}</SectionLabel>
-            <PillRow options={distanceOptions} value={draftDistance} onChange={setDraftDistance} />
+            <SectionLabel
+              description={
+                !hasHomeClub
+                  ? t("tournaments.filterDistanceRequiresHome")
+                  : undefined
+              }
+            >
+              {t("tournaments.filterDistance")}
+            </SectionLabel>
+            <PillRow
+              options={distanceOptions}
+              value={hasHomeClub ? draftDistance : "all"}
+              onChange={setDraftDistance}
+            />
           </div>
         </div>
 
@@ -468,12 +544,13 @@ export function TournamentFilters({
             variant="outline"
             size="sm"
             className="h-9 flex-1 rounded-xl border-black/15 bg-white text-[13px] font-medium text-black/45 hover:bg-black/[0.03] hover:text-black/60 disabled:opacity-50"
-            disabled={!canClear}
+            disabled={!canClear || isApplyingFilters}
             onClick={() => {
               setDraftWhen("all");
               setDraftDistance("all");
               setDraftClubId(undefined);
               setDraftClubScope(undefined);
+              setDraftParticipation("all");
               setSelectedClubState(null);
               setClubSearch("");
               setClubSearchOpen(false);
@@ -483,6 +560,7 @@ export function TournamentFilters({
                 distance: "all",
                 clubId: undefined,
                 clubScope: undefined,
+                participation: undefined,
               });
               onOpenChange(false);
             }}
@@ -491,19 +569,30 @@ export function TournamentFilters({
           </Button>
           <Button
             size="sm"
-            className="h-9 flex-[2] rounded-xl text-[13px] font-semibold text-white shadow-sm transition-colors hover:opacity-95"
+            disabled={isApplyingFilters}
+            aria-busy={isApplyingFilters}
+            className="h-9 flex-[2] rounded-xl text-[13px] font-semibold text-white shadow-sm transition-colors hover:opacity-95 disabled:opacity-80"
             style={{ backgroundColor: FILTER_GREEN }}
             onClick={() => {
               onFiltersChange({
                 when: draftWhen,
-                distance: draftDistance,
+                distance: hasHomeClub ? draftDistance : "all",
                 clubId: draftClubScope === "favorites" ? undefined : draftClubId,
                 clubScope: draftClubScope === "favorites" ? "favorites" : undefined,
+                participation:
+                  draftParticipation === "all"
+                    ? undefined
+                    : draftParticipation,
               });
               onOpenChange(false);
             }}
           >
-            {t("tournaments.applyFilters")}
+            {isApplyingFilters ? (
+              <InlineLoader size="sm" className="border-white/35 border-t-white" />
+            ) : null}
+            {isApplyingFilters
+              ? t("tournaments.filterApplying")
+              : t("tournaments.applyFilters")}
           </Button>
         </div>
       </PopoverContent>

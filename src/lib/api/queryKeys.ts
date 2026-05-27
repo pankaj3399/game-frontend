@@ -75,6 +75,7 @@ export const queryKeys = {
       distance?: "under50" | "between50And80" | "over80";
       clubId?: string;
       clubScope?: "favorites";
+      participation?: "joined" | "notJoined";
     }) => {
       const f = filters ?? {};
       const normalizedFilters: Record<string, string | number> = {};
@@ -83,6 +84,7 @@ export const queryKeys = {
       if (f.distance) normalizedFilters.distance = f.distance;
       if (f.clubScope) normalizedFilters.clubScope = f.clubScope;
       else if (f.clubId) normalizedFilters.clubId = f.clubId;
+      if (f.participation) normalizedFilters.participation = f.participation;
       if (f.page != null) normalizedFilters.page = f.page;
       if (f.limit != null) normalizedFilters.limit = f.limit;
       if (f.q) normalizedFilters.q = f.q;

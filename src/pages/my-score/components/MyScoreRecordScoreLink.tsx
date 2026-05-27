@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { PencilIcon } from "@/icons/figma-icons";
+import { IconScanBarcode } from "@/icons/figma-icons";
 import { cn } from "@/lib/utils";
 
 interface MyScoreRecordScoreLinkProps {
@@ -21,7 +21,7 @@ export function MyScoreRecordScoreLink({ to, label, className }: MyScoreRecordSc
         className,
       )}
     >
-      <PencilIcon size={14} aria-hidden className="text-current" />
+      <IconScanBarcode size={13} aria-hidden className="shrink-0 text-current" />
     </Link>
   );
 }

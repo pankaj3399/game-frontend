@@ -57,8 +57,8 @@ export default function RecordScorePage() {
       id: "enter",
       title: t("recordScorePage.cards.enter.title"),
       description: t("recordScorePage.cards.enter.description"),
-      accentBgClass: "bg-[rgba(244,201,93,0.08)]",
-      accentBorderClass: "border-[rgba(244,201,93,0.55)]",
+      accentBgClass: "bg-brand-accent/8",
+      accentBorderClass: "border-brand-accent/55",
       iconBgClass: "bg-[#d6ab3f]",
     },
   ];

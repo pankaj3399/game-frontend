@@ -158,6 +158,23 @@ export function isScorableMatchOption(option: MatchOption): boolean {
   return Boolean(option.matchId) && !option.hasRecordedScore;
 }
 
+/** Independent matches first (for dropdown sections), preserving relative order within each group. */
+export function partitionMatchOptions(options: MatchOption[]): {
+  independent: MatchOption[];
+  tournament: MatchOption[];
+} {
+  const independent: MatchOption[] = [];
+  const tournament: MatchOption[] = [];
+  for (const option of options) {
+    if (option.kind === "independent") {
+      independent.push(option);
+    } else {
+      tournament.push(option);
+    }
+  }
+  return { independent, tournament };
+}
+
 export function liveMatchHasRecordedScore(
   match: Pick<TournamentLiveMatchItem, "status" | "score">,
 ): boolean {

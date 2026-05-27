@@ -51,6 +51,7 @@ export const tournamentDistanceFilterSchema = z.enum([
   "over80",
 ]);
 export const tournamentClubScopeSchema = z.literal("favorites");
+export const tournamentParticipationFilterSchema = z.enum(["joined", "notJoined"]);
 
 export type TournamentStatus = z.infer<typeof tournamentStatusSchema>;
 export type TournamentMode = z.infer<typeof tournamentModeSchema>;
@@ -61,6 +62,7 @@ export type TournamentDistanceFilter = z.infer<
   typeof tournamentDistanceFilterSchema
 >;
 export type TournamentClubScope = z.infer<typeof tournamentClubScopeSchema>;
+export type TournamentParticipationFilter = z.infer<typeof tournamentParticipationFilterSchema>;
 
 export const tournamentListClubSchema = z.object({
   id: z.string(),
@@ -569,6 +571,7 @@ export const tournamentListFiltersSchema = z.object({
   distance: tournamentDistanceFilterSchema.optional(),
   clubId: z.string().optional(),
   clubScope: tournamentClubScopeSchema.optional(),
+  participation: tournamentParticipationFilterSchema.optional(),
 });
 
 export const tournamentPaginationSchema = z.object({
@@ -874,4 +877,10 @@ export function isTournamentClubScope(
   value: string,
 ): value is TournamentClubScope {
   return value === "favorites";
+}
+
+export function isTournamentParticipationFilter(
+  value: string,
+): value is TournamentParticipationFilter {
+  return value === "joined" || value === "notJoined";
 }

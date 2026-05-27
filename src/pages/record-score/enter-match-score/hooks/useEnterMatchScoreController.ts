@@ -486,7 +486,7 @@ export function useEnterMatchScoreController({
     ) {
       tournamentRows.unshift(deepLinkScheduleMatchOption);
     }
-    return [...tournamentRows, independentOption];
+    return [independentOption, ...tournamentRows];
   }, [deepLinkScheduleMatchOption, independentOption, tournamentMatchOptions]);
 
   const forcedOption = useMemo(() => {

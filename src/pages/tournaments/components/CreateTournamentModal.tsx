@@ -113,6 +113,7 @@ export function CreateTournamentModal({
                 clubs={clubs}
                 update={update}
                 allowPastDates={isEditMode}
+                showTimeNowButton={isEditMode}
                 formScopeKey={basicInfoFormScopeKey}
               />
             </TabsContent>
