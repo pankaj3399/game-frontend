@@ -273,6 +273,9 @@ export function useTournamentFilters({
       return;
     }
 
+    setIsFiltersHydrated(false);
+    hydratedStorageKeyRef.current = null;
+
     const anonymousStorageKey = getStorageKey(ANONYMOUS_USER_STORAGE_ID);
     const anonymousPersisted = readPersistedState(anonymousStorageKey);
     const userPersisted =
