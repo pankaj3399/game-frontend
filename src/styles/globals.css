@@ -99,7 +99,7 @@
   --brand-primary: #067429;
   --brand-primary-hover: #056023;
   --brand-primary-light: #0d9e3d;
-  --brand-accent: #FFDC4A;
+  --brand-accent: #FE9F4D;
   --brand-accent-hover: color-mix(in srgb, var(--brand-accent) 88%, #010a04);
   --brand-secondary: oklch(0.97 0 0);
   --brand-black: oklch(0.145 0 0);
@@ -143,7 +143,7 @@
   --brand-primary: #0d9e3d;
   --brand-primary-hover: #067429;
   --brand-primary-light: #10b34a;
-  --brand-accent: #FFDC4A;
+  --brand-accent: #FE9F4D;
   --brand-accent-hover: color-mix(in srgb, var(--brand-accent) 88%, #010a04);
   --brand-secondary: oklch(0.269 0 0);
   --brand-black: oklch(0.985 0 0);

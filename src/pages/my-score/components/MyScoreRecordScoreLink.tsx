@@ -1,27 +1,35 @@
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+import { Button } from "@/components/ui/button";
 import { IconScanBarcode } from "@/icons/figma-icons";
 import { cn } from "@/lib/utils";
 
 interface MyScoreRecordScoreLinkProps {
   to: string;
-  label: string;
   className?: string;
 }
 
-/** Subtle inline icon action for matches that still need a score recorded. */
-export function MyScoreRecordScoreLink({ to, label, className }: MyScoreRecordScoreLinkProps) {
+/** Record-score CTA — matches MatchScheduleCard button styling. */
+export function MyScoreRecordScoreLink({ to, className }: MyScoreRecordScoreLinkProps) {
+  const { t } = useTranslation();
+
   return (
-    <Link
-      to={to}
-      aria-label={label}
-      title={label}
-      onClick={(event) => event.stopPropagation()}
+    <Button
+      asChild
+      size="sm"
       className={cn(
-        "inline-flex shrink-0 items-center justify-center rounded-sm text-brand-primary/85 transition-colors hover:text-brand-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary/40",
+        "h-7 min-w-0 shrink-0 rounded-[7px] border border-[#010a04]/[0.12] bg-white px-2.5 text-[12px] font-medium text-[#010a04] shadow-none hover:bg-[#010a04]/[0.04]",
         className,
       )}
     >
-      <IconScanBarcode size={13} aria-hidden className="shrink-0 text-current" />
-    </Link>
+      <Link
+        to={to}
+        onClick={(event) => event.stopPropagation()}
+        className="inline-flex items-center gap-1.5"
+      >
+        <IconScanBarcode size={13} aria-hidden className="shrink-0 text-current" />
+        {t("tournaments.recordScoreCta")}
+      </Link>
+    </Button>
   );
 }

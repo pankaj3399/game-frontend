@@ -10,7 +10,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import LiveModalChevronRightIcon from "@/assets/icons/figma/lucide/chevron-right.svg?react";
 import LiveModalCourtIcon from "@/assets/icons/figma/lucide/map-pin.svg?react";
 import LiveModalXIcon from "@/assets/icons/figma/lucide/x.svg?react";
 import LiveModalClockIcon from "@/assets/icons/figma/vuesax/linear/clock.svg?react";
@@ -343,15 +342,11 @@ export function LiveMatchModal() {
                     </span>
                   </div>
                 </div>
-                <div className="mt-3 flex min-w-0 items-start gap-3 overflow-hidden">
+                <div className="mt-3 min-w-0 overflow-hidden">
                   <PlayerNameText
                     name={nextMatchOpponentLabel}
-                    className="min-w-0 flex-1 text-[16px] font-semibold leading-snug text-[#0f172a]"
+                    className="text-[16px] font-semibold leading-snug text-[#0f172a]"
                     focusable
-                  />
-                  <LiveModalChevronRightIcon
-                    className="mt-0.5 size-4 shrink-0 text-[#94a3b8]"
-                    aria-hidden
                   />
                 </div>
               </section>
