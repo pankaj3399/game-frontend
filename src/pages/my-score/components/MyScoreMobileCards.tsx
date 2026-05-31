@@ -76,10 +76,6 @@ export function MyScoreMobileCards({
                     {isActionable && recordPath ? (
                       <MyScoreRecordScoreLink
                         to={recordPath}
-                        label={t("myScorePage.scheduled.recordScoreAriaLabel", {
-                          opponent,
-                          tournament: match.tournament.name,
-                        })}
                         className="shrink-0 pt-0.5"
                       />
                     ) : null}

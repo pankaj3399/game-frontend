@@ -6,12 +6,11 @@ import { cn } from "@/lib/utils";
 
 interface MyScoreRecordScoreLinkProps {
   to: string;
-  label: string;
   className?: string;
 }
 
 /** Record-score CTA — matches MatchScheduleCard button styling. */
-export function MyScoreRecordScoreLink({ to, label, className }: MyScoreRecordScoreLinkProps) {
+export function MyScoreRecordScoreLink({ to, className }: MyScoreRecordScoreLinkProps) {
   const { t } = useTranslation();
 
   return (
@@ -25,7 +24,6 @@ export function MyScoreRecordScoreLink({ to, label, className }: MyScoreRecordSc
     >
       <Link
         to={to}
-        aria-label={label}
         onClick={(event) => event.stopPropagation()}
         className="inline-flex items-center gap-1.5"
       >

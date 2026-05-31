@@ -113,13 +113,7 @@ export function MyScoreDesktopTable({
                           className="min-w-0 flex-1 truncate text-[12px] text-[#010a04]/85"
                         />
                         {isActionable && recordPath ? (
-                          <MyScoreRecordScoreLink
-                            to={recordPath}
-                            label={t("myScorePage.scheduled.recordScoreAriaLabel", {
-                              opponent,
-                              tournament: match.tournament.name,
-                            })}
-                          />
+                          <MyScoreRecordScoreLink to={recordPath} />
                         ) : null}
                       </div>
                     </TableCell>
