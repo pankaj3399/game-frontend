@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   APP_LANGUAGES,
@@ -7,9 +8,18 @@ import {
 } from "@/lib/appLanguages";
 import { cn } from "@/lib/utils";
 import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 type LanguagePickerProps = {
   onAfterChange?: () => void;
+  /** When false, forces the mobile select closed so Radix does not leave overlays active. */
+  sheetOpen?: boolean;
 };
 
 export function useAppLanguage() {
@@ -57,54 +67,89 @@ export function LanguagePickerDropdownItems({
   );
 }
 
+const sheetSelectTriggerClassName =
+  "h-10 w-full rounded-[9px] border border-white/20 bg-white/10 px-3 text-[14px] font-medium text-white shadow-none transition-colors hover:bg-white/15 focus-visible:border-white/30 focus-visible:ring-2 focus-visible:ring-white/25 focus-visible:ring-offset-0 data-[placeholder]:text-white/70 [&_svg]:text-white/80";
+
+const sheetSelectContentClassName =
+  "z-[60] max-h-[min(16rem,50vh)] border-white/15 bg-brand-primary text-white";
+
+const sheetSelectItemClassName =
+  "focus:bg-white/15 focus:text-white data-highlighted:bg-white/15 data-highlighted:text-white";
+
 export function LanguagePickerSheet({
   onAfterChange,
-}: Pick<LanguagePickerProps, "onAfterChange">) {
+  sheetOpen = true,
+}: LanguagePickerProps) {
   const { t } = useTranslation();
   const { currentCode, changeLanguage } = useAppLanguage();
+  const rootRef = useRef<HTMLDivElement>(null);
+  const [selectOpen, setSelectOpen] = useState(false);
+  const [portalContainer, setPortalContainer] = useState<HTMLElement | null>(null);
+
+  useEffect(() => {
+    const sheetContent = rootRef.current?.closest('[data-slot="sheet-content"]');
+    setPortalContainer(sheetContent instanceof HTMLElement ? sheetContent : null);
+  }, []);
+
+  useEffect(() => {
+    if (!sheetOpen) {
+      setSelectOpen(false);
+    }
+  }, [sheetOpen]);
+
+  const handleValueChange = (value: string) => {
+    const code = value as AppLanguageCode;
+    setSelectOpen(false);
+    if (code === currentCode) {
+      return;
+    }
+    changeLanguage(code);
+    onAfterChange?.();
+  };
 
   return (
-    <div>
-      <p className="mb-2.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-white/55">
+    <div ref={rootRef} className="space-y-2">
+      <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/55">
         {t("common.language")}
       </p>
-      <div
-        className="flex max-h-[min(14rem,40vh)] flex-col gap-1 overflow-y-auto rounded-[10px] border border-white/15 bg-white/[0.04] p-1"
-        role="listbox"
-        aria-label={t("common.language")}
+      <Select
+        value={currentCode}
+        open={selectOpen}
+        onOpenChange={setSelectOpen}
+        onValueChange={handleValueChange}
       >
-        {APP_LANGUAGES.map((language) => {
-          const isSelected = language.code === currentCode;
-          return (
-            <button
+        <SelectTrigger
+          aria-label={t("common.language")}
+          className={sheetSelectTriggerClassName}
+        >
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent
+          container={portalContainer}
+          position="popper"
+          side="top"
+          align="start"
+          sideOffset={6}
+          showScrollButtons={false}
+          className={sheetSelectContentClassName}
+        >
+          {APP_LANGUAGES.map((language) => (
+            <SelectItem
               key={language.code}
-              type="button"
-              role="option"
-              aria-selected={isSelected}
-              className={cn(
-                "flex w-full items-center justify-between gap-3 rounded-[8px] px-3 py-2.5 text-left text-[13px] transition-colors",
-                isSelected
-                  ? "bg-white font-semibold text-brand-primary shadow-sm"
-                  : "font-medium text-white/90 hover:bg-white/10 hover:text-white",
-              )}
-              onClick={() => {
-                changeLanguage(language.code);
-                onAfterChange?.();
-              }}
+              value={language.code}
+              className={sheetSelectItemClassName}
+              textValue={language.nativeName}
             >
-              <span>{language.nativeName}</span>
-              <span
-                className={cn(
-                  "text-[11px] font-semibold tabular-nums uppercase tracking-wide",
-                  isSelected ? "text-brand-primary/70" : "text-white/50",
-                )}
-              >
-                {language.shortLabel}
+              <span className="flex w-full items-center justify-between gap-3">
+                <span>{language.nativeName}</span>
+                <span className="text-xs tabular-nums text-white/55">
+                  {language.shortLabel}
+                </span>
               </span>
-            </button>
-          );
-        })}
-      </div>
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
     </div>
   );
 }

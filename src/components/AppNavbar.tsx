@@ -196,7 +196,10 @@ export function AppNavbar() {
   };
 
   const renderLanguagePicker = (onAfterChange?: () => void) => (
-    <LanguagePickerSheet onAfterChange={onAfterChange} />
+    <LanguagePickerSheet
+      sheetOpen={mobileMenuOpen}
+      onAfterChange={onAfterChange}
+    />
   );
 
   const renderAuthSection = (onAfterNavigate?: () => void) => (

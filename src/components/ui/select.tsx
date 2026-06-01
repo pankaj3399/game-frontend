@@ -62,16 +62,19 @@ function SelectContent({
   position = "item-aligned",
   align = "center",
   showScrollButtons = true,
+  container,
   ...props
 }: React.ComponentProps<typeof SelectPrimitive.Content> & {
   showScrollButtons?: boolean
+  /** Portal container (e.g. sheet content) to avoid body pointer-events traps when nested in modals. */
+  container?: HTMLElement | null
 }) {
   const contentProps =
     position === "popper"
       ? { position, align, ...props }
       : { position, ...props };
   return (
-    <SelectPrimitive.Portal>
+    <SelectPrimitive.Portal container={container}>
       <SelectPrimitive.Content
         data-slot="select-content"
         className={cn(
