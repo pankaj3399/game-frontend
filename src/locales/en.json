@@ -915,7 +915,6 @@
   },
   "recordScorePage": {
     "title": "Record Score",
-    "subtitle": "Choose how you want to capture your match result",
     "goBack": "Go back",
     "cards": {
       "validate": {

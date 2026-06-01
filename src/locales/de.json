@@ -915,7 +915,6 @@
   },
   "recordScorePage": {
     "title": "Punktzahl eintragen",
-    "subtitle": "Wählen Sie, wie Sie Ihr Matchergebnis erfassen möchten",
     "goBack": "Zurück",
     "cards": {
       "validate": {

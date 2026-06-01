@@ -95,16 +95,13 @@ export default function RecordScorePage() {
         </button>
 
         <section className="mt-2 w-full rounded-[10px] border border-[rgba(1,10,4,0.08)] bg-white px-4 pb-4 pt-3 shadow-[0_3px_7px_rgba(0,0,0,0.06)] sm:px-5 sm:pb-5 sm:pt-4">
-          <header className="text-[#010a04]">
-            <h1 className="text-2xl font-semibold leading-tight tracking-[-0.01em] ">
+          <header className="hidden text-[#010a04] lg:block">
+            <h1 className="text-2xl font-semibold leading-tight tracking-[-0.01em]">
               {t("recordScorePage.title")}
             </h1>
-            <p className="mt-1 max-w-[560px] text-xs  text-[#010a04]/62 ">
-              {t("recordScorePage.subtitle")}
-            </p>
           </header>
 
-          <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2">
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:mt-4">
             {actionCards.map((card) => (
               <button
                 key={card.id}

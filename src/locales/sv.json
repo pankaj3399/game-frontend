@@ -915,7 +915,6 @@
   },
   "recordScorePage": {
     "title": "Registrera resultat",
-    "subtitle": "Välj hur du vill registrera ditt matchresultat",
     "goBack": "Gå tillbaka",
     "cards": {
       "validate": {

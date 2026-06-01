@@ -915,7 +915,6 @@
   },
   "recordScorePage": {
     "title": "Registra punteggio",
-    "subtitle": "Scegli come vuoi acquisire il risultato della tua partita",
     "goBack": "Torna indietro",
     "cards": {
       "validate": {
