@@ -32,17 +32,17 @@ export function ClubCourtsEditor({
   const { t } = useTranslation();
 
   const courtInputClassName =
-    "h-[34px] rounded-[8px] border-[#e1e3e8] bg-[#f9fafc] px-2 text-xs shadow-none placeholder:text-[#010a04]/50 focus-visible:ring-0 sm:h-[38px] sm:px-3 sm:text-sm";
+    "h-9 rounded-[8px] border-[#dfe3e8] bg-[#fafbfc] px-3 text-sm shadow-none placeholder:text-[#010a04]/42 focus-visible:border-[#9fc9ae] focus-visible:ring-2 focus-visible:ring-[#067429]/10";
   const courtSelectClassName =
-    "h-[34px] w-full rounded-[8px] border-[#e1e3e8] bg-[#f9fafc] px-1.5 text-xs font-medium text-[#010a04] shadow-none focus-visible:ring-0 [&_svg]:size-3 sm:h-[38px] sm:px-2 sm:text-[13px] sm:[&_svg]:size-3.5";
+    "h-9 w-full rounded-[8px] border-[#dfe3e8] bg-[#fafbfc] px-2 text-sm font-medium text-[#010a04] shadow-none focus-visible:border-[#9fc9ae] focus-visible:ring-2 focus-visible:ring-[#067429]/10 [&_svg]:size-3.5";
 
   return (
-    <div className="space-y-2 rounded-[12px] sm:space-y-[10px]">
-      <Label className="text-sm font-medium text-[#010a04] sm:text-base">
+    <div className="space-y-2 rounded-[12px] border border-[#e7eaee] bg-[#fbfcfd] p-3">
+      <Label className="text-sm font-semibold text-[#010a04]">
         {t("settings.adminClubsAllCourts")}
       </Label>
-      <div className="space-y-2 sm:space-y-[9px]">
-        <div className="grid grid-cols-[minmax(0,128px)_minmax(0,1fr)_minmax(0,1fr)_44px] items-center gap-2 text-[10px] font-medium uppercase text-[#010a04]/70 sm:gap-[9px] sm:text-xs">
+      <div className="space-y-2">
+        <div className="grid grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)_minmax(0,1fr)_32px] items-center gap-2 text-[11px] font-semibold uppercase text-[#010a04]/62">
           <span>{t("settings.adminClubsCourtName")}</span>
           <span>{t("settings.adminClubsCourtType")}</span>
           <span>{t("settings.adminClubsCourtPlacement")}</span>
@@ -51,7 +51,7 @@ export function ClubCourtsEditor({
         {courts.map((court, index) => (
           <div
             key={index}
-            className="grid grid-cols-[minmax(0,128px)_minmax(0,1fr)_minmax(0,1fr)_44px] items-center gap-2 sm:gap-[9px]"
+            className="grid grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)_minmax(0,1fr)_32px] items-center gap-2"
           >
             <Input
               placeholder={t("settings.adminClubsCourtName")}
@@ -92,7 +92,7 @@ export function ClubCourtsEditor({
               type="button"
               variant="ghost"
               size="icon-lg"
-              className="min-h-9 min-w-9 shrink-0 rounded-none p-0 text-[#010a04]/50 hover:bg-transparent hover:text-[#010a04] focus-visible:ring-offset-0 sm:min-h-[44px] sm:min-w-[44px]"
+              className="size-8 min-h-8 min-w-8 shrink-0 rounded-[7px] p-0 text-[#010a04]/45 hover:bg-[#fff5f5] hover:text-[#b42318] focus-visible:ring-offset-0"
               onClick={() => onRemoveCourt(index)}
               aria-label={t("settings.adminClubsDeleteCourtAria")}
             >
@@ -106,7 +106,7 @@ export function ClubCourtsEditor({
         variant="outline"
         size="sm"
         onClick={onAddCourt}
-        className="h-7 w-full rounded-[8px] border-dashed border-brand-accent/55 bg-brand-accent/15 text-[11px] font-medium text-[#a4790d] shadow-none hover:bg-brand-accent/20 sm:h-[30px] sm:text-xs"
+        className="h-8 w-full rounded-[8px] border-dashed border-brand-accent/55 bg-brand-accent/12 text-xs font-medium text-[#a4790d] shadow-none hover:bg-brand-accent/20"
       >
         {t("settings.adminClubsAddCourt")}
       </Button>

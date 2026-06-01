@@ -20,7 +20,7 @@ export default function Loader({ className }: { className?: string }) {
         className="w-full h-full"
       />
       <p className="font-secondary text-2xl text-brand-black/60 -mt-28">
-        {t("loading", { defaultValue: t("common.loading") })}
+        {t("common.loading")}
       </p>
     </section>
   );

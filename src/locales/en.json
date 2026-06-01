@@ -9,7 +9,10 @@
     "language": "Language",
     "loading": "Loading...",
     "comingSoon": "Coming soon!",
-    "openMenu": "Open menu"
+    "openMenu": "Open menu",
+    "pagination": {
+      "showingRange": "Showing {{from}}–{{to}} of {{total}}"
+    }
   },
   "selectOption": "Select an option",
   "userSearch": {
@@ -169,6 +172,10 @@
     "adminClubsWebsitePlaceholder": "Enter website URL",
     "adminClubsBookingUrl": "Booking System URL",
     "adminClubsBookingUrlPlaceholder": "Enter booking system URL",
+    "adminClubsTennisLessonEmail": "Tennis Lesson Request Email",
+    "adminClubsTennisLessonEmailPlaceholder": "Enter email for tennis lesson requests",
+    "adminClubsMembershipEmail": "Membership Request Email",
+    "adminClubsMembershipEmailPlaceholder": "Enter email for membership requests",
     "adminClubsAddress": "Address",
     "adminClubsAddressPlaceholder": "Enter club's address.",
     "adminClubsLocationSearchPlaceholder": "Enter club's address",
@@ -178,7 +185,6 @@
     "adminClubsCoordinatesHintMapbox": "Search for a location above and select from the suggestions. Or enter longitude and latitude manually.",
     "adminClubsLookupFromAddress": "Look up from address",
     "adminClubsLookupFromAddressLoading": "Looking up...",
-
     "adminClubsLookupAgain": "Look up again",
     "adminClubsLongitude": "Longitude",
     "adminClubsLongitudePlaceholder": "e.g. 13.4050",
@@ -410,7 +416,7 @@
     "filterDistanceUnder50": "<50 km",
     "filterDistance50To80": "50–80 km",
     "filterDistanceAll": "All",
-    "filterDistanceRequiresHome": "Add a home club in your profile to use distance filters.",
+    "filterDistanceRequiresHome": "Set a home club in settings to filter by distance.",
     "listLoadError": "Could not load clubs. Try again or adjust your filters.",
     "listRetry": "Retry"
   },
@@ -478,7 +484,8 @@
       "toastUploadFailed": "Failed to upload logo",
       "fileTooLarge": "File size must be less than {{maxMb}} MB",
       "invalidFileType": "Only PNG, JPEG, or WebP images are allowed"
-    }
+    },
+    "allClubs": "All clubs"
   },
   "tournaments": {
     "Tournaments": "Tournaments",
@@ -496,7 +503,6 @@
     "createNew": "Create New Tournament",
     "filters": "Filters",
     "applyFilters": "Apply",
-    "filterApplying": "Updating…",
     "filterStatus": "Status",
     "filterWhen": "Time",
     "filterWhenAll": "All tournaments",
@@ -504,7 +510,6 @@
     "filterWhenFuture": "Future & ongoing",
     "filterWhenPast": "Past",
     "filterDistance": "Distance from home club",
-    "filterDistanceRequiresHome": "Add a home club in your profile to use distance filters.",
     "filterDistanceAll": "All",
     "filterDistanceUnder50": "<50 km",
     "filterDistance50To80": "50-80 km",
@@ -519,11 +524,6 @@
     "filterClubNoResults": "No clubs found.",
     "filterClubSelected": "Selected: {{name}}",
     "removeClubFilter": "Remove club filter",
-    "filterParticipation": "Participation",
-    "filterParticipationJoined": "Joined",
-    "filterParticipationNotJoined": "Not joined",
-    "filterParticipationOrganisedByMe": "Organised by me",
-    "filterParticipationAll": "All",
     "allStatuses": "All statuses",
     "allClubs": "All clubs",
     "tournamentName": "Tournament",
@@ -683,11 +683,7 @@
     "liveModalTitle": "Match In Progress",
     "liveModalDescription": "You are on court now. Enter the score when the match ends.",
     "liveModalCourtNow": "You're on court now!",
-    "liveModalCourtNowShort": "On court now",
-    "liveModalUpNext": "Your next match",
-    "liveModalUpNextShort": "Next match",
     "liveModalDate": "Date",
-    "liveModalTime": "Time",
     "liveModalCourtLabel": "Court",
     "liveModalEnterScore": "Record Score",
     "liveModalScoreTitle": "Record Final Score",
@@ -845,7 +841,21 @@
     "notSpecified": "–",
     "entryFeeFree": "Free",
     "entryFeeFormat": "${{amount}}",
-    "removeParticipant": "Remove {{name}}"
+    "removeParticipant": "Remove {{name}}",
+    "filterApplying": "Updating…",
+    "filterDistanceRequiresHome": "Add a home club in your profile to use distance filters.",
+    "filterParticipation": "Participation",
+    "filterParticipationJoined": "Joined",
+    "filterParticipationNotJoined": "Not joined",
+    "filterParticipationOrganisedByMe": "Organised by me",
+    "filterParticipationAll": "All",
+    "liveModalCourtNowShort": "On court now",
+    "liveModalUpNext": "Your next match",
+    "liveModalUpNextShort": "Next match",
+    "liveModalTime": "Time",
+    "allTournaments": "All tournaments",
+    "matchProgress": "Tournament progress",
+    "viewSchedule": "View schedule"
   },
   "myScorePage": {
     "title": "My Score",
@@ -964,8 +974,7 @@
       "confirmModeHint": "You are confirming opponent-shared score. Submit to finalize the match.",
       "validatedMatchOnlyHint": "This score must be submitted for the validated match only.",
       "independentHint": "Use this when the match is not part of any tournament.",
-      "independentGamesSection": "Independent game",
-      "independentMatch": "Independent game",
+      "independentMatch": "Independent match",
       "independentYourTeam": "Your side",
       "independentOpponentTeam": "Opponent",
       "validatedMatchFallback": "Validated match",
@@ -1023,8 +1032,16 @@
         "independentNoQr": "Independent match is not part of a tournament. QR generation is unavailable.",
         "qrGenerateFailed": "Could not generate score QR.",
         "confirmLinkWrongUser": "This validation link is not valid for your account.",
-        "confirmLinkInvalid": "This QR link is invalid, expired, or already used."
-      }
+        "confirmLinkInvalid": "This QR link is invalid, expired, or already used.",
+        "matchAlreadyScored": "This match already has a recorded score.",
+        "confirmNotAllowed": "You are not allowed to confirm this score.",
+        "confirmDetailsUnavailable": "Could not load match details. Try scanning the QR again."
+      },
+      "independentGamesSection": "Independent game",
+      "matchAlreadyScoredSwitch": "That match is already scored. Switched to your next available match.",
+      "newIndependentMatch": "New match",
+      "qrGenerating": "Generating…",
+      "qrScoresUpdated": "Scores updated"
     }
   },
   "about": {

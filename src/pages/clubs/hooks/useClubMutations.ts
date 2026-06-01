@@ -24,6 +24,8 @@ export interface CreateClubInput {
   logoUrl?: string | null;
   website?: string | null;
   bookingSystemUrl?: string | null;
+  tennisLessonRequestEmail?: string | null;
+  membershipRequestEmail?: string | null;
   address: string;
   /** [longitude, latitude] - required for club creation */
   coordinates: [number, number];
@@ -35,6 +37,8 @@ export interface UpdateClubInput {
   logoUrl?: string | null;
   website?: string | null;
   bookingSystemUrl?: string | null;
+  tennisLessonRequestEmail?: string | null;
+  membershipRequestEmail?: string | null;
   address?: string;
   coordinates?: [number, number];
   courts?: CourtInput[];
@@ -48,6 +52,8 @@ interface ClubResponse {
     address?: string;
     website?: string | null;
     bookingSystemUrl?: string | null;
+    tennisLessonRequestEmail?: string | null;
+    membershipRequestEmail?: string | null;
     courtCount: number;
   };
 }
@@ -60,6 +66,8 @@ interface ClubDetailResponse {
     address: string;
     website: string | null;
     bookingSystemUrl: string | null;
+    tennisLessonRequestEmail: string | null;
+    membershipRequestEmail: string | null;
     coordinates: [number, number] | null;
   };
   courts: Array<{
@@ -110,6 +118,7 @@ export function useUpdateClub() {
     onSuccess: (_, { clubId: id }) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.user.adminClubs() });
       queryClient.invalidateQueries({ queryKey: queryKeys.club.detail(id) });
+      queryClient.invalidateQueries({ queryKey: ["clubs", "public", id] });
       queryClient.invalidateQueries({ queryKey: queryKeys.tournament.all });
     },
   });

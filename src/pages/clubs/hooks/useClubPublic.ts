@@ -22,6 +22,8 @@ export interface ClubPublic {
   address: string;
   website: string | null;
   bookingSystemUrl: string | null;
+  tennisLessonRequestEmail: string | null;
+  membershipRequestEmail: string | null;
   courtCount: number;
   courts: CourtGroup[];
   sponsors: ClubSponsorPublic[];

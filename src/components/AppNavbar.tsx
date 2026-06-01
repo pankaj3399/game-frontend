@@ -35,6 +35,12 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import {
+  LanguagePickerDropdownItems,
+  LanguagePickerSheet,
+  useAppLanguage,
+} from "@/components/LanguagePicker";
+import { usesCompactNavTypography } from "@/lib/appLanguages";
 
 const navItems = [
   {
@@ -160,25 +166,15 @@ function NavLinks({
 }
 
 export function AppNavbar() {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const location = useLocation();
   const navigate = useNavigate();
   const { isAuthenticated, user, logout } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const normalizedLanguage = i18n.resolvedLanguage
-    ?.toLowerCase()
-    .startsWith("de")
-    ? "de"
-    : "en";
-  const isGermanUi = normalizedLanguage === "de";
-  const languageLabel = normalizedLanguage === "de" ? "DEU" : "ENG";
-
-  const handleLanguageChange = (language: "en" | "de") => {
-    if (language !== normalizedLanguage) {
-      void i18n.changeLanguage(language);
-    }
-  };
+  const { currentCode, current } = useAppLanguage();
+  const isCompactNav = usesCompactNavTypography(currentCode);
+  const languageLabel = current.shortLabel;
 
   const handleLogout = async () => {
     try {
@@ -199,44 +195,8 @@ export function AppNavbar() {
     });
   };
 
-  const renderLanguageButtons = (onAfterChange?: () => void) => (
-    <>
-      <p className="mb-2.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-white/55">
-        {t("common.language")}
-      </p>
-      <div className="flex gap-2">
-        <button
-          type="button"
-          className={cn(
-            "h-9 flex-1 rounded-[9px] border px-3 text-[13px] font-semibold transition-colors",
-            normalizedLanguage === "en"
-              ? "border-white bg-white text-brand-primary shadow-sm"
-              : "border-white/20 text-white/85 hover:border-white/40 hover:bg-white/10 hover:text-white",
-          )}
-          onClick={() => {
-            handleLanguageChange("en");
-            onAfterChange?.();
-          }}
-        >
-          ENG
-        </button>
-        <button
-          type="button"
-          className={cn(
-            "h-9 flex-1 rounded-[9px] border px-3 text-[13px] font-semibold transition-colors",
-            normalizedLanguage === "de"
-              ? "border-white bg-white text-brand-primary shadow-sm"
-              : "border-white/20 text-white/85 hover:border-white/40 hover:bg-white/10 hover:text-white",
-          )}
-          onClick={() => {
-            handleLanguageChange("de");
-            onAfterChange?.();
-          }}
-        >
-          DEU
-        </button>
-      </div>
-    </>
+  const renderLanguagePicker = (onAfterChange?: () => void) => (
+    <LanguagePickerSheet onAfterChange={onAfterChange} />
   );
 
   const renderAuthSection = (onAfterNavigate?: () => void) => (
@@ -248,11 +208,11 @@ export function AppNavbar() {
               type="button"
               className={cn(
                 "flex h-[32px] lg:h-[34px] items-center justify-center gap-1 lg:gap-[7px] rounded-[8px] bg-white/25 px-2 lg:px-[10px] font-medium text-white transition-colors hover:bg-white/30",
-                isGermanUi ? "text-[12px] lg:text-[13px]" : "text-[13px] lg:text-[14px]"
+                isCompactNav ? "text-[12px] lg:text-[13px]" : "text-[13px] lg:text-[14px]"
               )}
             >
               <UserIcon size={16} className="shrink-0 text-white lg:h-[17px] lg:w-[17px]" />
-              <span className={cn("truncate", isGermanUi ? "max-w-[60px] lg:max-w-[88px]" : "max-w-[72px] lg:max-w-[100px]")}>
+              <span className={cn("truncate", isCompactNav ? "max-w-[60px] lg:max-w-[88px]" : "max-w-[72px] lg:max-w-[100px]")}>
                 {user?.alias?.trim() ||
                   user?.name?.trim() ||
                   t("profile.title")}
@@ -285,25 +245,8 @@ export function AppNavbar() {
                   </span>
                 </span>
               </DropdownMenuSubTrigger>
-              <DropdownMenuSubContent alignOffset={-4} className="min-w-[90px]">
-                <DropdownMenuItem
-                  className="cursor-pointer"
-                  onClick={() => {
-                    handleLanguageChange("en");
-                    onAfterNavigate?.();
-                  }}
-                >
-                  ENG
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  className="cursor-pointer"
-                  onClick={() => {
-                    handleLanguageChange("de");
-                    onAfterNavigate?.();
-                  }}
-                >
-                  DEU
-                </DropdownMenuItem>
+              <DropdownMenuSubContent alignOffset={-4} className="min-w-[11rem]">
+                <LanguagePickerDropdownItems onAfterChange={onAfterNavigate} />
               </DropdownMenuSubContent>
             </DropdownMenuSub>
             <DropdownMenuSeparator />
@@ -355,7 +298,7 @@ export function AppNavbar() {
             </Link>
           </RoleGuard>
 
-          <div>{renderLanguageButtons(closeMobileMenu)}</div>
+          <div>{renderLanguagePicker(closeMobileMenu)}</div>
 
           <button
             type="button"
@@ -367,7 +310,7 @@ export function AppNavbar() {
         </div>
       ) : (
         <div className="flex flex-col gap-5">
-          <div>{renderLanguageButtons(closeMobileMenu)}</div>
+          <div>{renderLanguagePicker(closeMobileMenu)}</div>
           <Link
             to="/login"
             className="flex h-10 w-full items-center justify-center gap-2 rounded-[9px] bg-brand-accent px-3 text-[14px] font-semibold text-[#010a04] transition-colors hover:bg-brand-accent-hover"
@@ -417,14 +360,14 @@ export function AppNavbar() {
           <nav
             className={cn(
               "hidden items-center justify-center lg:flex",
-              isGermanUi ? "gap-x-2 xl:gap-x-3" : "gap-x-2.5 xl:gap-x-4"
+              isCompactNav ? "gap-x-2 xl:gap-x-3" : "gap-x-2.5 xl:gap-x-4"
             )}
           >
             <NavLinks
               variant="inline"
               location={location}
               t={t}
-              compact={isGermanUi}
+              compact={isCompactNav}
             />
           </nav>
         </div>
@@ -443,22 +386,8 @@ export function AppNavbar() {
                     <ArrowDown01Icon size={14} className="shrink-0 text-white" />
                   </button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent
-                  align="end"
-                  className="w-[90px] min-w-[90px]"
-                >
-                  <DropdownMenuItem
-                    className="cursor-pointer"
-                    onClick={() => handleLanguageChange("en")}
-                  >
-                    ENG
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    className="cursor-pointer"
-                    onClick={() => handleLanguageChange("de")}
-                  >
-                    DEU
-                  </DropdownMenuItem>
+                <DropdownMenuContent align="end" className="min-w-[11rem]">
+                  <LanguagePickerDropdownItems />
                 </DropdownMenuContent>
               </DropdownMenu>
             )}

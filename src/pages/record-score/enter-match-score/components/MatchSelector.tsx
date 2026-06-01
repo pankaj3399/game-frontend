@@ -102,6 +102,7 @@ export function MatchSelector({
         align="start"
         side="bottom"
         sideOffset={6}
+        avoidCollisions={false}
         collisionPadding={16}
         sticky="partial"
         className="w-[min(var(--radix-popover-trigger-width),calc(100vw-2rem))] max-w-[calc(100vw-2rem)] rounded-[10px] border-[#010a04]/10 p-2"

@@ -20,6 +20,8 @@ interface ClubFormState {
   logoUrl: string;
   website: string;
   bookingSystemUrl: string;
+  tennisLessonRequestEmail: string;
+  membershipRequestEmail: string;
   address: string;
   coordinates: [number, number] | null;
   courts: CourtInput[];
@@ -84,6 +86,8 @@ export function useAddEditClubForm({ editClubId, onOpenChange }: UseAddEditClubF
         logoUrl: clubData.club.logoUrl ?? "",
         website: clubData.club.website ?? "",
         bookingSystemUrl: clubData.club.bookingSystemUrl ?? "",
+        tennisLessonRequestEmail: clubData.club.tennisLessonRequestEmail ?? "",
+        membershipRequestEmail: clubData.club.membershipRequestEmail ?? "",
         address: clubData.club.address,
         coordinates: clubData.club.coordinates
           ? [clubData.club.coordinates[0], clubData.club.coordinates[1]]
@@ -105,6 +109,8 @@ export function useAddEditClubForm({ editClubId, onOpenChange }: UseAddEditClubF
       logoUrl: "",
       website: "",
       bookingSystemUrl: "",
+      tennisLessonRequestEmail: "",
+      membershipRequestEmail: "",
       address: "",
       coordinates: null,
       courts: [firstCourt()],
@@ -199,6 +205,8 @@ export function useAddEditClubForm({ editClubId, onOpenChange }: UseAddEditClubF
             logoUrl: currentForm.logoUrl.trim() || null,
             website: currentForm.website.trim() || null,
             bookingSystemUrl: currentForm.bookingSystemUrl.trim() || null,
+            tennisLessonRequestEmail: currentForm.tennisLessonRequestEmail.trim() || null,
+            membershipRequestEmail: currentForm.membershipRequestEmail.trim() || null,
             address: currentForm.address.trim(),
             coordinates: currentForm.coordinates,
             courts: courtsPayload.length > 0 ? courtsPayload : [],
@@ -211,6 +219,8 @@ export function useAddEditClubForm({ editClubId, onOpenChange }: UseAddEditClubF
           logoUrl: currentForm.logoUrl.trim() || null,
           website: currentForm.website.trim() || null,
           bookingSystemUrl: currentForm.bookingSystemUrl.trim() || null,
+          tennisLessonRequestEmail: currentForm.tennisLessonRequestEmail.trim() || null,
+          membershipRequestEmail: currentForm.membershipRequestEmail.trim() || null,
           address: currentForm.address.trim(),
           coordinates: currentForm.coordinates,
           courts: courtsPayload,
