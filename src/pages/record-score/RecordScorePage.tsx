@@ -95,7 +95,7 @@ export default function RecordScorePage() {
         </button>
 
         <section className="mt-2 w-full rounded-[10px] border border-[rgba(1,10,4,0.08)] bg-white px-4 pb-4 pt-3 shadow-[0_3px_7px_rgba(0,0,0,0.06)] sm:px-5 sm:pb-5 sm:pt-4">
-          <header className="hidden text-[#010a04] lg:block">
+          <header className="sr-only text-[#010a04] lg:not-sr-only lg:block">
             <h1 className="text-2xl font-semibold leading-tight tracking-[-0.01em]">
               {t("recordScorePage.title")}
             </h1>

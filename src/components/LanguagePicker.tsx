@@ -91,12 +91,6 @@ export function LanguagePickerSheet({
     setPortalContainer(sheetContent instanceof HTMLElement ? sheetContent : null);
   }, []);
 
-  useEffect(() => {
-    if (!sheetOpen) {
-      setSelectOpen(false);
-    }
-  }, [sheetOpen]);
-
   const handleValueChange = (value: string) => {
     const code = value as AppLanguageCode;
     setSelectOpen(false);
@@ -114,7 +108,7 @@ export function LanguagePickerSheet({
       </p>
       <Select
         value={currentCode}
-        open={selectOpen}
+        open={sheetOpen && selectOpen}
         onOpenChange={setSelectOpen}
         onValueChange={handleValueChange}
       >

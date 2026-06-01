@@ -104,7 +104,8 @@ export function MatchSelector({
         sideOffset={6}
         avoidCollisions={false}
         collisionPadding={16}
-        sticky="partial"
+        sticky="always"
+        onOpenAutoFocus={(event) => event.preventDefault()}
         className="w-[min(var(--radix-popover-trigger-width),calc(100vw-2rem))] max-w-[calc(100vw-2rem)] rounded-[10px] border-[#010a04]/10 p-2"
       >
         <Input
@@ -112,7 +113,7 @@ export function MatchSelector({
           onChange={(event) => setMatchSearch(event.target.value)}
           placeholder={t("recordScorePage.enter.selectPlaceholder")}
           className="mb-2 h-8 rounded-[8px] border-[#010a04]/12 bg-white text-[13px]"
-          autoFocus
+          inputMode="search"
         />
 
         <div className="thin-scrollbar max-h-64 overflow-y-auto rounded-[8px] border border-[#010a04]/8">
