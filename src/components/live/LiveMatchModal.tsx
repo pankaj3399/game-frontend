@@ -205,6 +205,7 @@ export function LiveMatchModal() {
   const isOnCourtNow = liveMatch.status === "inProgress";
 
   const liveOpponentLabel = formatLiveMatchTeamLabel(liveMatch.opponentTeam, t);
+  const hasNextMatch = nextMatch != null && nextMatch.id !== liveMatch.id;
   const nextOpponentLabel = nextMatch
     ? formatLiveMatchTeamLabel(nextMatch.opponentTeam, t)
     : "";
@@ -316,16 +317,14 @@ export function LiveMatchModal() {
               </div>
             </div>
 
-            {isOnCourtNow ? (
-              <LiveMatchEnterScoreButton
-                enterScoreLabel={t("tournaments.liveModalEnterScore")}
-                matchId={liveMatch.id}
-                tournamentId={liveTournamentId}
-                onNavigateAway={() => handleOpenChange(false)}
-              />
-            ) : null}
+            <LiveMatchEnterScoreButton
+              enterScoreLabel={t("tournaments.liveModalEnterScore")}
+              matchId={liveMatch.id}
+              tournamentId={liveTournamentId}
+              onNavigateAway={() => handleOpenChange(false)}
+            />
 
-            {nextMatch && nextMatch.id !== liveMatch.id ? (
+            {hasNextMatch ? (
               <section className="min-w-0 max-w-full overflow-hidden rounded-[10px] border border-[#e2e8f0] bg-white p-4 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
                 <div className="flex min-w-0 flex-col gap-2 border-b border-[#f1f5f9] pb-3 min-[380px]:flex-row min-[380px]:items-center min-[380px]:justify-between min-[380px]:gap-3">
                   <p className="shrink-0 text-[11px] font-semibold uppercase tracking-[0.06em] text-[#64748b]">
@@ -350,7 +349,7 @@ export function LiveMatchModal() {
                   />
                 </div>
               </section>
-            ) : !isOnCourtNow ? null : (
+            ) : (
               <section className="rounded-[10px] border border-dashed border-[#cbd5e1] bg-white px-4 py-5 text-center sm:text-left">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.06em] text-[#64748b]">
                   {t("tournaments.liveModalNextMatch")}
