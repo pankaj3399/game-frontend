@@ -41,9 +41,79 @@ const ICON_SPIN =
   '<path d="M21 12a9 9 0 1 1-6.22-8.56"/><polyline points="21 3 21 9 15 9"/>' +
   "</svg></div>";
 
+const PWA_PTR_IGNORE_SELECTOR = '[data-pwa-ptr-ignore="true"]';
+const SCROLLABLE_OVERFLOW_VALUES = new Set(["auto", "scroll", "overlay"]);
+
+/**
+ * How long (ms) to suppress PTR after a finger release.
+ *
+ * pulltorefreshjs keeps its internal state in a "release phase" for ~400–500 ms
+ * while it animates back to rest. During that window, window.scrollY is still 0,
+ * so any new touchstart would re-enter PTR tracking and block normal scrolling.
+ * A 600 ms cooldown comfortably covers the animation without feeling sluggish.
+ */
+const RELEASE_COOLDOWN_MS = 600;
+
+function isScrollableElement(element: Element): boolean {
+  const { overflowY } = window.getComputedStyle(element);
+
+  return (
+    SCROLLABLE_OVERFLOW_VALUES.has(overflowY) &&
+    element.scrollHeight > element.clientHeight
+  );
+}
+
+function isIgnoredPullTarget(target: EventTarget | null): boolean {
+  if (!(target instanceof Element)) return false;
+  if (target.closest(PWA_PTR_IGNORE_SELECTOR)) return true;
+
+  let current: Element | null = target;
+  while (current && current !== document.body) {
+    if (isScrollableElement(current)) return true;
+    current = current.parentElement;
+  }
+
+  return false;
+}
+
 export function usePWAPullToRefresh(): void {
   useEffect(() => {
     if (!isIOS() || !isStandalone()) return;
+
+    // Mutable state scoped to this effect instance.
+    const state = {
+      /** True while the active touch/pointer began inside a scrollable or ignored region. */
+      isPullTargetIgnored: false,
+      /**
+       * Earliest timestamp (ms) at which PTR may activate again.
+       * Set to Date.now() + RELEASE_COOLDOWN_MS on every finger release so that
+       * the PTR library's own ~400–500 ms release animation cannot re-engage PTR
+       * on the very next gesture.
+       */
+      suppressUntil: 0,
+    };
+
+    const handleTouchStart = (event: TouchEvent | PointerEvent) => {
+      state.isPullTargetIgnored = isIgnoredPullTarget(event.target);
+    };
+
+    const handleTouchEnd = () => {
+      state.isPullTargetIgnored = false;
+      state.suppressUntil = Date.now() + RELEASE_COOLDOWN_MS;
+    };
+
+    window.addEventListener("touchstart", handleTouchStart, {
+      passive: true,
+      capture: true,
+    });
+    window.addEventListener("touchend", handleTouchEnd, { passive: true });
+    window.addEventListener("touchcancel", handleTouchEnd, { passive: true });
+    window.addEventListener("pointerdown", handleTouchStart, {
+      passive: true,
+      capture: true,
+    });
+    window.addEventListener("pointerup", handleTouchEnd, { passive: true });
+    window.addEventListener("pointercancel", handleTouchEnd, { passive: true });
 
     PullToRefresh.init({
       mainElement: "body",
@@ -59,6 +129,12 @@ export function usePWAPullToRefresh(): void {
       },
 
       shouldPullToRefresh() {
+        if (state.isPullTargetIgnored) return false;
+
+        // Suppress PTR during the release cooldown window so the library's own
+        // animation settle does not re-engage PTR on the user's next swipe.
+        if (Date.now() < state.suppressUntil) return false;
+
         return (
           Math.max(
             document.documentElement.scrollTop,
@@ -77,6 +153,12 @@ export function usePWAPullToRefresh(): void {
     });
 
     return () => {
+      window.removeEventListener("touchstart", handleTouchStart, true);
+      window.removeEventListener("touchend", handleTouchEnd);
+      window.removeEventListener("touchcancel", handleTouchEnd);
+      window.removeEventListener("pointerdown", handleTouchStart, true);
+      window.removeEventListener("pointerup", handleTouchEnd);
+      window.removeEventListener("pointercancel", handleTouchEnd);
       PullToRefresh.destroyAll();
     };
   }, []);
