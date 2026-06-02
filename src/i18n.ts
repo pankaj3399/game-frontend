@@ -5,6 +5,7 @@ import { APP_LANGUAGES } from './lib/appLanguages'
 import en from './locales/en.json'
 import de from './locales/de.json'
 import es from './locales/es.json'
+import fr from './locales/fr.json'
 import it from './locales/it.json'
 import sv from './locales/sv.json'
 
@@ -18,6 +19,7 @@ i18n
     en: { translation: en },
     de: { translation: de },
     es: { translation: es },
+    fr: { translation: fr },
     it: { translation: it },
     sv: { translation: sv },
   },

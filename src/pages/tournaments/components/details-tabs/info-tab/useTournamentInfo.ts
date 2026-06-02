@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import type { TFunction } from "i18next";
 import { getDateFnsLocale } from "@/lib/dateFnsLocale";
 import type { TournamentDetail } from "@/models/tournament/types";
+import { formatEntryFeeEuro } from "@/utils/currency";
 import { formatDateDisplay, formatTimeRangeDisplay, formatTimeZoneAbbreviation } from "@/utils/display";
 import { formatTimeTo24Hour } from "@/utils/time";
 import { UI_LIMITS } from "./constants";
@@ -16,8 +17,7 @@ interface UseTournamentInfoArgs {
 export function useTournamentInfo({ tournament, t, language, isDescriptionExpanded }: UseTournamentInfoArgs) {
   return useMemo(() => {
     const entryFee = Number.isFinite(tournament.entryFee) ? tournament.entryFee : 0;
-    const feeText =
-      entryFee > 0 ? t("tournaments.entryFeeFormat", { amount: entryFee }) : t("tournaments.entryFeeFree");
+    const feeText = entryFee > 0 ? formatEntryFeeEuro(entryFee) : t("tournaments.entryFeeFree");
 
     const foodInfoTrimmed = tournament.foodInfo?.trim() ?? "";
     const hasFoodInfo = foodInfoTrimmed.length > 0;

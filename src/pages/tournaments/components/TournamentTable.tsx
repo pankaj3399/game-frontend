@@ -88,12 +88,9 @@ function buildTournamentRowViewModel(
   t: TFunction,
   language: string
 ) {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
   const isUnscheduled = !tournament.date;
-  const tournamentDate = tournament.date ? new Date(`${tournament.date}T00:00:00`) : null;
-  const isPast = Boolean(tournamentDate && tournamentDate < today);
   const isLive = tournament.status === "active" && tournament.isLive;
+  const isPast = Boolean(tournament.isPast);
   const shouldShowInactiveDot =
     tournament.status === "active" && !isLive && !isUnscheduled && (isPast || tournament.isFull);
   const statusDotClass = isLive

@@ -565,6 +565,7 @@ export const tournamentListItemSchema = z.object({
   status: tournamentStatusSchema,
   isFull: z.boolean().optional().default(false),
   isLive: z.boolean().optional().default(false),
+  isPast: z.boolean().optional().default(false),
   sponsor: wireJsonNullable(tournamentSponsorSchema),
 });
 

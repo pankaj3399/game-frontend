@@ -1,10 +1,11 @@
 import type { Locale } from "date-fns";
-import { de, enUS, es, it, sv } from "date-fns/locale";
+import { de, enUS, es, fr, it, sv } from "date-fns/locale";
 
 const dateFnsLocaleMap: Record<string, Locale> = {
   de,
   en: enUS,
   es,
+  fr,
   it,
   sv,
 };

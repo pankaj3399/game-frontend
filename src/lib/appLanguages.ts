@@ -2,6 +2,7 @@ export const APP_LANGUAGES = [
   { code: "en", nativeName: "English", shortLabel: "EN" },
   { code: "de", nativeName: "Deutsch", shortLabel: "DE" },
   { code: "es", nativeName: "Español", shortLabel: "ES" },
+  { code: "fr", nativeName: "Français", shortLabel: "FR" },
   { code: "it", nativeName: "Italiano", shortLabel: "IT" },
   { code: "sv", nativeName: "Svenska", shortLabel: "SV" },
 ] as const;
@@ -11,7 +12,7 @@ export type AppLanguageCode = (typeof APP_LANGUAGES)[number]["code"];
 const supportedCodes = new Set<string>(APP_LANGUAGES.map((l) => l.code));
 
 /** Languages that tend to need tighter nav typography (longer labels). */
-const compactNavCodes = new Set<AppLanguageCode>(["de", "es", "it"]);
+const compactNavCodes = new Set<AppLanguageCode>(["de", "es", "fr", "it"]);
 
 export function resolveAppLanguage(
   resolvedLanguage: string | undefined,

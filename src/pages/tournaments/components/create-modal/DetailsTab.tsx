@@ -153,7 +153,7 @@ export function DetailsTab({ form, update, formScopeKey }: DetailsTabProps) {
           </Label>
           <div className="flex h-[38px] items-center gap-2 rounded-[10px] border border-[#e1e3e8] bg-[#f9fafc] px-3 sm:h-[46px] sm:rounded-[12px] sm:px-[15px]">
             <span className="text-[16px] leading-none text-[#010a04]/40 sm:text-[22px]">
-              $
+              €
             </span>
             <Input
               id={entryFeeId}

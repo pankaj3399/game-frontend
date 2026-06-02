@@ -18,7 +18,8 @@ type BackendVersion = {
 };
 
 export default function AboutPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const languageKey = i18n.resolvedLanguage ?? i18n.language;
   const { data: versionData } = useQuery<BackendVersion>({
     queryKey: ["version"],
     queryFn: () => api.get("/api/version").then((r) => r.data),
@@ -88,6 +89,7 @@ export default function AboutPage() {
                   <li key={key}>
                     {key === "6" ? (
                       <Trans
+                        key={`howToUseItem6-${languageKey}`}
                         i18nKey="about.howToUseItem6"
                         components={{
                           link: (
@@ -113,6 +115,7 @@ export default function AboutPage() {
               </h2>
               <p className="text-[14px] leading-[1.5] text-[#010a0499]">
                 <Trans
+                  key={`glicko2Paragraph-${languageKey}`}
                   i18nKey="about.glicko2Paragraph"
                   components={{
                     sup: <sup className={footnoteClassName} />,
@@ -127,6 +130,7 @@ export default function AboutPage() {
                 <li>{t("about.glicko2Credit1")}</li>
                 <li>
                   <Trans
+                    key={`glicko2Credit2-${languageKey}`}
                     i18nKey="about.glicko2Credit2"
                     components={{
                       eloLink: (

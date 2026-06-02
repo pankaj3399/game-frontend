@@ -19,7 +19,8 @@ export function RequestSubscriptionRenewalModal({
   onConfirm,
   isSubmitting = false,
 }: RequestSubscriptionRenewalModalProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const languageKey = i18n.resolvedLanguage ?? i18n.language;
 
   const handleOpenChange = (nextOpen: boolean) => {
     onOpenChange(nextOpen);
@@ -64,6 +65,7 @@ export function RequestSubscriptionRenewalModal({
           <div className="px-[22px] py-[16px]">
             <p className="text-[13.5px] leading-[1.65] text-[#374151]">
               <Trans
+                key={`renewModalInvoiceDetail-${languageKey}`}
                 i18nKey="manageClub.renewModalInvoiceDetail"
                 values={{
                   amount: "100 EUR",
@@ -83,6 +85,7 @@ export function RequestSubscriptionRenewalModal({
           <div className="mx-[22px] mb-[16px] rounded-[10px] bg-[rgba(235,146,15,0.08)] px-[14px] py-[11px]">
             <p className="text-[13px] leading-[1.6] text-[#7a4000]">
               <Trans
+                key={`renewModalTrialCallout-${languageKey}`}
                 i18nKey="manageClub.renewModalTrialCallout"
                 values={{ trialDuration: t("manageClub.renewModalTrialDuration") }}
                 components={{
@@ -97,6 +100,7 @@ export function RequestSubscriptionRenewalModal({
           {/* ── Support note ── */}
           <p className="px-[22px] py-[13px] text-[12.5px] leading-[1.6] text-[#6b7280]">
             <Trans
+              key={`renewModalSupportNote-${languageKey}`}
               i18nKey="manageClub.renewModalSupportNote"
               components={{
                 contactLink: (
