@@ -32,6 +32,9 @@ const STATUS_DOTS: Record<TournamentStatus, string> = {
   draft: "bg-amber-400",
 };
 
+const INACTIVE_STATUS_DOT = "bg-[#9ca3af]";
+const LIVE_STATUS_DOT = "bg-[#d92100]";
+
 function getStatusLabel(status: TournamentStatus, t: TFunction) {
   switch (status) {
     case "active":
@@ -85,13 +88,30 @@ function buildTournamentRowViewModel(
   t: TFunction,
   language: string
 ) {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const isUnscheduled = !tournament.date;
+  const tournamentDate = tournament.date ? new Date(`${tournament.date}T00:00:00`) : null;
+  const isPast = Boolean(tournamentDate && tournamentDate < today);
+  const isLive = tournament.status === "active" && tournament.isLive;
+  const shouldShowInactiveDot =
+    tournament.status === "active" && !isLive && !isUnscheduled && (isPast || tournament.isFull);
+  const statusDotClass = isLive
+    ? LIVE_STATUS_DOT
+    : shouldShowInactiveDot
+      ? INACTIVE_STATUS_DOT
+      : STATUS_DOTS[tournament.status];
+  const derivedStatus: TournamentStatus =
+    statusDotClass === STATUS_DOTS.draft ? "draft" : "active";
+
   const clubName = tournament.club?.name ?? "-";
 
   return {
     id: tournament.id,
     name: tournament.name,
-    statusLabel: getStatusLabel(tournament.status, t),
-    statusDotClass: STATUS_DOTS[tournament.status],
+    statusLabel: getStatusLabel(derivedStatus, t),
+    statusDotClass,
+    isLive,
     rowPath: `/tournaments/${tournament.id}`,
     dateText: formatDateDisplay(
       tournament.date,
@@ -142,15 +162,22 @@ export function TournamentTable({
                         <span className="line-clamp-2 text-[16px] font-medium leading-[1.2] text-[#010a04]">
                           {row.name}
                         </span>
-                        <span
-                          role="img"
-                          className={cn(
-                            "mt-[6px] h-2 w-2 shrink-0 rounded-full",
-                            row.statusDotClass
-                          )}
-                          aria-label={row.statusLabel}
-                          title={row.statusLabel}
-                        />
+                        {row.isLive ? (
+                          <span className="mt-[2px] inline-flex items-center gap-1.5 rounded-full bg-[#ffeee9] px-2.5 py-1 text-[11px] font-medium text-[#d92100]">
+                            <span className={cn("h-1.5 w-1.5 rounded-full", row.statusDotClass)} />
+                            {t("tournaments.liveLabel")}
+                          </span>
+                        ) : (
+                          <span
+                            role="img"
+                            className={cn(
+                              "mt-[6px] h-2 w-2 shrink-0 rounded-full",
+                              row.statusDotClass
+                            )}
+                            aria-label={row.statusLabel}
+                            title={row.statusLabel}
+                          />
+                        )}
                       </div>
                       <div className="mt-[9px] flex items-center gap-[10px] text-[13px] text-[#010a04]/75 sm:text-[14px]">
                         <Calendar size={17} className="text-[#010a04]/60" />
@@ -253,7 +280,12 @@ export function TournamentTable({
                         <span className="truncate text-sm text-foreground">
                           {row.name}
                         </span>
-                        {row.statusLabel ? (
+                        {row.isLive ? (
+                          <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-[#ffeee9] px-2.5 py-1 text-[11px] font-medium text-[#d92100]">
+                            <span className={cn("h-1.5 w-1.5 rounded-full", row.statusDotClass)} />
+                            {t("tournaments.liveLabel")}
+                          </span>
+                        ) : row.statusLabel ? (
                           <span
                             role="img"
                             className={cn(

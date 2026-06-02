@@ -95,7 +95,7 @@ export function ClubSponsorsAside({
               href={safeBookingLink}
               target="_blank"
               rel="noreferrer noopener"
-              className="flex items-center justify-center rounded-lg bg-[#1a1a1a] px-4 py-3 font-medium text-white transition-colors hover:bg-[#2d2d2d]"
+              className="flex h-9 w-full items-center justify-center rounded-lg bg-[#1a1a1a] px-4 text-sm font-medium leading-none text-white transition-colors hover:bg-[#2d2d2d]"
             >
               {t("clubs.bookCourt")}
             </a>
@@ -103,7 +103,7 @@ export function ClubSponsorsAside({
             <button
               type="button"
               disabled
-              className="flex cursor-not-allowed items-center justify-center rounded-lg bg-[#e5e7eb] px-4 py-3 font-medium text-muted-foreground"
+              className="flex h-9 w-full cursor-not-allowed items-center justify-center rounded-lg bg-[#e5e7eb] px-4 text-sm font-medium leading-none text-muted-foreground"
             >
               {t("clubs.bookCourt")}
             </button>
