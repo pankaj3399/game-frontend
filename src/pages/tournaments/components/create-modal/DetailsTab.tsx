@@ -161,10 +161,14 @@ export function DetailsTab({ form, update, formScopeKey }: DetailsTabProps) {
               min={0}
               step="0.01"
               placeholder="00"
-              value={form.entryFee}
+              value={form.entryFee === 0 ? "" : form.entryFee}
               onChange={(e) => {
                 const v = e.target.value;
-                const n = v === "" ? 0 : Number(v);
+                if (v === "") {
+                  update({ entryFee: 0 });
+                  return;
+                }
+                const n = Number(v);
                 update({ entryFee: Number.isFinite(n) ? n : 0 });
               }}
               className="h-auto border-0 bg-transparent p-0 text-[13px] font-normal text-[#010a04] shadow-none focus-visible:ring-0 sm:text-[16px]"

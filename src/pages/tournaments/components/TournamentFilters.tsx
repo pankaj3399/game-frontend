@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { useAllClubs, useClubById } from "@/pages/clubs/hooks";
 import InlineLoader from "@/components/shared/InlineLoader";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 import ListFilterIcon from "@/assets/icons/figma/misc/list-filter.svg?react";
 import { Search01Icon } from "@/icons/figma-icons";
 
@@ -49,10 +50,12 @@ function PillRow({
   options,
   value,
   onChange,
+  onDisabledClick,
 }: {
   options: { value: string; label: string; disabled?: boolean }[];
   value: string;
   onChange: (v: string) => void;
+  onDisabledClick?: (value: string) => void;
 }) {
   return (
     <div className="flex flex-wrap gap-2">
@@ -63,26 +66,24 @@ function PillRow({
             key={opt.value}
             type="button"
             aria-pressed={active}
-            disabled={opt.disabled}
+            aria-disabled={opt.disabled || undefined}
+            tabIndex={opt.disabled ? -1 : undefined}
             onClick={() => {
-              if (!opt.disabled) onChange(opt.value);
+              if (opt.disabled) {
+                onDisabledClick?.(opt.value);
+                return;
+              }
+              onChange(opt.value);
             }}
-            className={[
+            className={cn(
               "shrink-0 rounded-full px-3.5 py-1.5 text-left text-[12.5px] font-medium transition-colors duration-150 select-none",
               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#006B2B]/45",
-              opt.disabled
-                ? "cursor-not-allowed bg-black/10 text-white/50"
-                : active
-                  ? "text-white shadow-sm"
-                  : "text-white",
-            ].join(" ")}
-            style={
-              opt.disabled
-                ? undefined
-                : active
-                  ? { backgroundColor: FILTER_GREEN }
-                  : { backgroundColor: PILL_GREY }
-            }
+              "text-white",
+              opt.disabled ? "cursor-not-allowed" : active ? "shadow-sm" : undefined,
+            )}
+            style={{
+              backgroundColor: !opt.disabled && active ? FILTER_GREEN : PILL_GREY,
+            }}
           >
             {opt.label}
           </button>
@@ -356,11 +357,13 @@ export function TournamentFilters({
       <PopoverContent
         align="center"
         sideOffset={10}
+        collisionPadding={16}
         onOpenAutoFocus={(event) => event.preventDefault()}
         onPointerDown={handleFilterPanelPointerDown}
-        className="w-[min(92vw,26rem)] overflow-visible rounded-2xl border border-black/[0.08] bg-white p-0 shadow-[0_8px_40px_-8px_rgba(0,0,0,0.18),0_2px_8px_-2px_rgba(0,0,0,0.06)]"
+        className="flex w-[min(92vw,26rem)] max-h-[min(85dvh,calc(100dvh-2rem))] flex-col overflow-hidden rounded-2xl border border-black/[0.08] bg-white p-0 shadow-[0_8px_40px_-8px_rgba(0,0,0,0.18),0_2px_8px_-2px_rgba(0,0,0,0.06)]"
       >
-        <div className="space-y-5 px-5 pb-6 pt-5">
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain [-webkit-overflow-scrolling:touch]">
+          <div className="space-y-5 px-5 pb-4 pt-5">
           {isAuthenticated && (
             <div>
               <SectionLabel>{t("tournaments.filterParticipation")}</SectionLabel>
@@ -532,24 +535,20 @@ export function TournamentFilters({
           </div>
 
           <div>
-            <SectionLabel
-              description={
-                !hasHomeClub
-                  ? t("tournaments.filterDistanceRequiresHome")
-                  : undefined
-              }
-            >
-              {t("tournaments.filterDistance")}
-            </SectionLabel>
+            <SectionLabel>{t("tournaments.filterDistance")}</SectionLabel>
             <PillRow
               options={distanceOptions}
               value={hasHomeClub ? draftDistance : "all"}
               onChange={setDraftDistance}
+              onDisabledClick={() => {
+                toast.info(t("tournaments.filterDistanceRequiresHome"));
+              }}
             />
+          </div>
           </div>
         </div>
 
-        <div className="flex items-center gap-2.5 border-t border-black/[0.06] bg-black/[0.015] px-5 py-3.5">
+        <div className="flex shrink-0 items-center gap-2.5 border-t border-black/[0.06] bg-black/[0.015] px-5 py-3.5">
           <Button
             variant="outline"
             size="sm"
