@@ -59,6 +59,10 @@ interface TournamentFiltersProps {
 const FILTER_PANEL_SHADOW =
   "shadow-[0_8px_40px_-8px_rgba(0,0,0,0.18),0_2px_8px_-2px_rgba(0,0,0,0.06)]";
 
+/** Small viewport + safe areas — reliable on iOS Safari/PWA (dvh alone can clip the footer). */
+const FILTER_SHEET_HEIGHT =
+  "min(88svh, calc(100svh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 0.5rem))";
+
 function PillRow({
   options,
   value,
@@ -655,7 +659,7 @@ export function TournamentFilters({
   );
 
   const filterPanel = (
-    <>
+    <div className="flex min-h-0 flex-1 flex-col">
       <div
         data-pwa-ptr-ignore="true"
         className="min-h-0 flex-1 overflow-y-auto overscroll-contain [touch-action:pan-y] [-webkit-overflow-scrolling:touch]"
@@ -663,7 +667,7 @@ export function TournamentFilters({
         {filterSections}
       </div>
       {filterPanelFooter}
-    </>
+    </div>
   );
 
   if (variant === "bottom-sheet") {
@@ -677,9 +681,13 @@ export function TournamentFilters({
             showCloseButton={false}
             onPointerDown={handleFilterPanelPointerDown}
             className={cn(
-              "flex max-h-[min(92dvh,calc(100dvh-env(safe-area-inset-top)-1rem))] w-full min-h-0 flex-col gap-0 overflow-hidden rounded-t-2xl border-0 bg-white p-0",
+              "bottom-[env(safe-area-inset-bottom,0px)] flex w-full min-h-0 flex-col gap-0 overflow-hidden rounded-t-2xl border-0 bg-white p-0",
               FILTER_PANEL_SHADOW,
             )}
+            style={{
+              height: FILTER_SHEET_HEIGHT,
+              maxHeight: FILTER_SHEET_HEIGHT,
+            }}
           >
             <SheetTitle className="sr-only">{t("tournaments.filters")}</SheetTitle>
             {filterPanel}
