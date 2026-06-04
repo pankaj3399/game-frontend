@@ -5,6 +5,11 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import {
+  Sheet,
+  SheetContent,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAllClubs, useClubById } from "@/pages/clubs/hooks";
@@ -44,7 +49,15 @@ interface TournamentFiltersProps {
   isAuthenticated?: boolean;
   /** True while the tournament list is refetching after filters were applied. */
   isApplyingFilters?: boolean;
+  /**
+   * Mobile: bottom sheet anchored to the viewport so actions stay visible.
+   * Desktop: popover sized to Radix collision bounds.
+   */
+  variant?: "popover" | "bottom-sheet";
 }
+
+const FILTER_PANEL_SHADOW =
+  "shadow-[0_8px_40px_-8px_rgba(0,0,0,0.18),0_2px_8px_-2px_rgba(0,0,0,0.06)]";
 
 function PillRow({
   options,
@@ -148,6 +161,7 @@ export function TournamentFilters({
   favoriteClubsCount = 0,
   isAuthenticated = false,
   isApplyingFilters = false,
+  variant = "popover",
 }: TournamentFiltersProps) {
   const { when, distance, clubId, clubScope, participation } = filters;
   const { t } = useTranslation();
@@ -360,36 +374,64 @@ export function TournamentFilters({
       : draftClubId !== (clubScope === "favorites" ? undefined : clubId)) ||
     draftParticipation !== (participation ?? "all");
 
-  return (
-    <Popover modal open={open} onOpenChange={handlePopoverOpenChange}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          size="sm"
-          className={cn(
-            "h-9 gap-2",
-            activeFilterCount > 0 && "border-brand-primary/40 text-brand-primary",
-          )}
-        >
-          <ListFilterIcon width={14} height={14} aria-hidden className="shrink-0" />
-          {t("tournaments.filters")}
-          {activeFilterCount > 0 && (
-            <span className="ml-0.5 inline-flex h-4.5 min-w-[1.125rem] items-center justify-center rounded-full bg-brand-primary px-1 text-[10px] font-bold leading-none text-white">
-              {activeFilterCount}
-            </span>
-          )}
-        </Button>
-      </PopoverTrigger>
+  const closePanel = () => handlePopoverOpenChange(false);
 
-      <PopoverContent
-        align="center"
-        sideOffset={10}
-        collisionPadding={16}
-        onOpenAutoFocus={(event) => event.preventDefault()}
-        onPointerDown={handleFilterPanelPointerDown}
-        className="flex w-[min(92vw,26rem)] max-h-[min(85dvh,calc(100dvh-2rem))] flex-col overflow-hidden rounded-2xl border border-black/[0.08] bg-white p-0 shadow-[0_8px_40px_-8px_rgba(0,0,0,0.18),0_2px_8px_-2px_rgba(0,0,0,0.06)]"
-      >
-        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain [-webkit-overflow-scrolling:touch]">
+  const handleClearFilters = () => {
+    setDraftWhen("all");
+    setDraftDistance("all");
+    setDraftClubId(undefined);
+    setDraftClubScope(undefined);
+    setDraftParticipation("all");
+    setSelectedClubState(null);
+    setClubSearch("");
+    setClubSearchOpen(false);
+    setActiveClubOptionIndex(-1);
+    onFiltersChange({
+      when: "all",
+      distance: "all",
+      clubId: undefined,
+      clubScope: undefined,
+      participation: undefined,
+    });
+    closePanel();
+  };
+
+  const handleApplyFilters = () => {
+    onFiltersChange({
+      when: draftWhen,
+      distance: hasHomeClub ? draftDistance : "all",
+      clubId: draftClubScope === "favorites" ? undefined : draftClubId,
+      clubScope: draftClubScope === "favorites" ? "favorites" : undefined,
+      participation:
+        draftParticipation === "all" ? undefined : draftParticipation,
+    });
+    closePanel();
+  };
+
+  const filterTriggerButton = (
+    <Button
+      variant="outline"
+      size="sm"
+      type="button"
+      className={cn(
+        "h-9 gap-2",
+        activeFilterCount > 0 && "border-brand-primary/40 text-brand-primary",
+      )}
+      onClick={
+        variant === "bottom-sheet" ? () => handlePopoverOpenChange(true) : undefined
+      }
+    >
+      <ListFilterIcon width={14} height={14} aria-hidden className="shrink-0" />
+      {t("tournaments.filters")}
+      {activeFilterCount > 0 && (
+        <span className="ml-0.5 inline-flex h-4.5 min-w-[1.125rem] items-center justify-center rounded-full bg-brand-primary px-1 text-[10px] font-bold leading-none text-white">
+          {activeFilterCount}
+        </span>
+      )}
+    </Button>
+  );
+
+  const filterSections = (
           <div className="space-y-5 px-5 pb-4 pt-5">
           {isAuthenticated && (
             <div>
@@ -573,64 +615,87 @@ export function TournamentFilters({
             />
           </div>
           </div>
-        </div>
+  );
 
-        <div className="flex shrink-0 items-center gap-2.5 border-t border-black/[0.06] bg-black/[0.015] px-5 py-3.5">
-          <Button
-            variant="outline"
-            size="sm"
-            className="h-9 flex-1 rounded-xl border-black/15 bg-white text-[13px] font-medium text-black/45 hover:bg-black/[0.03] hover:text-black/60 disabled:opacity-50"
-            disabled={!canClear || isApplyingFilters}
-            onClick={() => {
-              setDraftWhen("all");
-              setDraftDistance("all");
-              setDraftClubId(undefined);
-              setDraftClubScope(undefined);
-              setDraftParticipation("all");
-              setSelectedClubState(null);
-              setClubSearch("");
-              setClubSearchOpen(false);
-              setActiveClubOptionIndex(-1);
-              onFiltersChange({
-                when: "all",
-                distance: "all",
-                clubId: undefined,
-                clubScope: undefined,
-                participation: undefined,
-              });
-              onOpenChange(false);
-            }}
+  const filterPanelFooter = (
+    <div className="flex shrink-0 items-center gap-2.5 border-t border-black/[0.06] bg-black/[0.015] px-5 py-3.5 pb-[max(0.875rem,env(safe-area-inset-bottom))]">
+      <Button
+        variant="outline"
+        size="sm"
+        className="h-9 flex-1 rounded-xl border-black/15 bg-white text-[13px] font-medium text-black/45 hover:bg-black/[0.03] hover:text-black/60 disabled:opacity-50"
+        disabled={!canClear || isApplyingFilters}
+        onClick={handleClearFilters}
+      >
+        {t("timepicker.clear", { defaultValue: "Clear" })}
+      </Button>
+      <Button
+        size="sm"
+        disabled={isApplyingFilters || !hasChanges}
+        aria-busy={isApplyingFilters}
+        className="h-9 flex-[2] rounded-xl text-[13px] font-semibold text-white shadow-sm transition-colors hover:opacity-95 disabled:opacity-80"
+        style={{ backgroundColor: FILTER_GREEN }}
+        onClick={handleApplyFilters}
+      >
+        {isApplyingFilters ? (
+          <InlineLoader size="sm" className="border-white/35 border-t-white" />
+        ) : null}
+        {isApplyingFilters
+          ? t("tournaments.filterApplying")
+          : t("tournaments.applyFilters")}
+      </Button>
+    </div>
+  );
+
+  const filterPanel = (
+    <>
+      <div
+        data-pwa-ptr-ignore="true"
+        className="min-h-0 flex-1 overflow-y-auto overscroll-contain [touch-action:pan-y] [-webkit-overflow-scrolling:touch]"
+      >
+        {filterSections}
+      </div>
+      {filterPanelFooter}
+    </>
+  );
+
+  if (variant === "bottom-sheet") {
+    return (
+      <>
+        {filterTriggerButton}
+        <Sheet open={open} onOpenChange={handlePopoverOpenChange}>
+          <SheetContent
+            side="bottom"
+            showCloseButton={false}
+            onPointerDown={handleFilterPanelPointerDown}
+            className={cn(
+              "flex max-h-[min(92dvh,calc(100dvh-env(safe-area-inset-top)-1rem))] w-full min-h-0 flex-col gap-0 overflow-hidden rounded-t-2xl border-0 bg-white p-0",
+              FILTER_PANEL_SHADOW,
+            )}
           >
-            {t("timepicker.clear", { defaultValue: "Clear" })}
-          </Button>
-          <Button
-            size="sm"
-            disabled={isApplyingFilters || !hasChanges}
-            aria-busy={isApplyingFilters}
-            className="h-9 flex-[2] rounded-xl text-[13px] font-semibold text-white shadow-sm transition-colors hover:opacity-95 disabled:opacity-80"
-            style={{ backgroundColor: FILTER_GREEN }}
-            onClick={() => {
-              onFiltersChange({
-                when: draftWhen,
-                distance: hasHomeClub ? draftDistance : "all",
-                clubId: draftClubScope === "favorites" ? undefined : draftClubId,
-                clubScope: draftClubScope === "favorites" ? "favorites" : undefined,
-                participation:
-                  draftParticipation === "all"
-                    ? undefined
-                    : draftParticipation,
-              });
-              onOpenChange(false);
-            }}
-          >
-            {isApplyingFilters ? (
-              <InlineLoader size="sm" className="border-white/35 border-t-white" />
-            ) : null}
-            {isApplyingFilters
-              ? t("tournaments.filterApplying")
-              : t("tournaments.applyFilters")}
-          </Button>
-        </div>
+            <SheetTitle className="sr-only">{t("tournaments.filters")}</SheetTitle>
+            {filterPanel}
+          </SheetContent>
+        </Sheet>
+      </>
+    );
+  }
+
+  return (
+    <Popover modal open={open} onOpenChange={handlePopoverOpenChange}>
+      <PopoverTrigger asChild>{filterTriggerButton}</PopoverTrigger>
+      <PopoverContent
+        align="center"
+        side="bottom"
+        sideOffset={10}
+        collisionPadding={16}
+        onOpenAutoFocus={(event) => event.preventDefault()}
+        onPointerDown={handleFilterPanelPointerDown}
+        className={cn(
+          "flex w-[min(92vw,26rem)] max-h-(--radix-popover-content-available-height) min-h-0 flex-col overflow-hidden rounded-2xl border border-black/[0.08] bg-white p-0",
+          FILTER_PANEL_SHADOW,
+        )}
+      >
+        {filterPanel}
       </PopoverContent>
     </Popover>
   );
