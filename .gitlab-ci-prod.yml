@@ -10,7 +10,7 @@
   #       - junit.xml
 # .gitlab-ci.yml
 stages:
-  #- test
+  - lint
   - build
   - push
   - deploy
@@ -22,14 +22,15 @@ variables:
   SERVICE: tournament-web-app
   AR_IMAGE: $LOCATION-docker.pkg.dev/$PROJECT/tournament-web/$SERVICE
 
-# unit-test:
-#   image: node:latest
-#   stage: test
-#   before_script:
-#     - yarn install
-#   script:
-#     - yarn test
-    
+lint-job:
+  image: node:22
+  stage: lint
+  before_script:
+    - corepack enable
+    - yarn install --immutable
+  script:
+    - yarn lint
+
 build-job:
   stage: build
   services:

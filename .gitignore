@@ -4,6 +4,7 @@ node_modules
 # Docker (local use only)
 .dockerignore
 .yarn
+.npmrc
 # Build output
 dist
 dist-ssr
@@ -29,6 +30,7 @@ pnpm-debug.log*
 lerna-debug.log*
 
 .agents
+skills-lock.json
 
 # Cache and tooling
 .cache
