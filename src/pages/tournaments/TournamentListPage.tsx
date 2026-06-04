@@ -316,8 +316,10 @@ function TournamentListContent() {
               </div>
               {isApplyingUserFilters ? (
                 <div
-                  className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center bg-white/40"
-                  aria-hidden
+                  className="pointer-events-none fixed inset-x-0 top-[56px] bottom-0 z-40 flex items-center justify-center bg-white/40 lg:top-[60px]"
+                  role="status"
+                  aria-live="polite"
+                  aria-label={t("tournaments.filterApplying")}
                 >
                   <InlineLoader className="border-[#010a04]/20 border-t-[#067429]" />
                 </div>
