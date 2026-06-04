@@ -158,6 +158,7 @@ function TournamentListContent() {
             <h1 className="sr-only lg:hidden">{listHeading}</h1>
             <div className="flex flex-wrap items-center justify-between gap-2 lg:hidden">
               <TournamentFilters
+                variant="bottom-sheet"
                 open={filtersOpen && !isDesktop}
                 onOpenChange={setFiltersOpen}
                 filters={{
