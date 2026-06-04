@@ -352,8 +352,16 @@ export function TournamentFilters({
     }
   };
 
+  const hasChanges =
+    draftWhen !== (when ?? "all") ||
+    (hasHomeClub ? draftDistance : "all") !== normalizeDistanceForDraft(distance) ||
+    (draftClubScope === "favorites"
+      ? clubScope !== "favorites"
+      : draftClubId !== (clubScope === "favorites" ? undefined : clubId)) ||
+    draftParticipation !== (participation ?? "all");
+
   return (
-    <Popover open={open} onOpenChange={handlePopoverOpenChange}>
+    <Popover modal open={open} onOpenChange={handlePopoverOpenChange}>
       <PopoverTrigger asChild>
         <Button
           variant="outline"
@@ -462,7 +470,7 @@ export function TournamentFilters({
 
               {clubSearchOpen && (
                 <div
-                  className="absolute left-0 right-0 top-[calc(100%+6px)] z-[70] overflow-hidden rounded-xl border border-black/[0.08] bg-white shadow-[0_8px_24px_-4px_rgba(0,0,0,0.14)]"
+                  className="mt-1.5 overflow-hidden rounded-xl border border-black/[0.08] bg-white shadow-[0_8px_24px_-4px_rgba(0,0,0,0.14)]"
                   role="listbox"
                   aria-labelledby={clubFilterLabelId}
                   aria-activedescendant={activeClubOptionIndex >= 0 ? `${clubOptionIdPrefix}-option-${activeClubOptionIndex}` : undefined}
@@ -597,7 +605,7 @@ export function TournamentFilters({
           </Button>
           <Button
             size="sm"
-            disabled={isApplyingFilters}
+            disabled={isApplyingFilters || !hasChanges}
             aria-busy={isApplyingFilters}
             className="h-9 flex-[2] rounded-xl text-[13px] font-semibold text-white shadow-sm transition-colors hover:opacity-95 disabled:opacity-80"
             style={{ backgroundColor: FILTER_GREEN }}
