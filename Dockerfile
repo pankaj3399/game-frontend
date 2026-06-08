@@ -5,13 +5,12 @@ ARG COMMIT_SHA=dev
 ENV VITE_COMMIT_SHA=$COMMIT_SHA
 
 WORKDIR /app
+# Copy package.json and yarn.lock first to leverage Docker layer caching
+COPY package.json yarn.lock .yarnrc.yml ./
+RUN corepack enable && yarn install --immutable
+
 # Copy the rest of the application files to the working directory
 COPY . .
-# Copy package.json and package-lock.json to the working directory
-COPY package*.json ./
-
-RUN yarn install
-
 # Build the React application
 RUN yarn build
 
