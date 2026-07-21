@@ -1,6 +1,6 @@
 import { Link, Navigate, useParams, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { useState } from "react";
+import { Suspense, lazy, useState } from "react";
 import { ShareTextButton } from "@/components/shared/ShareTextButton";
 import { ChevronLeft, PencilEdit01Icon, Upload01Icon } from "@/icons/figma-icons";
 import { Button } from "@/components/ui/button";
@@ -19,7 +19,6 @@ import { useAuth, useRequireAuth } from "@/pages/auth/hooks";
 import { TournamentDetailsPageSkeleton } from "@/pages/tournaments/components/TournamentDetailsLoadingSkeletons";
 import { TournamentDetailsTabs } from "@/pages/tournaments/components/details-tabs/TournamentDetailsTabs";
 import { resolveTournamentDetailsTab } from "@/pages/tournaments/components/details-tabs/tabConfig";
-import { CreateTournamentModal } from "@/pages/tournaments/components/CreateTournamentModal";
 import {
   useTournamentById,
   useJoinTournament,
@@ -31,6 +30,12 @@ import { getSafeLink } from "@/lib/url";
 import type { TournamentSponsor } from "@/models/tournament/types";
 import type { TFunction } from "i18next";
 import { toast } from "sonner";
+
+const CreateTournamentModal = lazy(() =>
+  import("@/pages/tournaments/components/CreateTournamentModal").then((mod) => ({
+    default: mod.CreateTournamentModal,
+  })),
+);
 
 function TournamentHeaderSponsorLogo({
   sponsor,
@@ -293,12 +298,16 @@ export default function TournamentDetailsPage() {
           onRequireAuth={requireAuth}
         />
 
-        <CreateTournamentModal
-          open={showEditModal}
-          onOpenChange={setShowEditModal}
-          mode="edit"
-          tournamentId={tournament.id}
-        />
+        {showEditModal ? (
+          <Suspense fallback={null}>
+            <CreateTournamentModal
+              open={showEditModal}
+              onOpenChange={setShowEditModal}
+              mode="edit"
+              tournamentId={tournament.id}
+            />
+          </Suspense>
+        ) : null}
 
         <AlertDialog open={showLeaveWoConfirm} onOpenChange={setShowLeaveWoConfirm}>
           <AlertDialogContent>

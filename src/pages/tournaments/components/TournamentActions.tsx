@@ -1,10 +1,22 @@
+import { Suspense, lazy, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { PlusSignIcon, PencilEdit01Icon, IconChevronLeft } from "@/icons/figma-icons";
-import { RoleGuard } from "@/components/auth/RoleGuard";
-import { Button } from "@/components/ui/button";
-import { ROLES } from "@/constants/roles";
-import { TournamentFilters, type TournamentFiltersChangePayload } from "./TournamentFilters";
-import { TournamentTab, type TournamentListTab } from "@/models/tournament";
+import type { TournamentFiltersChangePayload } from "./TournamentFilters";
+import {
+  TournamentFilterTrigger,
+  countActiveTournamentFilters,
+} from "./TournamentFilterTrigger";
+import type { TournamentListTab } from "@/models/tournament";
+
+const TournamentFilters = lazy(() =>
+  import("./TournamentFilters").then((mod) => ({ default: mod.TournamentFilters })),
+);
+
+const OrganiserListButtons = lazy(() =>
+  import("./OrganiserListButtons").then((mod) => ({
+    default: mod.OrganiserListButtons,
+  })),
+);
+
 interface TournamentActionsProps {
   activeTab: TournamentListTab;
   onTabChange: (tab: TournamentListTab) => void;
@@ -21,6 +33,7 @@ interface TournamentActionsProps {
   onFiltersChange: (next: TournamentFiltersChangePayload) => void;
   onCreate: () => void;
   isApplyingFilters?: boolean;
+  showOrganiserActions?: boolean;
 }
 
 export function TournamentActions({
@@ -39,57 +52,74 @@ export function TournamentActions({
   onFiltersChange,
   onCreate,
   isApplyingFilters = false,
+  showOrganiserActions = false,
 }: TournamentActionsProps) {
   const { t } = useTranslation();
+  const [filtersMounted, setFiltersMounted] = useState(false);
+  const showFilters = filtersMounted || filtersOpen;
+  const activeFilterCount = countActiveTournamentFilters({
+    when,
+    distance:
+      homeClubId && distance && distance !== "all" && distance !== "over80"
+        ? distance
+        : undefined,
+    clubId,
+    clubScope,
+    participation,
+  });
+
+  const openFilters = () => {
+    setFiltersMounted(true);
+    onFiltersOpenChange(true);
+  };
 
   return (
     <div className="flex w-full flex-wrap items-center justify-start gap-2 sm:w-auto sm:justify-end">
-      <TournamentFilters
-        open={filtersOpen}
-        onOpenChange={onFiltersOpenChange}
-        filters={{
-          when,
-          distance,
-          clubId,
-          clubScope,
-          participation,
-        }}
-        homeClubId={homeClubId}
-        favoriteClubsCount={favoriteClubsCount}
-        isAuthenticated={isAuthenticated}
-        onFiltersChange={onFiltersChange}
-        isApplyingFilters={isApplyingFilters}
-      />
-      <RoleGuard requireRoleOrAbove={ROLES.ORGANISER}>
-        {activeTab === TournamentTab.Published ? (
-          <Button
-            variant="outline"
-            className="h-9 min-w-0 flex-1 sm:flex-none"
-            onClick={() => onTabChange(TournamentTab.Drafts)}
-          >
-            <PencilEdit01Icon size={16} className="mr-2 shrink-0" />
-            <span className="truncate">{t("tournaments.tabDrafts")}</span>
-          </Button>
-        ) : (
-          <Button
-            variant="outline"
-            className="h-9 min-w-0 flex-1 sm:flex-none"
-            onClick={() => onTabChange(TournamentTab.Published)}
-          >
-            <IconChevronLeft size={16} className="mr-2 shrink-0" />
-            <span className="truncate">{t("tournaments.tabPublished")}</span>
-          </Button>
-        )}
-        <Button
-          variant="brand"
-          size="sm"
-          className="min-w-0 flex-1 sm:flex-none"
-          onClick={onCreate}
+      {showFilters ? (
+        <Suspense
+          fallback={
+            <TournamentFilterTrigger
+              label={t("tournaments.filters")}
+              activeFilterCount={activeFilterCount}
+              open={filtersOpen}
+              onOpen={openFilters}
+            />
+          }
         >
-          <PlusSignIcon size={16} className="mr-2 shrink-0 text-white" />
-          <span className="truncate">{t("tournaments.create")}</span>
-        </Button>
-      </RoleGuard>
+          <TournamentFilters
+            open={filtersOpen}
+            onOpenChange={onFiltersOpenChange}
+            filters={{
+              when,
+              distance,
+              clubId,
+              clubScope,
+              participation,
+            }}
+            homeClubId={homeClubId}
+            favoriteClubsCount={favoriteClubsCount}
+            isAuthenticated={isAuthenticated}
+            onFiltersChange={onFiltersChange}
+            isApplyingFilters={isApplyingFilters}
+          />
+        </Suspense>
+      ) : (
+        <TournamentFilterTrigger
+          label={t("tournaments.filters")}
+          activeFilterCount={activeFilterCount}
+          open={false}
+          onOpen={openFilters}
+        />
+      )}
+      {showOrganiserActions ? (
+        <Suspense fallback={null}>
+          <OrganiserListButtons
+            activeTab={activeTab}
+            onTabChange={onTabChange}
+            onCreate={onCreate}
+          />
+        </Suspense>
+      ) : null}
     </div>
   );
 }

@@ -6,7 +6,9 @@ import { isValidJwtFormat, PENDING_SIGNUP_TOKEN_KEY, setAuthToken } from "@/lib/
 import { signupFormSchema, type SignupFormValues } from "@/lib/validation";
 
 /** Form data without pendingToken (injected from sessionStorage). */
-export type CompleteSignupFormData = Omit<SignupFormValues, "pendingToken">;
+export type CompleteSignupFormData = Omit<SignupFormValues, "pendingToken" | "acceptedTerms"> & {
+  acceptedTerms: boolean;
+};
 
 interface UseCompleteSignupOptions {
   onSuccess: () => void | Promise<void>;
@@ -79,6 +81,7 @@ export function useCompleteSignup({
         email: parsed.email?.trim() || undefined,
         dateOfBirth,
         gender: parsed.gender || null,
+        acceptedTerms: parsed.acceptedTerms,
       });
 
       if (

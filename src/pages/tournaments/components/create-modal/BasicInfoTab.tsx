@@ -125,6 +125,8 @@ export function BasicInfoTab({
       <SponsorLogoUploadZone
         logoUrl={form.logoUrl ?? ""}
         onLogoUrlChange={(nextUrl) => update({ logoUrl: nextUrl })}
+        kind="tournament_logo"
+        assetId={formScopeKey && formScopeKey !== "create" ? formScopeKey : undefined}
         label={t("tournaments.tournamentLogo")}
         successMessage={t("tournaments.tournamentLogoUploadSuccess")}
         uploadFailedMessage={t("tournaments.tournamentLogoUploadError")}

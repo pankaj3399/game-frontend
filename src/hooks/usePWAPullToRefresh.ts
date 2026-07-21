@@ -1,5 +1,4 @@
 import { useEffect } from "react";
-import PullToRefresh from "pulltorefreshjs";
 
 function isIOS(): boolean {
   return (
@@ -78,18 +77,16 @@ function isIgnoredPullTarget(target: EventTarget | null): boolean {
 
 export function usePWAPullToRefresh(): void {
   useEffect(() => {
+    // Keep this check sync and before any dynamic import so non-iOS / browser-tab
+    // sessions never download pulltorefreshjs.
     if (!isIOS() || !isStandalone()) return;
 
-    // Mutable state scoped to this effect instance.
+    let cancelled = false;
+    let destroyPtr: (() => void) | undefined;
+    let removeListeners: (() => void) | undefined;
+
     const state = {
-      /** True while the active touch/pointer began inside a scrollable or ignored region. */
       isPullTargetIgnored: false,
-      /**
-       * Earliest timestamp (ms) at which PTR may activate again.
-       * Set to Date.now() + RELEASE_COOLDOWN_MS on every finger release so that
-       * the PTR library's own ~400–500 ms release animation cannot re-engage PTR
-       * on the very next gesture.
-       */
       suppressUntil: 0,
     };
 
@@ -102,64 +99,79 @@ export function usePWAPullToRefresh(): void {
       state.suppressUntil = Date.now() + RELEASE_COOLDOWN_MS;
     };
 
-    window.addEventListener("touchstart", handleTouchStart, {
-      passive: true,
-      capture: true,
-    });
-    window.addEventListener("touchend", handleTouchEnd, { passive: true });
-    window.addEventListener("touchcancel", handleTouchEnd, { passive: true });
-    window.addEventListener("pointerdown", handleTouchStart, {
-      passive: true,
-      capture: true,
-    });
-    window.addEventListener("pointerup", handleTouchEnd, { passive: true });
-    window.addEventListener("pointercancel", handleTouchEnd, { passive: true });
+    void import("pulltorefreshjs").then((mod) => {
+      if (cancelled) return;
 
-    PullToRefresh.init({
-      mainElement: "body",
-      // distMax controls total travel; the library initialises `top` at
-      // -(element offsetHeight). With padding-top:72px in .ptr--box the
-      // element is ~120px tall, so the circle is fully hidden until the
-      // user has pulled ~72px — naturally preventing taps from showing it.
-      distMax: 120,
-      distReload: 90,
+      const PullToRefresh = mod.default;
 
-      onRefresh() {
-        window.location.reload();
-      },
+      window.addEventListener("touchstart", handleTouchStart, {
+        passive: true,
+        capture: true,
+      });
+      window.addEventListener("touchend", handleTouchEnd, { passive: true });
+      window.addEventListener("touchcancel", handleTouchEnd, { passive: true });
+      window.addEventListener("pointerdown", handleTouchStart, {
+        passive: true,
+        capture: true,
+      });
+      window.addEventListener("pointerup", handleTouchEnd, { passive: true });
+      window.addEventListener("pointercancel", handleTouchEnd, { passive: true });
 
-      shouldPullToRefresh() {
-        if (state.isPullTargetIgnored) return false;
+      removeListeners = () => {
+        window.removeEventListener("touchstart", handleTouchStart, true);
+        window.removeEventListener("touchend", handleTouchEnd);
+        window.removeEventListener("touchcancel", handleTouchEnd);
+        window.removeEventListener("pointerdown", handleTouchStart, true);
+        window.removeEventListener("pointerup", handleTouchEnd);
+        window.removeEventListener("pointercancel", handleTouchEnd);
+      };
 
-        // Suppress PTR during the release cooldown window so the library's own
-        // animation settle does not re-engage PTR on the user's next swipe.
-        if (Date.now() < state.suppressUntil) return false;
+      PullToRefresh.init({
+        mainElement: "body",
+        // distMax controls total travel; the library initialises `top` at
+        // -(element offsetHeight). With padding-top:72px in .ptr--box the
+        // element is ~120px tall, so the circle is fully hidden until the
+        // user has pulled ~72px — naturally preventing taps from showing it.
+        distMax: 120,
+        distReload: 90,
 
-        return (
-          Math.max(
-            document.documentElement.scrollTop,
-            document.body.scrollTop,
-            window.scrollY
-          ) <= 0
-        );
-      },
+        onRefresh() {
+          window.location.reload();
+        },
 
-      instructionsPullToRefresh: "",
-      instructionsReleaseToRefresh: "",
-      instructionsRefreshing: "",
+        shouldPullToRefresh() {
+          if (state.isPullTargetIgnored) return false;
 
-      iconArrow: ICON_PULL,
-      iconRefreshing: ICON_SPIN,
+          // Suppress PTR during the release cooldown window so the library's own
+          // animation settle does not re-engage PTR on the user's next swipe.
+          if (Date.now() < state.suppressUntil) return false;
+
+          return (
+            Math.max(
+              document.documentElement.scrollTop,
+              document.body.scrollTop,
+              window.scrollY,
+            ) <= 0
+          );
+        },
+
+        instructionsPullToRefresh: "",
+        instructionsReleaseToRefresh: "",
+        instructionsRefreshing: "",
+
+        iconArrow: ICON_PULL,
+        iconRefreshing: ICON_SPIN,
+      });
+
+      destroyPtr = () => {
+        PullToRefresh.destroyAll();
+      };
     });
 
     return () => {
-      window.removeEventListener("touchstart", handleTouchStart, true);
-      window.removeEventListener("touchend", handleTouchEnd);
-      window.removeEventListener("touchcancel", handleTouchEnd);
-      window.removeEventListener("pointerdown", handleTouchStart, true);
-      window.removeEventListener("pointerup", handleTouchEnd);
-      window.removeEventListener("pointercancel", handleTouchEnd);
-      PullToRefresh.destroyAll();
+      cancelled = true;
+      removeListeners?.();
+      destroyPtr?.();
     };
   }, []);
 }

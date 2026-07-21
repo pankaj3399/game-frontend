@@ -1,4 +1,4 @@
-import { useRef, useState, type ChangeEvent, type FormEvent } from "react";
+import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { format } from "date-fns";
 import { Field, FieldLabel } from "@/components/ui/field";
@@ -23,6 +23,7 @@ import InlineLoader from "@/components/shared/InlineLoader";
 import { Calendar03Icon, Delete01Icon, Upload01Icon } from "@/icons/figma-icons";
 import { toast } from "sonner";
 import { formatDateForApi, parseIsoDateSafely } from "@/utils/date";
+import { uploadImageFile } from "@/lib/api/uploadImage";
 
 const inputClassName =
   "h-[38px] w-full rounded-[8px] border border-[#e1e3e8] bg-[#f9fafc] px-3 text-[14px] text-[#010a04] placeholder:text-[#010a04]/45 transition-colors focus-visible:border-[#9ca3af] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#9ca3af] disabled:opacity-100";
@@ -47,6 +48,7 @@ export function SettingsForm({ user }: { user: AuthUser }) {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [inputs, setInputs] = useState(() => getInitialInputs(user));
   const [isProcessingImage, setIsProcessingImage] = useState(false);
+  const [imageFailed, setImageFailed] = useState(false);
   const { updateProfile, isLoading } = useUpdateProfile();
   const initials =
     [inputs.name, inputs.alias]
@@ -55,6 +57,10 @@ export function SettingsForm({ user }: { user: AuthUser }) {
       .join("")
       .toUpperCase()
       .slice(0, 2) || "?";
+
+  useEffect(() => {
+    setImageFailed(false);
+  }, [inputs.profilePictureUrl]);
 
   const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -96,15 +102,15 @@ export function SettingsForm({ user }: { user: AuthUser }) {
     setIsProcessingImage(true);
     const prev = inputs.profilePictureUrl;
     try {
-      const base64 = await new Promise<string>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(String(reader.result));
-        reader.onerror = () => reject(new Error(t("settings.profilePictureUploadError")));
-        reader.readAsDataURL(file);
+      const uploaded = await uploadImageFile({
+        file,
+        kind: "user_avatar",
+        assetId: user.id,
+        replaceUrl: prev.startsWith("http") ? prev : null,
       });
 
-      setInputs((prevInputs) => ({ ...prevInputs, profilePictureUrl: base64 }));
-      const result = await updateProfile({ profilePictureUrl: base64 });
+      setInputs((prevInputs) => ({ ...prevInputs, profilePictureUrl: uploaded.url }));
+      const result = await updateProfile({ profilePictureUrl: uploaded.url });
       if (!result.success) {
         setInputs((prevInputs) => ({ ...prevInputs, profilePictureUrl: prev }));
         toast.error(result.message);
@@ -160,11 +166,12 @@ export function SettingsForm({ user }: { user: AuthUser }) {
               >
                 {isProcessingImage ? (
                   <InlineLoader size="sm" />
-                ) : inputs.profilePictureUrl ? (
+                ) : inputs.profilePictureUrl && !imageFailed ? (
                   <img
                     src={inputs.profilePictureUrl}
                     alt={t("settings.profilePicture")}
                     className="size-full object-cover"
+                    onError={() => setImageFailed(true)}
                   />
                 ) : (
                   <span>{initials}</span>

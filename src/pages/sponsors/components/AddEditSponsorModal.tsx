@@ -113,6 +113,8 @@ export function AddEditSponsorModal({
             onLogoUrlChange={(nextUrl) =>
               setForm((prev) => ({ ...(prev ?? initialForm), logoUrl: nextUrl }))
             }
+            kind="sponsor_logo"
+            assetId={editSponsor?.id}
             disabled={!canManage || isPending}
             label={t("sponsors.logoUploadLabel")}
           />

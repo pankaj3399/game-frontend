@@ -33,7 +33,7 @@ export function ClubCard({ club }: ClubCardProps) {
           className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-brand-primary hover:text-brand-primary-hover hover:underline"
         >
           {t("clubs.viewDetails")}
-          <ArrowRight className="size-4" />
+          <ArrowRight className="size-4 text-brand-primary" />
         </Link>
       </div>
     </div>

@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
-import { z } from "zod";
 import { useDebouncedValue } from "@/lib/hooks/useDebouncedValue";
 import {
   DEFAULT_TOURNAMENT_FILTERS_STATE,
@@ -10,13 +9,13 @@ import {
   isTournamentWhenFilter,
   resolveTournamentListTabFromSearchParams,
   shapeTournamentFilters,
+  type TournamentFiltersState,
   type TournamentListTab,
 } from "@/models/tournament";
 
 interface UseTournamentFiltersOptions {
   isOrganiserOrAbove: boolean;
   userId?: string | null;
-  isAuthLoading?: boolean;
   /** `searchParams.get("view")` — organisers: tab resolves from this on first render. */
   viewSearchParam: string | null;
 }
@@ -37,16 +36,6 @@ interface PersistedTournamentFiltersState {
 const TOURNAMENT_FILTERS_STORAGE_PREFIX = "tournament:list:filters:";
 const ANONYMOUS_USER_STORAGE_ID = "anonymous";
 const QUERY_DEBOUNCE_MS = 200;
-
-const persistedRootSchema = z.object({
-  activeTab: z.enum(["published", "drafts"]).optional(),
-  updatedAt: z.preprocess(
-    (v: unknown) =>
-      typeof v === "number" && Number.isFinite(v) ? v : 0,
-    z.number().finite()
-  ),
-  filters: z.unknown().optional(),
-});
 
 function getStorageKey(userId: string) {
   return `${TOURNAMENT_FILTERS_STORAGE_PREFIX}${userId}`;
@@ -114,15 +103,20 @@ function parsePersistedFilters(filters: unknown) {
 
 function parsePersistedState(rawValue: string) {
   try {
-    const root = persistedRootSchema.safeParse(JSON.parse(rawValue));
-    if (!root.success) return null;
+    const parsed: unknown = JSON.parse(rawValue);
+    const root = asFilterRecord(parsed);
+    if (!root) return null;
 
-    const { activeTab: tab, updatedAt, filters } = root.data;
+    const tab = root.activeTab;
     const activeTab: TournamentListTab = tab === "drafts" ? "drafts" : "published";
+    const updatedAt =
+      typeof root.updatedAt === "number" && Number.isFinite(root.updatedAt)
+        ? root.updatedAt
+        : 0;
 
     return {
       activeTab,
-      filters: parsePersistedFilters(filters),
+      filters: parsePersistedFilters(root.filters),
       updatedAt,
     } satisfies PersistedTournamentFiltersState;
   } catch {
@@ -138,15 +132,53 @@ function readPersistedState(storageKey: string) {
   return parsePersistedState(rawValue);
 }
 
+function stateFromPersisted(
+  persisted: PersistedTournamentFiltersState | null,
+): TournamentFiltersState {
+  if (!persisted) {
+    return {
+      activeTab: DEFAULT_TOURNAMENT_FILTERS_STATE.activeTab,
+      filters: { ...DEFAULT_TOURNAMENT_FILTERS_STATE.filters },
+    };
+  }
+  const filters = parsePersistedFilters(persisted.filters);
+  return {
+    activeTab: persisted.activeTab,
+    filters: {
+      ...DEFAULT_TOURNAMENT_FILTERS_STATE.filters,
+      ...filters,
+      when: filters.when ?? DEFAULT_TOURNAMENT_FILTERS_STATE.filters.when,
+      page: 1,
+    },
+  };
+}
+
+/** Prefer the newer of user vs anonymous storage when both exist. */
+function resolvePersistedForUser(normalizedUserId: string) {
+  const anonymousStorageKey = getStorageKey(ANONYMOUS_USER_STORAGE_ID);
+  const anonymousPersisted = readPersistedState(anonymousStorageKey);
+  if (normalizedUserId === ANONYMOUS_USER_STORAGE_ID) {
+    return { persisted: anonymousPersisted, userPersisted: null, anonymousPersisted };
+  }
+  const storageKey = getStorageKey(normalizedUserId);
+  const userPersisted = readPersistedState(storageKey);
+  const persisted =
+    userPersisted && anonymousPersisted
+      ? userPersisted.updatedAt >= anonymousPersisted.updatedAt
+        ? userPersisted
+        : anonymousPersisted
+      : userPersisted ?? anonymousPersisted;
+  return { persisted, userPersisted, anonymousPersisted };
+}
+
 export function useTournamentFilters({
   isOrganiserOrAbove,
   userId,
-  isAuthLoading = false,
   viewSearchParam,
 }: UseTournamentFiltersOptions) {
-  const [state, dispatch] = useReducer(
-    filtersReducer,
-    DEFAULT_TOURNAMENT_FILTERS_STATE
+  // Sync hydrate anonymous key on first render so the list query is not gated a frame.
+  const [state, dispatch] = useReducer(filtersReducer, undefined, () =>
+    stateFromPersisted(readPersistedState(getStorageKey(ANONYMOUS_USER_STORAGE_ID))),
   );
 
   const activeTab = useMemo(
@@ -160,19 +192,16 @@ export function useTournamentFilters({
   );
 
   const [filtersOpen, setFiltersOpen] = useState(false);
-  const [isFiltersHydrated, setIsFiltersHydrated] = useState(false);
-  const hydratedStorageKeyRef = useRef<string | null>(null);
-  const skipNextPersistRef = useRef(false);
+  const hydratedStorageKeyRef = useRef<string>(
+    getStorageKey(ANONYMOUS_USER_STORAGE_ID),
+  );
+  const skipNextPersistRef = useRef(true);
   const normalizedUserId = userId || ANONYMOUS_USER_STORAGE_ID;
   const storageKey = getStorageKey(normalizedUserId);
 
-  // ✅ Debounce only affects API layer, not state updates
-  const debouncedQ = useDebouncedValue(
-    state.filters.q,
-    QUERY_DEBOUNCE_MS
-  );
+  const debouncedQ = useDebouncedValue(state.filters.q, QUERY_DEBOUNCE_MS);
 
-  const effectiveFilters = useCallback(
+  const shapedFilters = useMemo(
     () =>
       shapeTournamentFilters(
         {
@@ -212,8 +241,8 @@ export function useTournamentFilters({
         value === "all"
           ? undefined
           : isTournamentWhenFilter(value)
-          ? value
-          : undefined,
+            ? value
+            : undefined,
     });
   }, []);
 
@@ -224,8 +253,8 @@ export function useTournamentFilters({
         value === "all"
           ? undefined
           : isTournamentDistanceFilter(value)
-          ? value
-          : undefined,
+            ? value
+            : undefined,
     });
   }, []);
 
@@ -252,96 +281,58 @@ export function useTournamentFilters({
         value === "all"
           ? undefined
           : isTournamentParticipationFilter(value)
-          ? value
-          : undefined,
+            ? value
+            : undefined,
     });
   }, []);
 
   /**
-   * 🔄 Hydrate from localStorage
+   * When /auth/me resolves, merge user storage without flipping a fetch gate off.
+   * Never set hydrated=false after the sync anonymous init.
    */
   useEffect(() => {
-    const storage = getLocalStorage();
-    if (!storage) {
-      setIsFiltersHydrated(true);
-      return;
-    }
-    if (isAuthLoading) {
-      return;
-    }
-    if (hydratedStorageKeyRef.current === storageKey) {
-      return;
-    }
+    if (hydratedStorageKeyRef.current === storageKey) return;
 
-    setIsFiltersHydrated(false);
-    hydratedStorageKeyRef.current = null;
+    const { persisted, userPersisted, anonymousPersisted } =
+      resolvePersistedForUser(normalizedUserId);
 
-    const anonymousStorageKey = getStorageKey(ANONYMOUS_USER_STORAGE_ID);
-    const anonymousPersisted = readPersistedState(anonymousStorageKey);
-    const userPersisted =
-      normalizedUserId === ANONYMOUS_USER_STORAGE_ID
-        ? null
-        : readPersistedState(storageKey);
-
-    const persisted =
-      normalizedUserId !== ANONYMOUS_USER_STORAGE_ID && userPersisted && anonymousPersisted
-        ? userPersisted.updatedAt >= anonymousPersisted.updatedAt
-          ? userPersisted
-          : anonymousPersisted
-        : normalizedUserId !== ANONYMOUS_USER_STORAGE_ID
-          ? userPersisted ?? anonymousPersisted
-          : anonymousPersisted;
-
-    if (!persisted) {
-      dispatch({ type: "RESET" });
-      hydratedStorageKeyRef.current = storageKey;
+    if (persisted) {
+      dispatch({
+        type: "HYDRATE",
+        payload: {
+          activeTab: isOrganiserOrAbove ? persisted.activeTab : "published",
+          filters: persisted.filters,
+        },
+      });
       skipNextPersistRef.current = true;
-      setIsFiltersHydrated(true);
-      return;
-    }
 
-    dispatch({
-      type: "HYDRATE",
-      payload: {
-        activeTab: isOrganiserOrAbove
-          ? persisted.activeTab
-          : "published",
-        filters: persisted.filters,
-      },
-    });
-    skipNextPersistRef.current = true;
+      if (normalizedUserId !== ANONYMOUS_USER_STORAGE_ID) {
+        const shouldSyncToUserKey =
+          !userPersisted ||
+          (anonymousPersisted != null &&
+            anonymousPersisted.updatedAt > userPersisted.updatedAt);
 
-    // Ensure logged-in key reflects latest state when fallback/anonymous was newer.
-    if (normalizedUserId !== ANONYMOUS_USER_STORAGE_ID) {
-      const shouldSyncToUserKey =
-        !userPersisted ||
-        (anonymousPersisted != null &&
-          anonymousPersisted.updatedAt > userPersisted.updatedAt);
-
-      if (shouldSyncToUserKey) {
-        const nextPayload: PersistedTournamentFiltersState = {
-          activeTab: persisted.activeTab,
-          filters: {
-            q: persisted.filters.q,
-            when: persisted.filters.when,
-            distance: persisted.filters.distance,
-            clubId: persisted.filters.clubId,
-            clubScope: persisted.filters.clubScope,
-            participation: persisted.filters.participation,
-          },
-          updatedAt: persisted.updatedAt,
-        };
-        safeSetItem(storageKey, JSON.stringify(nextPayload));
+        if (shouldSyncToUserKey) {
+          const nextPayload: PersistedTournamentFiltersState = {
+            activeTab: persisted.activeTab,
+            filters: {
+              q: persisted.filters.q,
+              when: persisted.filters.when,
+              distance: persisted.filters.distance,
+              clubId: persisted.filters.clubId,
+              clubScope: persisted.filters.clubScope,
+              participation: persisted.filters.participation,
+            },
+            updatedAt: persisted.updatedAt,
+          };
+          safeSetItem(storageKey, JSON.stringify(nextPayload));
+        }
       }
     }
 
     hydratedStorageKeyRef.current = storageKey;
-    setIsFiltersHydrated(true);
-  }, [isAuthLoading, isOrganiserOrAbove, normalizedUserId, storageKey]);
+  }, [isOrganiserOrAbove, normalizedUserId, storageKey]);
 
-  /**
-   * 💾 Persist to localStorage
-   */
   useEffect(() => {
     const storage = getLocalStorage();
     if (!storage) return;
@@ -379,8 +370,9 @@ export function useTournamentFilters({
   return {
     activeTab,
     filters: state.filters,
-    isFiltersHydrated,
-    effectiveFilters,
+    /** Always true after sync anonymous init — kept for call-site compatibility. */
+    isFiltersHydrated: true as const,
+    shapedFilters,
     filtersOpen,
     setFiltersOpen,
     setTab,

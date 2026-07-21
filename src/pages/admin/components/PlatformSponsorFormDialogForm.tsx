@@ -69,6 +69,7 @@ export function PlatformSponsorFormDialogForm({
         <SponsorLogoUploadZone
           logoUrl={form.logoUrl}
           onLogoUrlChange={(nextUrl) => setForm((prev) => ({ ...prev, logoUrl: nextUrl }))}
+          kind="sponsor_logo"
           disabled={isSaving}
         />
       </div>

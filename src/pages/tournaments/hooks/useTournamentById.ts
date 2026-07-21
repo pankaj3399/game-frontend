@@ -21,7 +21,7 @@ export function useTournamentById(id: string | null, enabled = true) {
       return fetchTournamentById(id);
     },
     enabled: !!id && enabled,
-    // Refetch when re-opening a tournament (e.g. list → details) so participants stay current.
-    refetchOnMount: "always",
+    // Respect global staleTime; still refetch when data is stale on re-open.
+    refetchOnMount: true,
   });
 }

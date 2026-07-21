@@ -3,10 +3,13 @@ import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { uploadImageFile, type AssetKind } from '@/lib/api/uploadImage';
 
 interface SponsorLogoUploadZoneProps {
 	logoUrl: string;
 	onLogoUrlChange: (nextUrl: string) => void;
+	kind?: AssetKind;
+	assetId?: string;
 	disabled?: boolean;
 	label?: string;
 	successMessage?: string;
@@ -36,6 +39,8 @@ const UPLOAD_ZONE_PREVIEW_CLASS =
 export function SponsorLogoUploadZone({
 	logoUrl,
 	onLogoUrlChange,
+	kind = 'sponsor_logo',
+	assetId,
 	disabled = false,
 	label,
 	successMessage,
@@ -68,14 +73,13 @@ export function SponsorLogoUploadZone({
 
 		setIsProcessingFile(true);
 		try {
-			const base64 = await new Promise<string>((resolve, reject) => {
-				const reader = new FileReader();
-				reader.onload = () => resolve(String(reader.result));
-				reader.onerror = () => reject(new Error('Failed to read image file'));
-				reader.readAsDataURL(file);
+			const uploaded = await uploadImageFile({
+				file,
+				kind,
+				assetId,
+				replaceUrl: trimmedLogo.startsWith('http') ? trimmedLogo : null,
 			});
-
-			onLogoUrlChange(base64);
+			onLogoUrlChange(uploaded.url);
 			toast.success(successMessage ?? t('sponsors.logoUpload.toastSuccess'));
 		} catch (error) {
 			const message =

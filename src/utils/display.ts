@@ -1,8 +1,18 @@
+import { formatListDate as formatListDateIntl } from "@/utils/listDate";
 import { formatDateOrFallback } from "@/utils/date";
 import { formatTimeTo24Hour } from "@/utils/time";
 import type { Locale } from "date-fns";
 
 type TimeRangeFormatter = (start: string, end: string) => string;
+
+/** @deprecated Prefer `@/utils/listDate` on list/critical paths. */
+export function formatListDate(
+  value: string | null | undefined,
+  fallback: string,
+  language?: string,
+) {
+  return formatListDateIntl(value, fallback, language);
+}
 
 export function formatDateDisplay(
   value: string | null,

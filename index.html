@@ -12,9 +12,43 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
 
     <title>TB10</title>
+    <style>
+      /*
+       * Critical CSS for the static boot shell below (and nothing else).
+       * Must visually match AppNavbar/App wrappers so React's first commit
+       * repaints identical pixels. Full app CSS loads asynchronously.
+       */
+      .tb10-boot-shell { min-height: 100vh; width: 100%; background: #f9fafb; }
+      .tb10-boot-header { position: sticky; top: 0; z-index: 50; height: 56px; width: 100%; background: #067429; }
+      .tb10-boot-header-inner { position: relative; margin: 0 auto; display: grid; height: 100%; width: 100%; max-width: 1440px; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; padding: 0 12px; }
+      .tb10-boot-header img { display: block; height: 28px; width: auto; }
+      @media (min-width: 768px) { .tb10-boot-header img { height: 33px; } }
+      @media (min-width: 1024px) { .tb10-boot-header { height: 60px; } .tb10-boot-header-inner { padding: 0 24px; } }
+      @media (min-width: 1280px) { .tb10-boot-header-inner { padding: 0 72px; } .tb10-boot-header img { height: 39px; } }
+    </style>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <!--
+        Static first-paint shell: paints the header and LCP logo from HTML and
+        the inline critical CSS alone, before any JS or the full stylesheet.
+        React clears it and re-renders identical pixels on mount.
+      -->
+      <div class="tb10-boot-shell">
+        <header class="tb10-boot-header">
+          <div class="tb10-boot-header-inner">
+            <img
+              src="__TB10_LOGO_SRC__"
+              alt="TB10 v1.6"
+              width="144"
+              height="28"
+              fetchpriority="high"
+              decoding="async"
+            />
+          </div>
+        </header>
+      </div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

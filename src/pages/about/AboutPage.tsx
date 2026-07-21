@@ -2,7 +2,7 @@ import { Trans, useTranslation } from "react-i18next";
 import { ShareTextButton } from "@/components/shared/ShareTextButton";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { GLOBAL_PARAMETERS } from "@/constants/constants";
+import { GLOBAL_PARAMETERS, TUTORIAL_VIDEOS } from "@/constants/constants";
 import { shareDataWithUrlInText } from "@/lib/webShare";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
@@ -69,6 +69,35 @@ export default function AboutPage() {
           </header>
 
           <div className="flex flex-col gap-2.5 p-4 sm:gap-3 sm:p-5">
+            <section
+              id="tutorial-videos"
+              className="rounded-[10px] border border-[#010a04]/10 bg-[#f9faf9] p-4 sm:p-[18px]"
+            >
+              <h2 className="mb-3 text-[18px] font-medium leading-normal text-[#010a04]">
+                {t("about.tutorialVideosTitle")}
+              </h2>
+              {TUTORIAL_VIDEOS.length > 0 ? (
+                <ul className="flex flex-col gap-2 text-[14px] leading-[1.5]">
+                  {TUTORIAL_VIDEOS.map((video) => (
+                    <li key={video.url}>
+                      <a
+                        href={video.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="font-medium text-[#067429] underline underline-offset-2"
+                      >
+                        {t(video.titleKey)}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-[14px] leading-[1.5] text-[#010a0499]">
+                  {t("about.tutorialVideosComingSoon")}
+                </p>
+              )}
+            </section>
+
             <section className="rounded-[10px] border border-[#010a04]/10 bg-[#f9faf9] p-4 sm:p-[18px]">
               <h2 className="mb-3 text-[18px] font-medium leading-normal text-[#010a04]">
                 {t("about.allowsYouTo")}
@@ -180,6 +209,31 @@ export default function AboutPage() {
                 >
                   <a href={GLOBAL_PARAMETERS.CONTACT_US_MAILTO}>{t("about.contactUs")}</a>
                 </Button>
+                {GLOBAL_PARAMETERS.USER_TERMS_URL ? (
+                  <Button
+                    asChild
+                    className="h-8 rounded-[7px] border border-[#010a04]/15 bg-brand-accent px-3 text-[11px] font-medium text-[#010a04] hover:bg-brand-accent-hover"
+                  >
+                    <a
+                      id="user-terms"
+                      href={GLOBAL_PARAMETERS.USER_TERMS_URL}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      {t("about.userTermsTitle")}
+                    </a>
+                  </Button>
+                ) : (
+                  <Button
+                    id="user-terms"
+                    type="button"
+                    disabled
+                    title={t("about.userTermsComingSoon")}
+                    className="h-8 rounded-[7px] border border-[#010a04]/15 bg-brand-accent px-3 text-[11px] font-medium text-[#010a04] hover:bg-brand-accent-hover"
+                  >
+                    {t("about.userTermsTitle")}
+                  </Button>
+                )}
               </div>
             </section>
             <div className="mt-2 text-center text-[10px] text-[#010a04]/50">

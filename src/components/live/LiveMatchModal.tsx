@@ -15,6 +15,7 @@ import LiveModalXIcon from "@/assets/icons/figma/lucide/x.svg?react";
 import LiveModalClockIcon from "@/assets/icons/figma/vuesax/linear/clock.svg?react";
 import LiveModalUserIcon from "@/assets/icons/figma/vuesax/linear/user.svg?react";
 import { getDateFnsLocale } from "@/lib/dateFnsLocale";
+import { useAuth } from "@/pages/auth/hooks";
 import {
   formatLiveMatchTeamLabel,
   normalizeDisplayNameForLabel,
@@ -110,18 +111,21 @@ function LiveMatchEnterScoreButton({
 export function LiveMatchModal() {
   const { t, i18n } = useTranslation();
   const { pathname } = useLocation();
+  const { isAuthenticated } = useAuth();
   const [dismissedMatchId, setDismissedMatchId] = useState<string | null>(null);
   const [lastActivityAt, setLastActivityAt] = useState(() => Date.now());
   const isModalSuppressedForRoute = shouldSuppressLiveMatchModal(pathname);
+  const liveMatchEnabled =
+    isAuthenticated && !isModalSuppressedForRoute;
 
-  const liveMatchQuery = useTournamentLiveMatch(!isModalSuppressedForRoute);
+  const liveMatchQuery = useTournamentLiveMatch(liveMatchEnabled);
 
   const liveMatch = liveMatchQuery.data?.liveMatch ?? null;
   const nextMatch = liveMatchQuery.data?.nextMatch ?? null;
 
   useEffect(() => {
     const liveMatchId = liveMatch?.id ?? null;
-    if (isModalSuppressedForRoute || liveMatchId == null || dismissedMatchId !== liveMatchId) {
+    if (!liveMatchEnabled || liveMatchId == null || dismissedMatchId !== liveMatchId) {
       return;
     }
 
@@ -138,11 +142,11 @@ export function LiveMatchModal() {
         window.removeEventListener(eventName, handleActivity);
       });
     };
-  }, [dismissedMatchId, isModalSuppressedForRoute, liveMatch?.id]);
+  }, [dismissedMatchId, liveMatchEnabled, liveMatch?.id]);
 
   useEffect(() => {
     const liveMatchId = liveMatch?.id ?? null;
-    if (isModalSuppressedForRoute || liveMatchId == null || dismissedMatchId !== liveMatchId) {
+    if (!liveMatchEnabled || liveMatchId == null || dismissedMatchId !== liveMatchId) {
       return;
     }
 
@@ -155,15 +159,15 @@ export function LiveMatchModal() {
     }, remainingMs);
 
     return () => window.clearTimeout(timeoutId);
-  }, [dismissedMatchId, isModalSuppressedForRoute, lastActivityAt, liveMatch?.id]);
+  }, [dismissedMatchId, liveMatchEnabled, lastActivityAt, liveMatch?.id]);
 
   const liveTournamentId = liveMatch?.tournament.id ?? null;
   const tournamentMatchesQuery = useTournamentMatches(
     liveTournamentId,
-    !isModalSuppressedForRoute && liveTournamentId !== null,
+    liveMatchEnabled && liveTournamentId !== null,
   );
 
-  if (isModalSuppressedForRoute) {
+  if (!liveMatchEnabled) {
     return null;
   }
 

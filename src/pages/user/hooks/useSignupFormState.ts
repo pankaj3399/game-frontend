@@ -14,6 +14,7 @@ export function useSignupFormState({ initialEmail }: UseSignupFormStateOptions) 
     name: "",
     dateOfBirth: undefined,
     gender: "",
+    acceptedTerms: false,
   });
 
   const clearError = (field: string) => {
@@ -45,6 +46,11 @@ export function useSignupFormState({ initialEmail }: UseSignupFormStateOptions) 
     clearError("gender");
   };
 
+  const setAcceptedTerms = (accepted: boolean) => {
+    setInputs((prev) => ({ ...prev, acceptedTerms: accepted }));
+    clearError("acceptedTerms");
+  };
+
   return {
     inputs,
     setInputs,
@@ -53,5 +59,6 @@ export function useSignupFormState({ initialEmail }: UseSignupFormStateOptions) 
     handleInputChange,
     setDateOfBirth,
     setGender,
+    setAcceptedTerms,
   };
 }

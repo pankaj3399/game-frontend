@@ -3,6 +3,7 @@ import type { SignupFieldErrors, SignupInputs } from "@/pages/user/types";
 import { UserInformationEmailField } from "@/pages/user/components/UserInformationEmailField";
 import { UserInformationIdentityFields } from "@/pages/user/components/UserInformationIdentityFields";
 import { UserInformationProfileFields } from "@/pages/user/components/UserInformationProfileFields";
+import { UserInformationTermsField } from "@/pages/user/components/UserInformationTermsField";
 import { UserInformationSubmitButton } from "@/pages/user/components/UserInformationSubmitButton";
 
 interface UserInformationFormProps {
@@ -15,6 +16,7 @@ interface UserInformationFormProps {
   onInputChange: (e: ChangeEvent<HTMLSelectElement | HTMLInputElement>) => void;
   onDateOfBirthChange: (date: Date | undefined) => void;
   onGenderChange: (value: string) => void;
+  onAcceptedTermsChange: (accepted: boolean) => void;
 }
 
 export function UserInformationForm({
@@ -27,6 +29,7 @@ export function UserInformationForm({
   onInputChange,
   onDateOfBirthChange,
   onGenderChange,
+  onAcceptedTermsChange,
 }: UserInformationFormProps) {
   return (
     <form onSubmit={onSubmit} className="space-y-0">
@@ -54,6 +57,12 @@ export function UserInformationForm({
           genderError={fieldErrors.gender}
           onDateOfBirthChange={onDateOfBirthChange}
           onGenderChange={onGenderChange}
+        />
+
+        <UserInformationTermsField
+          accepted={inputs.acceptedTerms}
+          error={fieldErrors.acceptedTerms}
+          onAcceptedChange={onAcceptedTermsChange}
         />
       </div>
 

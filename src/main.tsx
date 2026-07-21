@@ -3,16 +3,37 @@ import { createRoot } from 'react-dom/client'
 import { QueryClientProvider } from '@tanstack/react-query'
 import { BrowserRouter } from 'react-router-dom'
 import { queryClient } from '@/lib/api/queryClient'
+import { seedPrerenderedTournaments } from '@/lib/prerender/seedTournaments'
 import './i18n'
 import './styles/globals.css'
 import App from './App'
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <App />
-      </BrowserRouter>
-    </QueryClientProvider>
-  </StrictMode>,
-)
+seedPrerenderedTournaments(queryClient)
+
+/**
+ * The production stylesheet loads async (see async-full-css in vite.config) so
+ * the static boot shell in index.html can paint first. Don't let React replace
+ * the shell with unstyled markup in the rare case JS beats CSS — wait briefly.
+ */
+function whenAppCssReady(): Promise<void> {
+  const link = document.querySelector<HTMLLinkElement>('link[data-app-css]')
+  if (!link || link.rel === 'stylesheet') return Promise.resolve()
+  return new Promise((resolve) => {
+    const done = () => resolve()
+    link.addEventListener('load', done, { once: true })
+    link.addEventListener('error', done, { once: true })
+    window.setTimeout(done, 3000)
+  })
+}
+
+void whenAppCssReady().then(() => {
+  createRoot(document.getElementById('root')!).render(
+    <StrictMode>
+      <QueryClientProvider client={queryClient}>
+        <BrowserRouter>
+          <App />
+        </BrowserRouter>
+      </QueryClientProvider>
+    </StrictMode>,
+  )
+})

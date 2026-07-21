@@ -64,6 +64,7 @@ export function useTournamentMatches(id: string | null, enabled = true) {
       return fetchTournamentMatches(id);
     },
     enabled: Boolean(id) && enabled,
-    refetchInterval: 60_000,
+    // Poll while this query has active observers (active Matches/Results tab or live modal).
+    refetchInterval: enabled ? 60_000 : false,
   });
 }

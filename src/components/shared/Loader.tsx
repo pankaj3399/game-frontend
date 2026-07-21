@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
-import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 import { cn } from "@/lib/utils";
+import InlineLoader from "@/components/shared/InlineLoader";
 
 export default function Loader({ className }: { className?: string }) {
   const { t } = useTranslation();
@@ -8,18 +8,18 @@ export default function Loader({ className }: { className?: string }) {
   return (
     <section
       className={cn(
-        "w-full h-[calc(100vh-80px)] flex justify-center items-center flex-col overflow-hidden",
-        className
+        "flex h-[calc(100vh-80px)] w-full flex-col items-center justify-center gap-4 overflow-hidden",
+        className,
       )}
+      role="status"
+      aria-live="polite"
+      aria-busy="true"
     >
-      <DotLottieReact
-        src="/tennis-ball.json"
-        loop
-        autoplay
-        mode="bounce"
-        className="w-full h-full"
+      <InlineLoader
+        size="lg"
+        className="border-brand-primary/20 border-t-brand-primary"
       />
-      <p className="font-secondary text-2xl text-brand-black/60 -mt-28">
+      <p className="font-secondary text-2xl text-brand-black/60">
         {t("common.loading")}
       </p>
     </section>

@@ -23,6 +23,7 @@ export function useUserInformationForm({
     handleInputChange,
     setDateOfBirth,
     setGender,
+    setAcceptedTerms,
   } = useSignupFormState({
     initialEmail: requiresEmailInput ? "" : displayEmail,
   });
@@ -63,5 +64,6 @@ export function useUserInformationForm({
     handleInputChange,
     setDateOfBirth,
     setGender,
+    setAcceptedTerms,
   };
 }

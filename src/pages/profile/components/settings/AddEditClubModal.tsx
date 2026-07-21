@@ -17,6 +17,7 @@ import InlineLoader from "@/components/shared/InlineLoader";
 import { useAddEditClubForm } from "./add-edit-club-modal/useAddEditClubForm";
 import { ClubCourtsEditor } from "./add-edit-club-modal/ClubCourtsEditor";
 import { toast } from "sonner";
+import { uploadImageFile } from "@/lib/api/uploadImage";
 
 const MAX_CLUB_LOGO_SIZE_MB = 2;
 const ACCEPTED_LOGO_MIME_TYPES = ["image/png", "image/jpeg", "image/jpg"];
@@ -67,17 +68,17 @@ export function AddEditClubModal({
     }
     setIsProcessingLogo(true);
     try {
-      const base64 = await new Promise<string>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(String(reader.result));
-        reader.onerror = () => reject(new Error(t("settings.adminClubsLogoUploadError")));
-        reader.readAsDataURL(file);
-      });
       const previousLogo = currentForm.logoUrl;
-      setField("logoUrl", base64);
+      const uploaded = await uploadImageFile({
+        file,
+        kind: "club_logo",
+        assetId: editClubId ?? undefined,
+        replaceUrl: previousLogo.startsWith("http") ? previousLogo : null,
+      });
+      setField("logoUrl", uploaded.url);
       if (isEdit && editClubId) {
         try {
-          await updateClub.mutateAsync({ clubId: editClubId, data: { logoUrl: base64 } });
+          await updateClub.mutateAsync({ clubId: editClubId, data: { logoUrl: uploaded.url } });
         } catch (error) {
           setField("logoUrl", previousLogo);
           throw error;

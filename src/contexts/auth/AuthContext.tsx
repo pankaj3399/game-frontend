@@ -1,7 +1,9 @@
 import type { ReactNode } from "react";
+import { useCallback, useMemo } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { clearAuthToken } from "@/lib/auth";
-import { api, queryKeys } from "@/lib/api";
+import { clearAuthToken } from "@/lib/auth/storage";
+import { api } from "@/lib/api/client";
+import { queryKeys } from "@/lib/api/queryKeys";
 import { isAxiosError } from "axios";
 import { AuthContext, type AuthContextValue, type AuthUser } from "./context";
 
@@ -22,6 +24,12 @@ async function fetchMe(): Promise<AuthUser | null> {
   }
 }
 
+function isUnauthStatus(error: unknown): boolean {
+  if (!isAxiosError(error)) return false;
+  const st = error.response?.status;
+  return st === 401 || st === 403 || st === 404;
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient();
 
@@ -29,9 +37,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     queryKey: authMeQueryKey,
     queryFn: fetchMe,
     retry: false,
+    // Session rarely changes; avoid /auth/me on every route remount / reconnect burst.
+    staleTime: 5 * 60_000,
   });
 
-  const logout = async () => {
+  const logout = useCallback(async () => {
     clearAuthToken();
     try {
       await api.post("/api/auth/logout");
@@ -60,55 +70,67 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       queryKey: authMeQueryKey,
       refetchType: "none",
     });
-  };
+  }, [queryClient]);
 
   /** Re-read the current session from the server. */
-  const checkAuth = async () => {
+  const checkAuth = useCallback(async () => {
     await queryClient.invalidateQueries({ queryKey: authMeQueryKey });
     return queryClient.fetchQuery<AuthUser | null>({
       queryKey: authMeQueryKey,
       queryFn: fetchMe,
     });
-  };
+  }, [queryClient]);
 
-  const confirmedUnauthenticated = (() => {
-    if (!error) return false;
-    if (isAxiosError(error)) {
-      const st = error.response?.status;
-      return st === 401 || st === 403 || st === 404;
-    }
-    return false;
-  })();
+  const confirmedUnauthenticated = Boolean(error && isUnauthStatus(error));
+  const authCheckFailed = Boolean(error && !isUnauthStatus(error));
+  const isRetryable = Boolean(
+    error &&
+      (!isAxiosError(error) ||
+        !error.response ||
+        error.response.status >= 500),
+  );
 
-  const authCheckFailed = (() => {
-    if (!error) return false;
-    if (isAxiosError(error)) {
-      const st = error.response?.status;
-      return !(st === 401 || st === 403 || st === 404);
-    }
-    return true;
-  })();
+  const resolvedUser = user ?? null;
+  const isAuthenticated =
+    !!resolvedUser && !authCheckFailed && !confirmedUnauthenticated;
+  const isProfileComplete = !!(
+    resolvedUser?.alias?.trim() && resolvedUser?.name?.trim()
+  );
 
-  const isRetryable = (() => {
-    if (!error) return false;
-    if (isAxiosError(error)) {
-      return !error.response || (error.response.status >= 500);
-    }
-    return true;
-  })();
+  // Stable string so consumers don't re-render on new Error object identity.
+  const authErrorMessage =
+    authCheckFailed && error instanceof Error
+      ? error.message
+      : authCheckFailed
+        ? "Auth check failed"
+        : undefined;
 
-  const value: AuthContextValue = {
-    user: user ?? null,
-    loading: isLoading,
-    isAuthenticated: !!user && !authCheckFailed && !confirmedUnauthenticated,
-    isProfileComplete: !!(user?.alias?.trim() && user?.name?.trim()),
-    checkAuth,
-    logout,
-    confirmedUnauthenticated,
-    authCheckFailed,
-    authError: error ?? undefined,
-    isRetryable,
-  };
+  const value = useMemo<AuthContextValue>(
+    () => ({
+      user: resolvedUser,
+      loading: isLoading,
+      isAuthenticated,
+      isProfileComplete,
+      checkAuth,
+      logout,
+      confirmedUnauthenticated,
+      authCheckFailed,
+      authError: authErrorMessage,
+      isRetryable,
+    }),
+    [
+      resolvedUser,
+      isLoading,
+      isAuthenticated,
+      isProfileComplete,
+      checkAuth,
+      logout,
+      confirmedUnauthenticated,
+      authCheckFailed,
+      authErrorMessage,
+      isRetryable,
+    ],
+  );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
