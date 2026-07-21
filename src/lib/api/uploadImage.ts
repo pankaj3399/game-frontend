@@ -34,17 +34,20 @@ export async function uploadImageFile(params: {
     | "image/jpeg"
     | "image/jpg"
     | "image/webp";
+  const normalizedType = contentType === "image/jpg" ? "image/jpeg" : contentType;
 
   const { data: presign } = await api.post<PresignResponse>("/api/uploads/presign", {
     kind: params.kind,
-    contentType: contentType === "image/jpg" ? "image/jpeg" : contentType,
+    contentType: normalizedType,
     assetId: params.assetId,
+    contentLength: file.size,
   });
 
   const putResponse = await fetch(presign.uploadUrl, {
     method: "PUT",
     headers: {
-      "Content-Type": contentType === "image/jpg" ? "image/jpeg" : contentType,
+      "Content-Type": normalizedType,
+      "Content-Length": String(file.size),
     },
     body: file,
   });
