@@ -382,6 +382,7 @@
     "manageClubs": "Gestionar clubes",
     "noClubsYet": "Aún no hay clubes.",
     "viewDetails": "Ver detalles",
+    "openClubCard": "Abrir club: {{name}}",
     "clubNotFound": "Club no encontrado.",
     "backToClubs": "Volver a los clubes",
     "goBack": "Volver",

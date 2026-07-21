@@ -382,6 +382,7 @@
     "manageClubs": "Hantera klubbar",
     "noClubsYet": "Inga klubbar ännu.",
     "viewDetails": "Visa detaljer",
+    "openClubCard": "Öppna klubb: {{name}}",
     "clubNotFound": "Klubben hittades inte.",
     "backToClubs": "Tillbaka till klubbar",
     "goBack": "Gå tillbaka",
