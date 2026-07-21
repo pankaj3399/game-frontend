@@ -380,6 +380,7 @@
     "manageClubs": "Vereine verwalten",
     "noClubsYet": "Noch keine Vereine.",
     "viewDetails": "Details anzeigen",
+    "openClubCard": "Club öffnen: {{name}}",
     "clubNotFound": "Verein nicht gefunden.",
     "backToClubs": "Zurück zu Vereinen",
     "goBack": "Zurück",

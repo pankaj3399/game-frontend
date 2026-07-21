@@ -380,6 +380,7 @@
     "manageClubs": "Gérer les clubs",
     "noClubsYet": "Aucun club pour l'instant.",
     "viewDetails": "Voir les détails",
+    "openClubCard": "Ouvrir le club : {{name}}",
     "clubNotFound": "Club introuvable.",
     "backToClubs": "Retour aux clubs",
     "goBack": "Retour",
