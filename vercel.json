@@ -1,6 +1,14 @@
 {
   "rewrites": [
     {
+      "source": "/tournaments",
+      "destination": "/tournaments/index.html"
+    },
+    {
+      "source": "/tournaments/",
+      "destination": "/tournaments/index.html"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }
