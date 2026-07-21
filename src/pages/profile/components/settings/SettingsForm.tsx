@@ -23,7 +23,7 @@ import InlineLoader from "@/components/shared/InlineLoader";
 import { Calendar03Icon, Delete01Icon, Upload01Icon } from "@/icons/figma-icons";
 import { toast } from "sonner";
 import { formatDateForApi, parseIsoDateSafely } from "@/utils/date";
-import { uploadImageFile } from "@/lib/api/uploadImage";
+import { uploadImageFile, deleteUploadedImage } from "@/lib/api/uploadImage";
 
 const inputClassName =
   "h-[38px] w-full rounded-[8px] border border-[#e1e3e8] bg-[#f9fafc] px-3 text-[14px] text-[#010a04] placeholder:text-[#010a04]/45 transition-colors focus-visible:border-[#9ca3af] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#9ca3af] disabled:opacity-100";
@@ -106,7 +106,6 @@ export function SettingsForm({ user }: { user: AuthUser }) {
         file,
         kind: "user_avatar",
         assetId: user.id,
-        replaceUrl: prev.startsWith("http") ? prev : null,
       });
 
       setInputs((prevInputs) => ({ ...prevInputs, profilePictureUrl: uploaded.url }));
@@ -116,6 +115,7 @@ export function SettingsForm({ user }: { user: AuthUser }) {
         toast.error(result.message);
         return;
       }
+      void deleteUploadedImage(prev.startsWith("http") ? prev : null);
       toast.success(t("settings.profilePictureUploadSuccess"));
     } catch (error) {
       setInputs((prevInputs) => ({ ...prevInputs, profilePictureUrl: prev }));

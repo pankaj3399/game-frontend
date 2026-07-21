@@ -77,14 +77,20 @@ void i18n
   .then(async () => {
     const detected = toLanguageCode(i18n.resolvedLanguage ?? i18n.language)
     if (detected === 'en') return
-    await ensureLocaleLoaded(detected)
-    if (i18n.language !== detected) {
-      await i18n.changeLanguage(detected)
+    try {
+      await ensureLocaleLoaded(detected)
+      if (i18n.language !== detected) {
+        await i18n.changeLanguage(detected)
+      }
+    } catch {
+      // Keep English fallback if a locale chunk fails to load.
     }
   })
 
 i18n.on('languageChanged', (lng) => {
-  void ensureLocaleLoaded(lng)
+  void ensureLocaleLoaded(lng).catch(() => {
+    /* ignore — UI stays on previously loaded / English bundle */
+  })
 })
 
 export default i18n

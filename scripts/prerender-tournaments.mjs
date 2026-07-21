@@ -193,8 +193,14 @@ function injectIntoTemplate(templateHtml, rootMarkup, payload) {
   )
 
   // Replace the entire #root inner content (boot shell → list shell).
+  const rootPattern = /<div id="root">[\s\S]*?<\/div>\s*(?=<script)/
+  if (!rootPattern.test(html)) {
+    throw new Error(
+      '[prerender] could not locate <div id="root">…</div> before <script> in dist/index.html',
+    )
+  }
   html = html.replace(
-    /<div id="root">[\s\S]*?<\/div>\s*(?=<script)/,
+    rootPattern,
     `<div id="root">\n      ${rootMarkup}\n    </div>\n    `,
   )
 

@@ -17,7 +17,7 @@ import InlineLoader from "@/components/shared/InlineLoader";
 import { useAddEditClubForm } from "./add-edit-club-modal/useAddEditClubForm";
 import { ClubCourtsEditor } from "./add-edit-club-modal/ClubCourtsEditor";
 import { toast } from "sonner";
-import { uploadImageFile } from "@/lib/api/uploadImage";
+import { uploadImageFile, deleteUploadedImage } from "@/lib/api/uploadImage";
 
 const MAX_CLUB_LOGO_SIZE_MB = 2;
 const ACCEPTED_LOGO_MIME_TYPES = ["image/png", "image/jpeg", "image/jpg"];
@@ -73,12 +73,14 @@ export function AddEditClubModal({
         file,
         kind: "club_logo",
         assetId: editClubId ?? undefined,
-        replaceUrl: previousLogo.startsWith("http") ? previousLogo : null,
       });
       setField("logoUrl", uploaded.url);
       if (isEdit && editClubId) {
         try {
           await updateClub.mutateAsync({ clubId: editClubId, data: { logoUrl: uploaded.url } });
+          void deleteUploadedImage(
+            previousLogo.startsWith("http") ? previousLogo : null,
+          );
         } catch (error) {
           setField("logoUrl", previousLogo);
           throw error;

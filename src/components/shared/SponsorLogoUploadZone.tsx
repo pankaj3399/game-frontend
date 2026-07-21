@@ -77,7 +77,6 @@ export function SponsorLogoUploadZone({
 				file,
 				kind,
 				assetId,
-				replaceUrl: trimmedLogo.startsWith('http') ? trimmedLogo : null,
 			});
 			onLogoUrlChange(uploaded.url);
 			toast.success(successMessage ?? t('sponsors.logoUpload.toastSuccess'));
