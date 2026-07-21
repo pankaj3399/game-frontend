@@ -11,6 +11,8 @@ async function fetchTournamentById(id: string): Promise<TournamentDetailResponse
   return tournamentDetailResponseSchema.parse(res.data);
 }
 
+export { fetchTournamentById };
+
 export function useTournamentById(id: string | null, enabled = true) {
   return useQuery({
     queryKey: queryKeys.tournament.detail(id),

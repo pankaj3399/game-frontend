@@ -104,6 +104,7 @@ async function fetchTournaments(baseUrl) {
         totalPages: 1,
       },
       filters: DEFAULT_FILTERS,
+      generatedAt: Date.now(),
     }
   } finally {
     clearTimeout(timeout)

@@ -12,7 +12,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
-import { api } from "@/lib/api";
 import { queryKeys } from "@/lib/api/queryKeys";
 import type {
   TournamentListItem,
@@ -137,10 +136,12 @@ export function TournamentTable({
   const prefetchTournament = (id: string) => {
     void queryClient.prefetchQuery({
       queryKey: queryKeys.tournament.detail(id),
-      // Trust API shape on prefetch (same contract as list); avoid pulling zod into the list chunk.
+      // Dynamic import keeps zod off the list chunk until a row is hovered.
       queryFn: async () => {
-        const res = await api.get(`/api/tournaments/${id}`);
-        return res.data;
+        const { fetchTournamentById } = await import(
+          "@/pages/tournaments/hooks/useTournamentById"
+        );
+        return fetchTournamentById(id);
       },
     });
   };

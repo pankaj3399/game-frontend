@@ -20,8 +20,8 @@ api.interceptors.request.use((config) => {
   }
   // Let the browser set multipart boundary; instance default is application/json.
   if (typeof FormData !== "undefined" && config.data instanceof FormData) {
-    if (typeof config.headers.set === "function") {
-      config.headers.set("Content-Type", undefined);
+    if (typeof config.headers.delete === "function") {
+      config.headers.delete("Content-Type");
     } else {
       delete (config.headers as Record<string, unknown>)["Content-Type"];
     }

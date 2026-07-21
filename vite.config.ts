@@ -1,4 +1,4 @@
-import { defineConfig } from 'vite'
+import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import svgr from 'vite-plugin-svgr'
@@ -14,27 +14,35 @@ function shortSha(value: string): string {
   return trimmed.length <= 7 ? trimmed : trimmed.slice(0, 7)
 }
 
-const trimmedViteCommitSha = process.env.VITE_COMMIT_SHA?.trim()
-const commitShaFromVite =
-  trimmedViteCommitSha && trimmedViteCommitSha.length > 0
-    ? shortSha(trimmedViteCommitSha)
-    : null
+export default defineConfig(({ mode }) => {
+  // Vite does not auto-load .env into process.env for config/plugins — do it
+  // explicitly so preconnect-api-origin sees REACT_APP_BACKEND_URL locally.
+  const env = loadEnv(mode, __dirname, ['VITE_', 'REACT_APP_'])
+  for (const [key, value] of Object.entries(env)) {
+    if (process.env[key] === undefined) process.env[key] = value
+  }
 
-const trimmedVercelSha = process.env.VERCEL_GIT_COMMIT_SHA?.trim()
+  const trimmedViteCommitSha = process.env.VITE_COMMIT_SHA?.trim()
+  const commitShaFromVite =
+    trimmedViteCommitSha && trimmedViteCommitSha.length > 0
+      ? shortSha(trimmedViteCommitSha)
+      : null
 
-const commitSha =
-  commitShaFromVite ??
-  (trimmedVercelSha && trimmedVercelSha.length > 0
-    ? shortSha(trimmedVercelSha)
-    : (() => {
-        try {
-          return execSync('git rev-parse --short HEAD', { encoding: 'utf8' }).trim()
-        } catch {
-          return 'dev'
-        }
-      })())
+  const trimmedVercelSha = process.env.VERCEL_GIT_COMMIT_SHA?.trim()
 
-export default defineConfig({
+  const commitSha =
+    commitShaFromVite ??
+    (trimmedVercelSha && trimmedVercelSha.length > 0
+      ? shortSha(trimmedVercelSha)
+      : (() => {
+          try {
+            return execSync('git rev-parse --short HEAD', { encoding: 'utf8' }).trim()
+          } catch {
+            return 'dev'
+          }
+        })())
+
+  return {
   envPrefix: ['VITE_', 'REACT_APP_'],
   define: {
     'import.meta.env.VITE_COMMIT_SHA': JSON.stringify(commitSha),
@@ -231,4 +239,5 @@ export default defineConfig({
 
     chunkSizeWarningLimit: 500,
   },
+}
 })

@@ -95,16 +95,15 @@ export async function maybeCompressImage(file: File): Promise<File> {
   const { width, height } = await getImageDimensions(image);
   const outputMime = pickOutputMime(file);
 
-  const scaleByWidth = MAX_WIDTH / width;
-  const scaleByHeight = MAX_HEIGHT / height;
-  // Match the article: try both scales, pick the smaller blob, then vs original.
-  const [blobByWidth, blobByHeight] = await Promise.all([
-    compressImage(image, Math.min(1, scaleByWidth), width, height, outputMime, JPEG_QUALITY),
-    compressImage(image, Math.min(1, scaleByHeight), width, height, outputMime, JPEG_QUALITY),
-  ]);
-
-  const compressedBlob =
-    blobByWidth.size <= blobByHeight.size ? blobByWidth : blobByHeight;
+  const scale = Math.min(1, MAX_WIDTH / width, MAX_HEIGHT / height);
+  const compressedBlob = await compressImage(
+    image,
+    scale,
+    width,
+    height,
+    outputMime,
+    JPEG_QUALITY,
+  );
 
   if (compressedBlob.size >= file.size) {
     return file;

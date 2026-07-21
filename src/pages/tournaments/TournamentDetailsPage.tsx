@@ -2,6 +2,7 @@ import { Link, Navigate, useParams, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Suspense, lazy, useState } from "react";
 import { ShareTextButton } from "@/components/shared/ShareTextButton";
+import InlineLoader from "@/components/shared/InlineLoader";
 import { ChevronLeft, PencilEdit01Icon, Upload01Icon } from "@/icons/figma-icons";
 import { Button } from "@/components/ui/button";
 import {
@@ -299,7 +300,20 @@ export default function TournamentDetailsPage() {
         />
 
         {showEditModal ? (
-          <Suspense fallback={null}>
+          <Suspense
+            fallback={
+              <div
+                className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+                role="status"
+                aria-live="polite"
+              >
+                <div className="flex items-center gap-2 rounded-[10px] bg-white px-4 py-3 text-[14px] text-[#010a04] shadow-lg">
+                  <InlineLoader size="sm" />
+                  <span>{t("common.loading")}</span>
+                </div>
+              </div>
+            }
+          >
             <CreateTournamentModal
               open={showEditModal}
               onOpenChange={setShowEditModal}

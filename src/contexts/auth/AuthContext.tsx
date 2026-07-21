@@ -81,7 +81,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
   }, [queryClient]);
 
-  const confirmedUnauthenticated = Boolean(error && isUnauthStatus(error));
+  // fetchMe maps 401/403/404 → null (success), so "logged out" is data===null,
+  // not an error. Only treat HTTP unauth statuses as a secondary signal.
+  const confirmedUnauthenticated =
+    (!isLoading && user === null && !error) ||
+    Boolean(error && isUnauthStatus(error));
   const authCheckFailed = Boolean(error && !isUnauthStatus(error));
   const isRetryable = Boolean(
     error &&
@@ -91,8 +95,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 
   const resolvedUser = user ?? null;
-  const isAuthenticated =
-    !!resolvedUser && !authCheckFailed && !confirmedUnauthenticated;
+  const isAuthenticated = !!resolvedUser && !authCheckFailed;
   const isProfileComplete = !!(
     resolvedUser?.alias?.trim() && resolvedUser?.name?.trim()
   );

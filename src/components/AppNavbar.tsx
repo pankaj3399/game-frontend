@@ -166,6 +166,8 @@ export function AppNavbar() {
   const handleLogout = useCallback(async () => {
     try {
       await logout();
+    } catch {
+      // Still leave the session UI even if the logout request fails.
     } finally {
       navigate("/login", { replace: true });
     }
@@ -249,8 +251,13 @@ export function AppNavbar() {
                     <UserIcon size={16} className="text-[#010a04]" />
                     {t("common.login")}
                   </Link>
+                ) : isLgUp ? (
+                  <div className="h-[34px] w-[90px]" aria-hidden />
                 ) : (
-                  <div className="hidden h-[34px] w-[90px] lg:block" />
+                  <div
+                    className="h-7 w-7 animate-pulse rounded-md bg-white/20"
+                    aria-hidden
+                  />
                 )
               }
             >

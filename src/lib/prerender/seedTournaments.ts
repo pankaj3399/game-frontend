@@ -8,6 +8,8 @@ type PrerenderPayload = TournamentsResponse & {
     limit?: number;
     when?: "future" | "past";
   };
+  /** Epoch ms when the build-time fetch completed (drives Query cache freshness). */
+  generatedAt?: number;
 };
 
 declare global {
@@ -38,7 +40,7 @@ export function seedPrerenderedTournaments(queryClient: QueryClient): void {
     when: payload.filters?.when ?? PRERENDER_TOURNAMENT_FILTERS.when,
   };
 
-  queryClient.setQueryData(queryKeys.tournament.list(filters), {
+  const data = {
     tournaments: payload.tournaments,
     pagination: payload.pagination ?? {
       total: payload.tournaments.length,
@@ -46,6 +48,13 @@ export function seedPrerenderedTournaments(queryClient: QueryClient): void {
       limit: filters.limit,
       totalPages: 1,
     },
+  };
+
+  queryClient.setQueryData(queryKeys.tournament.list(filters), data, {
+    updatedAt:
+      typeof payload.generatedAt === "number" && Number.isFinite(payload.generatedAt)
+        ? payload.generatedAt
+        : Date.now(),
   });
 
   // One-shot: avoid re-seeding on HMR / remounts with stale build data.

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from "react";
+import { useRef, useState, type ChangeEvent, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { format } from "date-fns";
 import { Field, FieldLabel } from "@/components/ui/field";
@@ -48,7 +48,7 @@ export function SettingsForm({ user }: { user: AuthUser }) {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [inputs, setInputs] = useState(() => getInitialInputs(user));
   const [isProcessingImage, setIsProcessingImage] = useState(false);
-  const [imageFailed, setImageFailed] = useState(false);
+  const [failedImageUrl, setFailedImageUrl] = useState<string | null>(null);
   const { updateProfile, isLoading } = useUpdateProfile();
   const initials =
     [inputs.name, inputs.alias]
@@ -57,10 +57,9 @@ export function SettingsForm({ user }: { user: AuthUser }) {
       .join("")
       .toUpperCase()
       .slice(0, 2) || "?";
-
-  useEffect(() => {
-    setImageFailed(false);
-  }, [inputs.profilePictureUrl]);
+  const imageFailed =
+    Boolean(inputs.profilePictureUrl) &&
+    failedImageUrl === inputs.profilePictureUrl;
 
   const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -171,7 +170,7 @@ export function SettingsForm({ user }: { user: AuthUser }) {
                     src={inputs.profilePictureUrl}
                     alt={t("settings.profilePicture")}
                     className="size-full object-cover"
-                    onError={() => setImageFailed(true)}
+                    onError={() => setFailedImageUrl(inputs.profilePictureUrl)}
                   />
                 ) : (
                   <span>{initials}</span>

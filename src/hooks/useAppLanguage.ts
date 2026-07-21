@@ -13,7 +13,11 @@ export function useAppLanguage() {
 
   const changeLanguage = (code: AppLanguageCode) => {
     if (code === currentCode) return;
-    void ensureLocaleLoaded(code).then(() => i18n.changeLanguage(code));
+    void ensureLocaleLoaded(code)
+      .then(() => i18n.changeLanguage(code))
+      .catch(() => {
+        /* keep previous language if the locale chunk fails to load */
+      });
   };
 
   return { currentCode, current, changeLanguage };
