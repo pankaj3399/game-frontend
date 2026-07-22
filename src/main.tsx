@@ -4,7 +4,6 @@ import { QueryClientProvider } from '@tanstack/react-query'
 import { BrowserRouter } from 'react-router-dom'
 import { queryClient } from '@/lib/api/queryClient'
 import {
-  seedGuestAuthMe,
   seedPrerenderedTournaments,
 } from '@/lib/prerender/seedTournaments'
 import './i18n'
@@ -12,7 +11,6 @@ import './styles/globals.css'
 import App from './App'
 
 seedPrerenderedTournaments(queryClient)
-seedGuestAuthMe(queryClient)
 
 /**
  * The production stylesheet loads async (see async-full-css in vite.config) so

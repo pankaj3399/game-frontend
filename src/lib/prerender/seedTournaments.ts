@@ -1,6 +1,5 @@
 import type { QueryClient } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/api/queryKeys";
-import { getAuthToken } from "@/lib/auth/storage";
 import type { TournamentsResponse } from "@/models/tournament/types";
 
 type PrerenderPayload = TournamentsResponse & {
@@ -78,32 +77,5 @@ export function seedPrerenderedTournaments(queryClient: QueryClient): void {
     delete window.__TB10_PRERENDER__;
   } catch {
     /* ignore */
-  }
-}
-
-/**
- * Guest cold loads always hit `/api/auth/me`. When there is no client JWT,
- * seed `null` as fresh so Lighthouse / anonymous visitors skip that round-trip
- * for AuthContext's staleTime (5m). Cookie-only sessions still refetch because
- * we cannot prove a session from localStorage alone — only skip when a Bearer
- * token is absent; AuthContext will still run if we detect a session cookie.
- */
-export function seedGuestAuthMe(queryClient: QueryClient): void {
-  if (typeof window === "undefined") return;
-  if (getAuthToken()) return;
-  if (hasLikelySessionCookie()) return;
-
-  queryClient.setQueryData(queryKeys.auth.me(), null, {
-    updatedAt: Date.now(),
-  });
-}
-
-function hasLikelySessionCookie(): boolean {
-  try {
-    return /(?:^|;\s*)(better-auth\.session_token|session_token|__session|ba_session)=/i.test(
-      document.cookie,
-    );
-  } catch {
-    return false;
   }
 }

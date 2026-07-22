@@ -78,6 +78,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       queryKey: authMeQueryKey,
       queryFn: fetchMe,
       staleTime: 0,
+      retry: false,
     });
   }, [queryClient]);
 

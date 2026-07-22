@@ -221,6 +221,8 @@ export function useTournamentFilters({
     getStorageKey(ANONYMOUS_USER_STORAGE_ID),
   );
   const skipNextPersistRef = useRef(true);
+  /** When set, the next real persist write keeps this timestamp (hydrate must not bump updatedAt). */
+  const preserveUpdatedAtRef = useRef<number | null>(null);
   const deferredPersistAppliedRef = useRef(false);
   const normalizedUserId = userId || ANONYMOUS_USER_STORAGE_ID;
   const storageKey = getStorageKey(normalizedUserId);
@@ -331,6 +333,7 @@ export function useTournamentFilters({
         filters: persisted.filters,
       },
     });
+    preserveUpdatedAtRef.current = persisted.updatedAt;
     skipNextPersistRef.current = true;
   }, []);
 
@@ -352,6 +355,7 @@ export function useTournamentFilters({
           filters: persisted.filters,
         },
       });
+      preserveUpdatedAtRef.current = persisted.updatedAt;
       skipNextPersistRef.current = true;
 
       if (normalizedUserId !== ANONYMOUS_USER_STORAGE_ID) {
@@ -390,6 +394,9 @@ export function useTournamentFilters({
       return;
     }
 
+    const updatedAt = preserveUpdatedAtRef.current ?? Date.now();
+    preserveUpdatedAtRef.current = null;
+
     const storagePayload = {
       activeTab,
       filters: {
@@ -400,7 +407,7 @@ export function useTournamentFilters({
         clubScope: state.filters.clubScope,
         participation: state.filters.participation,
       },
-      updatedAt: Date.now(),
+      updatedAt,
     };
 
     safeSetItem(storageKey, JSON.stringify(storagePayload));

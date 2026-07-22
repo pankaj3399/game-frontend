@@ -1,20 +1,16 @@
-import { lazy, Suspense, useEffect } from "react";
+import { lazy, Suspense } from "react";
 import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
 
 /**
  * DotLottie + WASM stay in a separate async chunk so /tournaments cold load
- * does not pay ~300KB+ JS on the critical path. Prefetch as soon as Loader
- * mounts; Suspense shows an empty reserved frame (not a PNG/CSS spinner).
+ * does not pay ~300KB+ JS on the critical path. Suspense shows an empty
+ * reserved frame (not a PNG/CSS spinner) until the chunk loads.
  */
 const TennisBallAnimation = lazy(() => import("./TennisBallAnimation"));
 
 export default function Loader({ className }: { className?: string }) {
   const { t } = useTranslation();
-
-  useEffect(() => {
-    void import("./TennisBallAnimation");
-  }, []);
 
   return (
     <section
