@@ -76,7 +76,7 @@ export default defineConfig(({ mode }) => {
         const bundle = ctx.bundle
         if (!bundle) {
           // Dev server: point the static shell at the source asset.
-          return html.replace(
+          return html.replaceAll(
             '__TB10_LOGO_SRC__',
             '/src/assets/icons/figma/misc/tb10-logo-frame8.svg',
           )
@@ -87,7 +87,7 @@ export default defineConfig(({ mode }) => {
         if (!logoAsset) return html
         const href = logoAsset.startsWith('/') ? logoAsset : `/${logoAsset}`
         return html
-          .replace('__TB10_LOGO_SRC__', href)
+          .replaceAll('__TB10_LOGO_SRC__', href)
           .replace(
             '</head>',
             `    <link rel="preload" as="image" href="${href}" type="image/svg+xml" fetchpriority="high" />\n  </head>`,

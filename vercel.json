@@ -1,4 +1,11 @@
 {
+  "redirects": [
+    {
+      "source": "/",
+      "destination": "/tournaments",
+      "permanent": false
+    }
+  ],
   "rewrites": [
     {
       "source": "/tournaments",

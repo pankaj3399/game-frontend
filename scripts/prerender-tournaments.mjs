@@ -2,7 +2,7 @@
  * Build-time prerender for GET /tournaments (guest default filters).
  *
  * Writes dist/tournaments/index.html with:
- * - Same boot shell as the SPA (navbar + logo) for instant FCP
+ * - Same boot shell as the SPA (navbar matching AppNavbar guest chrome)
  * - Real tournament rows when the API is reachable (LCP content)
  * - window.__TB10_PRERENDER__ so TanStack Query can seed without a cold fetch
  *
@@ -124,10 +124,21 @@ function renderRows(tournaments) {
       const live = t.isLive
         ? `<span class="tb10-prerender-live">Live</span>`
         : ''
+      const initial = escapeHtml(
+        String(t.club?.name ?? '?').trim().charAt(0).toUpperCase() || '?',
+      )
+      const logo = typeof t.club?.logoUrl === 'string' ? t.club.logoUrl.trim() : ''
+      const badge = logo
+        ? `<span class="tb10-prerender-badge" aria-hidden="true"><img src="${escapeHtml(logo)}" alt="" loading="lazy" decoding="async" /></span>`
+        : `<span class="tb10-prerender-badge" aria-hidden="true"><span class="tb10-prerender-initial">${initial}</span></span>`
       return `<li class="tb10-prerender-row">
   <a class="tb10-prerender-link" href="${href}">
-    <span class="tb10-prerender-name">${name}${live}</span>
-    <span class="tb10-prerender-meta">${club} · ${date}</span>
+    ${badge}
+    <span class="tb10-prerender-copy">
+      <span class="tb10-prerender-name">${name}${live}</span>
+      <span class="tb10-prerender-meta">${club}</span>
+      <span class="tb10-prerender-date">${date}</span>
+    </span>
   </a>
 </li>`
     })
@@ -136,22 +147,189 @@ function renderRows(tournaments) {
 
 function prerenderCss() {
   return `
-      .tb10-prerender-main { flex: 1; width: 100%; max-width: 1440px; margin: 0 auto; padding: 16px 12px 32px; }
-      @media (min-width: 1024px) { .tb10-prerender-main { padding: 24px 24px 40px; } }
-      @media (min-width: 1280px) { .tb10-prerender-main { padding: 24px 72px 40px; } }
-      .tb10-prerender-card { background: #fff; border-radius: 12px; border: 1px solid #e5e7eb; padding: 20px 16px; }
-      @media (min-width: 640px) { .tb10-prerender-card { padding: 24px 20px; } }
-      .tb10-prerender-title { margin: 0 0 16px; font-size: 1.5rem; font-weight: 600; color: #111827; line-height: 1.25; }
+      .tb10-prerender-page {
+        display: flex;
+        min-height: calc(100vh - 56px);
+        flex-direction: column;
+        background: #f8fbf8;
+      }
+      @media (min-width: 1024px) {
+        .tb10-prerender-page { min-height: calc(100vh - 60px); }
+      }
+      .tb10-prerender-main {
+        margin: 0 auto;
+        width: 100%;
+        max-width: 440px;
+        flex: 1;
+        padding: 24px 12px 24px;
+      }
+      @media (min-width: 640px) {
+        .tb10-prerender-main { max-width: none; padding: 28px 16px 32px; }
+      }
+      @media (min-width: 1024px) {
+        .tb10-prerender-main { max-width: 1060px; padding: 32px 24px; }
+      }
+      .tb10-prerender-card {
+        overflow: hidden;
+        border-radius: 12px;
+        border: 1px solid rgba(1, 10, 4, 0.08);
+        background: #fff;
+        box-shadow: 0 3px 15px 0 rgba(0, 0, 0, 0.06);
+      }
+      .tb10-prerender-toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        padding: 20px 16px 16px;
+      }
+      @media (min-width: 640px) {
+        .tb10-prerender-toolbar { padding: 20px 20px 16px; }
+      }
+      @media (min-width: 1024px) {
+        .tb10-prerender-toolbar {
+          align-items: flex-start;
+          gap: 24px;
+          padding: 16px 20px;
+        }
+      }
+      .tb10-prerender-heading {
+        display: none;
+        margin: 0;
+        font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+        font-size: 1.5rem;
+        font-weight: 600;
+        line-height: 1.25;
+        color: #111827;
+      }
+      @media (min-width: 1024px) {
+        .tb10-prerender-heading { display: block; }
+      }
+      .tb10-prerender-filters {
+        display: inline-flex;
+        height: 36px;
+        align-items: center;
+        gap: 8px;
+        border-radius: 8px;
+        border: 1px solid rgba(1, 10, 4, 0.12);
+        background: #fff;
+        padding: 0 12px;
+        font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+        font-size: 14px;
+        font-weight: 500;
+        color: #010a04;
+      }
+      @media (min-width: 1024px) {
+        .tb10-prerender-filters { margin-left: auto; }
+      }
       .tb10-prerender-list { list-style: none; margin: 0; padding: 0; }
       .tb10-prerender-row { border-top: 1px solid #f3f4f6; }
-      .tb10-prerender-row:first-child { border-top: 0; }
-      .tb10-prerender-link { display: flex; flex-direction: column; gap: 4px; padding: 14px 4px; text-decoration: none; color: inherit; }
-      .tb10-prerender-name { font-size: 0.95rem; font-weight: 600; color: #111827; }
-      .tb10-prerender-live { display: inline-block; margin-left: 8px; padding: 1px 6px; border-radius: 4px; background: #d92100; color: #fff; font-size: 0.7rem; font-weight: 600; vertical-align: middle; }
-      .tb10-prerender-meta { font-size: 0.8rem; color: #6b7280; }
-      .tb10-prerender-empty { margin: 24px 0; text-align: center; color: #6b7280; }
-      .tb10-boot-shell { display: flex; flex-direction: column; min-height: 100vh; }
+      .tb10-prerender-link {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 14px 16px;
+        text-decoration: none;
+        color: inherit;
+      }
+      @media (min-width: 640px) {
+        .tb10-prerender-link { padding: 16px 20px; }
+      }
+      .tb10-prerender-badge {
+        display: flex;
+        height: 36px;
+        width: 36px;
+        flex-shrink: 0;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        border-radius: 8px;
+        background: rgba(0, 0, 0, 0.15);
+      }
+      .tb10-prerender-badge img { height: 100%; width: 100%; object-fit: cover; }
+      .tb10-prerender-initial {
+        font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+        font-size: 10px;
+        font-weight: 600;
+        color: #6a6a6a;
+      }
+      .tb10-prerender-copy {
+        display: flex;
+        min-width: 0;
+        flex: 1;
+        flex-direction: column;
+        gap: 2px;
+      }
+      .tb10-prerender-name {
+        font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: #111827;
+      }
+      .tb10-prerender-live {
+        display: inline-block;
+        margin-left: 8px;
+        padding: 1px 6px;
+        border-radius: 4px;
+        background: #d92100;
+        color: #fff;
+        font-size: 0.7rem;
+        font-weight: 600;
+        vertical-align: middle;
+      }
+      .tb10-prerender-meta,
+      .tb10-prerender-date {
+        font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+        font-size: 0.8rem;
+        color: #6b7280;
+      }
+      .tb10-prerender-empty {
+        margin: 0;
+        padding: 40px 16px;
+        text-align: center;
+        color: #6b7280;
+        font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      }
+      .tb10-boot-shell { display: flex; flex-direction: column; min-height: 100vh; background: #f8fbf8; }
   `
+}
+
+function buildBootHeader() {
+  return `<header class="tb10-boot-header">
+          <div class="tb10-boot-header-inner">
+            <a class="tb10-boot-logo-link" href="/tournaments" aria-label="TB10 Home" style="position:relative;z-index:10;display:inline-flex;align-items:center">
+              <img
+                class="tb10-boot-logo"
+                src="__TB10_LOGO_SRC__"
+                alt="TB10 v1.6"
+                width="144"
+                height="28"
+                fetchpriority="high"
+                decoding="async"
+              />
+            </a>
+            <p class="tb10-boot-title">Tournaments</p>
+            <nav class="tb10-boot-nav" aria-label="Primary">
+              <a href="/tournaments" aria-current="page">Tournaments</a>
+              <a href="/my-score">My Score</a>
+              <a href="/record-score">Record Score</a>
+              <a href="/profile">Settings</a>
+              <a href="/clubs">Clubs</a>
+              <a href="/sponsors">TB10 Sponsors</a>
+              <a href="/about">About TB10</a>
+            </nav>
+            <div class="tb10-boot-actions">
+              <span class="tb10-boot-lang" aria-hidden="true">EN</span>
+              <a class="tb10-boot-login" href="/login">Log In</a>
+              <span class="tb10-boot-menu" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+                  <path d="M4 7h16M4 12h16M4 17h16" />
+                </svg>
+              </span>
+            </div>
+          </div>
+        </header>`
 }
 
 function buildRootMarkup(payload) {
@@ -159,24 +337,18 @@ function buildRootMarkup(payload) {
     ? renderRows(payload.tournaments ?? [])
     : `<div class="tb10-prerender-empty" aria-hidden="true"></div>`
   return `<div class="tb10-boot-shell">
-        <header class="tb10-boot-header">
-          <div class="tb10-boot-header-inner">
-            <img
-              src="__TB10_LOGO_SRC__"
-              alt="TB10 v1.6"
-              width="144"
-              height="28"
-              fetchpriority="high"
-              decoding="async"
-            />
-          </div>
-        </header>
-        <main class="tb10-prerender-main">
-          <div class="tb10-prerender-card">
-            <h1 class="tb10-prerender-title">Tournaments</h1>
-            ${listBody}
-          </div>
-        </main>
+        ${buildBootHeader()}
+        <div class="tb10-prerender-page">
+          <main class="tb10-prerender-main">
+            <div class="tb10-prerender-card">
+              <div class="tb10-prerender-toolbar">
+                <h1 class="tb10-prerender-heading">Tournaments</h1>
+                <span class="tb10-prerender-filters">Filters</span>
+              </div>
+              ${listBody}
+            </div>
+          </main>
+        </div>
       </div>`
 }
 

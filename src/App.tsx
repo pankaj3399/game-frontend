@@ -60,6 +60,7 @@ const AdminPlatformSponsorsPage = lazy(
 function Home() {
   const { isAuthenticated, isProfileComplete, loading } = useAuth();
 
+  // Server also 302s / → /tournaments; this covers client-side navigations.
   // Don't block first paint on /auth/me — send users to the public list immediately.
   if (!loading && isAuthenticated && !isProfileComplete) {
     return <Navigate to="/information" replace />;
