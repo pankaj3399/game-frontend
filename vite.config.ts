@@ -71,30 +71,6 @@ export default defineConfig(({ mode }) => {
     }),
     tailwindcss(),
     {
-      name: 'preload-lcp-logo',
-      transformIndexHtml(html, ctx) {
-        const bundle = ctx.bundle
-        if (!bundle) {
-          // Dev server: point the static shell at the source asset.
-          return html.replaceAll(
-            '__TB10_LOGO_SRC__',
-            '/src/assets/icons/figma/misc/tb10-logo-frame8.svg',
-          )
-        }
-        const logoAsset = Object.keys(bundle).find((key) =>
-          key.includes('tb10-logo-frame8'),
-        )
-        if (!logoAsset) return html
-        const href = logoAsset.startsWith('/') ? logoAsset : `/${logoAsset}`
-        return html
-          .replaceAll('__TB10_LOGO_SRC__', href)
-          .replace(
-            '</head>',
-            `    <link rel="preload" as="image" href="${href}" type="image/svg+xml" fetchpriority="high" />\n  </head>`,
-          )
-      },
-    },
-    {
       // Preconnect to the API origin so the first data fetch skips
       // DNS + TCP + TLS setup on real mobile networks.
       name: 'preconnect-api-origin',

@@ -260,8 +260,7 @@
     "clubs": "Klubbar",
     "signingUp": "Registrerar",
     "submit": "Registrera dig",
-    "acceptTerms": "Jag godkänner <termsLink>användarvillkoren</termsLink>",
-    "termsComingSoon": "Fullständiga villkor kommer snart."
+    "acceptTerms": "Jag godkänner <termsLink>användarvillkoren</termsLink>"
   },
   "manageClub": {
     "title": "Hantera klubbar",

@@ -1,22 +1,40 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { isAxiosError } from "axios";
 import { api } from "@/lib/api/client";
 import { queryKeys } from "@/lib/api/queryKeys";
 import { type AuthUser } from "@/contexts/auth";
 import { useAuth } from "./useAuth";
 
-async function fetchCurrentUser() {
-  const res = await api.get<{ user: AuthUser }>("/api/auth/me");
-  return res.data.user;
+/** Same contract as AuthContext.fetchMe — share queryKey safely. */
+async function fetchCurrentUser(): Promise<AuthUser | null> {
+  try {
+    const res = await api.get<{ user: AuthUser | null }>("/api/auth/me");
+    return res.data.user ?? null;
+  } catch (err: unknown) {
+    if (isAxiosError(err)) {
+      const status = err.response?.status;
+      if (status === 401 || status === 403 || status === 404) {
+        return null;
+      }
+    }
+    throw err;
+  }
 }
 
 export function useCurrentUser() {
   const { user: authUser } = useAuth();
+  const queryClient = useQueryClient();
+  const authMeKey = queryKeys.auth.me();
+  const cachedUpdatedAt = queryClient.getQueryState(authMeKey)?.dataUpdatedAt;
+
   const query = useQuery({
-    queryKey: queryKeys.auth.me(),
+    queryKey: authMeKey,
     queryFn: fetchCurrentUser,
     retry: false,
-    // Hydrate from AuthContext to avoid loading flicker - we already have user from auth flow
+    staleTime: 5 * 60_000,
+    // Hydrate from AuthContext — stamp freshness so we don't immediately refetch.
     initialData: authUser ?? undefined,
+    initialDataUpdatedAt: cachedUpdatedAt || Date.now(),
   });
 
   const user = query.data ?? null;

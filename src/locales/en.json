@@ -260,8 +260,7 @@
     "clubs": "Clubs",
     "signingUp": "Signing up",
     "submit": "Sign up",
-    "acceptTerms": "I accept the <termsLink>User terms</termsLink>",
-    "termsComingSoon": "Full terms coming soon."
+    "acceptTerms": "I accept the <termsLink>User terms</termsLink>"
   },
   "manageClub": {
     "title": "Manage Clubs",

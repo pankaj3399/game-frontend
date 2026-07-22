@@ -9,7 +9,7 @@
  * Soft-fails when REACT_APP_BACKEND_URL is missing or the API is unreachable
  * so local/CI builds never break — still emits the shell page.
  */
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -143,6 +143,133 @@ function renderRows(tournaments) {
 </li>`
     })
     .join('\n')}</ul>`
+}
+
+/** Navbar critical CSS — only emitted on the prerendered /tournaments page. */
+function bootHeaderCss() {
+  return `
+      .tb10-boot-shell { display: flex; flex-direction: column; min-height: 100vh; background: #f8fbf8; }
+      .tb10-boot-header { position: sticky; top: 0; z-index: 50; height: 56px; width: 100%; background: #067429; }
+      .tb10-boot-header-inner {
+        position: relative;
+        margin: 0 auto;
+        display: grid;
+        height: 100%;
+        width: 100%;
+        max-width: 1440px;
+        grid-template-columns: auto minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 0 8px;
+        padding: 0 12px;
+      }
+      .tb10-boot-logo { display: block; height: 28px; width: auto; }
+      .tb10-boot-title {
+        pointer-events: none;
+        position: absolute;
+        inset: 0;
+        z-index: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 4px 3.75rem;
+        margin: 0;
+        min-width: 0;
+        font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+        font-size: 21px;
+        font-weight: 600;
+        line-height: 1.15;
+        color: #ffdc4a;
+        text-align: center;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .tb10-boot-nav { display: none; }
+      .tb10-boot-actions { position: relative; z-index: 10; display: flex; align-items: center; justify-content: flex-end; gap: 8px; }
+      .tb10-boot-login {
+        display: none;
+        height: 32px;
+        align-items: center;
+        justify-content: center;
+        gap: 7px;
+        border-radius: 8px;
+        background: #ffdc4a;
+        padding: 0 12px;
+        font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+        font-size: 13px;
+        font-weight: 500;
+        color: #010a04;
+        text-decoration: none;
+        white-space: nowrap;
+      }
+      .tb10-boot-menu {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 30px;
+        height: 30px;
+        padding: 0;
+        border: 0;
+        background: transparent;
+        color: #fff;
+      }
+      .tb10-boot-menu svg { display: block; width: 30px; height: 30px; }
+      .tb10-boot-lang {
+        display: none;
+        height: 32px;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+        border: 1px solid rgba(255, 255, 255, 0.35);
+        padding: 0 10px;
+        font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        color: #fff;
+      }
+      @media (min-width: 640px) {
+        .tb10-boot-title { padding-left: 5.5rem; padding-right: 5.5rem; font-size: 23px; }
+      }
+      @media (min-width: 768px) {
+        .tb10-boot-logo { height: 33px; }
+      }
+      @media (min-width: 1024px) {
+        .tb10-boot-header { height: 60px; }
+        .tb10-boot-header-inner { padding: 0 24px; gap: 0 8px; }
+        .tb10-boot-title { display: none; }
+        .tb10-boot-nav {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 10px;
+          min-width: 0;
+          overflow: hidden;
+        }
+        .tb10-boot-nav a {
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+          font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+          font-size: 12px;
+          font-weight: 500;
+          line-height: 1;
+          color: rgba(255, 255, 255, 0.8);
+          text-decoration: none;
+          white-space: nowrap;
+        }
+        .tb10-boot-nav a[aria-current="page"] { color: #fff; }
+        .tb10-boot-menu { display: none; }
+        .tb10-boot-lang { display: inline-flex; }
+        .tb10-boot-login { display: inline-flex; height: 34px; padding: 0 20px; font-size: 14px; }
+      }
+      @media (min-width: 1280px) {
+        .tb10-boot-header-inner { padding: 0 72px; gap: 0 12px; }
+        .tb10-boot-logo { height: 39px; }
+        .tb10-boot-nav { gap: 16px; }
+        .tb10-boot-nav a { font-size: 13px; gap: 6px; }
+      }
+  `
 }
 
 function prerenderCss() {
@@ -291,7 +418,6 @@ function prerenderCss() {
         color: #6b7280;
         font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
       }
-      .tb10-boot-shell { display: flex; flex-direction: column; min-height: 100vh; background: #f8fbf8; }
   `
 }
 
@@ -352,12 +478,22 @@ function buildRootMarkup(payload) {
       </div>`
 }
 
-function injectIntoTemplate(templateHtml, rootMarkup, payload) {
+function injectIntoTemplate(templateHtml, rootMarkup, payload, logoSrc) {
   let html = templateHtml
 
-  // Ensure prerender-specific critical CSS is present.
+  // Navbar + list critical CSS lives only on the prerendered tournaments page.
   if (!html.includes('.tb10-prerender-main')) {
-    html = html.replace('</style>', `${prerenderCss()}\n    </style>`)
+    html = html.replace(
+      '</style>',
+      `${bootHeaderCss()}${prerenderCss()}\n    </style>`,
+    )
+  }
+
+  if (logoSrc) {
+    html = html.replace(
+      '</head>',
+      `    <link rel="preload" as="image" href="${logoSrc}" type="image/svg+xml" fetchpriority="high" />\n  </head>`,
+    )
   }
 
   html = html.replace(
@@ -386,6 +522,15 @@ function injectIntoTemplate(templateHtml, rootMarkup, payload) {
   return html
 }
 
+function findLogoAsset() {
+  const assetsDir = resolve(distDir, 'assets')
+  if (!existsSync(assetsDir)) return '/assets/tb10-logo-frame8.svg'
+  const match = readdirSync(assetsDir).find((name) =>
+    name.includes('tb10-logo-frame8'),
+  )
+  return match ? `/assets/${match}` : '/assets/tb10-logo-frame8.svg'
+}
+
 async function main() {
   loadDotEnv()
 
@@ -401,11 +546,7 @@ async function main() {
   }
 
   const template = readFileSync(templatePath, 'utf8')
-  // Resolve logo src from the already-transformed SPA index.html.
-  const logoMatch = template.match(
-    /src="(\/assets\/tb10-logo-frame8[^"]+)"/,
-  )
-  const logoSrc = logoMatch?.[1] ?? '/assets/tb10-logo-frame8.svg'
+  const logoSrc = findLogoAsset()
 
   let payload = null
   const base = backendBaseUrl()
@@ -429,7 +570,7 @@ async function main() {
   let rootMarkup = buildRootMarkup(payload)
   rootMarkup = rootMarkup.replaceAll('__TB10_LOGO_SRC__', logoSrc)
 
-  const html = injectIntoTemplate(template, rootMarkup, payload)
+  const html = injectIntoTemplate(template, rootMarkup, payload, logoSrc)
   mkdirSync(outDir, { recursive: true })
   writeFileSync(outFile, html, 'utf8')
   console.log(`[prerender] wrote ${outFile}`)

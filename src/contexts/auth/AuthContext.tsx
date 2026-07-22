@@ -72,12 +72,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
   }, [queryClient]);
 
-  /** Re-read the current session from the server. */
+  /** Re-read the current session from the server (single round-trip). */
   const checkAuth = useCallback(async () => {
-    await queryClient.invalidateQueries({ queryKey: authMeQueryKey });
     return queryClient.fetchQuery<AuthUser | null>({
       queryKey: authMeQueryKey,
       queryFn: fetchMe,
+      staleTime: 0,
     });
   }, [queryClient]);
 

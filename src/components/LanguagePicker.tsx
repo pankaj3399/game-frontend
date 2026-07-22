@@ -12,8 +12,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-export { useAppLanguage } from "@/hooks/useAppLanguage";
-
 type LanguagePickerProps = {
   onAfterChange?: () => void;
   /** When false, forces the mobile select closed so Radix does not leave overlays active. */

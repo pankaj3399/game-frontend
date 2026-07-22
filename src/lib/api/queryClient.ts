@@ -22,7 +22,8 @@ export const queryClient = new QueryClient({
       refetchOnMount: true,
       // Tab focus refetches feel like “the app is slow”; rely on staleTime + explicit invalidation.
       refetchOnWindowFocus: false,
-      refetchOnReconnect: true,
+      // Mobile cold starts often flap online/offline; don't pile reconnect refetches on LCP.
+      refetchOnReconnect: false,
     },
     mutations: {
       retry: 0,

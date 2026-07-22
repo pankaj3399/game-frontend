@@ -1,5 +1,6 @@
 import type { QueryClient } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/api/queryKeys";
+import { getAuthToken } from "@/lib/auth/storage";
 import type { TournamentsResponse } from "@/models/tournament/types";
 
 type PrerenderPayload = TournamentsResponse & {
@@ -8,7 +9,7 @@ type PrerenderPayload = TournamentsResponse & {
     limit?: number;
     when?: "future" | "past";
   };
-  /** Epoch ms when the build-time fetch completed (drives Query cache freshness). */
+  /** Epoch ms when the build-time fetch completed (informational only). */
   generatedAt?: number;
 };
 
@@ -24,6 +25,13 @@ export const PRERENDER_TOURNAMENT_FILTERS = {
   limit: 10,
   when: "future" as const,
 };
+
+let prerenderTournamentSeedApplied = false;
+
+/** True when build-time list data was written into the Query cache this page load. */
+export function didSeedPrerenderedTournaments(): boolean {
+  return prerenderTournamentSeedApplied;
+}
 
 /**
  * Seed TanStack Query from build-time prerender data so /tournaments skips
@@ -50,17 +58,52 @@ export function seedPrerenderedTournaments(queryClient: QueryClient): void {
     },
   };
 
+  const now = Date.now();
+  // Mark fresh at hydration time — never use build-time `generatedAt` here
+  // (it is almost always older than staleTime and forces an immediate refetch).
   queryClient.setQueryData(queryKeys.tournament.list(filters), data, {
-    updatedAt:
-      typeof payload.generatedAt === "number" && Number.isFinite(payload.generatedAt)
-        ? payload.generatedAt
-        : Date.now(),
+    updatedAt: now,
   });
+  // Organisers add `view: "published"` to the key after auth — seed that too.
+  queryClient.setQueryData(
+    queryKeys.tournament.list({ ...filters, view: "published" }),
+    data,
+    { updatedAt: now },
+  );
+
+  prerenderTournamentSeedApplied = true;
 
   // One-shot: avoid re-seeding on HMR / remounts with stale build data.
   try {
     delete window.__TB10_PRERENDER__;
   } catch {
     /* ignore */
+  }
+}
+
+/**
+ * Guest cold loads always hit `/api/auth/me`. When there is no client JWT,
+ * seed `null` as fresh so Lighthouse / anonymous visitors skip that round-trip
+ * for AuthContext's staleTime (5m). Cookie-only sessions still refetch because
+ * we cannot prove a session from localStorage alone — only skip when a Bearer
+ * token is absent; AuthContext will still run if we detect a session cookie.
+ */
+export function seedGuestAuthMe(queryClient: QueryClient): void {
+  if (typeof window === "undefined") return;
+  if (getAuthToken()) return;
+  if (hasLikelySessionCookie()) return;
+
+  queryClient.setQueryData(queryKeys.auth.me(), null, {
+    updatedAt: Date.now(),
+  });
+}
+
+function hasLikelySessionCookie(): boolean {
+  try {
+    return /(?:^|;\s*)(better-auth\.session_token|session_token|__session|ba_session)=/i.test(
+      document.cookie,
+    );
+  } catch {
+    return false;
   }
 }

@@ -4,7 +4,6 @@ import { AuthProvider } from "./contexts/auth";
 import { useAuth } from "./pages/auth/hooks";
 import { MainLayout } from "@/layouts/MainLayout";
 import { ProtectedRoute } from "@/components/auth";
-import Loader from "@/components/shared/Loader";
 import { ROLES } from "./constants/roles";
 import { usePWAPullToRefresh } from "@/hooks/usePWAPullToRefresh";
 
@@ -111,7 +110,11 @@ function App() {
   return (
     <div className="min-h-screen w-full bg-gray-50 overflow-x-clip">
       <AuthProvider>
-        <Suspense fallback={<Loader />}>
+        {/*
+          Keep DotLottie Loader off the guest cold path — it pulls ~1.7MB WASM.
+          Full tennis-ball Loader still covers auth waits via ProtectedRoute.
+        */}
+        <Suspense fallback={null}>
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />

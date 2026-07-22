@@ -1012,6 +1012,24 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@lottiefiles/dotlottie-react@npm:^0.18.4":
+  version: 0.18.10
+  resolution: "@lottiefiles/dotlottie-react@npm:0.18.10"
+  dependencies:
+    "@lottiefiles/dotlottie-web": "npm:0.70.0"
+  peerDependencies:
+    react: ^17 || ^18 || ^19
+  checksum: 10c0/5cd7350dbe44717bb920dd6534a9826a801128f396853c04371b05b0adb34a2a8b62b33f5c44f50597f5f32919f47ba22c24f9ee0276cc67b9feb7d6db7a15c9
+  languageName: node
+  linkType: hard
+
+"@lottiefiles/dotlottie-web@npm:0.70.0":
+  version: 0.70.0
+  resolution: "@lottiefiles/dotlottie-web@npm:0.70.0"
+  checksum: 10c0/814df634325393c376d05541f4c3e1e92b383c16f9673e443c671fbaef5414fa9da0d4bcfc1453d6ffe2390c82f79cf68e04785a66ba75a030d3d9d3cd799aa2
+  languageName: node
+  linkType: hard
+
 "@modelcontextprotocol/sdk@npm:^1.26.0":
   version: 1.29.0
   resolution: "@modelcontextprotocol/sdk@npm:1.29.0"
@@ -3435,6 +3453,7 @@ __metadata:
     "@dnd-kit/sortable": "npm:^10.0.0"
     "@dnd-kit/utilities": "npm:^3.2.2"
     "@eslint/js": "npm:^9.39.1"
+    "@lottiefiles/dotlottie-react": "npm:^0.18.4"
     "@radix-ui/react-slot": "npm:^1.2.3"
     "@tailwindcss/vite": "npm:^4.2.0"
     "@tanstack/react-query": "npm:^5.90.21"

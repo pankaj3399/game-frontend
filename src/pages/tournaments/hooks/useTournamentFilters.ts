@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
 import { useDebouncedValue } from "@/lib/hooks/useDebouncedValue";
+import { didSeedPrerenderedTournaments } from "@/lib/prerender/seedTournaments";
 import {
   DEFAULT_TOURNAMENT_FILTERS_STATE,
   filtersReducer,
@@ -153,7 +154,21 @@ function stateFromPersisted(
   };
 }
 
-/** Prefer the newer of user vs anonymous storage when both exist. */
+function persistedDiffersFromPrerenderDefaults(
+  persisted: PersistedTournamentFiltersState,
+): boolean {
+  const f = persisted.filters;
+  if (persisted.activeTab === "drafts") return true;
+  if (f.q) return true;
+  if (f.when != null && f.when !== "future") return true;
+  if (f.when == null) return true; // "all"
+  if (f.distance) return true;
+  if (f.clubId) return true;
+  if (f.clubScope) return true;
+  if (f.participation) return true;
+  return false;
+}
+
 function resolvePersistedForUser(normalizedUserId: string) {
   const anonymousStorageKey = getStorageKey(ANONYMOUS_USER_STORAGE_ID);
   const anonymousPersisted = readPersistedState(anonymousStorageKey);
@@ -176,10 +191,20 @@ export function useTournamentFilters({
   userId,
   viewSearchParam,
 }: UseTournamentFiltersOptions) {
-  // Sync hydrate anonymous key on first render so the list query is not gated a frame.
-  const [state, dispatch] = useReducer(filtersReducer, undefined, () =>
-    stateFromPersisted(readPersistedState(getStorageKey(ANONYMOUS_USER_STORAGE_ID))),
-  );
+  // When prerender seeded the default list, start on defaults so the Query cache
+  // hits. Apply non-default localStorage filters after first paint (second fetch
+  // is fine; LCP should use the seeded default).
+  const [state, dispatch] = useReducer(filtersReducer, undefined, () => {
+    if (didSeedPrerenderedTournaments()) {
+      return {
+        activeTab: DEFAULT_TOURNAMENT_FILTERS_STATE.activeTab,
+        filters: { ...DEFAULT_TOURNAMENT_FILTERS_STATE.filters },
+      };
+    }
+    return stateFromPersisted(
+      readPersistedState(getStorageKey(ANONYMOUS_USER_STORAGE_ID)),
+    );
+  });
 
   const activeTab = useMemo(
     () =>
@@ -196,6 +221,7 @@ export function useTournamentFilters({
     getStorageKey(ANONYMOUS_USER_STORAGE_ID),
   );
   const skipNextPersistRef = useRef(true);
+  const deferredPersistAppliedRef = useRef(false);
   const normalizedUserId = userId || ANONYMOUS_USER_STORAGE_ID;
   const storageKey = getStorageKey(normalizedUserId);
 
@@ -284,6 +310,28 @@ export function useTournamentFilters({
             ? value
             : undefined,
     });
+  }, []);
+
+  /**
+   * After prerender seed, apply non-default anonymous filters post-paint so the
+   * first list query hits the seeded cache (LCP), then restore the user's filters.
+   */
+  useEffect(() => {
+    if (deferredPersistAppliedRef.current) return;
+    if (!didSeedPrerenderedTournaments()) return;
+    deferredPersistAppliedRef.current = true;
+
+    const persisted = readPersistedState(getStorageKey(ANONYMOUS_USER_STORAGE_ID));
+    if (!persisted || !persistedDiffersFromPrerenderDefaults(persisted)) return;
+
+    dispatch({
+      type: "HYDRATE",
+      payload: {
+        activeTab: "published",
+        filters: persisted.filters,
+      },
+    });
+    skipNextPersistRef.current = true;
   }, []);
 
   /**

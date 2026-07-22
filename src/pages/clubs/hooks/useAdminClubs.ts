@@ -1,4 +1,4 @@
-import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { queryKeys } from "@/lib/api/queryKeys";
 
@@ -37,12 +37,5 @@ export function useAdminClubs(enabled = true) {
     queryFn: fetchAdminClubs,
     enabled,
     gcTime: 30 * 60 * 1000,
-  });
-}
-
-export function useAdminClubsSuspense() {
-  return useSuspenseQuery({
-    queryKey: queryKeys.user.adminClubs(),
-    queryFn: fetchAdminClubs,
   });
 }

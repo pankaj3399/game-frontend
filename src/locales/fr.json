@@ -260,8 +260,7 @@
     "clubs": "Clubs",
     "signingUp": "Inscription en cours",
     "submit": "S'inscrire",
-    "acceptTerms": "J'accepte les <termsLink>conditions d'utilisation</termsLink>",
-    "termsComingSoon": "Les conditions complètes arriveront bientôt."
+    "acceptTerms": "J'accepte les <termsLink>conditions d'utilisation</termsLink>"
   },
   "manageClub": {
     "title": "Gérer les clubs",

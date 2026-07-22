@@ -6,9 +6,9 @@ import { useAdminClubs } from "@/pages/clubs/hooks";
 import { AddEditClubModal } from "./AddEditClubModal";
 import InlineLoader from "@/components/shared/InlineLoader";
 
-export function AdminClubsSection() {
+export function AdminClubsSection({ enabled = true }: { enabled?: boolean }) {
   const { t } = useTranslation();
-  const { data, isLoading, error } = useAdminClubs(true);
+  const { data, isLoading, error } = useAdminClubs(enabled);
 
   const [modalOpen, setModalOpen] = useState(false);
   const [editClubId, setEditClubId] = useState<string | null>(null);
