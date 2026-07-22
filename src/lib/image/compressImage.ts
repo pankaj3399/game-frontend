@@ -74,17 +74,16 @@ function loadImageFromFile(file: File): Promise<HTMLImageElement> {
 }
 
 function pickOutputMime(file: File): string {
+  // Preserve PNG/WebP so canvas compression does not flatten transparency to JPEG.
   if (file.type === "image/png" || file.type === "image/webp") {
-    // Canvas JPEG compresses better for photos; keep PNG only when already small
-    // After threshold we prefer JPEG for size.
-    return "image/jpeg";
+    return file.type;
   }
   return "image/jpeg";
 }
 
 /**
  * If `file` is ≤ 1 MB, returns it unchanged.
- * If larger, resizes (max 1600px) + JPEG-compresses via canvas and returns the smaller result.
+ * If larger, resizes (max 1600px) and re-encodes via canvas; returns the smaller result.
  */
 export async function maybeCompressImage(file: File): Promise<File> {
   if (file.size <= COMPRESS_THRESHOLD_BYTES) {
@@ -94,6 +93,7 @@ export async function maybeCompressImage(file: File): Promise<File> {
   const image = await loadImageFromFile(file);
   const { width, height } = await getImageDimensions(image);
   const outputMime = pickOutputMime(file);
+  const quality = outputMime === "image/jpeg" ? JPEG_QUALITY : undefined;
 
   const scale = Math.min(1, MAX_WIDTH / width, MAX_HEIGHT / height);
   const compressedBlob = await compressImage(
@@ -102,7 +102,7 @@ export async function maybeCompressImage(file: File): Promise<File> {
     width,
     height,
     outputMime,
-    JPEG_QUALITY,
+    quality ?? 1,
   );
 
   if (compressedBlob.size >= file.size) {

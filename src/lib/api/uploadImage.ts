@@ -45,11 +45,12 @@ export async function uploadImageFile(params: {
     contentLength: file.size,
   });
 
+  // Do not set Content-Length: browsers treat it as a forbidden fetch header and
+  // strip it; the UA sets length from the body. contentLength is still sent in presign.
   const putResponse = await fetch(presign.uploadUrl, {
     method: "PUT",
     headers: {
       "Content-Type": normalizedType,
-      "Content-Length": String(file.size),
     },
     body: file,
     signal: AbortSignal.timeout(30_000),
