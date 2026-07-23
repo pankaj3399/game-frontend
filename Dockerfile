@@ -7,7 +7,7 @@ ENV VITE_COMMIT_SHA=$COMMIT_SHA
 WORKDIR /app
 # Copy package.json and yarn.lock first to leverage Docker layer caching
 COPY package.json yarn.lock .yarnrc.yml ./
-RUN corepack enable && corepack prepare --activate && yarn --version && yarn install --immutable
+RUN corepack enable && yarn install --immutable
 
 # Copy the rest of the application files to the working directory
 COPY . .

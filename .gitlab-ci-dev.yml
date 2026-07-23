@@ -27,8 +27,6 @@ lint-job:
   stage: lint
   before_script:
     - corepack enable
-    - corepack prepare --activate
-    - yarn --version
     - yarn install --immutable
   script:
     - yarn lint
