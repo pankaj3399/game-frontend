@@ -259,7 +259,8 @@
     "other": "Other",
     "clubs": "Clubs",
     "signingUp": "Signing up",
-    "submit": "Sign up"
+    "submit": "Sign up",
+    "acceptTerms": "I accept the <termsLink>User terms</termsLink>"
   },
   "manageClub": {
     "title": "Manage Clubs",
@@ -1047,6 +1048,8 @@
   },
   "about": {
     "title": "About TB10",
+    "tutorialVideosTitle": "Tutorial videos",
+    "tutorialVideosComingSoon": "Coming soon.",
     "allowsYouTo": "Tournaments",
     "allowsYouToItem1": "Find and participate in tournaments",
     "allowsYouToItem2": "Record your scores",
@@ -1067,6 +1070,8 @@
     "glickmanProfile": "Mark Glickman profile",
     "glickoSystemLink": "Glicko system source",
     "otherInformation": "Other Information",
+    "userTermsTitle": "User terms",
+    "userTermsComingSoon": "Coming soon.",
     "contactUs": "Contact Us",
     "inviteFriends": "Invite Friends",
     "share": "Share",

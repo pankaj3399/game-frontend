@@ -120,10 +120,6 @@ export function buildTournamentPayload(
   };
 }
 
-export function buildUpdatePayload(form: CreateTournamentInput): Omit<CreateTournamentInput, "status"> {
-  return buildChangedUpdatePayload(form, null) as Omit<CreateTournamentInput, "status">;
-}
-
 const UPDATE_PAYLOAD_FIELDS = [
   "club",
   "name",

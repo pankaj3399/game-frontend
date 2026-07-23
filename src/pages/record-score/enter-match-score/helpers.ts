@@ -38,23 +38,6 @@ export function asSelectValue(value: string): string {
   return normalized.toUpperCase() === "WO" ? "WO" : normalized;
 }
 
-export function scoreValueToInput(value: number | "wo" | null): string {
-  if (value == null) {
-    return "";
-  }
-  return typeof value === "number" ? String(value) : "WO";
-}
-
-export function getScorePickerLabel(
-  value: string,
-  setIndex: number,
-  t: (key: string, options?: Record<string, unknown>) => string,
-): string {
-  return value === SCORE_SELECT_EMPTY_VALUE
-    ? t("recordScorePage.enter.setPlaceholder", { set: setIndex + 1 })
-    : value;
-}
-
 export function playerDisplayName(
   player:
     | { name?: string | null; alias?: string | null }

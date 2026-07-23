@@ -6,6 +6,7 @@ export interface SignupInputs {
   name: string;
   dateOfBirth: Date | undefined;
   gender: SignupGender | undefined;
+  acceptedTerms: boolean;
 }
 
 export type SignupFieldErrors = Record<string, string>;

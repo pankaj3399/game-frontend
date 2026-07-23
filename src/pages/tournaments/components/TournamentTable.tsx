@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
-import { Calendar, EyeIcon, PencilEdit01Icon } from "@/icons/figma-icons";
+import { useQueryClient } from "@tanstack/react-query";
+import { Calendar, EyeIcon, PencilEdit01Icon } from "@/icons/listTableIcons";
 import {
   Table,
   TableBody,
@@ -11,13 +12,13 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
+import { queryKeys } from "@/lib/api/queryKeys";
 import type {
   TournamentListItem,
   TournamentPagination,
   TournamentStatus,
 } from "@/models/tournament";
-import { formatDateDisplay } from "@/utils/display";
-import { getDateFnsLocale } from "@/lib/dateFnsLocale";
+import { formatListDate } from "@/utils/listDate";
 import type { TFunction } from "i18next";
 
 interface TournamentTableProps {
@@ -110,10 +111,10 @@ function buildTournamentRowViewModel(
     statusDotClass,
     isLive,
     rowPath: `/tournaments/${tournament.id}`,
-    dateText: formatDateDisplay(
+    dateText: formatListDate(
       tournament.date,
       t("tournaments.unscheduled"),
-      getDateFnsLocale(language)
+      language
     ),
     isDraft: tournament.status === "draft",
     clubName,
@@ -130,6 +131,20 @@ export function TournamentTable({
   listHeading,
 }: TournamentTableProps) {
   const { t } = useTranslation();
+  const queryClient = useQueryClient();
+
+  const prefetchTournament = (id: string) => {
+    void queryClient.prefetchQuery({
+      queryKey: queryKeys.tournament.detail(id),
+      // Dynamic import keeps zod off the list chunk until a row is hovered.
+      queryFn: async () => {
+        const { fetchTournamentById } = await import(
+          "@/pages/tournaments/hooks/useTournamentById"
+        );
+        return fetchTournamentById(id);
+      },
+    });
+  };
 
   return (
     <>
@@ -142,6 +157,8 @@ export function TournamentTable({
               <div key={row.id} role="listitem">
                 <Link
                   to={row.rowPath}
+                  onMouseEnter={() => prefetchTournament(row.id)}
+                  onFocus={() => prefetchTournament(row.id)}
                   className={cn(
                     "block rounded-[10px] bg-[rgba(1,10,4,0.04)] p-[14px] text-inherit no-underline transition-colors",
                     "hover:bg-[rgba(1,10,4,0.07)] active:bg-[rgba(1,10,4,0.09)]",
@@ -259,6 +276,8 @@ export function TournamentTable({
                     <Link
                       to={row.rowPath}
                       aria-label={desktopRowAriaLabel}
+                      onMouseEnter={() => prefetchTournament(row.id)}
+                      onFocus={() => prefetchTournament(row.id)}
                       className={cn(
                         "grid min-h-[45px] w-full items-center text-inherit no-underline transition-colors",
                         "grid-cols-[3rem_minmax(0,21fr)_minmax(0,19fr)_minmax(0,10fr)]",

@@ -259,7 +259,8 @@
     "other": "Annat",
     "clubs": "Klubbar",
     "signingUp": "Registrerar",
-    "submit": "Registrera dig"
+    "submit": "Registrera dig",
+    "acceptTerms": "Jag godkänner <termsLink>användarvillkoren</termsLink>"
   },
   "manageClub": {
     "title": "Hantera klubbar",
@@ -1047,6 +1048,8 @@
   },
   "about": {
     "title": "Om TB10",
+    "tutorialVideosTitle": "Tutorialvideor",
+    "tutorialVideosComingSoon": "Kommer snart.",
     "allowsYouTo": "Turneringar",
     "allowsYouToItem1": "Hitta och delta i turneringar",
     "allowsYouToItem2": "Registrera dina resultat",
@@ -1067,6 +1070,8 @@
     "glickmanProfile": "Mark Glickmans profil",
     "glickoSystemLink": "Glicko-systemets källa",
     "otherInformation": "Övrig information",
+    "userTermsTitle": "Användarvillkor",
+    "userTermsComingSoon": "Kommer snart.",
     "contactUs": "Kontakta oss",
     "inviteFriends": "Bjud in vänner",
     "share": "Dela",

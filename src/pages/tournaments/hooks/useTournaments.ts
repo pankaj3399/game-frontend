@@ -1,10 +1,9 @@
 import { keepPreviousData, useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { queryKeys } from "@/lib/api/queryKeys";
-import {
-  tournamentsResponseSchema,
-  type TournamentListFilters,
-  type TournamentsResponse,
+import type {
+  TournamentListFilters,
+  TournamentsResponse,
 } from "@/models/tournament/types";
 
 async function fetchTournaments(filters: TournamentListFilters): Promise<TournamentsResponse> {
@@ -21,7 +20,8 @@ async function fetchTournaments(filters: TournamentListFilters): Promise<Tournam
   const query = params.toString();
   const url = query ? `/api/tournaments?${query}` : "/api/tournaments";
   const res = await api.get(url);
-  return tournamentsResponseSchema.parse(res.data);
+  // List path: trust the API contract. Zod parse pulled the full schema graph into the critical chunk.
+  return res.data as TournamentsResponse;
 }
 
 export function useTournaments(filters: TournamentListFilters = {}, enabled = true) {

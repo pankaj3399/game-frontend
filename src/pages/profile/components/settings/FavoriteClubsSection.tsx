@@ -24,9 +24,9 @@ import { getErrorMessage } from "@/lib/errors";
 import { toast } from "sonner";
 import InlineLoader from "@/components/shared/InlineLoader";
 
-export function FavoriteClubsSection() {
+export function FavoriteClubsSection({ enabled = true }: { enabled?: boolean }) {
   const { t } = useTranslation();
-  const { data } = useFavoriteClubs();
+  const { data } = useFavoriteClubs({ enabled });
   const [searchInput, setSearchInput] = useState("");
   const [dropdownOpen, setDropdownOpen] = useState(false);
 

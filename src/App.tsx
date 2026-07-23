@@ -1,13 +1,15 @@
-import { Suspense, lazy } from "react";
+import { Suspense, lazy, useEffect, useState } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./contexts/auth";
 import { useAuth } from "./pages/auth/hooks";
-import { Toaster } from "@/components/ui/sonner";
 import { MainLayout } from "@/layouts/MainLayout";
 import { ProtectedRoute } from "@/components/auth";
-import Loader from "@/components/shared/Loader";
 import { ROLES } from "./constants/roles";
 import { usePWAPullToRefresh } from "@/hooks/usePWAPullToRefresh";
+
+const Toaster = lazy(() =>
+  import("@/components/ui/sonner").then((mod) => ({ default: mod.Toaster })),
+);
 
 const Login = lazy(() => import("./pages/auth/Login"));
 const UserInformation = lazy(() => import("./pages/user/UserInformation"));
@@ -57,13 +59,43 @@ const AdminPlatformSponsorsPage = lazy(
 function Home() {
   const { isAuthenticated, isProfileComplete, loading } = useAuth();
 
-  if (loading) {
-    return <Loader />;
+  // Server also 302s / → /tournaments; this covers client-side navigations.
+  // Don't block first paint on /auth/me — send users to the public list immediately.
+  if (!loading && isAuthenticated && !isProfileComplete) {
+    return <Navigate to="/information" replace />;
   }
-
-  if (!isAuthenticated) return <Navigate to="/login" replace />;
-  if (!isProfileComplete) return <Navigate to="/information" replace />;
   return <Navigate to="/tournaments" replace />;
+}
+
+function DeferredToaster() {
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    // Keep sonner off the cold Lighthouse path; toasts are rare on first paint.
+    const arm = () => {
+      const timeoutId = window.setTimeout(() => setReady(true), 12_000);
+      return () => window.clearTimeout(timeoutId);
+    };
+    if (document.readyState === "complete") {
+      return arm();
+    }
+    const onLoad = () => {
+      cleanup = arm();
+    };
+    let cleanup: (() => void) | undefined;
+    window.addEventListener("load", onLoad, { once: true });
+    return () => {
+      window.removeEventListener("load", onLoad);
+      cleanup?.();
+    };
+  }, []);
+
+  if (!ready) return null;
+  return (
+    <Suspense fallback={null}>
+      <Toaster />
+    </Suspense>
+  );
 }
 
 function App() {
@@ -78,7 +110,11 @@ function App() {
   return (
     <div className="min-h-screen w-full bg-gray-50 overflow-x-clip">
       <AuthProvider>
-        <Suspense fallback={<Loader />}>
+        {/*
+          Keep DotLottie Loader off the guest cold path — it pulls ~1.7MB WASM.
+          Full tennis-ball Loader still covers auth waits via ProtectedRoute.
+        */}
+        <Suspense fallback={null}>
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
@@ -168,7 +204,7 @@ function App() {
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </Suspense>
-        <Toaster />
+        <DeferredToaster />
       </AuthProvider>
     </div>
   );

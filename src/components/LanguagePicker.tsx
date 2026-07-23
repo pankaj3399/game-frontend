@@ -1,12 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import {
-  APP_LANGUAGES,
-  getAppLanguageMeta,
-  resolveAppLanguage,
-  type AppLanguageCode,
-} from "@/lib/appLanguages";
+import { APP_LANGUAGES, type AppLanguageCode } from "@/lib/appLanguages";
 import { cn } from "@/lib/utils";
+import { useAppLanguage } from "@/hooks/useAppLanguage";
 import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import {
   Select,
@@ -21,20 +17,6 @@ type LanguagePickerProps = {
   /** When false, forces the mobile select closed so Radix does not leave overlays active. */
   sheetOpen?: boolean;
 };
-
-export function useAppLanguage() {
-  const { i18n } = useTranslation();
-  const currentCode = resolveAppLanguage(i18n.resolvedLanguage);
-  const current = getAppLanguageMeta(currentCode);
-
-  const changeLanguage = (code: AppLanguageCode) => {
-    if (code !== currentCode) {
-      void i18n.changeLanguage(code);
-    }
-  };
-
-  return { currentCode, current, changeLanguage };
-}
 
 export function LanguagePickerDropdownItems({
   onAfterChange,

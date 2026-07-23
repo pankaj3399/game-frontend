@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "tsc -b && vite build && node scripts/prerender-tournaments.mjs",
+    "prerender": "node scripts/prerender-tournaments.mjs",
     "lint": "eslint .",
     "preview": "vite preview",
     "shadcn": "shadcn"
@@ -16,9 +17,8 @@
     "@dnd-kit/modifiers": "^9.0.0",
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
-    "@fontsource-variable/outfit": "^5.2.8",
-    "@fontsource-variable/syne": "^5.2.7",
     "@lottiefiles/dotlottie-react": "^0.18.4",
+    "@radix-ui/react-slot": "^1.2.3",
     "@tanstack/react-query": "^5.90.21",
     "@yudiel/react-qr-scanner": "^2.5.1",
     "axios": "^1.13.5",

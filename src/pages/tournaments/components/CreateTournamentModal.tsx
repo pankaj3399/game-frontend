@@ -29,7 +29,8 @@ export function CreateTournamentModal({
   tournamentId = null,
 }: CreateTournamentModalProps) {
   const { t } = useTranslation();
-  const { data: adminClubsData } = useAdminClubs();
+  // Only fetch when the dialog is open — closed instances must not hit protected APIs.
+  const { data: adminClubsData } = useAdminClubs(open);
   const clubs = adminClubsData?.clubs ?? [];
 
   const {

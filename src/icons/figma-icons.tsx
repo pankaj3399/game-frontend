@@ -46,7 +46,7 @@ import timerStartLinearIcon from "@/assets/icons/figma/vuesax/linear/timer-start
 import userLinearIcon from "@/assets/icons/figma/vuesax/linear/user.svg?react";
 
 type Size = number | string;
-type IconTone = "default" | "muted" | "subtle" | "white" | "danger" | "success";
+type IconTone = "default" | "muted" | "subtle" | "white" | "danger" | "success" | "inherit";
 
 export type IconProps = Omit<React.HTMLAttributes<HTMLSpanElement>, "children"> & {
   size?: Size;
@@ -89,6 +89,8 @@ const TONE_CLASS: Record<IconTone, string> = {
   white: "text-white",
   danger: "text-destructive",
   success: "text-emerald-600",
+  /** No forced color — SVG uses currentColor from parent/local classes */
+  inherit: "",
 };
 
 function toCssSize(size: Size | undefined): string | undefined {
@@ -133,7 +135,7 @@ const ICONS = {
   chevronRight: defineSvgIcon(chevronRightIcon, { defaultTone: "muted" }),
   externalLink: defineSvgIcon(externalLinkIcon, { defaultTone: "muted" }),
   share2: defineSvgIcon(share2Icon, { defaultTone: "muted" }),
-  arrowRightGreen: defineSvgIcon(arrowRightGreenIcon),
+  arrowRightGreen: defineSvgIcon(arrowRightGreenIcon, { defaultTone: "inherit" }),
 
   calendarDays: defineSvgIcon(calendarDaysIcon, { defaultTone: "muted" }),
   calendarTickLinear: defineSvgIcon(calendarTickLinearIcon, { defaultTone: "muted" }),

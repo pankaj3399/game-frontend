@@ -25,6 +25,7 @@ export function UserInformationContent({ pendingToken }: UserInformationContentP
     handleInputChange,
     setDateOfBirth,
     setGender,
+    setAcceptedTerms,
   } = useUserInformationForm({
     requiresEmailInput,
     displayEmail,
@@ -49,6 +50,7 @@ export function UserInformationContent({ pendingToken }: UserInformationContentP
             onInputChange={handleInputChange}
             onDateOfBirthChange={setDateOfBirth}
             onGenderChange={setGender}
+            onAcceptedTermsChange={setAcceptedTerms}
           />
         </div>
       </div>

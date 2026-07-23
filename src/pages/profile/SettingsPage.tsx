@@ -88,11 +88,11 @@ export default function SettingsPage() {
           </TabsContent>
 
           <TabsContent value="favorite-clubs" className={tabContentClassName}>
-            <FavoriteClubsSection />
+            <FavoriteClubsSection enabled={activeTab === "favorite-clubs"} />
           </TabsContent>
 
           <TabsContent value="admin-clubs" className={tabContentClassName}>
-            <AdminClubsSection />
+            <AdminClubsSection enabled={activeTab === "admin-clubs"} />
           </TabsContent>
 
           <TabsContent value="delete-account" className={tabContentClassName}>

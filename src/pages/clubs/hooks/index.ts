@@ -1,6 +1,6 @@
 export { useAllClubs, type ClubListItem, type ClubsPagination, type AllClubsResponse } from "./useAllClubs";
 export { useClubPublic, type ClubPublic } from "./useClubPublic";
-export { useAdminClubs, useAdminClubsSuspense, type AdminClub } from "./useAdminClubs";
+export { useAdminClubs, type AdminClub } from "./useAdminClubs";
 export {
   useClubStaff,
   type ClubStaffMember,
@@ -18,7 +18,6 @@ export { useRemoveClubStaff } from "./useRemoveClubStaff";
 export {
   useSearchUsers,
   isUserSearchQueryValid,
-  USER_SEARCH_MIN_LENGTH,
   type SearchUserResult,
 } from "./useSearchUsers";
 export {

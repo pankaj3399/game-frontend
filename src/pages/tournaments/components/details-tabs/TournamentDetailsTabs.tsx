@@ -57,19 +57,27 @@ export function TournamentDetailsTabs({
         </TabsList>
       </div>
 
-      <InfoTab
-        key={tournament.id}
-        tournament={tournament}
-        onParticipationAction={onParticipationAction}
-      />
-      <MatchesTab tournament={tournament} currentUserId={currentUserId} />
-      <ResultsTab
-        tournament={tournament}
-        currentUserId={currentUserId}
-        onRequireAuth={onRequireAuth}
-      />
-      <SponsorsTab tournament={tournament} />
+      {/* Mount only the active tab so hidden tabs cannot fetch, poll, or derive standings. */}
+      {resolvedTab === "info" ? (
+        <InfoTab
+          key={tournament.id}
+          tournament={tournament}
+          onParticipationAction={onParticipationAction}
+        />
+      ) : null}
+      {resolvedTab === "matches" ? (
+        <MatchesTab tournament={tournament} currentUserId={currentUserId} />
+      ) : null}
+      {resolvedTab === "results" ? (
+        <ResultsTab
+          tournament={tournament}
+          currentUserId={currentUserId}
+          onRequireAuth={onRequireAuth}
+        />
+      ) : null}
+      {resolvedTab === "sponsors" ? (
+        <SponsorsTab tournament={tournament} />
+      ) : null}
     </Tabs>
   );
 }
-

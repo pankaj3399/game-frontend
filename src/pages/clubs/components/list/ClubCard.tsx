@@ -39,7 +39,7 @@ export function ClubCard({ club }: ClubCardProps) {
         ) : null}
         <span className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-brand-primary">
           {t("clubs.viewDetails")}
-          <ArrowRight className="size-4" />
+          <ArrowRight className="size-4 text-brand-primary" />
         </span>
       </div>
     </Link>

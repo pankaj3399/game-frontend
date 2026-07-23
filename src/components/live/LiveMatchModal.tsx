@@ -1,6 +1,6 @@
 import { type ReactNode, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { IconScanBarcode } from "@/icons/figma-icons";
 import { PlayerNameText } from "@/components/shared/PlayerNameText";
@@ -15,6 +15,7 @@ import LiveModalXIcon from "@/assets/icons/figma/lucide/x.svg?react";
 import LiveModalClockIcon from "@/assets/icons/figma/vuesax/linear/clock.svg?react";
 import LiveModalUserIcon from "@/assets/icons/figma/vuesax/linear/user.svg?react";
 import { getDateFnsLocale } from "@/lib/dateFnsLocale";
+import { useAuth } from "@/pages/auth/hooks";
 import {
   formatLiveMatchTeamLabel,
   normalizeDisplayNameForLabel,
@@ -24,10 +25,6 @@ import { parseIsoDateSafely } from "@/utils/date";
 
 const LIVE_MATCH_IDLE_REOPEN_MS = 10_000;
 const LIVE_BADGE_RED = "#e11d48";
-
-function shouldSuppressLiveMatchModal(pathname: string): boolean {
-  return pathname === "/record-score" || pathname.startsWith("/record-score/");
-}
 
 function formatMatchClockTime(
   startTime: string | null,
@@ -109,19 +106,21 @@ function LiveMatchEnterScoreButton({
 
 export function LiveMatchModal() {
   const { t, i18n } = useTranslation();
-  const { pathname } = useLocation();
+  const { isAuthenticated } = useAuth();
   const [dismissedMatchId, setDismissedMatchId] = useState<string | null>(null);
   const [lastActivityAt, setLastActivityAt] = useState(() => Date.now());
-  const isModalSuppressedForRoute = shouldSuppressLiveMatchModal(pathname);
+  // Route gating lives in MainLayout's LiveMatchGate (allow-list). This modal
+  // only mounts on those routes, so no local pathname deny-list is needed.
+  const liveMatchEnabled = isAuthenticated;
 
-  const liveMatchQuery = useTournamentLiveMatch(!isModalSuppressedForRoute);
+  const liveMatchQuery = useTournamentLiveMatch(liveMatchEnabled);
 
   const liveMatch = liveMatchQuery.data?.liveMatch ?? null;
   const nextMatch = liveMatchQuery.data?.nextMatch ?? null;
 
   useEffect(() => {
     const liveMatchId = liveMatch?.id ?? null;
-    if (isModalSuppressedForRoute || liveMatchId == null || dismissedMatchId !== liveMatchId) {
+    if (!liveMatchEnabled || liveMatchId == null || dismissedMatchId !== liveMatchId) {
       return;
     }
 
@@ -138,11 +137,11 @@ export function LiveMatchModal() {
         window.removeEventListener(eventName, handleActivity);
       });
     };
-  }, [dismissedMatchId, isModalSuppressedForRoute, liveMatch?.id]);
+  }, [dismissedMatchId, liveMatchEnabled, liveMatch?.id]);
 
   useEffect(() => {
     const liveMatchId = liveMatch?.id ?? null;
-    if (isModalSuppressedForRoute || liveMatchId == null || dismissedMatchId !== liveMatchId) {
+    if (!liveMatchEnabled || liveMatchId == null || dismissedMatchId !== liveMatchId) {
       return;
     }
 
@@ -155,15 +154,15 @@ export function LiveMatchModal() {
     }, remainingMs);
 
     return () => window.clearTimeout(timeoutId);
-  }, [dismissedMatchId, isModalSuppressedForRoute, lastActivityAt, liveMatch?.id]);
+  }, [dismissedMatchId, liveMatchEnabled, lastActivityAt, liveMatch?.id]);
 
   const liveTournamentId = liveMatch?.tournament.id ?? null;
   const tournamentMatchesQuery = useTournamentMatches(
     liveTournamentId,
-    !isModalSuppressedForRoute && liveTournamentId !== null,
+    liveMatchEnabled && liveTournamentId !== null,
   );
 
-  if (isModalSuppressedForRoute) {
+  if (!liveMatchEnabled) {
     return null;
   }
 

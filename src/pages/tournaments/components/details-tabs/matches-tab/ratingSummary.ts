@@ -31,19 +31,3 @@ export function teamEloRating(team: Array<TournamentMatchPlayer | null>) {
   }
   return Math.round(rating);
 }
-
-export function withBracketedElo(
-  name: string,
-  team: Array<TournamentMatchPlayer | null>,
-  formatRating?: (rating: number) => string
-) {
-  const rating = teamEloRating(team);
-  const trimmed = name.trim();
-
-  if (!trimmed || rating == null) {
-    return name;
-  }
-
-  const suffix = formatRating ? ` ${formatRating(rating)}` : ` (${rating})`;
-  return `${trimmed}${suffix}`;
-}

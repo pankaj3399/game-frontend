@@ -12,9 +12,19 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
 
     <title>TB10</title>
+    <style>
+      /*
+       * Minimal first-paint shell for all SPA routes. Matches App's bg-gray-50 so
+       * cold loads (e.g. /login) never flash the wrong navbar. Full navbar +
+       * tournaments list chrome is injected only for GET /tournaments at build time.
+       */
+      .tb10-boot-shell { min-height: 100vh; width: 100%; background: #f9fafb; }
+    </style>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <div class="tb10-boot-shell" aria-hidden="true"></div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

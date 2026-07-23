@@ -38,4 +38,4 @@ export {
   isTournamentDistanceFilter,
   isTournamentParticipationFilter,
   isTournamentWhenFilter,
-} from "./types";
+} from "./guards";

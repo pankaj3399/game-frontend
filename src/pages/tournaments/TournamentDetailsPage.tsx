@@ -1,7 +1,8 @@
 import { Link, Navigate, useParams, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { useState } from "react";
+import { Suspense, lazy, useState } from "react";
 import { ShareTextButton } from "@/components/shared/ShareTextButton";
+import InlineLoader from "@/components/shared/InlineLoader";
 import { ChevronLeft, PencilEdit01Icon, Upload01Icon } from "@/icons/figma-icons";
 import { Button } from "@/components/ui/button";
 import {
@@ -19,7 +20,6 @@ import { useAuth, useRequireAuth } from "@/pages/auth/hooks";
 import { TournamentDetailsPageSkeleton } from "@/pages/tournaments/components/TournamentDetailsLoadingSkeletons";
 import { TournamentDetailsTabs } from "@/pages/tournaments/components/details-tabs/TournamentDetailsTabs";
 import { resolveTournamentDetailsTab } from "@/pages/tournaments/components/details-tabs/tabConfig";
-import { CreateTournamentModal } from "@/pages/tournaments/components/CreateTournamentModal";
 import {
   useTournamentById,
   useJoinTournament,
@@ -31,6 +31,12 @@ import { getSafeLink } from "@/lib/url";
 import type { TournamentSponsor } from "@/models/tournament/types";
 import type { TFunction } from "i18next";
 import { toast } from "sonner";
+
+const CreateTournamentModal = lazy(() =>
+  import("@/pages/tournaments/components/CreateTournamentModal").then((mod) => ({
+    default: mod.CreateTournamentModal,
+  })),
+);
 
 function TournamentHeaderSponsorLogo({
   sponsor,
@@ -293,12 +299,29 @@ export default function TournamentDetailsPage() {
           onRequireAuth={requireAuth}
         />
 
-        <CreateTournamentModal
-          open={showEditModal}
-          onOpenChange={setShowEditModal}
-          mode="edit"
-          tournamentId={tournament.id}
-        />
+        {showEditModal ? (
+          <Suspense
+            fallback={
+              <div
+                className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+                role="status"
+                aria-live="polite"
+              >
+                <div className="flex items-center gap-2 rounded-[10px] bg-white px-4 py-3 text-[14px] text-[#010a04] shadow-lg">
+                  <InlineLoader size="sm" />
+                  <span>{t("common.loading")}</span>
+                </div>
+              </div>
+            }
+          >
+            <CreateTournamentModal
+              open={showEditModal}
+              onOpenChange={setShowEditModal}
+              mode="edit"
+              tournamentId={tournament.id}
+            />
+          </Suspense>
+        ) : null}
 
         <AlertDialog open={showLeaveWoConfirm} onOpenChange={setShowLeaveWoConfirm}>
           <AlertDialogContent>

@@ -10,6 +10,9 @@ export const signupFormSchema = z.object({
   gender: z
     .union([z.enum(["male", "female", "other"]), z.literal("")])
     .optional(),
+  acceptedTerms: z.boolean().refine((value) => value === true, {
+    error: "You must accept the User terms to continue",
+  }),
 });
 
 export type SignupFormValues = z.infer<typeof signupFormSchema>;

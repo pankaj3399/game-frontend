@@ -16,6 +16,8 @@ export function useTournamentLiveMatch(enabled = true) {
     queryKey: queryKeys.tournament.liveMatch(),
     queryFn: fetchTournamentLiveMatch,
     enabled,
-    refetchInterval: 30_000,
+    // Poll only while subscribed and enabled; guests / suppressed routes stay off.
+    refetchInterval: enabled ? 30_000 : false,
+    retry: false,
   });
 }

@@ -16,8 +16,11 @@ import { useAllClubs, useClubById } from "@/pages/clubs/hooks";
 import InlineLoader from "@/components/shared/InlineLoader";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-import ListFilterIcon from "@/assets/icons/figma/misc/list-filter.svg?react";
 import { Search01Icon } from "@/icons/figma-icons";
+import {
+  TournamentFilterTrigger,
+  countActiveTournamentFilters,
+} from "./TournamentFilterTrigger";
 
 const FILTER_GREEN = "#006B2B";
 const PILL_GREY = "#7a8078";
@@ -252,11 +255,7 @@ export function TournamentFilters({
           : null)
       : null;
   const selectedClubName = selectedClub?.name;
-
-  useEffect(() => {
-    if (hasHomeClub || draftDistance === "all") return;
-    setDraftDistance("all");
-  }, [draftDistance, hasHomeClub]);
+  const effectiveDraftDistance = hasHomeClub ? draftDistance : "all";
 
   useEffect(() => {
     if (!open || clubSearchOpen || draftClubScope || !draftClubId) return;
@@ -272,17 +271,16 @@ export function TournamentFilters({
     selectedClubName,
   ]);
 
-  const appliedWhenIsActive = (when ?? "all") !== "all";
-  const appliedDistanceIsActive =
-    hasHomeClub && (distance ?? "all") !== "all" && distance !== "over80";
-  const appliedClubIsActive = Boolean(clubId) || clubScope === "favorites";
-  const appliedParticipationIsActive = Boolean(participation) && participation !== undefined;
-
-  const activeFilterCount =
-    (appliedWhenIsActive ? 1 : 0) +
-    (appliedDistanceIsActive ? 1 : 0) +
-    (appliedClubIsActive ? 1 : 0) +
-    (appliedParticipationIsActive ? 1 : 0);
+  const activeFilterCount = countActiveTournamentFilters({
+    when,
+    distance:
+      hasHomeClub && distance && distance !== "all" && distance !== "over80"
+        ? distance
+        : undefined,
+    clubId,
+    clubScope,
+    participation,
+  });
 
   const canClear = activeFilterCount > 0;
 
@@ -373,7 +371,7 @@ export function TournamentFilters({
 
   const hasChanges =
     draftWhen !== (when ?? "all") ||
-    (hasHomeClub ? draftDistance : "all") !== normalizeDistanceForDraft(distance) ||
+    effectiveDraftDistance !== normalizeDistanceForDraft(distance) ||
     (draftClubScope === "favorites"
       ? clubScope !== "favorites"
       : draftClubId !== (clubScope === "favorites" ? undefined : clubId)) ||
@@ -404,7 +402,7 @@ export function TournamentFilters({
   const handleApplyFilters = () => {
     onFiltersChange({
       when: draftWhen,
-      distance: hasHomeClub ? draftDistance : "all",
+      distance: effectiveDraftDistance,
       clubId: draftClubScope === "favorites" ? undefined : draftClubId,
       clubScope: draftClubScope === "favorites" ? "favorites" : undefined,
       participation:
@@ -414,33 +412,14 @@ export function TournamentFilters({
   };
 
   const filterTriggerButton = (
-    <Button
-      variant="outline"
-      size="sm"
-      type="button"
-      className={cn(
-        "h-9 gap-2",
-        activeFilterCount > 0 && "border-brand-primary/40 text-brand-primary",
-      )}
-      {...(variant === "bottom-sheet"
-        ? {
-            "aria-haspopup": "dialog" as const,
-            "aria-expanded": open,
-            "aria-controls": filterSheetContentId,
-          }
-        : {})}
-      onClick={
-        variant === "bottom-sheet" ? () => handlePopoverOpenChange(true) : undefined
-      }
-    >
-      <ListFilterIcon width={14} height={14} aria-hidden className="shrink-0" />
-      {t("tournaments.filters")}
-      {activeFilterCount > 0 && (
-        <span className="ml-0.5 inline-flex h-4.5 min-w-[1.125rem] items-center justify-center rounded-full bg-brand-primary px-1 text-[10px] font-bold leading-none text-white">
-          {activeFilterCount}
-        </span>
-      )}
-    </Button>
+    <TournamentFilterTrigger
+      label={t("tournaments.filters")}
+      activeFilterCount={activeFilterCount}
+      open={open}
+      sheetControlsId={filterSheetContentId}
+      variant={variant}
+      onOpen={() => handlePopoverOpenChange(true)}
+    />
   );
 
   const filterSections = (
@@ -619,7 +598,7 @@ export function TournamentFilters({
             <SectionLabel>{t("tournaments.filterDistance")}</SectionLabel>
             <PillRow
               options={distanceOptions}
-              value={hasHomeClub ? draftDistance : "all"}
+              value={effectiveDraftDistance}
               onChange={setDraftDistance}
               onDisabledClick={() => {
                 toast.info(t("tournaments.filterDistanceRequiresHome"));

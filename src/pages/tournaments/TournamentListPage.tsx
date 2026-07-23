@@ -1,18 +1,17 @@
-import { useCallback, useEffect, useState } from "react";
+import { Suspense, lazy, useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useTranslation } from "react-i18next";
 import { PaginationBar } from "@/components/pagination/PaginationBar";
-import { CreateTournamentModal } from "@/pages/tournaments/components/CreateTournamentModal";
 import { useIsOrganiserOrAbove, useAuth, useRequireAuth } from "@/pages/auth/hooks";
+import type { TournamentFiltersChangePayload } from "@/pages/tournaments/components/TournamentFilters";
 import {
-  TournamentFilters,
-  type TournamentFiltersChangePayload,
-} from "@/pages/tournaments/components/TournamentFilters";
+  TournamentFilterTrigger,
+  countActiveTournamentFilters,
+} from "@/pages/tournaments/components/TournamentFilterTrigger";
 import { TournamentActions } from "@/pages/tournaments/components/TournamentActions";
 import { TournamentTable } from "@/pages/tournaments/components/TournamentTable";
 import { useTournamentFilters } from "@/pages/tournaments/hooks/useTournamentFilters";
-import { useTournamentPermissions } from "@/pages/tournaments/hooks/useTournamentPermissions";
 import { useTournaments } from "./hooks/useTournaments";
 import { useFavoriteClubs } from "@/pages/profile/hooks/useFavoriteClubs";
 import InlineLoader from "@/components/shared/InlineLoader";
@@ -21,9 +20,24 @@ import { cn } from "@/lib/utils";
 import { getErrorMessage } from "@/lib/errors";
 import { TW_BREAKPOINT_LG_PX, useMinWidth } from "@/lib/hooks/useMediaQuery";
 import { TournamentTab, type TournamentListTab } from "@/models/tournament";
-import { RoleGuard } from "@/components/auth/RoleGuard";
-import { ROLES } from "@/constants/roles";
-import { PlusSignIcon, PencilEdit01Icon, IconChevronLeft } from "@/icons/figma-icons";
+
+const CreateTournamentModal = lazy(() =>
+  import("@/pages/tournaments/components/CreateTournamentModal").then((mod) => ({
+    default: mod.CreateTournamentModal,
+  })),
+);
+
+const TournamentFilters = lazy(() =>
+  import("@/pages/tournaments/components/TournamentFilters").then((mod) => ({
+    default: mod.TournamentFilters,
+  })),
+);
+
+const OrganiserListButtons = lazy(() =>
+  import("@/pages/tournaments/components/OrganiserListButtons").then((mod) => ({
+    default: mod.OrganiserListButtons,
+  })),
+);
 
 export default function TournamentListPage() {
   return <TournamentListContent />;
@@ -43,12 +57,12 @@ function TournamentListContent() {
   const { user, loading: authLoading, isAuthenticated } = useAuth();
   const { requireAuth } = useRequireAuth();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [filterApplyPending, setFilterApplyPending] = useState(false);
+  const [isApplyingUserFilters, setIsApplyingUserFilters] = useState(false);
+  const [mobileFiltersMounted, setMobileFiltersMounted] = useState(false);
   const {
     activeTab,
     filters,
-    isFiltersHydrated,
-    effectiveFilters,
+    shapedFilters,
     filtersOpen,
     setFiltersOpen,
     setTab,
@@ -60,12 +74,17 @@ function TournamentListContent() {
   } = useTournamentFilters({
     isOrganiserOrAbove,
     userId: user?.id ?? undefined,
-    isAuthLoading: authLoading,
     viewSearchParam: searchParams.get("view"),
   });
-  const { isDraftTab } = useTournamentPermissions({
-    activeTab,
-  });
+  const isDraftTab = activeTab === TournamentTab.Drafts;
+  const showMobileFilters = mobileFiltersMounted || filtersOpen;
+
+  const openMobileFilters = useCallback(() => {
+    setMobileFiltersMounted(true);
+    setFiltersOpen(true);
+  }, [setFiltersOpen]);
+
+  const openCreateModal = useCallback(() => setIsCreateModalOpen(true), []);
 
   const handleTabChange = useCallback(
     (tab: TournamentListTab) => {
@@ -83,22 +102,42 @@ function TournamentListContent() {
     [isOrganiserOrAbove, setSearchParams, setTab]
   );
 
+  // Favorites only when filters UI needs home/favorites (not on every list cold load).
+  const needsFavoriteClubs =
+    Boolean(user?.id) &&
+    !authLoading &&
+    (filtersOpen ||
+      Boolean(filters.distance) ||
+      filters.clubScope === "favorites");
+
   const { data: favoriteClubsData } = useFavoriteClubs({
-    enabled: Boolean(user?.id) && !authLoading,
+    enabled: needsFavoriteClubs,
   });
   const homeClubIdForFilters = favoriteClubsData?.homeClub?.id ?? null;
   const favoriteClubsCount = favoriteClubsData?.favoriteClubs?.length ?? 0;
 
-  useEffect(() => {
-    if (!authLoading && !homeClubIdForFilters && filters.distance) {
-      setDistanceFromValue("all");
-    }
-  }, [authLoading, filters.distance, homeClubIdForFilters, setDistanceFromValue]);
+  // Clamp distance at query time when home club is unknown/absent — no syncing effect.
+  const listFilters = useMemo(() => {
+    if (homeClubIdForFilters || !shapedFilters.distance) return shapedFilters;
+    return { ...shapedFilters, distance: undefined };
+  }, [shapedFilters, homeClubIdForFilters]);
 
-  const tournamentsQueryEnabled = !authLoading && isFiltersHydrated;
+  const mobileActiveFilterCount = countActiveTournamentFilters({
+    when: filters.when,
+    distance:
+      homeClubIdForFilters &&
+      filters.distance &&
+      filters.distance !== "over80"
+        ? filters.distance
+        : undefined,
+    clubId: filters.clubId,
+    clubScope: filters.clubScope,
+    participation: filters.participation,
+  });
+
   const { data, error, isPending, isFetching, refetch, isLoadingError } = useTournaments(
-    effectiveFilters(),
-    tournamentsQueryEnabled,
+    listFilters,
+    true,
   );
 
   const tournaments = data?.tournaments ?? [];
@@ -106,14 +145,14 @@ function TournamentListContent() {
   const loadErrorDetail = error ? getErrorMessage(error) : null;
   const showFullPageLoadError = isLoadingError || (!data && !!error && !isPending);
   const showRefetchErrorBanner = !!error && !!data && !isPending;
-  const isListBootstrapping = authLoading || !isFiltersHydrated;
-  const showListSkeleton = isListBootstrapping || isPending;
-  const isApplyingUserFilters = filterApplyPending && isFetching;
+  const showListSkeleton = isPending;
+  const showApplyingOverlay = isApplyingUserFilters && isFetching;
 
   useEffect(() => {
-    if (!filterApplyPending || isFetching) return;
-    setFilterApplyPending(false);
-  }, [filterApplyPending, isFetching]);
+    if (!isApplyingUserFilters || isFetching) return;
+    setIsApplyingUserFilters(false);
+  }, [isApplyingUserFilters, isFetching]);
+
   const listHeading =
     activeTab === TournamentTab.Drafts
       ? t("tournaments.tabDrafts")
@@ -138,7 +177,7 @@ function TournamentListContent() {
         setClubFilter({ clubId: next.clubId });
       }
       setParticipationFromValue(next.participation ?? "all");
-      setFilterApplyPending(true);
+      setIsApplyingUserFilters(true);
     },
     [
       homeClubIdForFilters,
@@ -156,67 +195,67 @@ function TournamentListContent() {
         <div className="overflow-hidden rounded-[12px] border border-[rgba(1,10,4,0.08)] bg-white shadow-[0px_3px_15px_0px_rgba(0,0,0,0.06)]">
           <div className="px-4 pb-4 pt-5 sm:px-5 lg:py-4">
             <h1 className="sr-only lg:hidden">{listHeading}</h1>
-            <div className="flex flex-wrap items-center justify-between gap-2 lg:hidden">
-              <TournamentFilters
-                variant="bottom-sheet"
-                open={filtersOpen && !isDesktop}
-                onOpenChange={setFiltersOpen}
-                filters={{
-                  when: filters.when,
-                  distance: filters.distance,
-                  clubId: filters.clubId,
-                  clubScope: filters.clubScope,
-                  participation: filters.participation,
-                }}
-                homeClubId={homeClubIdForFilters}
-                favoriteClubsCount={favoriteClubsCount}
-                isAuthenticated={isAuthenticated}
-                onFiltersChange={handleFiltersChange}
-                isApplyingFilters={isApplyingUserFilters}
-              />
+            {!isDesktop ? (
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              {showMobileFilters ? (
+                <Suspense
+                  fallback={
+                    <TournamentFilterTrigger
+                      label={t("tournaments.filters")}
+                      activeFilterCount={mobileActiveFilterCount}
+                      open={filtersOpen}
+                      onOpen={openMobileFilters}
+                    />
+                  }
+                >
+                  <TournamentFilters
+                    variant="bottom-sheet"
+                    open={filtersOpen}
+                    onOpenChange={setFiltersOpen}
+                    filters={{
+                      when: filters.when,
+                      distance: filters.distance,
+                      clubId: filters.clubId,
+                      clubScope: filters.clubScope,
+                      participation: filters.participation,
+                    }}
+                    homeClubId={homeClubIdForFilters}
+                    favoriteClubsCount={favoriteClubsCount}
+                    isAuthenticated={isAuthenticated}
+                    onFiltersChange={handleFiltersChange}
+                    isApplyingFilters={showApplyingOverlay}
+                  />
+                </Suspense>
+              ) : (
+                <TournamentFilterTrigger
+                  label={t("tournaments.filters")}
+                  activeFilterCount={mobileActiveFilterCount}
+                  open={false}
+                  onOpen={openMobileFilters}
+                />
+              )}
               <div className="flex items-center gap-2">
-                <RoleGuard requireRoleOrAbove={ROLES.ORGANISER}>
-                  {activeTab === TournamentTab.Published ? (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="h-8 border-black/12 bg-white px-2.5 text-[12px]"
-                      onClick={() => handleTabChange(TournamentTab.Drafts)}
-                    >
-                      <PencilEdit01Icon size={14} className="text-foreground" />
-                      <span>{t("tournaments.tabDrafts")}</span>
-                    </Button>
-                  ) : (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="h-8 border-black/12 bg-white px-2.5 text-[12px]"
-                      onClick={() => handleTabChange(TournamentTab.Published)}
-                    >
-                      <IconChevronLeft size={14} className="text-foreground" />
-                      <span>{t("tournaments.tabPublished")}</span>
-                    </Button>
-                  )}
-                  <Button
-                    variant="brand"
-                    size="sm"
-                    onClick={() => setIsCreateModalOpen(true)}
-                  >
-                    <PlusSignIcon size={15} className="text-white" />
-                    <span className="text-[14px] font-medium">{t("tournaments.create")}</span>
-                  </Button>
-                </RoleGuard>
+                {isOrganiserOrAbove ? (
+                  <Suspense fallback={null}>
+                    <OrganiserListButtons
+                      compact
+                      activeTab={activeTab}
+                      onTabChange={handleTabChange}
+                      onCreate={openCreateModal}
+                    />
+                  </Suspense>
+                ) : null}
               </div>
             </div>
-
-            <div className="hidden flex-col gap-4 lg:flex lg:flex-row lg:items-start lg:justify-between lg:gap-6">
+            ) : (
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between lg:gap-6">
               <h1 className="text-2xl font-semibold text-foreground">
                 {listHeading}
               </h1>
               <TournamentActions
                 activeTab={activeTab}
                 onTabChange={handleTabChange}
-                filtersOpen={filtersOpen && isDesktop}
+                filtersOpen={filtersOpen}
                 onFiltersOpenChange={setFiltersOpen}
                 when={filters.when}
                 distance={filters.distance}
@@ -227,10 +266,12 @@ function TournamentListContent() {
                 favoriteClubsCount={favoriteClubsCount}
                 isAuthenticated={isAuthenticated}
                 onFiltersChange={handleFiltersChange}
-                onCreate={() => setIsCreateModalOpen(true)}
-                isApplyingFilters={isApplyingUserFilters}
+                onCreate={openCreateModal}
+                isApplyingFilters={showApplyingOverlay}
+                showOrganiserActions={isOrganiserOrAbove}
               />
             </div>
+            )}
           </div>
 
           {showListSkeleton ? (
@@ -260,13 +301,13 @@ function TournamentListContent() {
           ) : (
             <div
               className="relative min-h-[160px]"
-              aria-busy={isApplyingUserFilters}
+              aria-busy={showApplyingOverlay}
               aria-live="polite"
             >
               <div
                 className={cn(
                   "transition-opacity duration-150",
-                  isApplyingUserFilters && "opacity-55",
+                  showApplyingOverlay && "opacity-55",
                 )}
               >
               {showRefetchErrorBanner ? (
@@ -314,7 +355,7 @@ function TournamentListContent() {
                 />
               )}
               </div>
-              {isApplyingUserFilters ? (
+              {showApplyingOverlay ? (
                 <div
                   className="pointer-events-none fixed inset-x-0 top-[56px] bottom-0 z-40 flex items-center justify-center bg-white/40 lg:top-[60px]"
                   role="status"
@@ -344,12 +385,16 @@ function TournamentListContent() {
         </div>
       </div>
 
-      <CreateTournamentModal
-        open={isCreateModalOpen}
-        onOpenChange={setIsCreateModalOpen}
-        mode="create"
-        tournamentId={null}
-      />
+      {isCreateModalOpen ? (
+        <Suspense fallback={null}>
+          <CreateTournamentModal
+            open={isCreateModalOpen}
+            onOpenChange={setIsCreateModalOpen}
+            mode="create"
+            tournamentId={null}
+          />
+        </Suspense>
+      ) : null}
     </div>
   );
 }
