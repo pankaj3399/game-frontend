@@ -2,8 +2,9 @@ const CONTACT_US_EMAIL = "service.tb10@gmail.com";
 const COMPANY_NAME = "TB10";
 const IBAN = "DE00 0000 0000 0000 0000 00";
 const TB10_SHARE_URL = "https://wwwdev.tiebreak10.eu/";
-/** Public Notion page for User terms. Set via VITE_USER_TERMS_URL when published. */
-const USER_TERMS_URL = (import.meta.env.VITE_USER_TERMS_URL as string | undefined)?.trim() ?? "";
+/** Public Notion page for User terms. */
+const USER_TERMS_URL =
+  "https://fluoridated-macaw-2d3.notion.site/TB10-User-terms-3a67ce3dcff3802f9b8fcc12dbb5bb17";
 
 /**
  * YouTube tutorial videos shown on About.
