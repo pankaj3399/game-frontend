@@ -37,6 +37,8 @@ export function ResultsTab({ tournament, currentUserId, onRequireAuth }: Results
   }
 
   const scheduleMatches = matchesQuery.data?.matches ?? [];
+  const recordedMatchCount = scheduleMatches.filter((match) => match.status === "completed").length;
+  const scheduledMatchCount = scheduleMatches.length;
 
   const results = deriveResults(tournament, scheduleMatches, t("tournaments.unknownPlayer"));
 
@@ -61,6 +63,8 @@ export function ResultsTab({ tournament, currentUserId, onRequireAuth }: Results
             setMyScoreOnly(checked);
           }}
           showSignInHint={!currentUserId}
+          recordedMatchCount={recordedMatchCount}
+          scheduledMatchCount={scheduledMatchCount}
           t={t}
         />
         {resultsContent}

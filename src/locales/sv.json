@@ -828,6 +828,7 @@
     "noResultsYet": "Inga resultat ännu.",
     "noMyResults": "Du finns inte i den här turneringens resultat.",
     "allResults": "Ställning",
+    "standingsScoreBase": "Baserat på {{recorded}} av {{scheduled}} registrerade matcher.",
     "myScoreFilterSignInHint": "Logga in för att filtrera tabellen till din rad.",
     "resultsPosition": "Placering",
     "resultsPlayers": "Spelare",
