@@ -828,6 +828,7 @@
     "noResultsYet": "No results yet.",
     "noMyResults": "You are not in this tournament's results.",
     "allResults": "Standings",
+    "standingsScoreBase": "Based on {{recorded}} of {{scheduled}} matches recorded.",
     "myScoreFilterSignInHint": "Sign in to filter the table to your row.",
     "resultsPosition": "Position",
     "resultsPlayers": "Players",

@@ -804,6 +804,7 @@
     "noResultsYet": "Noch keine Ergebnisse.",
     "noMyResults": "Sie sind nicht in den Ergebnissen dieses Turniers.",
     "allResults": "Alle Ergebnisse",
+    "standingsScoreBase": "Basierend auf {{recorded}} von {{scheduled}} erfassten Spielen.",
     "myScoreFilterSignInHint": "Melden Sie sich an, um die Tabelle nur auf Ihre Zeile zu filtern.",
     "resultsPosition": "Platz",
     "resultsPlayers": "Spieler",

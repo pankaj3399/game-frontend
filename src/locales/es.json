@@ -828,6 +828,7 @@
     "noResultsYet": "Aún no hay resultados.",
     "noMyResults": "No apareces en los resultados de este torneo.",
     "allResults": "Clasificación",
+    "standingsScoreBase": "Basado en {{recorded}} de {{scheduled}} partidos registrados.",
     "myScoreFilterSignInHint": "Inicia sesión para filtrar la tabla a tu fila.",
     "resultsPosition": "Posición",
     "resultsPlayers": "Jugadores",

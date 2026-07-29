@@ -285,10 +285,11 @@ function resolveLatestResolvedRound(matches: TournamentScheduleMatch[]): number 
 }
 
 /**
- * Standings are based on real completed matches from the API.
- * We only include matches up to the latest fully resolved round
- * (every match in the round is completed or cancelled), so the
- * leaderboard updates when a round closes, not mid-round.
+ * Standings include every completed match from the API across all rounds,
+ * so the leaderboard updates after each recorded score.
+ *
+ * Position change is relative to the last fully resolved round when the
+ * frontier has moved past it (mid-round play or after a later round closes).
  */
 export function deriveResults(
   tournament: TournamentDetail,
@@ -300,10 +301,17 @@ export function deriveResults(
     tournament,
     matches,
     unknownLabel,
-    latestResolvedRound
+    Number.POSITIVE_INFINITY
   );
 
-  if (latestResolvedRound <= 1) {
+  const hasCompletedBeyondResolved = matches.some(
+    (match) => match.status === "completed" && match.round > latestResolvedRound
+  );
+  const baselineRound = hasCompletedBeyondResolved
+    ? latestResolvedRound
+    : latestResolvedRound - 1;
+
+  if (baselineRound < 1) {
     return currentStandings;
   }
 
@@ -311,7 +319,7 @@ export function deriveResults(
     tournament,
     matches,
     unknownLabel,
-    latestResolvedRound - 1
+    baselineRound
   );
   const previousPositionById = new Map(
     previousStandings.map((result, index) => [result.id, index + 1])
