@@ -38,7 +38,7 @@ export function ResultsTab({ tournament, currentUserId, onRequireAuth }: Results
 
   const scheduleMatches = matchesQuery.data?.matches ?? [];
   const recordedMatchCount = scheduleMatches.filter((match) => match.status === "completed").length;
-  const scheduledMatchCount = scheduleMatches.length;
+  const scheduledMatchCount = scheduleMatches.filter((match) => match.status !== "cancelled").length;
 
   const results = deriveResults(tournament, scheduleMatches, t("tournaments.unknownPlayer"));
 
