@@ -4,7 +4,10 @@ import { Button } from "@/components/ui/button";
 import { useTranslation } from "react-i18next";
 import { PaginationBar } from "@/components/pagination/PaginationBar";
 import { useIsOrganiserOrAbove, useAuth, useRequireAuth } from "@/pages/auth/hooks";
-import type { TournamentFiltersChangePayload } from "@/pages/tournaments/components/TournamentFilters";
+import {
+  TournamentFilters,
+  type TournamentFiltersChangePayload,
+} from "@/pages/tournaments/components/TournamentFilters";
 import {
   TournamentFilterTrigger,
   countActiveTournamentFilters,
@@ -24,12 +27,6 @@ import { TournamentTab, type TournamentListTab } from "@/models/tournament";
 const CreateTournamentModal = lazy(() =>
   import("@/pages/tournaments/components/CreateTournamentModal").then((mod) => ({
     default: mod.CreateTournamentModal,
-  })),
-);
-
-const TournamentFilters = lazy(() =>
-  import("@/pages/tournaments/components/TournamentFilters").then((mod) => ({
-    default: mod.TournamentFilters,
   })),
 );
 
@@ -58,7 +55,6 @@ function TournamentListContent() {
   const { requireAuth } = useRequireAuth();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isApplyingUserFilters, setIsApplyingUserFilters] = useState(false);
-  const [mobileFiltersMounted, setMobileFiltersMounted] = useState(false);
   const {
     activeTab,
     filters,
@@ -77,12 +73,9 @@ function TournamentListContent() {
     viewSearchParam: searchParams.get("view"),
   });
   const isDraftTab = activeTab === TournamentTab.Drafts;
-  const showMobileFilters = mobileFiltersMounted || filtersOpen;
+  const showMobileFilters = filtersOpen;
 
-  const openMobileFilters = useCallback(() => {
-    setMobileFiltersMounted(true);
-    setFiltersOpen(true);
-  }, [setFiltersOpen]);
+  const openMobileFilters = useCallback(() => setFiltersOpen(true), [setFiltersOpen]);
 
   const openCreateModal = useCallback(() => setIsCreateModalOpen(true), []);
 

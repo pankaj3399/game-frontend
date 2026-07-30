@@ -236,6 +236,7 @@ export function TournamentFilters({
   const selectedClubFromList =
     draftClubId ? clubs.find((club) => club.id === draftClubId) ?? null : null;
   const shouldFetchSelectedClub =
+    open &&
     Boolean(draftClubId) &&
     !draftClubScope &&
     !selectedClubFromState &&
@@ -450,56 +451,56 @@ export function TournamentFilters({
           <div className="min-w-0">
             <SectionLabel id={clubFilterLabelId}>{t("tournaments.filterClub")}</SectionLabel>
 
-            <div ref={clubSearchComboboxRef} className="relative">
-              <Search01Icon
-                size={14}
-                className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-black/35"
-              />
-              <Input
-                value={
-                  draftClubId &&
-                  !draftClubScope &&
-                  !selectedClub &&
-                  (clubsLoading || selectedClubLoading)
-                    ? t("common.loading")
-                    : clubSearch
-                }
-                onChange={(e) => {
-                  const next = e.target.value;
-                  setClubSearch(next);
-                  if (!clubSearchOpen) setClubSearchOpen(true);
-                  if (
+            <div ref={clubSearchComboboxRef}>
+              <div className="relative">
+                <Search01Icon
+                  size={14}
+                  className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-black/35"
+                  aria-hidden
+                />
+                <Input
+                  value={
                     draftClubId &&
                     !draftClubScope &&
-                    selectedClub &&
-                    next !== selectedClub.name
-                  ) {
-                    setDraftClubId(undefined);
-                    setSelectedClubState(null);
+                    !selectedClub &&
+                    (clubsLoading || selectedClubLoading)
+                      ? t("common.loading")
+                      : clubSearch
                   }
-                }}
-                onFocus={() => {
-                  if (!clubSearchOpen) setClubSearchOpen(true);
-                }}
-                onClick={() => {
-                  if (!clubSearchOpen) setClubSearchOpen(true);
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === "Escape") setClubSearchOpen(false);
-                  if (e.key === "ArrowDown" || e.key === "ArrowUp") {
-                    e.preventDefault();
+                  onChange={(e) => {
+                    const next = e.target.value;
+                    setClubSearch(next);
                     if (!clubSearchOpen) setClubSearchOpen(true);
-                    const nextIndex = e.key === "ArrowUp" ? clubOptionCount - 1 : 0;
-                    requestAnimationFrame(() => {
-                      focusClubOptionByIndex(nextIndex);
-                    });
-                  }
-                }}
-                placeholder={t("tournaments.filterClubSearchPlaceholder")}
-                className="h-9 rounded-xl border border-black/12 bg-black/[0.04] pl-9 text-sm text-foreground placeholder:text-black/35 focus:border-[#006B2B]/40 focus:bg-white focus:outline-none"
-                aria-labelledby={clubFilterLabelId}
-                autoComplete="off"
-              />
+                    if (
+                      draftClubId &&
+                      !draftClubScope &&
+                      selectedClub &&
+                      next !== selectedClub.name
+                    ) {
+                      setDraftClubId(undefined);
+                      setSelectedClubState(null);
+                    }
+                  }}
+                  onClick={() => {
+                    if (!clubSearchOpen) setClubSearchOpen(true);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Escape") setClubSearchOpen(false);
+                    if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+                      e.preventDefault();
+                      if (!clubSearchOpen) setClubSearchOpen(true);
+                      const nextIndex = e.key === "ArrowUp" ? clubOptionCount - 1 : 0;
+                      requestAnimationFrame(() => {
+                        focusClubOptionByIndex(nextIndex);
+                      });
+                    }
+                  }}
+                  placeholder={t("tournaments.filterClubSearchPlaceholder")}
+                  className="h-9 rounded-xl border border-black/12 bg-black/[0.04] pl-9 text-sm text-foreground placeholder:text-black/35 focus:border-[#006B2B]/40 focus:bg-white focus:outline-none"
+                  aria-labelledby={clubFilterLabelId}
+                  autoComplete="off"
+                />
+              </div>
 
               {clubSearchOpen && (
                 <div

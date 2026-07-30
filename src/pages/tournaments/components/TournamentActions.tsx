@@ -1,15 +1,9 @@
-import { Suspense, lazy, useState } from "react";
-import { useTranslation } from "react-i18next";
-import type { TournamentFiltersChangePayload } from "./TournamentFilters";
+import { Suspense, lazy } from "react";
 import {
-  TournamentFilterTrigger,
-  countActiveTournamentFilters,
-} from "./TournamentFilterTrigger";
+  TournamentFilters,
+  type TournamentFiltersChangePayload,
+} from "./TournamentFilters";
 import type { TournamentListTab } from "@/models/tournament";
-
-const TournamentFilters = lazy(() =>
-  import("./TournamentFilters").then((mod) => ({ default: mod.TournamentFilters })),
-);
 
 const OrganiserListButtons = lazy(() =>
   import("./OrganiserListButtons").then((mod) => ({
@@ -54,63 +48,24 @@ export function TournamentActions({
   isApplyingFilters = false,
   showOrganiserActions = false,
 }: TournamentActionsProps) {
-  const { t } = useTranslation();
-  const [filtersMounted, setFiltersMounted] = useState(false);
-  const showFilters = filtersMounted || filtersOpen;
-  const activeFilterCount = countActiveTournamentFilters({
-    when,
-    distance:
-      homeClubId && distance && distance !== "all" && distance !== "over80"
-        ? distance
-        : undefined,
-    clubId,
-    clubScope,
-    participation,
-  });
-
-  const openFilters = () => {
-    setFiltersMounted(true);
-    onFiltersOpenChange(true);
-  };
-
   return (
     <div className="flex w-full flex-wrap items-center justify-start gap-2 sm:w-auto sm:justify-end">
-      {showFilters ? (
-        <Suspense
-          fallback={
-            <TournamentFilterTrigger
-              label={t("tournaments.filters")}
-              activeFilterCount={activeFilterCount}
-              open={filtersOpen}
-              onOpen={openFilters}
-            />
-          }
-        >
-          <TournamentFilters
-            open={filtersOpen}
-            onOpenChange={onFiltersOpenChange}
-            filters={{
-              when,
-              distance,
-              clubId,
-              clubScope,
-              participation,
-            }}
-            homeClubId={homeClubId}
-            favoriteClubsCount={favoriteClubsCount}
-            isAuthenticated={isAuthenticated}
-            onFiltersChange={onFiltersChange}
-            isApplyingFilters={isApplyingFilters}
-          />
-        </Suspense>
-      ) : (
-        <TournamentFilterTrigger
-          label={t("tournaments.filters")}
-          activeFilterCount={activeFilterCount}
-          open={false}
-          onOpen={openFilters}
-        />
-      )}
+      <TournamentFilters
+        open={filtersOpen}
+        onOpenChange={onFiltersOpenChange}
+        filters={{
+          when,
+          distance,
+          clubId,
+          clubScope,
+          participation,
+        }}
+        homeClubId={homeClubId}
+        favoriteClubsCount={favoriteClubsCount}
+        isAuthenticated={isAuthenticated}
+        onFiltersChange={onFiltersChange}
+        isApplyingFilters={isApplyingFilters}
+      />
       {showOrganiserActions ? (
         <Suspense fallback={null}>
           <OrganiserListButtons
