@@ -1,3 +1,4 @@
+import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import ListFilterIcon from "@/assets/icons/figma/misc/list-filter.svg?react";
@@ -11,7 +12,10 @@ type TournamentFilterTriggerProps = {
   variant?: "popover" | "bottom-sheet";
   onOpen?: () => void;
   className?: string;
-};
+} & Omit<
+  React.ComponentProps<typeof Button>,
+  "children" | "variant" | "size" | "type" | "className"
+>;
 
 export function countActiveTournamentFilters(filters: {
   when?: string;
@@ -29,17 +33,29 @@ export function countActiveTournamentFilters(filters: {
   ].filter(Boolean).length;
 }
 
-export function TournamentFilterTrigger({
-  label,
-  activeFilterCount,
-  open = false,
-  sheetControlsId,
-  variant = "bottom-sheet",
-  onOpen,
-  className,
-}: TournamentFilterTriggerProps) {
+/**
+ * Must forward ref + unknown props so Radix `PopoverTrigger asChild` can
+ * attach the anchor and open handlers to the real DOM button.
+ */
+export const TournamentFilterTrigger = React.forwardRef<
+  HTMLButtonElement,
+  TournamentFilterTriggerProps
+>(function TournamentFilterTrigger(
+  {
+    label,
+    activeFilterCount,
+    open = false,
+    sheetControlsId,
+    variant = "bottom-sheet",
+    onOpen,
+    className,
+    ...props
+  },
+  ref,
+) {
   return (
     <Button
+      ref={ref}
       variant="outline"
       size="sm"
       type="button"
@@ -48,14 +64,15 @@ export function TournamentFilterTrigger({
         activeFilterCount > 0 && "border-brand-primary/40 text-brand-primary",
         className,
       )}
+      {...props}
       {...(variant === "bottom-sheet"
         ? {
             "aria-haspopup": "dialog" as const,
             "aria-expanded": open,
             ...(sheetControlsId ? { "aria-controls": sheetControlsId } : {}),
+            onClick: onOpen,
           }
         : {})}
-      onClick={variant === "bottom-sheet" ? onOpen : undefined}
     >
       <ListFilterIcon width={14} height={14} aria-hidden className="shrink-0" />
       {label}
@@ -66,4 +83,4 @@ export function TournamentFilterTrigger({
       )}
     </Button>
   );
-}
+});
