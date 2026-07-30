@@ -236,6 +236,7 @@ export function TournamentFilters({
   const selectedClubFromList =
     draftClubId ? clubs.find((club) => club.id === draftClubId) ?? null : null;
   const shouldFetchSelectedClub =
+    open &&
     Boolean(draftClubId) &&
     !draftClubScope &&
     !selectedClubFromState &&
@@ -658,7 +659,6 @@ export function TournamentFilters({
             id={filterSheetContentId}
             side="bottom"
             showCloseButton={false}
-            onOpenAutoFocus={(event) => event.preventDefault()}
             onPointerDown={handleFilterPanelPointerDown}
             className={cn(
               "bottom-[env(safe-area-inset-bottom,0px)] flex w-full min-h-0 flex-col gap-0 overflow-hidden rounded-t-2xl border-0 bg-white p-0",
