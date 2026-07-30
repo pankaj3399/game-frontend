@@ -658,7 +658,8 @@ export function TournamentFilters({
           <SheetContent
             id={filterSheetContentId}
             side="bottom"
-            showCloseButton={false}
+            showCloseButton
+            closeButtonClassName="top-3.5 right-3 text-black/45 hover:bg-black/[0.04] hover:text-black/70 data-[state=open]:bg-transparent"
             onPointerDown={handleFilterPanelPointerDown}
             className={cn(
               "bottom-[env(safe-area-inset-bottom,0px)] flex w-full min-h-0 flex-col gap-0 overflow-hidden rounded-t-2xl border-0 bg-white p-0",
@@ -669,7 +670,11 @@ export function TournamentFilters({
               maxHeight: FILTER_SHEET_HEIGHT,
             }}
           >
-            <SheetTitle className="sr-only">{t("tournaments.filters")}</SheetTitle>
+            <div className="flex shrink-0 items-center px-5 pr-12 pb-1 pt-4">
+              <SheetTitle className="text-[15px] font-semibold leading-none text-foreground">
+                {t("tournaments.filters")}
+              </SheetTitle>
+            </div>
             {filterPanel}
           </SheetContent>
         </Sheet>
