@@ -29,12 +29,17 @@ export default function AboutPage() {
   const backendLabel = versionData ? backendSha : "...";
 
   const handleInviteFriends = async () => {
+    const shareUrl =
+      typeof window !== "undefined"
+        ? new URL("/", window.location.origin).toString()
+        : GLOBAL_PARAMETERS.TB10_URL;
+
     if (typeof navigator !== "undefined" && navigator.share) {
       try {
         await navigator.share(
           shareDataWithUrlInText({
             textBeforeUrl: t("about.inviteShareText"),
-            url: GLOBAL_PARAMETERS.TB10_SHARE_URL,
+            url: shareUrl,
           }),
         );
         return;
@@ -45,7 +50,7 @@ export default function AboutPage() {
 
     if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
       try {
-        await navigator.clipboard.writeText(GLOBAL_PARAMETERS.TB10_SHARE_URL);
+        await navigator.clipboard.writeText(shareUrl);
         toast.success(t("about.linkCopied"));
         return;
       } catch {
@@ -53,7 +58,7 @@ export default function AboutPage() {
       }
     }
 
-    window.open(GLOBAL_PARAMETERS.TB10_SHARE_URL, "_blank", "noopener,noreferrer");
+    window.open(shareUrl, "_blank", "noopener,noreferrer");
   };
 
   return (

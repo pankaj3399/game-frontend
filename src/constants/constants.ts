@@ -1,7 +1,6 @@
 const CONTACT_US_EMAIL = "service.tb10@gmail.com";
 const COMPANY_NAME = "TB10";
 const IBAN = "DE00 0000 0000 0000 0000 00";
-const TB10_SHARE_URL = "https://wwwdev.tiebreak10.eu/";
 /** Public Notion page for User terms. */
 const USER_TERMS_URL =
   "https://fluoridated-macaw-2d3.notion.site/TB10-User-terms-3a67ce3dcff3802f9b8fcc12dbb5bb17";
@@ -18,7 +17,6 @@ export const GLOBAL_PARAMETERS = {
   CONTACT_US_MAILTO: `mailto:${CONTACT_US_EMAIL}`,
   COMPANY_NAME,
   IBAN,
-  TB10_SHARE_URL,
   TB10_URL: "https://www.tiebreak10.eu",
   USER_TERMS_URL,
   GLICKMAN_URL: "https://datascience.harvard.edu/directory/mark-glickman/",
