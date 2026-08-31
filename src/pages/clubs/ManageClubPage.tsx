@@ -467,7 +467,7 @@ export default function ManageClubPage() {
                       showClubCrown={staffData?.subscription?.plan === "premium"}
                       canUpdateExpiry={hasSuperAdminAccess}
                       canAddStaff={canAddStaff}
-                      showSponsorsButton={!hasSuperAdminAccess}
+                      showSponsorsButton
                       onOpenExpiryModal={openPremiumExpiryModal}
                       onOpenAddModal={() => setAddModalOpen(true)}
                     />
